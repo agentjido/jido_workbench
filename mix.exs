@@ -1,9 +1,9 @@
-defmodule PetalBoilerplate.MixProject do
+defmodule JidoWorkbench.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :petal_boilerplate,
+      app: :jido_workbench,
       version: "0.1.0",
       elixir: "~> 1.14",
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -18,7 +18,7 @@ defmodule PetalBoilerplate.MixProject do
   # Type `mix help compile.app` for more information.
   def application do
     [
-      mod: {PetalBoilerplate.Application, []},
+      mod: {JidoWorkbench.Application, []},
       extra_applications: [:logger, :runtime_tools]
     ]
   end
@@ -34,6 +34,7 @@ defmodule PetalBoilerplate.MixProject do
     [
       {:phoenix, "~> 1.7.17"},
       {:phoenix_ecto, "~> 4.5"},
+      {:ecto, "~> 3.12", override: true},
       {:ecto_sql, "~> 3.10"},
       {:postgrex, ">= 0.0.0"},
       {:phoenix_html, "~> 4.1"},
@@ -57,7 +58,9 @@ defmodule PetalBoilerplate.MixProject do
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
       {:petal_components, "~> 2.8.0"},
-      {:rename_project, "~> 0.1.0", only: :dev}
+
+      {:jido, path: "../jido"},
+      {:instructor, github: "thmsmlr/instructor_ex"},
     ]
   end
 

@@ -12,14 +12,20 @@ import Config
 # If you use `mix release`, you need to explicitly enable the server
 # by passing the PHX_SERVER=true when you start it:
 #
-#     PHX_SERVER=true bin/petal_boilerplate start
+#     PHX_SERVER=true bin/jido_workbench start
 #
 # Alternatively, you can use `mix phx.gen.release` to generate a `bin/server`
 # script that automatically sets the env var above.
 if System.get_env("PHX_SERVER") do
-  config :petal_boilerplate, PetalBoilerplateWeb.Endpoint, server: true
+  config :jido_workbench, JidoWorkbenchWeb.Endpoint, server: true
 end
 
+config :instructor,
+  adapter: Instructor.Adapters.Anthropic,
+  anthropic: [
+    api_key:
+      "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"
+  ]
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||
@@ -30,7 +36,7 @@ if config_env() == :prod do
 
   maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
 
-  config :petal_boilerplate, PetalBoilerplate.Repo,
+  config :jido_workbench, JidoWorkbench.Repo,
     # ssl: true,
     url: database_url,
     pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
@@ -51,7 +57,7 @@ if config_env() == :prod do
   host = System.get_env("PHX_HOST") || "example.com"
   port = String.to_integer(System.get_env("PORT") || "4000")
 
-  config :petal_boilerplate, PetalBoilerplateWeb.Endpoint,
+  config :jido_workbench, JidoWorkbenchWeb.Endpoint,
     url: [host: host, port: 443, scheme: "https"],
     http: [
       # Enable IPv6 and bind on all interfaces.
@@ -68,7 +74,7 @@ if config_env() == :prod do
   # To get SSL working, you will need to add the `https` key
   # to your endpoint configuration:
   #
-  #     config :petal_boilerplate, PetalBoilerplateWeb.Endpoint,
+  #     config :jido_workbench, JidoWorkbenchWeb.Endpoint,
   #       https: [
   #         ...,
   #         port: 443,
@@ -90,7 +96,7 @@ if config_env() == :prod do
   # We also recommend setting `force_ssl` in your endpoint, ensuring
   # no data is ever sent via http, always redirecting to https:
   #
-  #     config :petal_boilerplate, PetalBoilerplateWeb.Endpoint,
+  #     config :jido_workbench, JidoWorkbenchWeb.Endpoint,
   #       force_ssl: [hsts: true]
   #
   # Check `Plug.SSL` for all available options in `force_ssl`.
@@ -101,7 +107,7 @@ if config_env() == :prod do
   # Also, you may need to configure the Swoosh API client of your choice if you
   # are not using SMTP. Here is an example of the configuration:
   #
-  #     config :petal_boilerplate, PetalBoilerplate.Mailer,
+  #     config :jido_workbench, JidoWorkbench.Mailer,
   #       adapter: Swoosh.Adapters.Mailgun,
   #       api_key: System.get_env("MAILGUN_API_KEY"),
   #       domain: System.get_env("MAILGUN_DOMAIN")
