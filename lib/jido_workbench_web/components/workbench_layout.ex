@@ -3,36 +3,73 @@ defmodule JidoWorkbenchWeb.WorkbenchLayout do
   use JidoWorkbenchWeb, :live_component
   use PetalComponents
 
-  attr :current_user, :map, required: true
-  attr :current_page, :atom
+  attr(:current_page, :atom)
+  attr(:show_menu, :boolean, default: true)
   slot(:inner_block)
 
   def workbench_layout(assigns) do
+    # <.container class="mt-10">
+    #   <.h1>Jido Workbench</.h1>
+
+    #   <.tabs class="!gap-x-4">
+    #     <.tab link_type="a" is_active={@active_tab == :actions} to="/actions" label="Actions" />
+    #     <.tab
+    #       link_type="a"
+    #       is_active={@active_tab == :settings}
+    #       to="/settings"
+    #       label="Settings"
+    #     />
+    #     <.tab link_type="a" is_active={@active_tab == :home} to="/" label="Components" />
+    #     <.tab link_type="a" is_active={@active_tab == :live} to="/live" label="Live Components" />
+    #     <.tab
+    #       link_type="live_redirect"
+    #       is_active={@active_tab == :form}
+    #       to="/form"
+    #       label="Forms"
+    #     />
+    #   </.tabs>
+    # </.container>
     ~H"""
-    <div class="h-screen overflow-auto">
+    <div class="h-screen overflow-hidden flex flex-col">
       <.nav_bar />
+      <div class="flex flex-1 overflow-hidden">
+        <%= if @show_menu do %>
+          <aside class="w-64 bg-gray-100 dark:bg-gray-900 flex-shrink-0 overflow-y-auto">
+            <.vertical_menu title="Main menu" current_page={@current_page} menu_items={menu_items()} />
+          </aside>
+        <% end %>
 
-      <aside class="w-64">
-        <.container class="mt-10">
-          <.h1>Jido Workbench</.h1>
-        </.container>
-      </aside>
-
-      <.container class="mt-10">
-        <.h1>Jido Workbench</.h1>
-
-        <.tabs class="!gap-x-4">
-          <.tab link_type="a" is_active={@active_tab == :actions} to="/actions" label="Actions" />
-          <.tab link_type="a" is_active={@active_tab == :settings} to="/settings" label="Settings" />
-          <.tab link_type="a" is_active={@active_tab == :home} to="/" label="Components" />
-          <.tab link_type="a" is_active={@active_tab == :live} to="/live" label="Live Components" />
-          <.tab link_type="live_redirect" is_active={@active_tab == :form} to="/form" label="Forms" />
-        </.tabs>
-      </.container>
-
-      {render_slot(@inner_block)}
+        <div class={if @show_menu, do: "flex-1 overflow-y-auto", else: "w-full overflow-y-auto"}>
+          {render_slot(@inner_block)}
+        </div>
+      </div>
     </div>
     """
+  end
+
+  def menu_items() do
+    [
+      %{
+        title: "Admin",
+        menu_items: [
+          %{name: :home, label: "Home", path: ~p"/", icon: "hero-home"},
+          # %{name: :agents, label: "Agents", path: ~p"/agents", icon: "hero-users"},
+          %{name: :actions, label: "Actions", path: ~p"/actions", icon: "hero-bolt"},
+          %{
+            name: :settings,
+            label: "Settings",
+            path: ~p"/settings",
+            icon: "hero-wrench-screwdriver"
+          }
+        ]
+      }
+      # %{
+      #   title: "Bots",
+      #   menu_items: [
+      #     # Menus.get_link(:admin_crypto_bots, current_user)
+      #   ]
+      # }
+    ]
   end
 
   def nav_bar(assigns) do
@@ -93,7 +130,7 @@ defmodule JidoWorkbenchWeb.WorkbenchLayout do
         <a
           target="_blank"
           class="inline-flex items-center gap-2 p-2 text-gray-500 rounded dark:text-gray-400 dark:hover:text-gray-500 hover:text-gray-400 group"
-          href="https://github.com/petalframework/petal_components"
+          href="https://github.com/agentjido/jido"
         >
           <svg
             class="w-5 h-5 fill-gray-500"
@@ -110,24 +147,17 @@ defmodule JidoWorkbenchWeb.WorkbenchLayout do
         <a
           target="_blank"
           class="inline-flex items-center gap-2 p-2 text-gray-500 rounded dark:text-gray-400 dark:hover:text-gray-500 hover:text-gray-400 group"
-          href="https://discord.gg/exbwVbjAct"
+          href="https://hexdocs.pm/jido/"
         >
-          <svg
-            class="w-5 h-5 fill-gray-500"
-            xmlns="http://www.w3.org/2000/svg"
-            data-name="Layer 1"
-            viewBox="0 0 16 16"
-          >
-            <path d="M13.545 2.907a13.227 13.227 0 0 0-3.257-1.011.05.05 0 0 0-.052.025c-.141.25-.297.577-.406.833a12.19 12.19 0 0 0-3.658 0 8.258 8.258 0 0 0-.412-.833.051.051 0 0 0-.052-.025c-1.125.194-2.22.534-3.257 1.011a.041.041 0 0 0-.021.018C.356 6.024-.213 9.047.066 12.032c.001.014.01.028.021.037a13.276 13.276 0 0 0 3.995 2.02.05.05 0 0 0 .056-.019c.308-.42.582-.863.818-1.329a.05.05 0 0 0-.01-.059.051.051 0 0 0-.018-.011 8.875 8.875 0 0 1-1.248-.595.05.05 0 0 1-.02-.066.051.051 0 0 1 .015-.019c.084-.063.168-.129.248-.195a.05.05 0 0 1 .051-.007c2.619 1.196 5.454 1.196 8.041 0a.052.052 0 0 1 .053.007c.08.066.164.132.248.195a.051.051 0 0 1-.004.085 8.254 8.254 0 0 1-1.249.594.05.05 0 0 0-.03.03.052.052 0 0 0 .003.041c.24.465.515.909.817 1.329a.05.05 0 0 0 .056.019 13.235 13.235 0 0 0 4.001-2.02.049.049 0 0 0 .021-.037c.334-3.451-.559-6.449-2.366-9.106a.034.034 0 0 0-.02-.019Zm-8.198 7.307c-.789 0-1.438-.724-1.438-1.612 0-.889.637-1.613 1.438-1.613.807 0 1.45.73 1.438 1.613 0 .888-.637 1.612-1.438 1.612Zm5.316 0c-.788 0-1.438-.724-1.438-1.612 0-.889.637-1.613 1.438-1.613.807 0 1.451.73 1.438 1.613 0 .888-.631 1.612-1.438 1.612Z" />
-          </svg>
+          <.icon name="hero-book-open" solid class="w-5 h-5 m-0.5 mr-2" />
           <span class="hidden font-semibold sm:block">
-            Discussion
+            Docs
           </span>
         </a>
         <a
           target="_blank"
           class="inline-flex items-center gap-2 p-2 text-gray-500 rounded dark:text-gray-400 dark:hover:text-gray-500 hover:text-gray-400 group"
-          href="https://twitter.com/PetalFramework"
+          href="https://x.com/agentjido"
         >
           <svg
             class="w-5 h-5 fill-gray-500"
@@ -145,65 +175,5 @@ defmodule JidoWorkbenchWeb.WorkbenchLayout do
       </div>
     </nav>
     """
-  end
-
-  def menu_items(current_user) do
-    [
-      %{
-        title: "Admin",
-        menu_items: [
-          Menus.get_link(:admin_dashboard, current_user),
-          Menus.get_link(:admin_users, current_user),
-          Menus.get_link(:admin_orgs, current_user),
-          Menus.get_link(:admin_subscriptions, current_user),
-          Menus.get_link(:admin_logs, current_user),
-          Menus.get_link(:admin_jobs, current_user),
-          Menus.get_link(:admin_telegram, current_user),
-          Menus.get_link(:admin_processes, current_user)
-        ]
-      },
-      %{
-        title: "Bots",
-        menu_items: [
-          # Menus.get_link(:admin_crypto_bots, current_user)
-        ]
-      },
-      %{
-        title: "Solana",
-        menu_items: [
-          Menus.get_link(:admin_mitsu, current_user),
-          Menus.get_link(:admin_mitsu_geyser, current_user),
-          # Menus.get_link(:admin_mitsu_websocket, current_user),
-          Menus.get_link(:admin_chains, current_user),
-          Menus.get_link(:admin_hd_accounts, current_user),
-          Menus.get_link(:admin_accounts, current_user),
-          Menus.get_link(:admin_transactions, current_user),
-          Menus.get_link(:admin_tokens, current_user),
-          Menus.get_link(:admin_pools, current_user),
-          Menus.get_link(:admin_prices, current_user)
-        ]
-      },
-      %{
-        title: "Workshop",
-        menu_items: [
-          Menus.get_link(:admin_thunks, current_user),
-          Menus.get_link(:admin_sensors, current_user),
-          Menus.get_link(:admin_domains, current_user),
-          Menus.get_link(:admin_scenarios, current_user)
-        ]
-      },
-      %{
-        title: "Server",
-        menu_items: [
-          %{
-            name: :server,
-            label: gettext("Live dashboard"),
-            path: ~p"/admin/server",
-            icon: "hero-chart-bar-square"
-          },
-          Menus.get_link(:admin_interactive, current_user)
-        ]
-      }
-    ]
   end
 end

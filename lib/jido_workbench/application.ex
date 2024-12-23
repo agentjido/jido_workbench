@@ -17,7 +17,13 @@ defmodule JidoWorkbench.Application do
       # Start Finch
       {Finch, name: JidoWorkbench.Finch},
       # Start the Endpoint (http/https)
-      JidoWorkbenchWeb.Endpoint
+      JidoWorkbenchWeb.Endpoint,
+      # Jido
+      {Task.Supervisor, name: JidoWorkbench.TaskSupervisor},
+      {Jido.Agent.Runtime,
+       agent: JidoWorkbench.Jido.Agent.new("jido"), pubsub: JidoWorkbench.PubSub},
+      JidoChat.Channel.Persistence.ETS,
+      {JidoChat.Channel, name: :jido}
       # Start a worker by calling: JidoWorkbench.Worker.start_link(arg)
       # {JidoWorkbench.Worker, arg}
     ]

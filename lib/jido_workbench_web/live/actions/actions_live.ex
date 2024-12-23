@@ -19,7 +19,7 @@ defmodule JidoWorkbenchWeb.ActionsLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <.workbench_layout active_tab={:actions}>
+    <.workbench_layout current_page={:actions}>
       <.container class="mt-10 mb-32">
         <.h2 underline class="mt-10" label={@page_title} />
 
@@ -27,21 +27,22 @@ defmodule JidoWorkbenchWeb.ActionsLive do
           <:col :let={action} label="Module">{action.module}</:col>
           <:col :let={action} label="Name">{action.name}</:col>
           <:col :let={action} label="Description">{action.description}</:col>
-          <:col :let={action} label="Actions">
-            <.button
-              size="sm"
-              link_type="live_patch"
-              to={~p"/actions/#{action.slug}"}
-              phx-hook="TippyHook"
-              id={"view-action-#{action.name}"}
-              data-tippy-content="View details for Action"
-            >
-              <.icon name="hero-eye" solid class="w-4 h-4 m-0.5" />
-            </.button>
-          </:col>
         </.table>
       </.container>
     </.workbench_layout>
     """
   end
+
+  # <:col :let={action} label="Actions">
+  #   <.button
+  #     size="sm"
+  #     link_type="live_patch"
+  #     to={~p"/actions/#{action.slug}"}
+  #     phx-hook="TippyHook"
+  #     id={"view-action-#{action.name}"}
+  #     data-tippy-content="View details for Action"
+  #   >
+  #     <.icon name="hero-eye" solid class="w-4 h-4 m-0.5" />
+  #   </.button>
+  # </:col>
 end

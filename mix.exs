@@ -58,9 +58,11 @@ defmodule JidoWorkbench.MixProject do
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
       {:petal_components, "~> 2.8.0"},
-
-      {:jido, path: "../jido"},
-      {:instructor, github: "thmsmlr/instructor_ex"},
+      {:jido, path: "../jido", override: true},
+      {:jido_chat, path: "../jido_chat"},
+      {:jido_ai, path: "../jido_ai"},
+      {:makeup, "~> 1.2"},
+      {:makeup_elixir, "~> 1.0"}
     ]
   end
 

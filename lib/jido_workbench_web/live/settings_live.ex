@@ -1,6 +1,6 @@
 defmodule JidoWorkbenchWeb.SettingsLive do
   use JidoWorkbenchWeb, :live_view
-
+  import JidoWorkbenchWeb.WorkbenchLayout
   # Module param map for settings
   @settings [
     # %{
@@ -51,6 +51,7 @@ defmodule JidoWorkbenchWeb.SettingsLive do
   @impl true
   def handle_event("save_settings", %{"settings" => form_settings}, socket) do
     updated_settings = update_settings(form_settings)
+
     {:noreply,
      socket
      |> assign(settings: updated_settings)
@@ -60,7 +61,10 @@ defmodule JidoWorkbenchWeb.SettingsLive do
   defp load_settings do
     Enum.map(@settings, fn setting ->
       app = List.first(setting.config_path)
-      value = get_in(Application.get_all_env(app), Enum.drop(setting.config_path, 1)) || setting.default
+
+      value =
+        get_in(Application.get_all_env(app), Enum.drop(setting.config_path, 1)) || setting.default
+
       Map.put(setting, :value, value)
     end)
   end
@@ -77,31 +81,33 @@ defmodule JidoWorkbenchWeb.SettingsLive do
 
   def render(assigns) do
     ~H"""
-    <.container class="mt-10 mb-32">
-      <.h2 underline class="mt-10" label="Jido Workbench Settings" />
-      <.form for={%{}} phx-submit="save_settings">
-        <%= for group <- Enum.uniq(Enum.map(@settings, & &1.group)) do %>
-          <.h3 class="mt-6" label={Phoenix.Naming.humanize(group)} />
-          <%= for setting <- Enum.filter(@settings, & &1.group == group) do %>
-            <div class="mt-4">
-              <.form_label for={setting.key}><%= setting.name %></.form_label>
-              <%= case setting.type do %>
-                <% :string -> %>
-                  <.text_input type="text" name={"settings[#{setting.key}]"} value={setting.value} />
-                <% :select -> %>
-                  <.select
-                    options={setting.options}
-                    name={"settings[#{setting.key}]"}
-                    selected={setting.value}
-                  />
-              <% end %>
-              <.form_label class="text-sm text-gray-600"><%= setting.description %></.form_label>
-            </div>
+    <.workbench_layout current_page={:settings}>
+      <.container class="mt-10 mb-32">
+        <.h2 underline class="mt-10" label="Jido Workbench Settings" />
+        <.form for={%{}} phx-submit="save_settings">
+          <%= for group <- Enum.uniq(Enum.map(@settings, & &1.group)) do %>
+            <.h3 class="mt-6" label={Phoenix.Naming.humanize(group)} />
+            <%= for setting <- Enum.filter(@settings, & &1.group == group) do %>
+              <div class="mt-4">
+                <.form_label for={setting.key}>{setting.name}</.form_label>
+                <%= case setting.type do %>
+                  <% :string -> %>
+                    <.text_input type="text" name={"settings[#{setting.key}]"} value={setting.value} />
+                  <% :select -> %>
+                    <.select
+                      options={setting.options}
+                      name={"settings[#{setting.key}]"}
+                      selected={setting.value}
+                    />
+                <% end %>
+                <.form_label class="text-sm text-gray-600">{setting.description}</.form_label>
+              </div>
+            <% end %>
           <% end %>
-        <% end %>
-        <.button class="mt-6" label="Save Settings" />
-      </.form>
-    </.container>
+          <.button class="mt-6" label="Save Settings" />
+        </.form>
+      </.container>
+    </.workbench_layout>
     """
   end
 end

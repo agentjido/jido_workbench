@@ -22,7 +22,7 @@ defmodule JidoWorkbenchWeb.Router do
     live("/jido", JidoLive, :index)
 
     live("/actions", ActionsLive, :index)
-    live("/action/:slug", ActionsShowLive, :index)
+    # live("/action/:slug", ActionsShowLive, :index)
     # live("/action/generate", ActionsGenerateLive, :index)
 
     # live("/workflows", WorkflowsLive, :index)
@@ -46,7 +46,7 @@ defmodule JidoWorkbenchWeb.Router do
     # live("/prompt/generate", PromptsGenerateLive, :index)
 
     # live("/chat", ChatLive, :index)
-    # live("/chat/:room_slug", ChatRoomLive, :index)
+    # live("/chat/:channel_slug", ChatChannelLive, :index)
 
     # live("/deployment", DeploymentLive, :index)
 
