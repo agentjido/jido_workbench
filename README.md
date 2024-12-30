@@ -1,4 +1,6 @@
-# Petal Boilerplate
+# Jido Workbench
+
+_SUPER WIP - but the goal is to make this a 1-click deployable Workbench to Fly.io for playing with Jido_
 
 A clean install of the Phoenix 1.7 (RC) along with:
 - Alpine JS - using a CDN to avoid needing `node_modules`
