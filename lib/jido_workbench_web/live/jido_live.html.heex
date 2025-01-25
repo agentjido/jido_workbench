@@ -1,0 +1,133 @@
+<.workbench_layout current_page={:jido}>
+  <div class="max-w-4xl mx-auto px-4 py-6">
+    <div class="flex flex-col h-[85vh] bg-gray-50 dark:bg-gray-900 rounded-lg shadow-lg">
+      <!-- Header -->
+      <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-4">
+            <div class="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center">
+              <span class="text-white font-semibold text-lg">J</span>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-gray-900 dark:text-white">
+                Chat with Agent Jido
+              </h2>
+              <div class="flex items-center">
+                <div class="relative h-2 w-2 mr-2">
+                  <span class="absolute inline-flex h-2 w-2 rounded-full bg-green-400 opacity-75 animate-ping">
+                  </span>
+                </div>
+                <span class="text-sm text-gray-500 dark:text-gray-400">Online</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center space-x-4">
+            <.button
+              phx-click="add_agent"
+              class="px-4 py-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white"
+            >
+              Add Agent
+            </.button>
+            <div class="text-sm text-gray-500 dark:text-gray-400">
+              {@agent_count} agents
+            </div>
+          </div>
+        </div>
+      </div>
+      
+<!-- Messages Container -->
+      <div
+        id="messages-container"
+        phx-hook="ScrollBottom"
+        class="flex-1 overflow-y-auto px-6 py-4 space-y-4"
+      >
+        <%= for message <- @messages do %>
+          <div class={message_justify_class(message.participant_id)}>
+            <div class={"flex max-w-[70%] gap-3 #{message_flex_direction(message.participant_id)}"}>
+              <!-- Avatar -->
+              <div class="flex-shrink-0">
+                <.avatar name={get_participant_name(message.participant_id)} random_color />
+              </div>
+              
+<!-- Message Content -->
+              <div class="flex flex-col">
+                <div class={message_header_class(message.participant_id)}>
+                  {get_participant_name(message.participant_id)}
+                </div>
+                <div class={message_content_class(message.participant_id)}>
+                  {Phoenix.HTML.raw(message.content)}
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+        
+<!-- Typing Indicator -->
+        <%= if @is_typing do %>
+          <div class="flex justify-start">
+            <div class="flex max-w-[70%] gap-3">
+              <div class="flex-shrink-0">
+                <.avatar name={get_participant_name("jido")} random_color />
+              </div>
+              <div class="flex flex-col">
+                <div class={message_header_class("jido")}>
+                  {get_participant_name("jido")}
+                </div>
+                <div class="rounded-2xl max-w-prose break-words bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-tl-none">
+                  <div class="flex items-center space-x-2 px-4 py-4">
+                    <div
+                      class="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-300 animate-bounce"
+                      style="animation-delay: 0ms"
+                    >
+                    </div>
+                    <div
+                      class="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-300 animate-bounce"
+                      style="animation-delay: 150ms"
+                    >
+                    </div>
+                    <div
+                      class="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-300 animate-bounce"
+                      style="animation-delay: 300ms"
+                    >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+      
+<!-- Input Area -->
+      <div class="border-t border-gray-200 dark:border-gray-700 px-6 py-4 bg-white dark:bg-gray-800 rounded-b-lg">
+        <form phx-submit="send_message" class="flex items-center space-x-4">
+          <div class="flex-1 relative">
+            <.text_input
+              type="text"
+              name="message"
+              placeholder="Type your message..."
+              class="w-full pl-4 pr-12 py-3 rounded-full border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+              autocomplete="off"
+              phx-hook="MessageHistory"
+              phx-keydown="keydown"
+            />
+          </div>
+          <.button
+            type="submit"
+            class="inline-flex items-center px-6 py-3 rounded-full bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+            </svg>
+            <span class="ml-2">Send</span>
+          </.button>
+        </form>
+      </div>
+    </div>
+  </div>
+</.workbench_layout>
