@@ -14,51 +14,23 @@ defmodule JidoWorkbenchWeb.JidoLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    # Start DynamicSupervisor for managing multiple chat agents
-    {:ok, supervisor_pid} = DynamicSupervisor.start_link(strategy: :one_for_one)
-
-    # Start initial chat agent under supervisor
-    {:ok, agent_pid} = DynamicSupervisor.start_child(supervisor_pid, ChatAgent)
-    agent = ChatAgent.get_state(agent_pid)
+    agent = ChatAgent.new(UUID.uuid4(), %{messages: []})
+    initial_message = format_message("jido", "Hello, I'm Jido, what's your name?")
 
     {:ok,
      assign(socket,
-       messages: [],
+       messages: [initial_message],
        message_history: [],
        history_index: 0,
        is_typing: false,
-       supervisor_pid: supervisor_pid,
-       agent_pids: [agent_pid],
-       agent: agent,
-       agent_count: 1,
-       current_agent_index: 0,
-       round_robin_active: true
+       agent: agent
      )}
-  end
-
-  def handle_event("add_agent", _params, socket) do
-    {:ok, new_agent_pid} = DynamicSupervisor.start_child(socket.assigns.supervisor_pid, ChatAgent)
-
-    socket =
-      socket
-      |> assign(
-        agent_pids: socket.assigns.agent_pids ++ [new_agent_pid],
-        agent_count: socket.assigns.agent_count + 1
-      )
-      |> put_flash(:info, "New agent added to chat")
-
-    {:noreply, socket}
   end
 
   def handle_event("send_message", %{"message" => content}, socket) when content != "" do
     Logger.info("User sent a message: #{content}")
-
     socket = add_user_message(socket, content)
-
-    case process_chat_responses(socket) do
-      {:ok, updated_socket} -> {:noreply, updated_socket}
-      {:error, error_socket} -> {:noreply, error_socket}
-    end
+    process_chat_response(socket)
   end
 
   def handle_event("send_message", _params, socket), do: {:noreply, socket}
@@ -81,27 +53,24 @@ defmodule JidoWorkbenchWeb.JidoLive do
 
   def handle_event("keydown", _params, socket), do: {:noreply, socket}
 
-  @impl true
-  def terminate(_reason, %{assigns: %{supervisor_pid: supervisor_pid}}) do
-    # Cleanup the DynamicSupervisor and all child processes when the LiveView terminates
-    Process.exit(supervisor_pid, :normal)
-    :ok
-  end
-
   defp add_user_message(socket, content) do
     message_history = [content | socket.assigns.message_history] |> Enum.take(50)
     messages = socket.assigns.messages ++ [format_message("operator", content)]
     assign(socket, messages: messages, message_history: message_history)
   end
 
-  defp process_chat_responses(socket) do
+  defp process_chat_response(socket) do
     history = build_chat_history(socket.assigns.messages)
     params = build_chat_params(history)
+    agent = socket.assigns.agent
 
-    case get_agent_responses(socket, params) do
-      {:ok, responses} ->
-        updated_messages = socket.assigns.messages ++ responses
-        {:ok, assign(socket, messages: updated_messages, is_typing: false, history_index: 0)}
+    case agent
+         |> ChatAgent.set(params)
+         |> ChatAgent.plan()
+         |> ChatAgent.run() do
+      {:ok, %{response: response}, _agent} ->
+        updated_messages = socket.assigns.messages ++ [format_message("jido", response)]
+        {:noreply, assign(socket, messages: updated_messages, is_typing: false, history_index: 0)}
 
       {:error, reason} ->
         Logger.error("Chat response failed: #{inspect(reason)}")
@@ -109,7 +78,7 @@ defmodule JidoWorkbenchWeb.JidoLive do
         error_message =
           format_message("jido", "Sorry, I encountered an error. Please try again in a moment.")
 
-        {:error,
+        {:noreply,
          assign(socket, messages: socket.assigns.messages ++ [error_message], is_typing: false)}
     end
   end
@@ -132,33 +101,6 @@ defmodule JidoWorkbenchWeb.JidoLive do
     }
   end
 
-  defp get_agent_responses(socket, params) do
-    # Get responses from agents, filtering out nils
-    responses =
-      socket.assigns.agent_pids
-      |> Enum.with_index(1)
-      |> Enum.map(fn {pid, index} -> get_single_response(pid, params, index) end)
-      |> Enum.filter(fn
-        {:ok, response} when not is_nil(response) -> true
-        _ -> false
-      end)
-      |> Enum.map(fn {:ok, response} -> response end)
-
-    case responses do
-      [] -> {:error, :no_responses}
-      responses -> {:ok, responses}
-    end
-  end
-
-  defp get_single_response(agent_pid, params, agent_num) when not is_nil(agent_pid) do
-    case ChatAgent.chat_response(agent_pid, params) do
-      {:ok, response} -> {:ok, format_message("jido_#{agent_num}", response)}
-      {:error, reason} -> {:error, reason}
-    end
-  end
-
-  defp get_single_response(nil, _params, _agent_num), do: {:ok, nil}
-
   defp format_message(participant_id, content) do
     formatted_content =
       content
@@ -174,7 +116,6 @@ defmodule JidoWorkbenchWeb.JidoLive do
   end
 
   defp format_code_blocks(content) do
-    # Replace markdown code blocks with formatted HTML
     Regex.replace(~r/```(\w*)\n(.*?)```/s, content, fn _, lang, code ->
       """
       <div class="code-block">
@@ -186,26 +127,14 @@ defmodule JidoWorkbenchWeb.JidoLive do
   end
 
   defp format_line_breaks(content) do
-    # Replace newlines with <br> tags
     String.replace(content, "\n", "<br>")
   end
 
   defp get_participant_name(participant_id) do
     case participant_id do
-      "operator" ->
-        "Operator"
-
-      "jido" ->
-        "Agent Jido"
-
-      id when is_binary(id) ->
-        case Integer.parse(String.replace(id, "jido_", "")) do
-          {num, ""} -> "Agent Jido #{num}"
-          _ -> id
-        end
-
-      _ ->
-        participant_id
+      "operator" -> "Operator"
+      "jido" -> "Agent Jido"
+      _ -> participant_id
     end
   end
 
@@ -226,9 +155,9 @@ defmodule JidoWorkbenchWeb.JidoLive do
     base_class = "rounded-2xl px-4 py-2 max-w-prose break-words "
 
     if participant_id == "operator" do
-      base_class <> "bg-blue-500 text-white rounded-tr-none"
+      base_class <> "bg-lime-500 text-zinc-900 rounded-tr-none"
     else
-      base_class <> "bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-tl-none"
+      base_class <> "bg-zinc-800 text-gray-100 rounded-tl-none"
     end
   end
 end
