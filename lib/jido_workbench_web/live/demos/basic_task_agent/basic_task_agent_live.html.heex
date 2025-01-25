@@ -1,0 +1,101 @@
+<.workbench_layout current_page={:demo} show_layout={@show_layout}>
+  <div class="min-h-screen bg-zinc-900 text-gray-100">
+    <div class="max-w-4xl mx-auto px-4 py-6">
+      <div class="mb-8">
+        <h1 class="text-2xl font-bold text-lime-500 mb-4">Basic Task Agent Demo</h1>
+        <p class="text-zinc-400 mb-4">
+          This demo showcases a simple task management system built using Jido Agents. It demonstrates:
+        </p>
+        <ul class="list-disc list-inside text-zinc-400 mb-6 ml-4">
+          <li>Basic agent state management with tasks</li>
+          <li>Action handling for creating, updating, and completing tasks</li>
+          <li>Real-time UI updates reflecting agent state changes</li>
+          <li>Integration between Phoenix LiveView and Jido Agents</li>
+        </ul>
+        <p class="text-zinc-400 mb-4">
+          <em>Agent state is not persisted, so it will reset when the page is refreshed.</em>
+        </p>
+
+        <div class="mt-6 space-x-4">
+          <.button
+            label="Add Task"
+            phx-click="add_task"
+            class="bg-lime-500 hover:bg-lime-600 text-zinc-900"
+          />
+        </div>
+      </div>
+
+      <div class="mt-6">
+        <h2 class="text-xl font-semibold text-lime-500 mb-4">Tasks</h2>
+        <div class="space-y-4">
+          <%= if Enum.empty?(@agent.state.tasks) do %>
+            <div class="text-zinc-400 text-center py-4 bg-zinc-800 rounded-lg border border-zinc-700">
+              No tasks yet. Click "Add Task" to create one.
+            </div>
+          <% else %>
+            <%= for task <- @agent.state.tasks do %>
+              <div class="bg-zinc-800 p-4 rounded-lg border border-zinc-700">
+                <div class="flex justify-between items-start">
+                  <div class="flex items-start gap-4">
+                    <input
+                      type="checkbox"
+                      checked={task.status == :completed}
+                      phx-click="complete_task"
+                      phx-value-task_id={task.id}
+                      class="mt-1.5 h-4 w-4 rounded border-zinc-600 bg-zinc-700 text-lime-500 focus:ring-lime-500"
+                      disabled={task.status == :completed}
+                    />
+                    <div>
+                      <h3 class={"text-lg font-medium text-gray-100 #{if task.status == :completed, do: "line-through", else: ""}"}>
+                        {task.title}
+                      </h3>
+                      <p class={"text-sm text-zinc-400 #{if task.status == :completed, do: "line-through", else: ""}"}>
+                        {task.description}
+                      </p>
+                      <div class="mt-2 flex gap-2 text-sm">
+                        <span class="px-2 py-1 rounded-full bg-zinc-700 text-lime-500 border border-lime-500">
+                          {task.status}
+                        </span>
+                        <span class="px-2 py-1 rounded-full bg-zinc-700 text-purple-400 border border-purple-500">
+                          {task.priority}
+                        </span>
+                        <%= if task.due_date do %>
+                          <span class="px-2 py-1 rounded-full bg-zinc-700 text-emerald-400 border border-emerald-500">
+                            Due: {Calendar.strftime(task.due_date, "%Y-%m-%d")}
+                          </span>
+                        <% end %>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex gap-2">
+                    <%= if task.status != :completed do %>
+                      <.button
+                        label="Update"
+                        phx-click="update_task"
+                        phx-value-task_id={task.id}
+                        size="sm"
+                        class="bg-lime-500 hover:bg-lime-600 text-zinc-900"
+                      />
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+
+      <%= if @agent do %>
+        <div
+          id="agent-state"
+          class="mt-6 p-4 bg-zinc-800 rounded-lg border border-zinc-700 overflow-x-auto"
+          phx-hook="Highlight"
+        >
+          <pre><code class="language-elixir">
+          <%= inspect(@agent, pretty: true, width: 80) %>
+        </code></pre>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</.workbench_layout>

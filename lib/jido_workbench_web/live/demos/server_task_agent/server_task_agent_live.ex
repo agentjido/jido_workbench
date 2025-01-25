@@ -3,6 +3,18 @@ defmodule JidoWorkbenchWeb.ServerTaskAgentLive do
   import JidoWorkbenchWeb.WorkbenchLayout
   alias JidoWorkbench.Jido.ServerTaskAgent
 
+  def __jido_demo__ do
+    %JidoWorkbench.JidoDemo.Demo{
+      id: :server_task_agent,
+      name: "Server Task Agent",
+      description: "A simple task management system built using Jido Agents.",
+      icon: "hero-check-circle",
+      module: __MODULE__,
+      category: "Task Management",
+      source_files: ["lib/jido_workbench_web/live/demos/server_task_agent_live.ex"]
+    }
+  end
+
   @impl true
   def mount(_params, _session, socket) do
     {:ok, agent_pid} = ServerTaskAgent.start_link()

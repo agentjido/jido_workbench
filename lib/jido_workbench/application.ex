@@ -15,7 +15,7 @@ defmodule JidoWorkbench.Application do
       # Start Finch
       {Finch, name: JidoWorkbench.Finch},
       # Start the Endpoint (http/https)
-      JidoWorkbenchWeb.Endpoint,
+      JidoWorkbenchWeb.Endpoint
       # Jido
       # {JidoWorkbench.AgentJido, name: AgentJido}
       # # Jido

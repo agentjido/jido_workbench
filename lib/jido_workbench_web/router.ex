@@ -21,6 +21,7 @@ defmodule JidoWorkbenchWeb.Router do
 
     live("/jido", JidoLive, :index)
 
+    # Jido Catalog
     live("/catalog", CatalogLive, :index)
     live("/catalog/actions", CatalogActionsLive, :index)
     live("/catalog/agents", CatalogAgentsLive, :index)
@@ -28,42 +29,11 @@ defmodule JidoWorkbenchWeb.Router do
     live("/catalog/skills", CatalogSkillsLive, :index)
     live("/settings", SettingsLive, :index)
 
-    live("/hello-world", HelloWorldLive, :index)
-    live("/eboss", EbossLive, :index)
-    live("/demo/basic-task-agent", BasicTaskAgentLive, :index)
-    live("/demo/server-task-agent", ServerTaskAgentLive, :index)
-    live("/demo/choose-tool-agent", ChooseToolAgentLive, :index)
+    # Jido Demos
+    live("/demo/", DemoIndexLive, :index)
+    live("/demo/:demo_id", DemoShowLive, :index)
 
-    # live("/actions", ActionsLive, :index)
-    # live("/actions/:slug", ActionsLive, :show)
-    # live("/action/generate", ActionsGenerateLive, :index)
-
-    # live("/workflows", WorkflowsLive, :index)
-    # live("/workflow/:slug", WorkflowsShowLive, :index)
-    # live("/workflow/generate", WorkflowsGenerateLive, :index)
-
-    # live("/agents", AgentsLive, :index)
-    # live("/agent/:slug", AgentsShowLive, :index)
-    # live("/agent/generate", AgentsGenerateLive, :index)
-
-    # live("/characters", CharactersLive, :index)
-    # live("/character/:slug", CharactersShowLive, :index)
-    # live("/character/generate", CharactersGenerateLive, :index)
-
-    # live("/sensors", SensorsLive, :index)
-    # live("/sensor/:slug", SensorsShowLive, :index)
-    # live("/sensor/generate", SensorsGenerateLive, :index)
-
-    # live("/prompts", PromptsLive, :index)
-    # live("/prompt/:slug", PromptsShowLive, :index)
-    # live("/prompt/generate", PromptsGenerateLive, :index)
-
-    # live("/chat", ChatLive, :index)
-    # live("/chat/:channel_slug", ChatChannelLive, :index)
-
-    # live("/deployment", DeploymentLive, :index)
-
-    # Boilerplate Helpers
+    # Petal Boilerplate Helpers
     live("/form", FormLive, :index)
     live("/live", PageLive, :index)
     live("/live/modal/:size", PageLive, :modal)

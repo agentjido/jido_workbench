@@ -3,35 +3,62 @@ defmodule JidoWorkbenchWeb.WorkbenchLayout do
   use JidoWorkbenchWeb, :live_component
   use PetalComponents
   alias JidoWorkbenchWeb.MenuItems
+  alias JidoWorkbenchWeb.CoreComponents
+
+  # Add helper function for determining show_layout
+  def show_layout(params, session) do
+    cond do
+      is_map(params) && Map.has_key?(params, "show_layout") -> params["show_layout"]
+      is_map(session) && Map.has_key?(session, "show_layout") -> session["show_layout"]
+      true -> true
+    end
+  end
 
   attr(:current_page, :atom)
   attr(:show_menu, :boolean, default: true)
+  attr(:show_layout, :boolean, default: true)
   slot(:inner_block)
 
   def workbench_layout(assigns) do
     ~H"""
-    <div class="h-screen overflow-hidden flex flex-col">
-      <.nav_bar />
-      <div class="flex flex-1 overflow-hidden">
-        <%= if @show_menu do %>
-          <aside class="w-64 bg-zinc-900 flex-shrink-0 overflow-y-auto">
-            <.vertical_menu
-              title="Main menu"
-              current_page={@current_page}
-              menu_items={MenuItems.menu_items()}
-            />
-          </aside>
-        <% end %>
+    <%= if @show_layout do %>
+      <div class="h-screen overflow-hidden flex flex-col">
+        <.nav_bar />
+        <div class="flex flex-1 overflow-hidden">
+          <%= if @show_menu do %>
+            <aside class="w-64 bg-zinc-900 flex-shrink-0 overflow-y-auto">
+              <.vertical_menu
+                title="Main menu"
+                current_page={@current_page}
+                menu_items={MenuItems.menu_items()}
+              />
+            </aside>
+          <% end %>
 
-        <div class={[
-          "flex-1 overflow-y-auto ml-2",
-          "bg-zinc-900",
-          if(@show_menu, do: "", else: "w-full")
-        ]}>
-          {render_slot(@inner_block)}
+          <div class={[
+            "flex-1 overflow-y-auto ml-2",
+            "bg-zinc-900",
+            if(@show_menu, do: "", else: "w-full")
+          ]}>
+            {render_slot(@inner_block)}
+          </div>
         </div>
+        <footer class="bg-zinc-900 text-zinc-400 text-sm py-4 px-6 border-t border-zinc-800">
+          <div class="flex justify-between items-center">
+            <div>
+              © {DateTime.utc_now().year} Jido. All rights reserved.
+            </div>
+            <div class="flex gap-4">
+              <a href="https://hexdocs.pm/jido" class="hover:text-lime-500">Documentation</a>
+              <a href="https://github.com/agentjido/jido" class="hover:text-lime-500">GitHub</a>
+              <a href="https://x.com/agentjido" class="hover:text-lime-500">Twitter</a>
+            </div>
+          </div>
+        </footer>
       </div>
-    </div>
+    <% else %>
+      {render_slot(@inner_block)}
+    <% end %>
     """
   end
 
@@ -40,7 +67,7 @@ defmodule JidoWorkbenchWeb.WorkbenchLayout do
     <nav class="sticky top-0 z-50 flex items-center justify-between w-full h-16 bg-zinc-900">
       <div class="flex flex-wrap ml-3 sm:flex-nowrap sm:ml-10">
         <a class="inline-flex hover:opacity-90" href="/">
-          <div class="font-['VT323'] text-5xl text-gray-700 dark:text-white tracking-wide">
+          <div class="font-['VT323'] text-5xl text-gray-700 dark:text-lime-500 tracking-wide">
             JIDO WORKBENCH
           </div>
         </a>

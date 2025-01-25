@@ -64,9 +64,8 @@ defmodule JidoWorkbench.MixProject do
       {:instructor, github: "thmsmlr/instructor_ex", override: true},
       {:langchain, "~> 0.3.0-rc.1"},
 
-      # Syntax Highlighting
-      {:makeup, "~> 1.2"},
-      {:makeup_elixir, "~> 1.0"},
+      # Markdown
+      {:earmark, "~> 1.4"},
 
       # Env Vars
       {:dotenvy, "~> 0.9.0"},

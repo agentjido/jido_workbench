@@ -3,6 +3,19 @@ defmodule JidoWorkbenchWeb.ChooseToolAgentLive do
   import JidoWorkbenchWeb.WorkbenchLayout
   alias JidoWorkbench.Jido.ChooseToolAgent
 
+  def __jido_demo__ do
+    %JidoWorkbench.JidoDemo.Demo{
+      id: :choose_tool_agent,
+      name: "Choose Tool Agent",
+      description:
+        "An agent that can intelligently select appropriate tools based on user messages.",
+      icon: "hero-check-circle",
+      module: __MODULE__,
+      category: "Tool Selection",
+      source_files: ["lib/jido_workbench_web/live/demos/choose_tool_agent_live.ex"]
+    }
+  end
+
   @impl true
   def mount(_params, _session, socket) do
     available_tools = [
