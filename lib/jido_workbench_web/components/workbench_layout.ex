@@ -65,7 +65,7 @@ defmodule JidoWorkbenchWeb.WorkbenchLayout do
   def nav_bar(assigns) do
     ~H"""
     <nav class="sticky top-0 z-50 flex items-center justify-between w-full h-16 bg-zinc-900">
-      <div class="flex flex-wrap ml-3 sm:flex-nowrap sm:ml-10">
+      <div class="flex flex-wrap ml-3 sm:flex-nowrap sm:ml-4">
         <a class="inline-flex hover:opacity-90" href="/">
           <div class="font-['VT323'] text-5xl text-gray-700 dark:text-lime-500 tracking-wide">
             JIDO WORKBENCH

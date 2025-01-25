@@ -24,11 +24,13 @@ import topbar from "../vendor/topbar";
 import CopyToClipboard from "./hooks/copy_to_clipboard";
 import Highlight from "./hooks/highlight";
 import ColorSchemeHook from "./hooks/color-scheme-hook";
+import ScrollSpy from "./hooks/scroll_spy";
 
 let Hooks = {
   CopyToClipboard,
   Highlight,
   ColorSchemeHook,
+  ScrollSpy,
 };
 
 let csrfToken = document

@@ -1,9 +1,9 @@
 <.workbench_layout current_page={:demo}>
   <div class="min-h-screen bg-zinc-900 text-gray-100">
-    <div class="max-w-6xl mx-auto p-6">
-      <div class="flex gap-8">
+    <div class="max-w-[calc(100%-1rem)] mx-auto p-6">
+      <div class="flex gap-8 justify-end">
         <%!-- Main Content --%>
-        <div class="flex-1 min-w-0">
+        <div class="flex-1 max-w-[calc(100%-20rem)]">
           <div class="space-y-8">
             <div class="space-y-4">
               <div class="flex items-center justify-between">
@@ -29,34 +29,26 @@
               </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <%= for link <- @demo_meta.quick_links do %>
-                <div class="bg-zinc-800 hover:bg-zinc-700 transition-colors p-4 rounded-lg border border-zinc-700 cursor-pointer">
-                  <div class="flex items-start space-x-4">
-                    <.icon name={link.icon} class="w-5 h-5 text-lime-500" />
-                    <div>
-                      <h3 class="font-medium text-zinc-100">{link.title}</h3>
-                      <p class="text-sm text-zinc-400">{link.description}</p>
-                    </div>
-                  </div>
-                </div>
-              <% end %>
-            </div>
-
             <div class="space-y-8">
-              <section id="overview" class="prose prose-invert max-w-none">
-                <h2 class="text-xl font-semibold text-lime-500">Overview</h2>
-                <p class="text-base leading-7 text-zinc-300">
-                  {@demo.description}
-                </p>
-                <h3 class="text-lg font-semibold text-lime-500 mt-4">Features</h3>
-                <ul class="list-disc list-inside text-zinc-300 space-y-2">
-                  <li>Basic agent state management with tasks</li>
-                  <li>Action handling for creating, updating, and completing tasks</li>
-                  <li>Real-time UI updates reflecting agent state changes</li>
-                  <li>Integration between Phoenix LiveView and Jido Agents</li>
-                </ul>
-              </section>
+              <%= if @livebook_html do %>
+                <div class="prose prose-invert max-w-none prose-pre:bg-zinc-900/50 prose-pre:border-0 prose-pre:rounded-lg prose-pre:w-full prose-pre:p-4">
+                  <%= raw(@livebook_html.html) %>
+                </div>
+              <% else %>
+                <section id="overview" class="prose prose-invert max-w-none">
+                  <h2 class="text-xl font-semibold text-lime-500">Overview</h2>
+                  <p class="text-base leading-7 text-zinc-300">
+                    {@demo.description}
+                  </p>
+                  <h3 class="text-lg font-semibold text-lime-500 mt-4">Features</h3>
+                  <ul class="list-disc list-inside text-zinc-300 space-y-2">
+                    <li>Basic agent state management with tasks</li>
+                    <li>Action handling for creating, updating, and completing tasks</li>
+                    <li>Real-time UI updates reflecting agent state changes</li>
+                    <li>Integration between Phoenix LiveView and Jido Agents</li>
+                  </ul>
+                </section>
+              <% end %>
 
               <section id="implementation" class="prose prose-invert max-w-none">
                 <h2 class="text-xl font-semibold text-lime-500">Implementation</h2>
@@ -148,70 +140,124 @@
 
         <%!-- Side Navigation --%>
         <div class="hidden lg:block w-64 shrink-0">
-          <div class="sticky top-6 space-y-4">
+          <div id="sidebar" class="sticky top-6 space-y-4" phx-hook="ScrollSpy">
+            <h3 class="text-lg font-semibold text-lime-500 mb-4">On this Page</h3>
             <nav class="space-y-1">
-              <%= for section <- @demo_meta.sections do %>
-                <a
-                  href={"##{section.id}"}
-                  class="block px-3 py-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-300 hover:text-lime-500"
-                >
-                  {section.title}
-                </a>
+              <%= if @livebook_html do %>
+                <%= for section <- @livebook_html.toc do %>
+                  <a
+                    href={"##{section.id}"}
+                    class="block px-3 py-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-300 hover:text-lime-500"
+                  >
+                    {section.title}
+                  </a>
+                  <%= if section.children != [] do %>
+                    <%= for child <- Enum.reverse(section.children) do %>
+                      <a
+                        href={"##{child.id}"}
+                        class="block pl-6 py-1 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 hover:text-lime-500 text-sm"
+                      >
+                        {child.title}
+                      </a>
+                    <% end %>
+                  <% end %>
+                <% end %>
+              <% else %>
+                <%= for section <- @demo_meta.sections do %>
+                  <a
+                    href={"##{section.id}"}
+                    class="block px-3 py-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-300 hover:text-lime-500"
+                  >
+                    {section.title}
+                  </a>
+                <% end %>
               <% end %>
             </nav>
 
             <div class="pt-4 border-t border-zinc-800">
-              <button class="w-full flex items-center gap-2 px-3 py-2 text-zinc-300 hover:text-lime-500 hover:bg-zinc-800 rounded-lg transition-colors">
+              <a
+                href="#demo"
+                class="w-full flex items-center gap-2 px-3 py-2 text-zinc-300 hover:text-lime-500 hover:bg-zinc-800 rounded-lg transition-colors"
+              >
+                <.icon name="hero-play" class="w-4 h-4" />
+                <span>Try Demo</span>
+              </a>
+              <button class="mt-2 w-full flex items-center gap-2 px-3 py-2 text-zinc-300 hover:text-lime-500 hover:bg-zinc-800 rounded-lg transition-colors">
                 <.icon name="hero-code-bracket" class="w-4 h-4" />
                 <span>View Source</span>
               </button>
+              <%= if @demo.livebook do %>
+                <a
+                  href={"https://livebook.dev/run?url=https://github.com/agentjido/jido_workbench/blob/main/#{@demo.livebook}"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="mt-2 w-full flex items-center gap-2 px-3 py-2 text-zinc-300 hover:text-lime-500 hover:bg-zinc-800 rounded-lg transition-colors"
+                >
+                  <.icon name="hero-book-open" class="w-4 h-4" />
+                  <span>Run in Livebook</span>
+                </a>
+              <% end %>
+              <a
+                href={"https://github.com/agentjido/jido_workbench/blob/main/#{@demo.livebook}"}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="mt-2 w-full flex items-center gap-2 px-3 py-2 text-zinc-300 hover:text-lime-500 hover:bg-zinc-800 rounded-lg transition-colors"
+              >
+                <.icon name="hero-pencil-square" class="w-4 h-4" />
+                <span>Edit in GitHub</span>
+              </a>
             </div>
           </div>
         </div>
       </div>
 
       <%!-- Next/Prev Navigation --%>
-      <div class="mt-12 border-t border-zinc-800 pt-8">
-        <div class="flex justify-between items-center">
-          <div>
-            <%= if @prev_demo do %>
-              <.link
-                navigate={~p"/demo/#{@prev_demo.id}"}
-                class="flex items-center gap-2 text-lime-500 hover:text-lime-400"
-              >
-                <.icon name="hero-arrow-left" class="w-4 h-4" />
-                <span>Previous: <%= @prev_demo.name %></span>
-              </.link>
-            <% else %>
-              <.link
-                navigate={~p"/demo"}
-                class="flex items-center gap-2 text-lime-500 hover:text-lime-400"
-              >
-                <.icon name="hero-arrow-left" class="w-4 h-4" />
-                <span>Back to Demos</span>
-              </.link>
-            <% end %>
-          </div>
-          <div>
-            <%= if @next_demo do %>
-              <.link
-                navigate={~p"/demo/#{@next_demo.id}"}
-                class="flex items-center gap-2 text-lime-500 hover:text-lime-400"
-              >
-                <span>Next: <%= @next_demo.name %></span>
-                <.icon name="hero-arrow-right" class="w-4 h-4" />
-              </.link>
-            <% else %>
-              <.link
-                navigate={~p"/demo"}
-                class="flex items-center gap-2 text-lime-500 hover:text-lime-400"
-              >
-                <span>Back to Demos</span>
-                <.icon name="hero-arrow-right" class="w-4 h-4" />
-              </.link>
-            <% end %>
+      <div class="flex gap-8">
+        <div class="flex-1 min-w-0">
+          <div class="mt-12 border-t border-zinc-800 pt-8">
+            <div class="flex justify-between items-center">
+              <div>
+                <%= if @prev_demo do %>
+                  <.link
+                    navigate={~p"/demo/#{@prev_demo.id}"}
+                    class="flex items-center gap-2 text-lime-500 hover:text-lime-400"
+                  >
+                    <.icon name="hero-arrow-left" class="w-4 h-4" />
+                    <span>Previous: <%= @prev_demo.name %></span>
+                  </.link>
+                <% else %>
+                  <.link
+                    navigate={~p"/demo"}
+                    class="flex items-center gap-2 text-lime-500 hover:text-lime-400"
+                  >
+                    <.icon name="hero-arrow-left" class="w-4 h-4" />
+                    <span>Back to Demos</span>
+                  </.link>
+                <% end %>
+              </div>
+              <div>
+                <%= if @next_demo do %>
+                  <.link
+                    navigate={~p"/demo/#{@next_demo.id}"}
+                    class="flex items-center gap-2 text-lime-500 hover:text-lime-400"
+                  >
+                    <span>Next: <%= @next_demo.name %></span>
+                    <.icon name="hero-arrow-right" class="w-4 h-4" />
+                  </.link>
+                <% else %>
+                  <.link
+                    navigate={~p"/demo"}
+                    class="flex items-center gap-2 text-lime-500 hover:text-lime-400"
+                  >
+                    <span>Back to Demos</span>
+                    <.icon name="hero-arrow-right" class="w-4 h-4" />
+                  </.link>
+                <% end %>
+              </div>
+            </div>
           </div>
         </div>
+        <div class="hidden lg:block w-64 shrink-0"></div>
       </div>
     </div>
   </div>

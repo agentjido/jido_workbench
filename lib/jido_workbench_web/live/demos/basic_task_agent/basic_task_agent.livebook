@@ -1,0 +1,212 @@
+## Introduction
+
+The `JidoWorkbench.Jido.BasicTaskAgent` is a specialized Jido agent implementation for managing tasks. It provides core task management functionality including adding, listing, updating, and completing tasks.
+
+## Module Structure
+
+### Agent Configuration
+
+```elixir
+defmodule JidoWorkbench.Jido.BasicTaskAgent do
+  use Jido.Agent,
+    name: "BasicTaskAgent",
+    description: "Basic Task management agent for maintaining todo lists",
+    actions: [
+      JidoWorkbench.Actions.AddTask,
+      JidoWorkbench.Actions.CompleteTask,
+      JidoWorkbench.Actions.ListTasks,
+      JidoWorkbench.Actions.UpdateTask
+    ],
+    runner: Jido.Runner.Simple,
+    schema: [
+      tasks: [type: {:list, :map}, required: true, doc: "List of tasks"]
+    ]
+end
+```
+
+### Key Components
+
+1. **Agent Definition**
+   - Name: "BasicTaskAgent"
+   - Purpose: Task management and todo list maintenance
+   - Runner: Uses `Jido.Runner.Simple` for straightforward action execution
+
+2. **Schema**
+   - Tasks: List of maps containing task data
+   - Required: Yes
+   - Type: List of maps
+
+3. **Available Actions**
+   - AddTask
+   - CompleteTask
+   - ListTasks
+   - UpdateTask
+
+## Core Functions
+
+### Adding Tasks
+
+```elixir
+def add_task(agent, params) do
+  cmd(agent, {AddTask, params}, %{}, context: %{state: agent.state})
+end
+```
+
+Usage example:
+```elixir
+params = %{
+  title: "New Task",
+  description: "Task description",
+  due_date: ~U[2024-01-26 10:00:00Z]
+}
+{:ok, updated_agent} = BasicTaskAgent.add_task(agent, params)
+```
+
+### Listing Tasks
+
+```elixir
+def list_tasks(agent, params) do
+  cmd(agent, {ListTasks, params}, %{}, context: %{state: agent.state})
+end
+```
+
+Usage example:
+```elixir
+{:ok, %{tasks: tasks}} = BasicTaskAgent.list_tasks(agent, %{})
+```
+
+### Updating Tasks
+
+```elixir
+def update_task(agent, params) do
+  cmd(agent, {UpdateTask, params}, %{}, context: %{state: agent.state})
+end
+```
+
+Usage example:
+```elixir
+update_params = %{
+  task_id: "existing_task_id",
+  title: "Updated Task Title",
+  status: "in_progress"
+}
+{:ok, updated_agent} = BasicTaskAgent.update_task(agent, update_params)
+```
+
+### Completing Tasks
+
+```elixir
+def complete_task(agent, params) do
+  cmd(agent, {CompleteTask, params}, %{}, context: %{state: agent.state})
+end
+```
+
+Usage example:
+```elixir
+{:ok, updated_agent} = BasicTaskAgent.complete_task(agent, %{task_id: "task_123"})
+```
+
+## State Management
+
+The agent maintains its state through the schema definition:
+```elixir
+schema: [
+  tasks: [type: {:list, :map}, required: true, doc: "List of tasks"]
+]
+```
+
+### Task Structure
+Each task in the tasks list is expected to have the following structure:
+```elixir
+%{
+  id: String.t(),          # Unique identifier
+  title: String.t(),       # Task title
+  description: String.t(), # Task description
+  status: String.t(),      # Current status
+  due_date: DateTime.t(),  # Due date
+  completed_at: DateTime.t() | nil  # Completion timestamp
+}
+```
+
+## Command Execution Pattern
+
+All actions follow the same command execution pattern using the `cmd/4` function:
+```elixir
+cmd(agent, {Action, params}, %{}, context: %{state: agent.state})
+```
+
+Where:
+- `agent` is the current agent instance
+- `Action` is one of the defined action modules
+- `params` contains the action-specific parameters
+- Context includes the current agent state
+
+## Error Handling
+
+All functions return tagged tuples:
+- `{:ok, updated_agent}` for successful operations
+- `{:error, reason}` for failures
+
+Example error handling:
+```elixir
+case BasicTaskAgent.add_task(agent, params) do
+  {:ok, updated_agent} ->
+    # Handle success
+    updated_agent
+  {:error, reason} ->
+    # Handle error
+    Logger.error("Failed to add task: #{inspect(reason)}")
+    agent
+end
+```
+
+## Testing
+
+Example test cases:
+
+```elixir
+defmodule JidoWorkbench.Jido.BasicTaskAgentTest do
+  use ExUnit.Case
+  
+  setup do
+    agent = BasicTaskAgent.new("test_agent", %{tasks: []})
+    {:ok, agent: agent}
+  end
+  
+  test "adds a task", %{agent: agent} do
+    params = %{title: "Test Task", description: "Test Description"}
+    assert {:ok, updated_agent} = BasicTaskAgent.add_task(agent, params)
+    assert length(updated_agent.state.tasks) == 1
+  end
+  
+  test "completes a task", %{agent: agent} do
+    # First add a task
+    {:ok, agent_with_task} = BasicTaskAgent.add_task(agent, %{title: "Test Task"})
+    task_id = List.first(agent_with_task.state.tasks).id
+    
+    # Then complete it
+    assert {:ok, updated_agent} = BasicTaskAgent.complete_task(agent_with_task, %{task_id: task_id})
+    completed_task = Enum.find(updated_agent.state.tasks, &(&1.id == task_id))
+    assert completed_task.status == "completed"
+    assert completed_task.completed_at != nil
+  end
+end
+```
+
+## Best Practices
+
+1. Always validate task parameters before passing them to actions
+2. Maintain immutability of the agent state
+3. Handle all potential error cases
+4. Use proper type specifications
+5. Log important state changes and errors
+6. Implement proper cleanup for completed tasks
+7. Consider task dependencies and relationships
+
+## Common Gotchas
+
+1. Not handling state updates properly
+2. Missing error cases in action implementations
+3. Improper task ID management
+4. Not validating parameters before passing to actions
+5. Incomplete error handling in client code

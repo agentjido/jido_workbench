@@ -1,7 +1,7 @@
 defmodule JidoWorkbenchWeb.BasicTaskAgentLive do
   use JidoWorkbenchWeb, :live_view
   import JidoWorkbenchWeb.WorkbenchLayout
-  alias JidoWorkbench.Jido.BasicTaskAgent
+  alias JidoWorkbenchWeb.Demos.BasicTaskAgent
 
   require Logger
 
@@ -12,14 +12,71 @@ defmodule JidoWorkbenchWeb.BasicTaskAgentLive do
       id: :basic_task_agent,
       name: "Basic Task Agent",
       description: "A simple task management system built using Jido Agents.",
-      # docs: "#{dir}/basic_task_agent.md",
       icon: "hero-check-circle",
       module: __MODULE__,
       category: "Task Management",
+      livebook: "#{dir}/basic_task_agent.livebook",
+      version: "1.0.0",
+      updated_at: ~U[2024-03-15 00:00:00Z],
+      status: "Active",
+      documentation_url: "https://hexdocs.pm/jido/task-management.html",
+      source_url: "https://github.com/jido-systems/jido/blob/main/examples/task_agent.ex",
       source_files: [
+        "lib/jido_workbench/jido/basic_task_agent.ex",
         "#{dir}/basic_task_agent_live.ex",
         "#{dir}/basic_task_agent_live.html.heex"
-      ]
+      ],
+      sections: [
+        %{id: "overview", title: "Overview"},
+        %{id: "architecture", title: "Architecture"},
+        %{id: "implementation", title: "Implementation"},
+        %{id: "demo", title: "Interactive Demo"},
+        %{id: "advanced", title: "Advanced Usage"}
+      ],
+      related_resources: [
+        %{
+          title: "Jido Agents Guide",
+          description: "Learn about Jido's agent system",
+          icon: "hero-book-open",
+          url: "https://hexdocs.pm/jido/agents.html"
+        },
+        %{
+          title: "Task Management Example",
+          description: "Full source code on GitHub",
+          icon: "hero-code-bracket",
+          url: "https://github.com/jido-systems/jido/tree/main/examples/task_agent"
+        },
+        %{
+          title: "LiveView Integration",
+          description: "How to use Jido with Phoenix LiveView",
+          icon: "hero-puzzle-piece",
+          url: "https://hexdocs.pm/jido/liveview.html"
+        },
+        %{
+          title: "Community Discord",
+          description: "Join the Jido community",
+          icon: "hero-chat-bubble-left-right",
+          url: "https://discord.gg/jido"
+        }
+      ],
+      config: %{
+        features: [
+          "Basic agent state management with tasks",
+          "Action handling for creating, updating, and completing tasks",
+          "Real-time UI updates reflecting agent state changes",
+          "Integration between Phoenix LiveView and Jido Agents",
+          "Task prioritization and status tracking",
+          "Due date management"
+        ],
+        related_demos: [
+          :server_task_agent,
+          :choose_tool_agent
+        ],
+        tags: ["task-management", "agents", "liveview", "beginner"],
+        difficulty: "beginner",
+        estimated_time: "15 minutes"
+      },
+      enabled: true
     }
   end
 

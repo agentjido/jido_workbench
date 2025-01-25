@@ -21,7 +21,10 @@ defmodule JidoWorkbench.JidoDemo do
             updated_at: DateTime.t() | nil,
             status: String.t() | nil,
             documentation_url: String.t() | nil,
-            source_url: String.t() | nil
+            source_url: String.t() | nil,
+            livebook: String.t() | nil,
+            sections: [map()] | nil,
+            related_resources: [map()] | nil
           }
 
     defstruct [
@@ -38,7 +41,10 @@ defmodule JidoWorkbench.JidoDemo do
       :updated_at,
       :status,
       :documentation_url,
-      :source_url
+      :source_url,
+      :livebook,
+      :sections,
+      :related_resources
     ]
   end
 
@@ -64,7 +70,10 @@ defmodule JidoWorkbench.JidoDemo do
         status: Map.get(demo, :status),
         documentation_url: Map.get(demo, :documentation_url),
         source_url: Map.get(demo, :source_url),
-        category: Map.get(demo, :category)
+        category: Map.get(demo, :category),
+        livebook: Map.get(demo, :livebook),
+        sections: Map.get(demo, :sections),
+        related_resources: Map.get(demo, :related_resources)
       }
     end)
   end

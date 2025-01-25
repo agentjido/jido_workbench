@@ -1,4 +1,4 @@
-defmodule JidoWorkbench.Jido.BasicTaskAgent do
+defmodule JidoWorkbenchWeb.Demos.BasicTaskAgent do
   use Jido.Agent,
     name: "BasicTaskAgent",
     description: "Basic Task management agent for maintaining todo lists",
