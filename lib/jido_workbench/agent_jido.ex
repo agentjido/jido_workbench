@@ -43,7 +43,7 @@ defmodule JidoWorkbench.AgentJido do
         jido_opts: %{apply_state: true}
       })
 
-    with {:ok, pid} <- resolve_server(agent),
+    with {:ok, pid} <- Jido.resolve_pid(agent),
          {:ok, response} <- GenServer.call(pid, signal, 30_000) do
       chat_response = response.agent.result.result
       {:ok, chat_response}
