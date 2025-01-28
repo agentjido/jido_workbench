@@ -1,111 +1,133 @@
 defmodule JidoWorkbenchWeb.JidoLive do
   use JidoWorkbenchWeb, :live_view
   import JidoWorkbenchWeb.WorkbenchLayout
-  alias JidoWorkbench.Jido.ChatAgent
+  alias JidoWorkbench.{ChatRoom, AgentJido}
+  alias Jido.Chat.{Room, Message}
   require Logger
 
-  @agent_id :agent_jido
-  @chat_input %{
-    prompt: """
-      You are Agent Jido—an elite AI engineer stationed in a neon-lit orbital metropolis, where quantum cores hum beneath sleek alloy plating and encrypted data streams flicker across panoramic holo-displays. You're known for your razor-sharp, punctual insights into software engineering, artificial intelligence, and systems programming. Your words are concise and direct, often laced with a dry, ironic humor that underscores your mastery of code and computation. Remember: you build next-generation LLM tooling with a no-nonsense approach that cuts straight to the heart of any technical challenge. When you respond, speak as the efficient, world-weary hacker who's seen it all and still meets each request with crisp expertise and a subtle, knowing smirk.
-    """,
-    personality:
-      "succinct, punctual, matter-of-fact, subtly sarcastic, and deeply knowledgeable about AI engineering and systems design"
-  }
+  @agent_id Application.compile_env(:jido_workbench, [:agent_jido, :id])
 
   @impl true
   def mount(_params, _session, socket) do
-    initial_message = format_message("jido", "Hello, I'm Jido, what's your name?")
+    # Join the chat room
+    case ChatRoom.join() do
+      :ok -> :ok
+      {:error, :already_joined} -> :ok
+    end
+
+    {:ok, room} = ChatRoom.get_room()
+    {:ok, messages} = Room.get_messages(room)
 
     {:ok,
      assign(socket,
-       messages: [initial_message],
+       room: room,
+       messages: messages,
        message_history: [],
        history_index: 0,
        is_typing: false,
-       agent: @agent_id
+       agent: @agent_id,
+       response_ref: nil
      )}
   end
 
-  def handle_event("send_message", %{"message" => content}, socket) when content != "" do
-    Logger.info("User sent a message: #{content}")
+  @impl true
+  def terminate(_reason, socket) do
+    :ok = ChatRoom.leave()
+  end
+
+  def handle_event("send_message", %{"message" => ""}, socket), do: {:noreply, socket}
+
+  def handle_event("send_message", %{"message" => content}, socket) do
     socket = add_user_message(socket, content)
     process_chat_response(socket)
   end
 
-  def handle_event("send_message", _params, socket), do: {:noreply, socket}
-
   defp add_user_message(socket, content) do
-    message_history = [content | socket.assigns.message_history] |> Enum.take(50)
-    messages = socket.assigns.messages ++ [format_message("operator", content)]
-    assign(socket, messages: messages, message_history: message_history)
+    {:ok, _} = Room.post_message(socket.assigns.room, content, "operator")
+    {:ok, messages} = Room.get_messages(socket.assigns.room)
+
+    assign(socket,
+      messages: messages,
+      message_history: [content | socket.assigns.message_history] |> Enum.take(50)
+    )
   end
 
   defp process_chat_response(socket) do
-    history = build_chat_history(socket.assigns.messages)
-    params = build_chat_params(history)
-    agent = socket.assigns.agent
+    # Set typing indicator before starting response
+    socket = assign(socket, is_typing: true)
 
-    case agent
-         |> ChatAgent.set(params)
-         |> ChatAgent.plan()
-         |> ChatAgent.run() do
-      {:ok, %{response: response}, _agent} ->
-        updated_messages = socket.assigns.messages ++ [format_message("jido", response)]
-        {:noreply, assign(socket, messages: updated_messages, is_typing: false, history_index: 0)}
+    history =
+      Enum.map(socket.assigns.messages, fn msg ->
+        %{
+          role: if(Message.sender_id(msg) == "operator", do: "user", else: "assistant"),
+          content: Message.content(msg)
+        }
+      end)
 
-      {:error, reason} ->
-        Logger.error("Chat response failed: #{inspect(reason)}")
+    # Start async task to get response
+    task =
+      Task.async(fn ->
+        AgentJido.generate_chat_response(@agent_id, history)
+      end)
 
-        error_message =
-          format_message("jido", "Sorry, I encountered an error. Please try again in a moment.")
-
-        {:noreply,
-         assign(socket, messages: socket.assigns.messages ++ [error_message], is_typing: false)}
-    end
+    {:noreply, assign(socket, response_ref: task.ref)}
   end
 
-  defp build_chat_history(messages) do
-    Enum.map(messages, fn msg ->
-      %{
-        role: if(msg.participant_id == "operator", do: "user", else: "assistant"),
-        content: msg.content
-      }
-    end)
+  @impl true
+  def handle_info({ref, {:ok, response}}, %{assigns: %{response_ref: ref}} = socket) do
+    # Clean up task
+    Process.demonitor(ref, [:flush])
+
+    {:ok, _} = Room.post_message(socket.assigns.room, response, "jido")
+    {:ok, messages} = Room.get_messages(socket.assigns.room)
+
+    {:noreply,
+     socket
+     |> assign(is_typing: false, response_ref: nil, messages: messages, history_index: 0)}
   end
 
-  defp build_chat_params(history) do
-    %{
-      prompt: @chat_input.prompt,
-      personality: @chat_input.personality,
-      history: history,
-      message: List.first(history, %{content: ""}).content
-    }
+  def handle_info({ref, {:error, reason}}, %{assigns: %{response_ref: ref}} = socket) do
+    # Clean up task
+    Process.demonitor(ref, [:flush])
+    Logger.error("Chat response failed: #{inspect(reason)}")
+
+    {:ok, _} =
+      Room.post_message(
+        socket.assigns.room,
+        "Sorry, I encountered an error. Please try again in a moment.",
+        "jido",
+        type: :system
+      )
+
+    {:ok, messages} = Room.get_messages(socket.assigns.room)
+
+    {:noreply,
+     socket
+     |> assign(is_typing: false, response_ref: nil, messages: messages, history_index: 0)}
   end
 
-  defp format_message(participant_id, content) do
-    formatted_content =
-      content
-      |> String.trim()
-      |> format_code_blocks()
-      |> format_line_breaks()
+  # Handle task crash
+  def handle_info({:DOWN, ref, :process, _pid, reason}, %{assigns: %{response_ref: ref}} = socket) do
+    Logger.error("Chat response task crashed: #{inspect(reason)}")
 
-    %{
-      participant_id: participant_id,
-      content: formatted_content,
-      timestamp: DateTime.utc_now()
-    }
+    {:ok, _} =
+      Room.post_message(
+        socket.assigns.room,
+        "Sorry, something went wrong. Please try again in a moment.",
+        "jido",
+        type: :system
+      )
+
+    {:ok, messages} = Room.get_messages(socket.assigns.room)
+
+    {:noreply,
+     socket
+     |> assign(is_typing: false, response_ref: nil, messages: messages, history_index: 0)}
   end
 
-  defp format_code_blocks(content) do
-    Regex.replace(~r/```(\w*)\n(.*?)```/s, content, fn _, lang, code ->
-      """
-      <div class="code-block">
-        <div class="code-header">#{lang}</div>
-        <pre><code class="language-#{lang}">#{code}</code></pre>
-      </div>
-      """
-    end)
+  defp update_messages(socket) do
+    {:ok, messages} = Room.get_messages(socket.assigns.room)
+    assign(socket, messages: messages, history_index: 0)
   end
 
   defp format_line_breaks(content) do

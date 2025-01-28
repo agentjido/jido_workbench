@@ -1,11 +1,11 @@
 defmodule JidoWorkbench.JidoDemo do
   @moduledoc """
-  Module for managing GDO demos and providing easy access to demo information.
+  Module for managing Jido demos and providing easy access to demo information.
   """
 
   defmodule Demo do
     @moduledoc """
-    Struct representing a single GDO demo with its metadata and configuration.
+    Struct representing a single Jido demo with its metadata and configuration.
     """
     @type t :: %__MODULE__{
             id: String.t(),

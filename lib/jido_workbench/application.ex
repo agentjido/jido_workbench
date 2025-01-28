@@ -7,11 +7,13 @@ defmodule JidoWorkbench.Application do
 
   @impl true
   def start(_type, _args) do
-    bus_name = :jido_bus
+    config = Application.fetch_env!(:jido_workbench, :agent_jido)
+    bus_name = config[:bus_name]
+    room_id = config[:room_id]
 
     jido_opts = [
-      id: :agent_jido,
-      dispatch: {:bus, [target: bus_name, stream: "agent_jido"]},
+      id: config[:id],
+      dispatch: {:bus, [target: bus_name, stream: config[:stream]]},
       verbose: true,
       mode: :auto
     ]
@@ -26,19 +28,14 @@ defmodule JidoWorkbench.Application do
       # Start the Endpoint (http/https)
       JidoWorkbenchWeb.Endpoint,
 
-      # Agent Jido
-      {Jido.Bus, name: bus_name, adapter: :in_memory},
-      {Jido.Chat.Room, bus_name: bus_name, room_id: "jido_workbench_chat"},
-      {JidoWorkbench.AgentJido, jido_opts}
+      # Jido Task Supervisor
+      {Task.Supervisor, name: JidoWorkbench.TaskSupervisor},
 
-      # # Jido
-      # {Task.Supervisor, name: JidoWorkbench.TaskSupervisor}
-      # {Jido.Agent.Server,
-      #  agent: JidoWorkbench.Jido.Agent.new("jido"), pubsub: JidoWorkbench.PubSub},
-      # JidoChat.Channel.Persistence.ETS,
-      # {JidoChat.Channel, name: :jido}
-      # Start a worker by calling: JidoWorkbench.Worker.start_link(arg)
-      # {JidoWorkbench.Worker, arg}
+      # Jido
+      {Jido.Bus, name: bus_name, adapter: :in_memory},
+      {Jido.Chat.Room, bus_name: bus_name, room_id: room_id},
+      JidoWorkbench.ChatRoom,
+      {JidoWorkbench.AgentJido, jido_opts}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

@@ -24,34 +24,60 @@
         </div>
       </div>
       
-<!-- Messages Container -->
+      <!-- Messages Container -->
       <div
         id="messages-container"
         phx-hook="ScrollBottom"
         class="flex-1 overflow-y-auto px-6 py-4 space-y-4"
       >
         <%= for message <- @messages do %>
-          <div class={message_justify_class(message.participant_id)}>
-            <div class={"flex max-w-[70%] gap-3 #{message_flex_direction(message.participant_id)}"}>
-              <!-- Avatar -->
-              <div class="flex-shrink-0">
-                <.avatar name={get_participant_name(message.participant_id)} random_color />
-              </div>
-              
-<!-- Message Content -->
-              <div class="flex flex-col">
-                <div class={message_header_class(message.participant_id)}>
-                  {get_participant_name(message.participant_id)}
-                </div>
-                <div class={message_content_class(message.participant_id)}>
-                  {Phoenix.HTML.raw(message.content)}
+          <%= case Message.type(message) do %>
+            <% :system -> %>
+              <div class="flex justify-center">
+                <div class="text-xs text-gray-400 italic px-4 py-1">
+                  {Phoenix.HTML.raw(format_line_breaks(Message.content(message)))}
                 </div>
               </div>
-            </div>
-          </div>
+            <% _ -> %>
+              <div class={message_justify_class(Message.sender_id(message))}>
+                <div class={"flex max-w-[70%] gap-3 #{message_flex_direction(Message.sender_id(message))}"}>
+                  <!-- Avatar -->
+                  <div class="flex-shrink-0">
+                    <.avatar name={get_participant_name(Message.sender_id(message))} random_color />
+                  </div>
+                  
+                  <!-- Message Content -->
+                  <div class="flex flex-col">
+                    <div class={message_header_class(Message.sender_id(message))}>
+                      {get_participant_name(Message.sender_id(message))}
+                    </div>
+                    <div class={message_content_class(Message.sender_id(message))}>
+                      <%= case Message.type(message) do %>
+                        <% :rich -> %>
+                          <div>
+                            {Phoenix.HTML.raw(format_line_breaks(Message.content(message)))}
+                            <%= if payload = Message.payload(message) do %>
+                              <div class="mt-2 p-2 bg-zinc-700 rounded">
+                                <%= case payload do %>
+                                  <% %{url: url} -> %>
+                                    <a href={url} target="_blank" class="text-blue-400 hover:underline">{url}</a>
+                                  <% _ -> %>
+                                    <pre class="text-sm overflow-x-auto">{inspect(payload, pretty: true)}</pre>
+                                <% end %>
+                              </div>
+                            <% end %>
+                          </div>
+                        <% _ -> %>
+                          {Phoenix.HTML.raw(format_line_breaks(Message.content(message)))}
+                      <% end %>
+                    </div>
+                  </div>
+                </div>
+              </div>
+          <% end %>
         <% end %>
         
-<!-- Typing Indicator -->
+        <!-- Typing Indicator -->
         <%= if @is_typing do %>
           <div class="flex justify-start">
             <div class="flex max-w-[70%] gap-3">
@@ -86,27 +112,21 @@
           </div>
         <% end %>
       </div>
-      
-<!-- Input Area -->
-      <div class="border-t border-zinc-700 px-6 py-4 bg-zinc-800 rounded-b-lg">
-        <form phx-submit="send_message" class="flex items-center space-x-4">
-          <div class="flex-1 relative">
-            <.text_input
-              type="text"
-              name="message"
-              placeholder="Type your message..."
-              class="w-full pl-4 pr-12 py-3 rounded-full border-zinc-700 focus:border-lime-500 focus:ring-lime-500 bg-zinc-800 text-gray-100"
-              autocomplete="off"
-              phx-hook="MessageHistory"
-            />
-          </div>
-          <.button
-            type="submit"
-            class="inline-flex items-center px-6 py-3 rounded-full bg-lime-500 hover:bg-lime-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-lime-500 transition-colors text-zinc-900"
-          >
-            <span class="mr-2">Send</span>
+
+      <!-- Message Input -->
+      <div class="p-4 border-t border-zinc-700">
+        <form phx-submit="send_message" class="flex gap-2">
+          <input
+            type="text"
+            name="message"
+            placeholder="Type a message..."
+            class="flex-1 bg-zinc-800 text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-lime-500"
+            autocomplete="off"
+          />
+          <button type="submit" class="bg-lime-500 text-zinc-900 rounded-lg px-4 py-2 font-semibold hover:bg-lime-400 focus:outline-none focus:ring-2 focus:ring-lime-500">
+            Send
             <.icon name="hero-paper-airplane" class="h-5 w-5" />
-          </.button>
+          </button>
         </form>
       </div>
     </div>

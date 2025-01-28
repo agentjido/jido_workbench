@@ -46,7 +46,7 @@ defmodule JidoWorkbench.Actions.GenerateChatResponse do
     task =
       Task.Supervisor.async_nolink(JidoWorkbench.TaskSupervisor, fn ->
         Jido.Workflow.run(
-          JidoAi.Actions.Anthropic.ChatCompletion,
+          Jido.AI.Actions.Anthropic.ChatCompletion,
           %{
             model: "claude-3-5-haiku-latest",
             messages: messages,
