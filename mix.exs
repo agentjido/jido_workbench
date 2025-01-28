@@ -75,7 +75,7 @@ defmodule JidoWorkbench.MixProject do
 
       # Jido
       # {:jido, path: "../jido"}
-      {:jido, github: "agentjido/jido", branch: "mh/develop-1-1", override: true}
+      {:jido, github: "agentjido/jido", override: true}
       # {:jido_chat, path: "../jido_chat"},
       # {:jido_ai, path: "../jido_ai"},
       # {:jido_memory, path: "../jido_memory"}
