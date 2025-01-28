@@ -1,9 +1,10 @@
 defmodule JidoWorkbenchWeb.JidoLive do
   use JidoWorkbenchWeb, :live_view
   import JidoWorkbenchWeb.WorkbenchLayout
-  require Logger
   alias JidoWorkbench.Jido.ChatAgent
+  require Logger
 
+  @agent_id :agent_jido
   @chat_input %{
     prompt: """
       You are Agent Jido—an elite AI engineer stationed in a neon-lit orbital metropolis, where quantum cores hum beneath sleek alloy plating and encrypted data streams flicker across panoramic holo-displays. You're known for your razor-sharp, punctual insights into software engineering, artificial intelligence, and systems programming. Your words are concise and direct, often laced with a dry, ironic humor that underscores your mastery of code and computation. Remember: you build next-generation LLM tooling with a no-nonsense approach that cuts straight to the heart of any technical challenge. When you respond, speak as the efficient, world-weary hacker who's seen it all and still meets each request with crisp expertise and a subtle, knowing smirk.
@@ -14,7 +15,6 @@ defmodule JidoWorkbenchWeb.JidoLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    agent = ChatAgent.new(UUID.uuid4(), %{messages: []})
     initial_message = format_message("jido", "Hello, I'm Jido, what's your name?")
 
     {:ok,
@@ -23,7 +23,7 @@ defmodule JidoWorkbenchWeb.JidoLive do
        message_history: [],
        history_index: 0,
        is_typing: false,
-       agent: agent
+       agent: @agent_id
      )}
   end
 
@@ -34,24 +34,6 @@ defmodule JidoWorkbenchWeb.JidoLive do
   end
 
   def handle_event("send_message", _params, socket), do: {:noreply, socket}
-
-  def handle_event("keydown", %{"key" => "ArrowUp"}, socket) do
-    new_index = min(socket.assigns.history_index + 1, length(socket.assigns.message_history))
-    message = Enum.at(socket.assigns.message_history, new_index - 1, "")
-
-    {:noreply,
-     push_event(socket, "set_input", %{message: message}) |> assign(history_index: new_index)}
-  end
-
-  def handle_event("keydown", %{"key" => "ArrowDown"}, socket) do
-    new_index = max(socket.assigns.history_index - 1, 0)
-    message = Enum.at(socket.assigns.message_history, new_index - 1, "")
-
-    {:noreply,
-     push_event(socket, "set_input", %{message: message}) |> assign(history_index: new_index)}
-  end
-
-  def handle_event("keydown", _params, socket), do: {:noreply, socket}
 
   defp add_user_message(socket, content) do
     message_history = [content | socket.assigns.message_history] |> Enum.take(50)

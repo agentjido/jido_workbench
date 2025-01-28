@@ -1,6 +1,4 @@
 defmodule JidoWorkbench.Jido.ChooseToolAgent do
-  use GenServer
-
   use Jido.Agent,
     name: "ChooseToolAgent",
     description: "Agent for selecting appropriate tools based on user messages",
@@ -21,6 +19,7 @@ defmodule JidoWorkbench.Jido.ChooseToolAgent do
   require Logger
 
   # Client API
+  @impl true
   def start_link(available_tools) do
     initial_state = %{available_tools: available_tools}
     GenServer.start_link(__MODULE__, initial_state)

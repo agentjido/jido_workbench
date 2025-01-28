@@ -3,7 +3,6 @@ defmodule JidoWorkbenchWeb.WorkbenchLayout do
   use JidoWorkbenchWeb, :live_component
   use PetalComponents
   alias JidoWorkbenchWeb.MenuItems
-  alias JidoWorkbenchWeb.CoreComponents
 
   # Add helper function for determining show_layout
   def show_layout(params, session) do

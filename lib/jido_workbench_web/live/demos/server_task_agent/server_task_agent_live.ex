@@ -1,7 +1,7 @@
 defmodule JidoWorkbenchWeb.ServerTaskAgentLive do
   use JidoWorkbenchWeb, :live_view
   import JidoWorkbenchWeb.WorkbenchLayout
-  alias JidoWorkbench.Jido.ServerTaskAgent
+  alias JidoWorkbenchWeb.Demos.ServerTaskAgent
 
   def __jido_demo__ do
     %JidoWorkbench.JidoDemo.Demo{
@@ -17,10 +17,13 @@ defmodule JidoWorkbenchWeb.ServerTaskAgentLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, agent_pid} = ServerTaskAgent.start_link()
-    agent = ServerTaskAgent.get_state(agent_pid)
+    # {:ok, agent_pid} = ServerTaskAgent.start_link()
+    result = ServerTaskAgent.start_link()
+    IO.inspect(result)
+    # agent = ServerTaskAgent.get_state(agent_pid)
 
-    {:ok, assign(socket, agent_pid: agent_pid, agent: agent, tasks: agent.state.tasks)}
+    # {:ok, assign(socket, agent_pid: agent_pid, agent: agent, tasks: agent.state.tasks)}
+    {:ok, socket}
   end
 
   @impl true

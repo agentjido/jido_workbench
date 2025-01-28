@@ -7,6 +7,15 @@ defmodule JidoWorkbench.Application do
 
   @impl true
   def start(_type, _args) do
+    bus_name = :jido_bus
+
+    jido_opts = [
+      id: :agent_jido,
+      dispatch: {:bus, [target: bus_name, stream: "agent_jido"]},
+      verbose: true,
+      mode: :auto
+    ]
+
     children = [
       # Start the Telemetry supervisor
       JidoWorkbenchWeb.Telemetry,
@@ -15,9 +24,13 @@ defmodule JidoWorkbench.Application do
       # Start Finch
       {Finch, name: JidoWorkbench.Finch},
       # Start the Endpoint (http/https)
-      JidoWorkbenchWeb.Endpoint
-      # Jido
-      # {JidoWorkbench.AgentJido, name: AgentJido}
+      JidoWorkbenchWeb.Endpoint,
+
+      # Agent Jido
+      {Jido.Bus, name: bus_name, adapter: :in_memory},
+      {Jido.Chat.Room, bus_name: bus_name, room_id: "jido_workbench_chat"},
+      {JidoWorkbench.AgentJido, jido_opts}
+
       # # Jido
       # {Task.Supervisor, name: JidoWorkbench.TaskSupervisor}
       # {Jido.Agent.Server,

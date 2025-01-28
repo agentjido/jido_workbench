@@ -74,7 +74,7 @@ defmodule JidoWorkbench.MixProject do
       {:mix_test_watch, "~> 1.0", only: [:dev, :test], runtime: false},
 
       # Jido
-      {:jido, github: "agentjido/jido", branch: "mh/develop-1-1", override: true}
+      {:jido, path: "../jido"}
       # {:jido_chat, path: "../jido_chat"},
       # {:jido_ai, path: "../jido_ai"},
       # {:jido_memory, path: "../jido_memory"}

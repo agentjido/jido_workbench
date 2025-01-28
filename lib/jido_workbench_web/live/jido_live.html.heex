@@ -98,22 +98,14 @@
               class="w-full pl-4 pr-12 py-3 rounded-full border-zinc-700 focus:border-lime-500 focus:ring-lime-500 bg-zinc-800 text-gray-100"
               autocomplete="off"
               phx-hook="MessageHistory"
-              phx-keydown="keydown"
             />
           </div>
           <.button
             type="submit"
             class="inline-flex items-center px-6 py-3 rounded-full bg-lime-500 hover:bg-lime-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-lime-500 transition-colors text-zinc-900"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
-            </svg>
-            <span class="ml-2">Send</span>
+            <span class="mr-2">Send</span>
+            <.icon name="hero-paper-airplane" class="h-5 w-5" />
           </.button>
         </form>
       </div>
