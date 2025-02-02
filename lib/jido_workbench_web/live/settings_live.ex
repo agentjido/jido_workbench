@@ -79,6 +79,7 @@ defmodule JidoWorkbenchWeb.SettingsLive do
     end)
   end
 
+  @impl true
   def render(assigns) do
     ~H"""
     <.workbench_layout current_page={:settings}>

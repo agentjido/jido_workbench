@@ -71,7 +71,7 @@ defmodule JidoWorkbench.Jido.GuessTool do
     end
   end
 
-  defp speculate_ideal_tool(params, context) do
+  defp speculate_ideal_tool(params, _context) do
     messages = [
       Message.new_system!("""
         You are a tool design specialist focused on creating precise, single-purpose tools to solve user requests.

@@ -1,21 +1,26 @@
-defmodule JidoWorkbenchWeb.JidoLive do
+defmodule JidoWorkbenchWeb.JidoLive2 do
   use JidoWorkbenchWeb, :live_view
   import JidoWorkbenchWeb.WorkbenchLayout
-  alias JidoWorkbench.AgentJido
+  alias JidoWorkbench.AgentJido2
   alias Jido.Chat.{Room, Message, Participant}
+  alias Jido.Signal
   require Logger
 
+  @response_timeout :timer.seconds(10)
   @agent_id Application.compile_env(:jido_workbench, [:agent_jido, :id])
   @bus_name Application.compile_env(:jido_workbench, [:agent_jido, :bus_name])
   @room_id Application.compile_env(:jido_workbench, [:agent_jido, :room_id])
+  @max_console_logs 100
 
   @impl true
   def mount(_params, _session, socket) do
     with {:ok, room} <- Room.resolve_room(@bus_name, @room_id),
          {:ok, participant} <- Participant.new("operator", :human, display_name: "Operator"),
-         _ <- IO.inspect(participant, label: "participant"),
          _ <- Room.add_participant(room, participant),
          {:ok, messages} <- Room.get_messages(room) do
+      # Subscribe to PubSub messages
+      Phoenix.PubSub.subscribe(JidoWorkbench.PubSub, "agent_jido")
+
       {:ok,
        assign(socket,
          room: room,
@@ -24,7 +29,8 @@ defmodule JidoWorkbenchWeb.JidoLive do
          history_index: 0,
          is_typing: false,
          agent: @agent_id,
-         response_ref: nil
+         response_ref: nil,
+         console_logs: []
        )}
     else
       {:error, reason} ->
@@ -74,37 +80,28 @@ defmodule JidoWorkbenchWeb.JidoLive do
         }
       end)
 
-    # Start async task to get response
-    task =
-      Task.async(fn ->
-        AgentJido.generate_chat_response(@agent_id, history)
-      end)
+    signal =
+      %{
+        type: "generate_chat_response",
+        data: history,
+        jido_output: {:pid, target: self(), message_format: &{:jido_live, &1}}
+      }
+      |> Signal.new!()
 
-    {:noreply, assign(socket, response_ref: task.ref)}
+    # Cast the signal to the agent
+    AgentJido2.cast(@agent_id, signal)
+    Process.send_after(self(), {:agent_response_timeout, signal.id}, @response_timeout)
+    {:noreply, assign(socket, current_message_id: signal.id)}
   end
 
   @impl true
-  def handle_info({ref, {:ok, response}}, %{assigns: %{response_ref: ref}} = socket) do
-    # Clean up task
-    Process.demonitor(ref, [:flush])
-
-    {:ok, _} = Room.post_message(socket.assigns.room, response, "jido")
-    {:ok, messages} = Room.get_messages(socket.assigns.room)
-
-    {:noreply,
-     socket
-     |> assign(is_typing: false, response_ref: nil, messages: messages, history_index: 0)}
-  end
-
-  def handle_info({ref, {:error, reason}}, %{assigns: %{response_ref: ref}} = socket) do
-    # Clean up task
-    Process.demonitor(ref, [:flush])
-    Logger.error("Chat response failed: #{inspect(reason)}")
-
+  # Local timeout handling
+  def handle_info({:agent_response_timeout, ref}, %{assigns: %{current_message_id: ref}} = socket) do
+    # Only handle if it matches current message_id (ignore stale timeouts)
     {:ok, _} =
       Room.post_message(
         socket.assigns.room,
-        "Sorry, I encountered an error. Please try again in a moment.",
+        "Sorry, the response took too long. Please try again.",
         "jido",
         type: :system
       )
@@ -113,27 +110,62 @@ defmodule JidoWorkbenchWeb.JidoLive do
 
     {:noreply,
      socket
-     |> assign(is_typing: false, response_ref: nil, messages: messages, history_index: 0)}
+     |> assign(is_typing: false, current_message_id: nil, messages: messages)}
   end
 
-  # Handle task crash
-  def handle_info({:DOWN, ref, :process, _pid, reason}, %{assigns: %{response_ref: ref}} = socket) do
-    Logger.error("Chat response task crashed: #{inspect(reason)}")
-
-    {:ok, _} =
-      Room.post_message(
-        socket.assigns.room,
-        "Sorry, something went wrong. Please try again in a moment.",
-        "jido",
-        type: :system
-      )
-
-    {:ok, messages} = Room.get_messages(socket.assigns.room)
-
-    {:noreply,
-     socket
-     |> assign(is_typing: false, response_ref: nil, messages: messages, history_index: 0)}
+  # Ignore stale timeouts
+  def handle_info({:agent_response_timeout, _old_ref}, socket) do
+    {:noreply, socket}
   end
+
+  @impl true
+  def handle_info({:jido_live, %Signal{data: response, id: message_id}}, socket) do
+    case socket.assigns.current_message_id do
+      ^message_id ->
+        # Valid response for current request
+        {:ok, _} = Room.post_message(socket.assigns.room, response, "jido")
+        {:ok, messages} = Room.get_messages(socket.assigns.room)
+
+        {:noreply,
+         socket
+         |> assign(is_typing: false, current_message_id: nil, messages: messages)}
+
+      _ ->
+        # Stale response, ignore it
+        {:noreply, socket}
+    end
+  end
+
+  # Handle PubSub messages for console output
+  def handle_info({:pubsub, message}, socket) do
+    formatted_message =
+      "#{DateTime.utc_now() |> Calendar.strftime("%H:%M:%S")} | #{inspect(message)}"
+
+    updated_logs =
+      [formatted_message | socket.assigns.console_logs]
+      |> Enum.take(@max_console_logs)
+      |> Enum.reverse()
+
+    {:noreply, assign(socket, console_logs: updated_logs)}
+  end
+
+  # Catch-all for other messages
+  def handle_info(message, socket) do
+    formatted_message =
+      "#{DateTime.utc_now() |> Calendar.strftime("%H:%M:%S")} | #{inspect(message)}"
+
+    updated_logs =
+      [formatted_message | socket.assigns.console_logs]
+      |> Enum.take(@max_console_logs)
+      |> Enum.reverse()
+
+    {:noreply, assign(socket, console_logs: updated_logs)}
+  end
+
+  # defp update_messages(socket) do
+  #   {:ok, messages} = Room.get_messages(socket.assigns.room)
+  #   assign(socket, messages: messages, history_index: 0)
+  # end
 
   defp format_line_breaks(content) do
     String.replace(content, "\n", "<br>")

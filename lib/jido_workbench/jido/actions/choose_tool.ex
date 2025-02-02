@@ -123,7 +123,7 @@ defmodule JidoWorkbench.Jido.ChooseTool do
                 {:error, :invalid_tool}
 
               module ->
-                directive = %Jido.Agent.Directive.EnqueueDirective{
+                directive = %Jido.Agent.Directive.Enqueue{
                   action: module,
                   params: tool_params,
                   context: context,

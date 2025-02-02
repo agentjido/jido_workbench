@@ -13,7 +13,6 @@ defmodule JidoWorkbenchWeb.Demos.BasicTaskAgent do
       tasks: [type: {:list, :map}, required: true, doc: "List of tasks"]
     ]
 
-  alias __MODULE__
   alias JidoWorkbench.Actions.{AddTask, ListTasks, UpdateTask, CompleteTask}
   require Logger
 

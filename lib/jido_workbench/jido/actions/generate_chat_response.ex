@@ -62,7 +62,7 @@ defmodule JidoWorkbench.Actions.GenerateChatResponse do
     try do
       # Wait for result with timeout
       case Task.yield(task, 29_000) || Task.shutdown(task, :brutal_kill) do
-        {:ok, {:ok, %{result: %Schema{response: response} = schema}}} ->
+        {:ok, {:ok, %{result: %Schema{response: response}}}} ->
           {:ok, %{result: response}}
 
         # {:ok, %{result: %{response: response}}}

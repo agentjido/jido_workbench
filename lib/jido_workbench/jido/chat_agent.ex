@@ -1,5 +1,4 @@
 defmodule JidoWorkbench.Jido.ChatAgent do
-  use GenServer
   alias Jido.Actions.Arithmetic
 
   use Jido.Agent,
@@ -18,6 +17,7 @@ defmodule JidoWorkbench.Jido.ChatAgent do
   require Logger
 
   # Client API
+  @impl true
   def start_link(initial_state \\ %{messages: []}) do
     GenServer.start_link(__MODULE__, initial_state)
   end

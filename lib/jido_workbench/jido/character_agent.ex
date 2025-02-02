@@ -5,7 +5,6 @@ defmodule JidoWorkbench.Jido.CharacterAgent do
     actions: [JidoWorkbench.Jido.Actions.Say],
     runner: Jido.Runner.Chain
 
-  use GenServer
   require Logger
 
   defmodule State do
@@ -22,6 +21,7 @@ defmodule JidoWorkbench.Jido.CharacterAgent do
   end
 
   # Client API
+  @impl true
   def start_link(opts \\ []) do
     name = Keyword.get(opts, :name, "Greeter")
     parent_pid = Keyword.get(opts, :parent_pid)

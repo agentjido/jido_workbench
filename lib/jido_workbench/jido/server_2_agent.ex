@@ -27,20 +27,22 @@ defmodule JidoWorkbench.Jido.Server2Agent do
 
   alias Jido.Signal
   require Logger
-  use GenServer
 
   @doc """
   Starts a new Server2Agent process with the given initial state.
   """
+  @impl true
   def start_link(initial_state \\ %{}) do
-    Jido.Agent.Server.start_link(__MODULE__,
-      name: __MODULE__
+    Jido.Agent.Server.start_link(
+      name: __MODULE__,
+      initial_state: initial_state
     )
   end
 
   @doc """
   Defines the child specification for supervision.
   """
+  @impl true
   def child_spec(opts \\ []) do
     %{
       id: __MODULE__,
@@ -94,7 +96,7 @@ defmodule JidoWorkbench.Jido.Server2Agent do
 
   @impl true
   def handle_info({:timeout, signal_ref}, state) do
-    Logger.warn("Signal #{inspect(signal_ref)} timed out")
+    Logger.warning("Signal #{inspect(signal_ref)} timed out")
     {:noreply, state}
   end
 
@@ -122,7 +124,8 @@ defmodule JidoWorkbench.Jido.Server2Agent do
   @doc """
   Handles cleanup when the agent terminates.
   """
-  def terminate(reason, state) do
+  @impl true
+  def terminate(reason, _state) do
     Logger.info("Server2Agent terminating: #{inspect(reason)}")
     :ok
   end

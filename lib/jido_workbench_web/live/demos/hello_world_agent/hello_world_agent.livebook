@@ -1,0 +1,144 @@
+## Introduction
+
+The `HelloWorldAgent` is a simple stateless Jido agent that demonstrates the basic structure and functionality of a Jido agent. It provides a single action to say "Hello, World!" and can be customized with a name.
+
+## Module Structure
+
+### Agent Configuration
+
+```elixir
+defmodule HelloWorldAgent do
+  use Jido.Agent,
+    name: "HelloWorldAgent",
+    description: "A simple Hello World agent that demonstrates basic Jido agent functionality",
+    actions: [
+      HelloWorldAgent.Actions.SayHello
+    ],
+    runner: Jido.Runner.Simple,
+    schema: []  # Stateless agent, so no schema needed
+end
+```
+
+### Action Definition
+
+```elixir
+defmodule HelloWorldAgent.Actions.SayHello do
+  use Jido.Action,
+    name: "say_hello",
+    description: "Says hello to the world or a specific name"
+
+  @impl true
+  def run(_agent, params, _context) do
+    name = Map.get(params, :name, "World")
+    message = "Hello, #{name}!"
+    
+    {:ok, %{message: message}}
+  end
+
+  @impl true
+  def validate(params) do
+    case params do
+      %{name: name} when is_binary(name) -> :ok
+      %{} -> :ok
+      _ -> {:error, "Invalid parameters"}
+    end
+  end
+end
+```
+
+## Usage Examples
+
+### Basic Hello World
+
+```elixir
+# Create a new agent instance
+agent = HelloWorldAgent.new("hello_agent", %{})
+
+# Say hello to the world
+{:ok, result} = HelloWorldAgent.cmd(agent, {HelloWorldAgent.Actions.SayHello, %{}}, %{}, %{})
+IO.puts(result.message)  # Outputs: Hello, World!
+```
+
+### Customized Greeting
+
+```elixir
+# Say hello to a specific name
+{:ok, result} = HelloWorldAgent.cmd(agent, {HelloWorldAgent.Actions.SayHello, %{name: "Alice"}}, %{}, %{})
+IO.puts(result.message)  # Outputs: Hello, Alice!
+```
+
+## Key Features
+
+1. **Stateless Design**
+   - The agent maintains no internal state
+   - Each action is independent and self-contained
+   - Perfect for demonstrating basic agent functionality
+
+2. **Simple Action**
+   - Single `SayHello` action
+   - Optional name parameter
+   - Basic parameter validation
+
+3. **Clean Interface**
+   - Easy to create new agent instances
+   - Straightforward command execution
+   - Clear response structure
+
+## Testing
+
+Example test cases:
+
+```elixir
+defmodule HelloWorldAgentTest do
+  use ExUnit.Case
+  
+  setup do
+    agent = HelloWorldAgent.new("test_agent", %{})
+    {:ok, agent: agent}
+  end
+  
+  test "says hello to the world by default", %{agent: agent} do
+    assert {:ok, %{message: "Hello, World!"}} = 
+      HelloWorldAgent.cmd(agent, {HelloWorldAgent.Actions.SayHello, %{}}, %{}, %{})
+  end
+  
+  test "says hello to a specific name", %{agent: agent} do
+    assert {:ok, %{message: "Hello, Alice!"}} = 
+      HelloWorldAgent.cmd(agent, {HelloWorldAgent.Actions.SayHello, %{name: "Alice"}}, %{}, %{})
+  end
+end
+```
+
+## Best Practices Demonstrated
+
+1. **Clear Module Structure**
+   - Separate agent and action modules
+   - Well-defined interfaces
+   - Clear documentation
+
+2. **Input Validation**
+   - Parameter validation in action
+   - Proper error handling
+   - Type checking for inputs
+
+3. **Simple Response Format**
+   - Consistent return structure
+   - Clear success/error patterns
+   - Meaningful response data
+
+## Common Patterns
+
+1. **Action Definition**
+   - Use of `Jido.Action` behaviour
+   - Implementation of required callbacks
+   - Clear parameter specification
+
+2. **Agent Configuration**
+   - Use of `Jido.Agent` behaviour
+   - Proper action registration
+   - Simple runner configuration
+
+3. **Command Execution**
+   - Standard command pattern
+   - Consistent parameter passing
+   - Proper error handling 

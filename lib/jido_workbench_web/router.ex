@@ -20,6 +20,7 @@ defmodule JidoWorkbenchWeb.Router do
     get("/", PageController, :home)
 
     live("/jido", JidoLive, :index)
+    live("/jido2", JidoLive2, :index)
 
     # Jido Catalog
     live("/catalog", CatalogLive, :index)

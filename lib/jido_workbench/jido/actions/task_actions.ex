@@ -51,7 +51,7 @@ defmodule JidoWorkbench.Actions.AddTask do
       {:ok, datetime, _} ->
         datetime
 
-      error ->
+      _error ->
         nil
     end
   end
@@ -100,7 +100,7 @@ defmodule JidoWorkbench.Actions.ListTasks do
       priority: [type: :string, required: false, doc: "Filter by priority (low, medium, high)"]
     ]
 
-  def run(params, %{state: state} = context) do
+  def run(params, %{state: state} = _context) do
     Logger.metadata(action: "list_tasks")
 
     tasks =
@@ -142,7 +142,7 @@ defmodule JidoWorkbench.Actions.UpdateTask do
       due_date: [type: :string, required: false, doc: "New due date in ISO8601 format"]
     ]
 
-  def run(params, %{state: state} = context) do
+  def run(params, %{state: state} = _context) do
     Logger.metadata(action: "update_task")
 
     case Enum.find_index(state.tasks, &(&1.id == params.task_id)) do

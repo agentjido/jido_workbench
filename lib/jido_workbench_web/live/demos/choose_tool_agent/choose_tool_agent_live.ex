@@ -175,7 +175,7 @@ defmodule JidoWorkbenchWeb.ChooseToolAgentLive do
            |> assign(:loading, false)
            |> put_flash(:error, "Tool selection timed out")}
 
-        {:error, reason} ->
+        {:error, _reason} ->
           {:noreply,
            socket
            |> assign(:message, message)

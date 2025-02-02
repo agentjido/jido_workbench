@@ -10,12 +10,31 @@ defmodule JidoWorkbench.Application do
     config = Application.fetch_env!(:jido_workbench, :agent_jido)
     bus_name = config[:bus_name]
     room_id = config[:room_id]
+    stream = config[:stream]
 
     jido_opts = [
       id: config[:id],
-      dispatch: {:bus, [target: bus_name, stream: config[:stream]]},
-      verbose: true,
-      mode: :auto
+      log_level: :debug,
+      output: [
+        out: [
+          {:pubsub, target: JidoWorkbench.PubSub, topic: "agent_jido"},
+          {:console, []}
+        ],
+        err: [
+          {:pubsub, target: JidoWorkbench.PubSub, topic: "agent_jido"},
+          {:console, []}
+        ],
+        log: [
+          {:pubsub, target: JidoWorkbench.PubSub, topic: "agent_jido"},
+          {:console, []}
+        ]
+      ]
+    ]
+
+    room_opts = [
+      bus_name: bus_name,
+      room_id: room_id,
+      stream: stream
     ]
 
     children = [
@@ -33,9 +52,9 @@ defmodule JidoWorkbench.Application do
 
       # Jido
       {Jido.Bus, name: bus_name, adapter: :in_memory},
-      {Jido.Chat.Room, bus_name: bus_name, room_id: room_id},
-      JidoWorkbench.ChatRoom,
-      {JidoWorkbench.AgentJido, jido_opts}
+      # {JidoWorkbench.AgentJido, jido_opts},
+      {JidoWorkbench.AgentJido2, jido_opts},
+      {JidoWorkbench.ChatRoom, room_opts}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

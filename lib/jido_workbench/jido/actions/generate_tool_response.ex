@@ -26,7 +26,7 @@ defmodule JidoWorkbench.Actions.GenerateToolResponse do
     run(%{prompt: prompt, message: message, personality: personality}, %{})
   end
 
-  def run(params, context) do
+  def run(params, _context) do
     Logger.metadata(action: "generate_tool_response")
     Logger.debug("Starting tool response generation", params: inspect(params))
 
