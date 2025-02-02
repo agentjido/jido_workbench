@@ -5,7 +5,7 @@ defmodule JidoWorkbenchWeb.JidoLive do
   alias Jido.Chat.{Room, Message, Participant}
   require Logger
 
-  @agent_id Application.compile_env(:jido_workbench, [:agent_jido, :id])
+  @agent_id "sync_jido"
   @bus_name Application.compile_env(:jido_workbench, [:agent_jido, :bus_name])
   @room_id Application.compile_env(:jido_workbench, [:agent_jido, :room_id])
 
@@ -13,7 +13,6 @@ defmodule JidoWorkbenchWeb.JidoLive do
   def mount(_params, _session, socket) do
     with {:ok, room} <- Room.resolve_room(@bus_name, @room_id),
          {:ok, participant} <- Participant.new("operator", :human, display_name: "Operator"),
-         _ <- IO.inspect(participant, label: "participant"),
          _ <- Room.add_participant(room, participant),
          {:ok, messages} <- Room.get_messages(room) do
       {:ok,

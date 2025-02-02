@@ -19,6 +19,7 @@ defmodule JidoWorkbench.AgentJido do
     personality:
       "succinct, punctual, matter-of-fact, subtly sarcastic, and deeply knowledgeable about AI engineering and systems design"
   }
+
   def generate_chat_response(agent, messages) do
     # Get the latest user message
     latest_message = List.first(messages, %{content: ""})
@@ -44,8 +45,8 @@ defmodule JidoWorkbench.AgentJido do
       })
 
     with {:ok, pid} <- Jido.resolve_pid(agent),
-         {:ok, response} <- GenServer.call(pid, signal, 30_000) do
-      chat_response = response.agent.result.result
+         {:ok, response} <- call(pid, signal, 20_000) do
+      chat_response = response.result
       {:ok, chat_response}
     end
   end

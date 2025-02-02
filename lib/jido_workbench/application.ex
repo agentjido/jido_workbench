@@ -52,7 +52,7 @@ defmodule JidoWorkbench.Application do
 
       # Jido
       {Jido.Bus, name: bus_name, adapter: :in_memory},
-      # {JidoWorkbench.AgentJido, jido_opts},
+      {JidoWorkbench.AgentJido, [id: "sync_jido"]},
       {JidoWorkbench.AgentJido2, jido_opts},
       {JidoWorkbench.ChatRoom, room_opts}
     ]

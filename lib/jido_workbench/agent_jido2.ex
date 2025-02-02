@@ -12,6 +12,29 @@ defmodule JidoWorkbench.AgentJido2 do
       "succinct, punctual, matter-of-fact, subtly sarcastic, and deeply knowledgeable about AI engineering and systems design"
   }
 
+  def go do
+    messages = [
+      %{role: "user", content: "Hello, how are you?"},
+      %{role: "assistant", content: "I'm good, thank you!"},
+      %{role: "user", content: "What is the capital of France?"}
+    ]
+
+    signal =
+      %{
+        type: "generate_chat_response",
+        data: messages,
+        jido_output: {:pid, target: self(), message_format: &{:jido_live_go, &1}}
+      }
+      |> Signal.new!()
+
+    cast("agent_jido", signal)
+  end
+
+  def handle_info({:jido_live_go, signal}, _) do
+    Logger.info("********************************* Dispatch: #{inspect(signal.type)}")
+    {:noreply, signal}
+  end
+
   def start_link(opts) do
     # config = Application.fetch_env!(:jido_workbench, :agent_jido)
 
@@ -57,12 +80,13 @@ defmodule JidoWorkbench.AgentJido2 do
 
   def process_result(%Signal{type: "generate_chat_response"}, result) do
     chat_response = result.agent.result.result
+    Logger.info("********************************* Chat response: #{inspect(result)}")
     {:ok, chat_response}
   end
 
   def process_result(signal, result) do
     Logger.info(
-      "********************************* Unhandled result: #{inspect(signal.type)} #{inspect(result)}"
+      "********************************* Unhandled result: #{inspect(signal)} #{inspect(result)}"
     )
 
     {:ok, signal}
