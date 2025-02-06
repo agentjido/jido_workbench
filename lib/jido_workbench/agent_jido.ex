@@ -35,7 +35,7 @@ defmodule JidoWorkbench.AgentJido do
     # Create the signal with proper action format
     {:ok, signal} =
       Signal.new(%{
-        type: ServerSignal.cmd_run(),
+        type: ServerSignal.join_type(ServerSignal.type({:cmd, :run})),
         source: "jido_chat",
         data: %{},
         jido_instructions: [

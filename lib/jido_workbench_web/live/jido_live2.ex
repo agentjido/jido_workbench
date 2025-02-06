@@ -6,7 +6,7 @@ defmodule JidoWorkbenchWeb.JidoLive2 do
   alias Jido.Signal
   require Logger
 
-  @response_timeout :timer.seconds(10)
+  @response_timeout :timer.seconds(30)
   @agent_id Application.compile_env(:jido_workbench, [:agent_jido, :id])
   @bus_name Application.compile_env(:jido_workbench, [:agent_jido, :bus_name])
   @room_id Application.compile_env(:jido_workbench, [:agent_jido, :room_id])
@@ -23,12 +23,12 @@ defmodule JidoWorkbenchWeb.JidoLive2 do
 
       {:ok,
        assign(socket,
+         agent: @agent_id,
          room: room,
          messages: messages,
          message_history: [],
          history_index: 0,
          is_typing: false,
-         agent: @agent_id,
          response_ref: nil,
          console_logs: []
        )}
@@ -80,11 +80,14 @@ defmodule JidoWorkbenchWeb.JidoLive2 do
         }
       end)
 
+    IO.inspect("My PID: #{inspect(self())}")
+
     signal =
       %{
         type: "generate_chat_response",
         data: history,
-        jido_output: {:pid, target: self(), message_format: &{:jido_live, &1}}
+        jido_dispatch:
+          {:pid, target: self(), delivery_mode: :async, message_format: &{:jido_live, &1}}
       }
       |> Signal.new!()
 
@@ -135,37 +138,6 @@ defmodule JidoWorkbenchWeb.JidoLive2 do
         {:noreply, socket}
     end
   end
-
-  # Handle PubSub messages for console output
-  def handle_info({:pubsub, message}, socket) do
-    formatted_message =
-      "#{DateTime.utc_now() |> Calendar.strftime("%H:%M:%S")} | #{inspect(message)}"
-
-    updated_logs =
-      [formatted_message | socket.assigns.console_logs]
-      |> Enum.take(@max_console_logs)
-      |> Enum.reverse()
-
-    {:noreply, assign(socket, console_logs: updated_logs)}
-  end
-
-  # Catch-all for other messages
-  def handle_info(message, socket) do
-    formatted_message =
-      "#{DateTime.utc_now() |> Calendar.strftime("%H:%M:%S")} | #{inspect(message)}"
-
-    updated_logs =
-      [formatted_message | socket.assigns.console_logs]
-      |> Enum.take(@max_console_logs)
-      |> Enum.reverse()
-
-    {:noreply, assign(socket, console_logs: updated_logs)}
-  end
-
-  # defp update_messages(socket) do
-  #   {:ok, messages} = Room.get_messages(socket.assigns.room)
-  #   assign(socket, messages: messages, history_index: 0)
-  # end
 
   defp format_line_breaks(content) do
     String.replace(content, "\n", "<br>")

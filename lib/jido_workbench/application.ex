@@ -15,19 +15,8 @@ defmodule JidoWorkbench.Application do
     jido_opts = [
       id: config[:id],
       log_level: :debug,
-      output: [
-        out: [
-          {:pubsub, target: JidoWorkbench.PubSub, topic: "agent_jido"},
-          {:console, []}
-        ],
-        err: [
-          {:pubsub, target: JidoWorkbench.PubSub, topic: "agent_jido"},
-          {:console, []}
-        ],
-        log: [
-          {:pubsub, target: JidoWorkbench.PubSub, topic: "agent_jido"},
-          {:console, []}
-        ]
+      dispatch: [
+        {:logger, []}
       ]
     ]
 
