@@ -1,6 +1,7 @@
 defmodule JidoWorkbench.AgentJido do
   alias Jido.Actions.Directives.{EnqueueAction, RegisterAction}
   alias JidoWorkbench.Actions.GenerateChatResponse
+  alias JidoWorkbench.Actions.ChainOfThought
   alias Jido.Signal
   alias Jido.Agent.Server.Signal, as: ServerSignal
   alias Jido.Instruction
@@ -8,7 +9,7 @@ defmodule JidoWorkbench.AgentJido do
   use Jido.Agent,
     name: "AgentJido",
     description: "Agent Jido",
-    actions: [GenerateChatResponse, EnqueueAction, RegisterAction]
+    actions: [GenerateChatResponse, EnqueueAction, RegisterAction, ChainOfThought]
 
   require Logger
 
@@ -19,6 +20,39 @@ defmodule JidoWorkbench.AgentJido do
     personality:
       "succinct, punctual, matter-of-fact, subtly sarcastic, and deeply knowledgeable about AI engineering and systems design"
   }
+
+  def chain_of_thought(agent, messages) do
+    # Get the latest user message
+    latest_message = List.first(messages, %{content: ""})
+
+    chat_params = %{
+      prompt: @chat_input.prompt,
+      personality: @chat_input.personality,
+      history: messages,
+      message: latest_message.content
+    }
+
+    {:ok, signal} =
+      Signal.new(%{
+        type: ServerSignal.join_type(ServerSignal.type({:cmd, :run})),
+        source: "jido_chat",
+        data: %{},
+        jido_instructions: [
+          %Instruction{
+            action: ChainOfThought,
+            params: chat_params,
+            opts: [timeout: 20_000]
+          }
+        ],
+        jido_opts: %{apply_state: true}
+      })
+
+    with {:ok, pid} <- Jido.resolve_pid(agent),
+         {:ok, result} <- call(pid, signal, 20_000) do
+      chat_response = result.response
+      {:ok, chat_response}
+    end
+  end
 
   def generate_chat_response(agent, messages) do
     # Get the latest user message
@@ -39,7 +73,11 @@ defmodule JidoWorkbench.AgentJido do
         source: "jido_chat",
         data: %{},
         jido_instructions: [
-          %Instruction{action: GenerateChatResponse, params: chat_params, opts: [timeout: 20_000]}
+          %Instruction{
+            action: GenerateChatResponse,
+            params: chat_params,
+            opts: [max_retries: 1, timeout: 20_000]
+          }
         ],
         jido_opts: %{apply_state: true}
       })

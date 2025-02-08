@@ -1,6 +1,7 @@
 defmodule JidoWorkbenchWeb.JidoLive2 do
   use JidoWorkbenchWeb, :live_view
   import JidoWorkbenchWeb.WorkbenchLayout
+  import JidoWorkbenchWeb.ChatComponents
   alias JidoWorkbench.AgentJido2
   alias Jido.Chat.{Room, Message, Participant}
   alias Jido.Signal
@@ -10,7 +11,6 @@ defmodule JidoWorkbenchWeb.JidoLive2 do
   @agent_id Application.compile_env(:jido_workbench, [:agent_jido, :id])
   @bus_name Application.compile_env(:jido_workbench, [:agent_jido, :bus_name])
   @room_id Application.compile_env(:jido_workbench, [:agent_jido, :room_id])
-  @max_console_logs 100
 
   @impl true
   def mount(_params, _session, socket) do
@@ -29,8 +29,7 @@ defmodule JidoWorkbenchWeb.JidoLive2 do
          message_history: [],
          history_index: 0,
          is_typing: false,
-         response_ref: nil,
-         console_logs: []
+         response_ref: nil
        )}
     else
       {:error, reason} ->
@@ -69,7 +68,6 @@ defmodule JidoWorkbenchWeb.JidoLive2 do
   end
 
   defp process_chat_response(socket) do
-    # Set typing indicator before starting response
     socket = assign(socket, is_typing: true)
 
     history =
@@ -79,8 +77,6 @@ defmodule JidoWorkbenchWeb.JidoLive2 do
           content: Message.content(msg)
         }
       end)
-
-    IO.inspect("My PID: #{inspect(self())}")
 
     signal =
       %{
@@ -122,7 +118,7 @@ defmodule JidoWorkbenchWeb.JidoLive2 do
   end
 
   @impl true
-  def handle_info({:jido_live, %Signal{data: response, id: message_id}}, socket) do
+  def handle_info({:jido_live, %Signal{data: response, source: message_id}}, socket) do
     case socket.assigns.current_message_id do
       ^message_id ->
         # Valid response for current request
@@ -139,38 +135,32 @@ defmodule JidoWorkbenchWeb.JidoLive2 do
     end
   end
 
-  defp format_line_breaks(content) do
-    String.replace(content, "\n", "<br>")
-  end
-
-  defp get_participant_name(participant_id) do
-    case participant_id do
-      "operator" -> "Operator"
-      "jido" -> "Agent Jido"
-      _ -> participant_id
-    end
-  end
-
-  defp message_justify_class(participant_id) do
-    if participant_id == "operator", do: "flex justify-end", else: "flex justify-start"
-  end
-
-  defp message_flex_direction(participant_id) do
-    if participant_id == "operator", do: "flex-row-reverse", else: ""
-  end
-
-  defp message_header_class(participant_id) do
-    base_class = "text-sm text-gray-500 dark:text-gray-400 mb-1 "
-    if participant_id == "operator", do: base_class <> "text-right", else: base_class
-  end
-
-  defp message_content_class(participant_id) do
-    base_class = "rounded-2xl px-4 py-2 max-w-prose break-words "
-
-    if participant_id == "operator" do
-      base_class <> "bg-lime-500 text-zinc-900 rounded-tr-none"
-    else
-      base_class <> "bg-zinc-800 text-gray-100 rounded-tl-none"
-    end
+  @impl true
+  def render(assigns) do
+    ~H"""
+    <.workbench_layout current_page={:jido}>
+      <div class="max-w-4xl mx-auto px-4 py-6">
+        <.chat_container messages={@messages} is_typing={@is_typing}>
+          <:input_form>
+            <form phx-submit="send_message" class="flex gap-2">
+              <input
+                type="text"
+                name="message"
+                placeholder="Type a message..."
+                class="flex-1 bg-zinc-800 text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-lime-500"
+                autocomplete="off"
+              />
+              <button
+                type="submit"
+                class="bg-lime-500 text-zinc-900 rounded-lg px-4 py-2 font-semibold hover:bg-lime-400 focus:outline-none focus:ring-2 focus:ring-lime-500"
+              >
+                Send <.icon name="hero-paper-airplane" class="h-5 w-5" />
+              </button>
+            </form>
+          </:input_form>
+        </.chat_container>
+      </div>
+    </.workbench_layout>
+    """
   end
 end

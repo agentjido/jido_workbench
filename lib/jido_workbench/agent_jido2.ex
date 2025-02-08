@@ -61,7 +61,6 @@ defmodule JidoWorkbench.AgentJido2 do
   end
 
   def handle_signal(%Signal{type: "generate_chat_response", data: messages} = signal) do
-    # Logger.info("********************************* Handle signal: #{inspect(signal.type)}")
     latest_message = List.first(messages, %{content: ""})
 
     chat_params = %{
@@ -74,22 +73,7 @@ defmodule JidoWorkbench.AgentJido2 do
     {:ok, %Signal{signal | data: chat_params}}
   end
 
-  def handle_signal(signal) do
-    # Logger.info("********************************* Unhandled signal: #{inspect(signal.type)}")
-    {:ok, signal}
-  end
-
   def process_result(%Signal{type: "generate_chat_response"}, result) do
-    chat_response = result.result
-    # Logger.info("********************************* Chat response: #{inspect(chat_response)}")
-    {:ok, chat_response}
-  end
-
-  def process_result(signal, result) do
-    # Logger.info(
-    #   "********************************* Unhandled result: #{inspect(signal)} #{inspect(result)}"
-    # )
-
-    {:ok, signal}
+    {:ok, result.result}
   end
 end

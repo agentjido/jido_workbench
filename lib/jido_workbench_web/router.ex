@@ -21,6 +21,7 @@ defmodule JidoWorkbenchWeb.Router do
 
     live("/jido", JidoLive, :index)
     live("/jido2", JidoLive2, :index)
+    live("/team", TeamLive, :index)
 
     # Jido Catalog
     live("/catalog", CatalogLive, :index)
