@@ -35,10 +35,10 @@ defmodule JidoWorkbench.MixProject do
 
     deps = [
       {:phoenix, "~> 1.7.17"},
-      {:phoenix_ecto, "~> 4.5"},
-      {:ecto, "~> 3.12", override: true},
-      {:ecto_sql, "~> 3.10"},
-      {:postgrex, ">= 0.0.0"},
+      # {:phoenix_ecto, "~> 4.5"},
+      # {:ecto, "~> 3.12", override: true},
+      # {:ecto_sql, "~> 3.10"},
+      # {:postgrex, ">= 0.0.0"},
       {:phoenix_html, "~> 4.1"},
       {:phoenix_live_reload, "~> 1.5", only: [:dev, :test]},
       {:phoenix_live_view, "~> 1.0.1"},
