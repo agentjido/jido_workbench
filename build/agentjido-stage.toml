@@ -11,6 +11,9 @@ swap_size_mb = 256
 [vm]
 size = 'shared-cpu-2x'
 
+[deploy]
+strategy = "bluegreen"
+
 [build]
 
 [env]
