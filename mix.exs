@@ -31,7 +31,9 @@ defmodule JidoWorkbench.MixProject do
   #
   # Type `mix help deps` for examples and options.
   defp deps do
-    [
+    use_local_deps = System.get_env("LOCAL_JIDO_DEPS") == "true" || false
+
+    deps = [
       {:phoenix, "~> 1.7.17"},
       {:phoenix_ecto, "~> 4.5"},
       {:ecto, "~> 3.12", override: true},
@@ -58,29 +60,42 @@ defmodule JidoWorkbench.MixProject do
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
       {:petal_components, "~> 2.8.1"},
-      {:rename_project, "~> 0.1.0", only: :dev},
+      {:plug_canonical_host, "~> 2.0"},
 
       # AI
-      {:instructor, github: "thmsmlr/instructor_ex", override: true},
-      {:langchain, "~> 0.3.0-rc.1"},
+      {:instructor, "~> 0.1.0", override: true},
+      {:langchain, "~> 0.3.1", override: true},
 
       # Markdown
       {:earmark, "~> 1.4"},
 
       # Env Vars
-      {:dotenvy, "~> 0.9.0"},
+      {:dotenvy, "~> 1.0"},
 
       # Testing
-      {:mix_test_watch, "~> 1.0", only: [:dev, :test], runtime: false},
-
-      # Jido
-      # {:jido, "~> 1.1.0-rc.1"}
-      {:jido, path: "../jido"},
-      # {:jido, github: "agentjido/jido", branch: "mh/develop-1-1", override: true}
-      {:jido_chat, path: "../jido_chat"},
-      {:jido_ai, path: "../jido_ai"}
-      # {:jido_memory, path: "../jido_memory"}
+      {:mix_test_watch, "~> 1.0", only: [:dev, :test], runtime: false}
     ]
+
+    if use_local_deps do
+      require Logger
+      Logger.warning("Using local Jido dependencies")
+
+      deps ++
+        [
+          {:jido, path: "../jido"}
+          # {:jido_chat, path: "../jido_chat"},
+          # {:jido_ai, path: "../jido_ai"}
+          # {:jido_memory, path: "../jido_memory"}
+        ]
+    else
+      deps ++
+        [
+          {:jido, github: "agentjido/jido"}
+          # {:jido_chat, github: "agentjido/jido_chat"},
+          # {:jido_ai, github: "agentjido/jido_ai"}
+          # {:jido_memory, github: "agentjido/jido_memory"}
+        ]
+    end
   end
 
   # Aliases are shortcuts or tasks specific to the current project.
@@ -91,10 +106,7 @@ defmodule JidoWorkbench.MixProject do
   # See the documentation for `Mix` for more info on aliases.
   defp aliases do
     [
-      setup: ["deps.get", "ecto.setup", "assets.setup", "assets.build"],
-      "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
-      "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
+      setup: ["deps.get", "assets.setup", "assets.build"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
       "assets.build": ["tailwind default", "esbuild default"],
       "assets.deploy": ["tailwind default --minify", "esbuild default --minify", "phx.digest"]

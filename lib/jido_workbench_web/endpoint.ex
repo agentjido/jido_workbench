@@ -11,6 +11,22 @@ defmodule JidoWorkbenchWeb.Endpoint do
     same_site: "Lax"
   ]
 
+  plug JidoWorkbenchWeb.Plug.Heartbeat
+  plug(:canonical_host)
+
+  defp canonical_host(conn, _opts) do
+    :jido_workbench
+    |> Application.get_env(:canonical_host)
+    |> case do
+      host when is_binary(host) ->
+        opts = PlugCanonicalHost.init(canonical_host: host)
+        PlugCanonicalHost.call(conn, opts)
+
+      _ ->
+        conn
+    end
+  end
+
   socket "/live", Phoenix.LiveView.Socket, websocket: [connect_info: [session: @session_options]]
 
   # Serve at "/" the static files from "priv/static" directory.

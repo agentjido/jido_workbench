@@ -31,6 +31,10 @@ config :instructor,
 
 config :langchain, :anthropic_key, env!("ANTHROPIC_API_KEY", :string)
 
+# Don't get this with env!, so it can be set to nil
+config :jido_workbench,
+  canonical_host: System.get_env("CANONICAL_HOST")
+
 if config_env() == :prod do
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you
