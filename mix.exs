@@ -73,7 +73,8 @@ defmodule JidoWorkbench.MixProject do
       {:dotenvy, "~> 1.0"},
 
       # Testing
-      {:mix_test_watch, "~> 1.0", only: [:dev, :test], runtime: false}
+      {:mix_test_watch, "~> 1.0", only: [:dev, :test], runtime: false},
+      {:httpoison, "~> 2.0"}
     ]
 
     if use_local_deps do

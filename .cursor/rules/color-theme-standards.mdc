@@ -1,0 +1,151 @@
+# Color Theme Standards
+
+<rule>
+name: color_theme_standards
+description: Standardized semantic color usage and guidelines for light/dark mode across the application
+version: 1.1
+
+## Semantic Color System
+
+Our application uses a semantic color system defined in tailwind.config.js:
+- primary (lime) - Main brand color, used for key interactive elements and emphasis
+- secondary (zinc) - Used for UI structure and dark mode backgrounds
+- success (emerald) - Positive actions and status
+- danger (red) - Errors and destructive actions
+- warning (yellow) - Cautionary elements
+- info (cyan) - Informational elements
+- gray - Text and subtle UI elements
+
+## Color Usage Guidelines
+
+### Primary Elements (lime)
+```html
+<button class="bg-primary-600 dark:bg-primary-500 text-white dark:text-secondary-900 hover:bg-primary-700 dark:hover:bg-primary-400">
+  <!-- Content -->
+</button>
+```
+
+### Secondary/Background Elements (zinc)
+```html
+<div class="bg-white dark:bg-secondary-900">
+  <!-- Content -->
+</div>
+```
+
+### Text Colors
+- Primary Text: `text-secondary-900 dark:text-secondary-100`
+- Secondary Text: `text-secondary-600 dark:text-secondary-400`
+- Muted Text: `text-secondary-500 dark:text-secondary-500`
+- On Primary: `text-white dark:text-secondary-900`
+
+### Status Colors
+- Success: `text-success-600 dark:text-success-400`
+- Danger: `text-danger-600 dark:text-danger-400`
+- Warning: `text-warning-600 dark:text-warning-400`
+- Info: `text-info-600 dark:text-info-400`
+
+### Special Effects
+Use the custom utility classes defined in tailwind.config.js:
+- Neon Glow: `neon-glow`
+- Neon Border: `neon-border`
+- Animated Glow: `animate-pulse-glow`
+
+## Component Examples
+
+### Base Layout
+```html
+<div class="bg-white dark:bg-secondary-900 text-secondary-900 dark:text-secondary-100">
+  <!-- Content -->
+</div>
+```
+
+### Interactive Elements
+```html
+<!-- Primary Button -->
+<button class="bg-primary-600 dark:bg-primary-500 text-white dark:text-secondary-900 hover:bg-primary-700 dark:hover:bg-primary-400">
+  <!-- Content -->
+</button>
+
+<!-- Secondary Button -->
+<button class="bg-secondary-200 dark:bg-secondary-700 text-secondary-900 dark:text-secondary-100 hover:bg-secondary-300 dark:hover:bg-secondary-600">
+  <!-- Content -->
+</button>
+```
+
+### Cards/Panels
+```html
+<div class="bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700">
+  <h3 class="text-secondary-900 dark:text-secondary-100">Card Title</h3>
+  <p class="text-secondary-600 dark:text-secondary-400">Card content</p>
+</div>
+```
+
+### Form Elements
+```html
+<!-- Input -->
+<input 
+  type="text" 
+  class="bg-white dark:bg-secondary-800 border-secondary-300 dark:border-secondary-600 text-secondary-900 dark:text-secondary-100 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400"
+/>
+
+<!-- Label -->
+<label class="text-secondary-700 dark:text-secondary-300">Label Text</label>
+```
+
+### Status Indicators
+```html
+<!-- Success Alert -->
+<div class="bg-success-50 dark:bg-success-900/30 text-success-800 dark:text-success-200 border border-success-200 dark:border-success-800">
+  <!-- Content -->
+</div>
+
+<!-- Error Message -->
+<p class="text-danger-600 dark:text-danger-400">Error message</p>
+```
+
+## Implementation Requirements
+
+1. Use semantic color names from tailwind.config.js instead of specific color values
+2. Always provide both light and dark mode variants
+3. Use appropriate color intensities:
+   - Light mode backgrounds: white or secondary-50/100
+   - Dark mode backgrounds: secondary-800/900
+   - Light mode text: secondary-600 through 900
+   - Dark mode text: secondary-100 through 400
+4. For special effects, use the custom utility classes defined in tailwind.config.js
+5. Maintain WCAG AA compliance for all color combinations
+
+## Color Scheme Switch Integration
+```elixir
+<.color_scheme_switch />
+```
+
+filters:
+  - type: file_extension
+    pattern: "\\.(ex|exs|heex|eex)$"
+  - type: content
+    pattern: "class=\"[^\"]*\""
+
+actions:
+  - type: suggest
+    message: "Use semantic color names from tailwind.config.js instead of specific color values"
+  - type: warn
+    conditions:
+      - pattern: "class=\"(?![^\"]*dark:)[^\"]*bg-(?!white)[^\"]*\""
+        message: "Missing dark mode background variant"
+      - pattern: "class=\"(?![^\"]*dark:)[^\"]*text-(?!white)[^\"]*\""
+        message: "Missing dark mode text variant"
+      - pattern: "class=\"[^\"]*-(?:lime|zinc|gray)-[^\"]*\""
+        message: "Use semantic color names (primary/secondary) instead of specific colors"
+
+metadata:
+  priority: high
+  category: styling
+  tags: 
+    - accessibility
+    - theming
+    - dark-mode
+    - light-mode
+    - tailwind
+    - semantic-colors
+</rule>

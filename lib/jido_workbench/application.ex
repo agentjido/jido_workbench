@@ -27,6 +27,8 @@ defmodule JidoWorkbench.Application do
     ]
 
     children = [
+      # Start the LLM Keys manager first
+      JidoWorkbench.LLMKeys,
       # Start the Telemetry supervisor
       JidoWorkbenchWeb.Telemetry,
       # Start the PubSub system

@@ -23,14 +23,6 @@ if System.get_env("PHX_SERVER") do
   config :jido_workbench, JidoWorkbenchWeb.Endpoint, server: true
 end
 
-config :instructor,
-  adapter: Instructor.Adapters.Anthropic,
-  anthropic: [
-    api_key: env!("ANTHROPIC_API_KEY", :string)
-  ]
-
-config :langchain, :anthropic_key, env!("ANTHROPIC_API_KEY", :string)
-
 config :jido_workbench,
   canonical_host: env!("CANONICAL_HOST", :string, nil),
   # Set to true/false to control Plausible analytics loading, only in production
