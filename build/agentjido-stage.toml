@@ -25,6 +25,7 @@ internal_port = 8080
 force_https = true
 auto_stop_machines = true
 auto_start_machines = true
+max_machines_running = 1
 min_machines_running = 0
 
 [http_service.concurrency]

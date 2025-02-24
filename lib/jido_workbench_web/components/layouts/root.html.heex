@@ -44,12 +44,14 @@
     >
     </script>
 
-    <script defer data-domain="agentjido.xyz" src="https://plausible.io/js/script.outbound-links.js"></script>
-    <script>
-      window.plausible = window.plausible || function() {
-        (window.plausible.q = window.plausible.q || []).push(arguments)
-      }
-    </script>
+    <%= if Application.get_env(:jido_workbench, :enable_analytics) do %>
+      <script defer data-domain={Application.get_env(:jido_workbench, :canonical_host) || "agentjido.xyz" } src="https://plausible.io/js/script.outbound-links.js"></script>
+      <script>
+        window.plausible = window.plausible || function() {
+          (window.plausible.q = window.plausible.q || []).push(arguments)
+        }
+      </script>
+    <% end %>
 
     <.color_scheme_switch_js />
   </head>
