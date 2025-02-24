@@ -53,8 +53,8 @@ defmodule JidoWorkbench.JidoDemo do
   Returns a list of Demo structs.
   """
   @spec list_demos() :: [Demo.t()]
-  def list_demos do
-    Jido.list_demos()
+  def list_demos(tag \\ nil) do
+    Jido.list_demos(tag: tag)
     |> Enum.map(fn demo ->
       %Demo{
         id: Map.get(demo, :id),

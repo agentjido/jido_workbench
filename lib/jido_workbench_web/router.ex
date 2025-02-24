@@ -23,6 +23,15 @@ defmodule JidoWorkbenchWeb.Router do
     live("/jido2", JidoLive2, :index)
     live("/team", TeamLive, :index)
 
+    # Docs
+    # live("/docs", DocsLive, :index)
+
+    # Examples
+    # live("/examples", ExamplesLive, :index)
+
+    # Showcase
+    live("/showcase", DemoIndexLive, :index, metadata: %{tag: :showcase})
+
     # Jido Catalog
     live("/catalog", CatalogLive, :index)
     live("/catalog/actions", CatalogActionsLive, :index)
@@ -32,7 +41,8 @@ defmodule JidoWorkbenchWeb.Router do
     live("/settings", SettingsLive, :index)
 
     # Jido Demos
-    live("/demo/", DemoIndexLive, :index)
+    live("/demo", DemoIndexLive, :index, metadata: %{tag: :demo})
+
     live("/demo/:demo_id", DemoShowLive, :index)
 
     # Petal Boilerplate Helpers

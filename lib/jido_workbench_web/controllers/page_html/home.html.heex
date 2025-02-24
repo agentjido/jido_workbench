@@ -1,7 +1,10 @@
 <.workbench_layout current_page={:home} show_menu={false}>
   <div class="flex flex-col items-center justify-center min-h-screen bg-zinc-900 text-gray-100">
     <.container class="text-center">
-      <.h1 class="mb-8 text-4xl font-bold text-lime-500">Welcome to Jido Workbench</.h1>
+      <.h1 class="mb-8 text-4xl font-bold text-lime-500">Orchestrate Thousands of Agents</.h1>
+      <.h3 class="mb-8 text-sm font-bold text-lime-500 max-w-prose mx-auto">
+        Deploy agent swarms at massive scale with ease. Jido leverages Elixir's powerful runtime to handle thousands of concurrent agents efficiently on a single machine.
+      </.h3>
 
       <div class="flex flex-col gap-4 w-full max-w-md mx-auto">
         <.button
@@ -15,18 +18,26 @@
 
         <.button
           link_type="live_redirect"
-          to={~p"/catalog"}
+          to={~p"/showcase"}
           class="w-full py-3 text-lg bg-lime-500 hover:bg-lime-600 text-zinc-900"
         >
-          <.icon name="hero-bolt" solid class="w-6 h-6 m-0.5 mr-2" /> Catalog
+          <.icon name="hero-bolt" solid class="w-6 h-6 m-0.5 mr-2" /> Showcase
         </.button>
 
         <.button
           link_type="live_redirect"
-          to={~p"/demo/basic-task-agent"}
+          to={~p"/examples"}
           class="w-full py-3 text-lg bg-lime-500 hover:bg-lime-600 text-zinc-900"
         >
-          <.icon name="hero-beaker" solid class="w-6 h-6 m-0.5 mr-2" /> Demos
+          <.icon name="hero-beaker" solid class="w-6 h-6 m-0.5 mr-2" /> Examples
+        </.button>
+
+        <.button
+          link_type="live_redirect"
+          to={~p"/docs"}
+          class="w-full py-3 text-lg bg-lime-500 hover:bg-lime-600 text-zinc-900"
+        >
+          <.icon name="hero-book-open" solid class="w-6 h-6 m-0.5 mr-2" /> Docs
         </.button>
 
         <.button

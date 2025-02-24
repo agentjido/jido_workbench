@@ -35,15 +35,16 @@ defmodule JidoWorkbench.Application do
       {Finch, name: JidoWorkbench.Finch},
       # Start the Endpoint (http/https)
       JidoWorkbenchWeb.Endpoint,
-
+      # Start the GitHub Stars Tracker
+      {JidoWorkbench.GithubStarsTracker, []},
       # Jido Task Supervisor
-      {Task.Supervisor, name: JidoWorkbench.TaskSupervisor},
+      {Task.Supervisor, name: JidoWorkbench.TaskSupervisor}
 
       # Jido
-      {Jido.Bus, name: bus_name, adapter: :in_memory},
-      {JidoWorkbench.AgentJido, [id: "sync_jido"]},
-      {JidoWorkbench.AgentJido2, jido_opts},
-      {JidoWorkbench.ChatRoom, room_opts}
+      # {Jido.Bus, name: bus_name, adapter: :in_memory},
+      # {JidoWorkbench.AgentJido, [id: "sync_jido"]},
+      # {JidoWorkbench.AgentJido2, jido_opts},
+      # {JidoWorkbench.ChatRoom, room_opts}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

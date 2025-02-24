@@ -5,8 +5,28 @@ defmodule JidoWorkbenchWeb.DemoIndexLive do
 
   @impl true
   def mount(_params, _session, socket) do
+    {:ok, assign(socket, demos: [], page_title: "Loading...", search: "", tag: nil)}
+  end
+
+  @impl true
+  def handle_params(_params, uri, socket) do
+    tag = get_route_tag(uri)
     demos = JidoDemo.list_demos()
-    {:ok, assign(socket, demos: demos, page_title: "Demos", search: "")}
+    title = if tag == :showcase, do: "Showcase", else: "Demos"
+
+    {:noreply, assign(socket, demos: demos, page_title: title, tag: tag)}
+  end
+
+  # Private function to extract tag from route info
+  defp get_route_tag(uri) do
+    uri
+    |> URI.parse()
+    |> Map.get(:path, "/")
+    |> then(&Phoenix.Router.route_info(JidoWorkbenchWeb.Router, "GET", &1, ""))
+    |> case do
+      %{tag: tag} when not is_nil(tag) -> tag
+      _ -> :demo
+    end
   end
 
   @impl true
