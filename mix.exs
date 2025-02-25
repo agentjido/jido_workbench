@@ -31,7 +31,9 @@ defmodule JidoWorkbench.MixProject do
   #
   # Type `mix help deps` for examples and options.
   defp deps do
+    require Logger
     use_local_deps = System.get_env("LOCAL_JIDO_DEPS") == "true" || false
+    Logger.info("Using local Jido dependencies: #{inspect(use_local_deps)}")
 
     deps = [
       {:phoenix, "~> 1.7.17"},
@@ -74,7 +76,8 @@ defmodule JidoWorkbench.MixProject do
 
       # Testing
       {:mix_test_watch, "~> 1.0", only: [:dev, :test], runtime: false},
-      {:httpoison, "~> 2.0"}
+      {:httpoison, "~> 2.0"},
+      {:yaml_elixir, "~> 2.9"}
     ]
 
     if use_local_deps do
@@ -83,17 +86,17 @@ defmodule JidoWorkbench.MixProject do
 
       deps ++
         [
-          {:jido, path: "../jido"}
+          {:jido, path: "../jido"},
           # {:jido_chat, path: "../jido_chat"},
-          # {:jido_ai, path: "../jido_ai"}
+          {:jido_ai, path: "../jido_ai"}
           # {:jido_memory, path: "../jido_memory"}
         ]
     else
       deps ++
         [
-          {:jido, github: "agentjido/jido"}
+          {:jido, github: "agentjido/jido"},
           # {:jido_chat, github: "agentjido/jido_chat"},
-          # {:jido_ai, github: "agentjido/jido_ai"}
+          {:jido_ai, github: "agentjido/jido_ai"}
           # {:jido_memory, github: "agentjido/jido_memory"}
         ]
     end

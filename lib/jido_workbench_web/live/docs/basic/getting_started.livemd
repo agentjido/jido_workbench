@@ -1,0 +1,35 @@
+---
+title: "Getting Started with Jido"
+description: "Learn the basics of the Jido framework"
+category: "Basic"
+icon: "hero-book-open"
+tags: ["introduction", "setup"]
+order: 1
+---
+
+# Getting Started with Jido
+
+Welcome to Jido! This guide will help you get started with the framework and understand its core concepts.
+
+## Installation
+
+Add Jido to your dependencies:
+
+```elixir
+def deps do
+  [
+    {:jido, "~> 1.0"}
+  ]
+end
+```
+
+## Core Concepts
+
+- Agents: The building blocks of Jido
+- Actions: What agents can do
+- Skills: Reusable capabilities
+- Sensors: How agents perceive the world
+
+## Next Steps
+
+Check out the Basic Examples section to see Jido in action! 

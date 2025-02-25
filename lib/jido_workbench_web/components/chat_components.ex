@@ -12,10 +12,10 @@ defmodule JidoWorkbenchWeb.ChatComponents do
 
   def chat_container(assigns) do
     ~H"""
-    <div class={["flex flex-col h-[85vh] bg-zinc-900 rounded-lg shadow-lg", @class]}>
+    <div class={["flex flex-col h-[85vh] bg-white dark:bg-secondary-900 rounded-lg shadow-lg", @class]}>
       <.chat_header />
       <.messages_container messages={@messages} is_typing={@is_typing} />
-      <div class="p-4 border-t border-zinc-700">
+      <div class="p-4 border-t border-secondary-200 dark:border-secondary-700">
         {render_slot(@input_form)}
       </div>
     </div>
@@ -24,22 +24,22 @@ defmodule JidoWorkbenchWeb.ChatComponents do
 
   def chat_header(assigns) do
     ~H"""
-    <div class="px-6 py-4 border-b border-zinc-700">
+    <div class="px-6 py-4 border-b border-secondary-200 dark:border-secondary-700">
       <div class="flex items-center justify-between">
         <div class="flex items-center space-x-4">
-          <div class="h-10 w-10 rounded-full bg-lime-500 flex items-center justify-center">
-            <span class="text-zinc-900 font-semibold text-lg">J</span>
+          <div class="h-10 w-10 rounded-full bg-primary-500 flex items-center justify-center">
+            <span class="text-white dark:text-secondary-900 font-semibold text-lg">J</span>
           </div>
           <div>
-            <h2 class="text-xl font-bold text-gray-100">
+            <h2 class="text-xl font-bold text-secondary-900 dark:text-secondary-100">
               Chat with Agent Jido
             </h2>
             <div class="flex items-center">
               <div class="relative h-2 w-2 mr-2">
-                <span class="absolute inline-flex h-2 w-2 rounded-full bg-emerald-500 opacity-75 animate-ping">
+                <span class="absolute inline-flex h-2 w-2 rounded-full bg-success-500 opacity-75 animate-ping">
                 </span>
               </div>
-              <span class="text-sm text-zinc-400">Online</span>
+              <span class="text-sm text-secondary-500 dark:text-secondary-400">Online</span>
             </div>
           </div>
         </div>
@@ -71,7 +71,7 @@ defmodule JidoWorkbenchWeb.ChatComponents do
   def message_item(%{message: message} = assigns) when message.type == :system do
     ~H"""
     <div class="flex justify-center">
-      <div class="text-xs text-gray-400 italic px-4 py-1">
+      <div class="text-xs text-secondary-500 dark:text-secondary-400 italic px-4 py-1">
         {Phoenix.HTML.raw(format_line_breaks(Message.content(@message)))}
       </div>
     </div>
@@ -112,10 +112,10 @@ defmodule JidoWorkbenchWeb.ChatComponents do
       <div>
         {Phoenix.HTML.raw(format_line_breaks(@content))}
         <%= if @payload do %>
-          <div class="mt-2 p-2 bg-zinc-700 rounded">
+          <div class="mt-2 p-2 bg-secondary-100 dark:bg-secondary-700 rounded">
             <%= case @payload do %>
               <% %{url: url} -> %>
-                <a href={url} target="_blank" class="text-blue-400 hover:underline">{url}</a>
+                <a href={url} target="_blank" class="text-info-600 dark:text-info-400 hover:underline">{url}</a>
               <% _ -> %>
                 <pre class="text-sm overflow-x-auto">{inspect(@payload, pretty: true)}</pre>
             <% end %>
@@ -145,20 +145,20 @@ defmodule JidoWorkbenchWeb.ChatComponents do
           <div class={message_header_class("jido")}>
             {get_participant_name("jido")}
           </div>
-          <div class="rounded-2xl max-w-prose break-words bg-zinc-800 text-gray-100 rounded-tl-none">
+          <div class="rounded-2xl max-w-prose break-words bg-secondary-100 dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-tl-none">
             <div class="flex items-center space-x-2 px-4 py-4">
               <div
-                class="w-2 h-2 rounded-full bg-zinc-400 animate-bounce"
+                class="w-2 h-2 rounded-full bg-secondary-400 animate-bounce"
                 style="animation-delay: 0ms"
               >
               </div>
               <div
-                class="w-2 h-2 rounded-full bg-zinc-400 animate-bounce"
+                class="w-2 h-2 rounded-full bg-secondary-400 animate-bounce"
                 style="animation-delay: 150ms"
               >
               </div>
               <div
-                class="w-2 h-2 rounded-full bg-zinc-400 animate-bounce"
+                class="w-2 h-2 rounded-full bg-secondary-400 animate-bounce"
                 style="animation-delay: 300ms"
               >
               </div>
@@ -178,15 +178,17 @@ defmodule JidoWorkbenchWeb.ChatComponents do
   defp message_flex_direction(_), do: "flex-row"
 
   defp message_header_class(sender_id) when sender_id == "operator",
-    do: "text-sm text-gray-400 text-right mb-1"
+    do: "text-sm text-secondary-500 dark:text-secondary-400 text-right mb-1"
 
-  defp message_header_class(_), do: "text-sm text-gray-400 mb-1"
+  defp message_header_class(_), do: "text-sm text-secondary-500 dark:text-secondary-400 mb-1"
 
   defp message_content_class(sender_id) when sender_id == "operator",
-    do: "rounded-2xl max-w-prose break-words bg-lime-500 text-zinc-900 px-4 py-2 rounded-tr-none"
+    do:
+      "rounded-2xl max-w-prose break-words bg-primary-500 text-white dark:text-secondary-900 px-4 py-2 rounded-tr-none"
 
   defp message_content_class(_),
-    do: "rounded-2xl max-w-prose break-words bg-zinc-800 text-gray-100 px-4 py-2 rounded-tl-none"
+    do:
+      "rounded-2xl max-w-prose break-words bg-secondary-100 dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 px-4 py-2 rounded-tl-none"
 
   defp format_line_breaks(content) when is_binary(content) do
     String.replace(content, "\n", "<br>")

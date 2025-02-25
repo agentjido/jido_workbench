@@ -1,5 +1,5 @@
-<.container max_width="md" class="mx-auto my-20">
-  <.h2>field/1</.h2>
+<.container max_width="md" class="mx-auto my-20 bg-white dark:bg-secondary-900 text-secondary-900 dark:text-secondary-100 p-6 rounded-lg shadow-lg">
+  <.h2 class="text-primary-600 dark:text-primary-500">field/1</.h2>
   <.form for={@form} phx-submit="submit" phx-change="validate">
     <.field
       help_text="This is some help text"
@@ -58,11 +58,11 @@
     <.field type="week" field={@form[:week]} />
 
     <div class="flex justify-end">
-      <.button>Submit</.button>
+      <.button class="bg-primary-600 dark:bg-primary-500 hover:bg-primary-700 dark:hover:bg-primary-400 text-white dark:text-secondary-900">Submit</.button>
     </div>
   </.form>
 
-  <.h2>input/1</.h2>
+  <.h2 class="text-primary-600 dark:text-primary-500 mt-8">input/1</.h2>
   <.form for={@form2}>
     <div class="flex flex-col gap-4">
       <.input type="text" field={@form2[:text]} placeholder="Text" phx-debounce="blur" />
@@ -93,7 +93,7 @@
     </div>
 
     <div class="flex justify-end">
-      <.button>Submit</.button>
+      <.button class="bg-primary-600 dark:bg-primary-500 hover:bg-primary-700 dark:hover:bg-primary-400 text-white dark:text-secondary-900">Submit</.button>
     </div>
   </.form>
 </.container>

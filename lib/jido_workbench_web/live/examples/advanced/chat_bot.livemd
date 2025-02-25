@@ -1,0 +1,42 @@
+---
+title: "Chat Bot Agent"
+description: "Build a sophisticated chat bot with memory and context"
+category: "Advanced Examples"
+icon: "hero-chat-bubble-left-right"
+tags: ["advanced", "nlp", "chat"]
+order: 1
+---
+
+# Building a Chat Bot Agent
+
+This tutorial demonstrates how to build a more sophisticated chat bot agent that maintains conversation context and can handle complex interactions.
+
+## Architecture
+
+The chat bot uses the following components:
+- Memory store for conversation history
+- NLP processing for intent recognition
+- Context management for maintaining state
+
+## Implementation
+
+Here's the basic structure:
+
+```elixir
+defmodule ChatBotAgent do
+  use Jido.Agent,
+    name: "ChatBot",
+    description: "An intelligent chat bot agent",
+    actions: [
+      ChatBotAgent.Actions.ProcessMessage,
+      ChatBotAgent.Actions.ManageContext
+    ]
+end
+```
+
+## Advanced Features
+
+- Context awareness
+- Memory management
+- Natural language processing
+- Dynamic response generation 

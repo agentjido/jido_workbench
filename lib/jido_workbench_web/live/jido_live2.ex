@@ -147,12 +147,12 @@ defmodule JidoWorkbenchWeb.JidoLive2 do
                 type="text"
                 name="message"
                 placeholder="Type a message..."
-                class="flex-1 bg-zinc-800 text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-lime-500"
+                class="flex-1 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400"
                 autocomplete="off"
               />
               <button
                 type="submit"
-                class="bg-lime-500 text-zinc-900 rounded-lg px-4 py-2 font-semibold hover:bg-lime-400 focus:outline-none focus:ring-2 focus:ring-lime-500"
+                class="bg-primary-600 dark:bg-primary-500 text-white dark:text-secondary-900 rounded-lg px-4 py-2 font-semibold hover:bg-primary-700 dark:hover:bg-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400"
               >
                 Send <.icon name="hero-paper-airplane" class="h-5 w-5" />
               </button>

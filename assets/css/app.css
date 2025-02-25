@@ -39,3 +39,37 @@
     cursor: wait;
   }
 }
+
+/* Custom menu styling */
+.pc-vertical-menu {
+  @apply text-xs;
+}
+
+.pc-vertical-menu-item {
+  @apply py-1 px-2.5 !important;
+}
+
+/* Add indentation for menu items under a section */
+.pc-vertical-menu__menu-group .pc-vertical-menu-item {
+  @apply pl-4 !important;
+}
+
+.pc-vertical-menu__menu-group__title {
+  @apply text-[10px] font-medium text-secondary-400 px-2.5 py-0.5 uppercase tracking-wider !important;
+}
+
+.pc-vertical-menu-item__label {
+  @apply text-xs leading-tight !important;
+}
+
+.pc-vertical-menu-item__submenu-wrapper {
+  @apply pl-2 !important;
+}
+
+.pc-vertical-menu-item--active {
+  @apply bg-primary-50/70 text-primary-700 dark:bg-primary-900/10 dark:text-primary-400 !important;
+}
+
+.pc-vertical-menu-item--inactive {
+  @apply text-secondary-700 hover:bg-secondary-50/70 dark:text-secondary-400 dark:hover:bg-secondary-800/30 !important;
+}

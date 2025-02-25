@@ -21,7 +21,7 @@ defmodule JidoWorkbench.Actions.AddTask do
 
     # Create new task
     task = %{
-      id: UUID.uuid4(),
+      id: Jido.Util.generate_id(),
       title: params.title,
       description: params.description,
       status: :pending,

@@ -16,7 +16,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: colors.lime, // Super bright neon green vibe
+        primary: colors.sky, // Super bright neon green vibe
         secondary: colors.zinc, // Industrial dark metallic
         success: colors.emerald,
         danger: colors.red,
@@ -25,8 +25,12 @@ module.exports = {
         gray: colors.gray,
       },
       fontFamily: {
-        mono: ["Share Tech Mono", "monospace"],
-        sans: ["Share Tech Mono", "system-ui", "sans-serif"],
+        // Main text font - clean monospace
+        mono: ["JetBrains Mono", "Share Tech Mono", "monospace"],
+        // System text font
+        sans: ["Inter", "system-ui", "sans-serif"],
+        // Display/heading font
+        display: ["VT323", "monospace"],
       },
     },
   },

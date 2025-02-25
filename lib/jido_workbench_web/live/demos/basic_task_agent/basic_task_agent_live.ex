@@ -82,7 +82,7 @@ defmodule JidoWorkbenchWeb.BasicTaskAgentLive do
 
   @impl true
   def mount(params, session, socket) do
-    agent = BasicTaskAgent.new(UUID.uuid4(), %{tasks: []})
+    agent = BasicTaskAgent.new(Jido.Util.generate_id(), %{tasks: []})
     show_layout = show_layout(params, session)
 
     # agent_pid = JidoWorkbench.Jido.TaskAgent.start_link()

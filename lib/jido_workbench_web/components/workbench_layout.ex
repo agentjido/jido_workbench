@@ -2,7 +2,7 @@ defmodule JidoWorkbenchWeb.WorkbenchLayout do
   @moduledoc false
   use JidoWorkbenchWeb, :live_component
   use PetalComponents
-  alias JidoWorkbenchWeb.MenuItems
+  alias JidoWorkbenchWeb.{MenuItems, Menu}
   alias JidoWorkbench.GithubStarsTracker
 
   # Add helper function for determining show_layout
@@ -22,36 +22,39 @@ defmodule JidoWorkbenchWeb.WorkbenchLayout do
   def workbench_layout(assigns) do
     ~H"""
     <%= if @show_layout do %>
-      <div class="h-screen overflow-hidden flex flex-col">
+      <div class="h-screen flex flex-col">
         <.nav_bar />
         <div class="flex flex-1 overflow-hidden">
           <%= if @show_menu do %>
-            <aside class="w-64 bg-zinc-900 flex-shrink-0 overflow-y-auto">
-              <.vertical_menu
-                title="Main menu"
-                current_page={@current_page}
-                menu_items={MenuItems.menu_items()}
-              />
+            <aside class="w-48 bg-white dark:bg-secondary-900 flex-shrink-0 border-r border-secondary-200 dark:border-secondary-800">
+              <div class="py-1.5">
+                <Menu.vertical_menu
+                  title="Main menu"
+                  current_page={@current_page}
+                  menu_items={MenuItems.menu_items()}
+                  class="space-y-0"
+                />
+              </div>
             </aside>
           <% end %>
 
-          <div class={[
-            "flex-1 overflow-y-auto ml-2",
-            "bg-zinc-900",
+          <main class={[
+            "flex-1 overflow-y-auto",
+            "bg-white dark:bg-secondary-900",
             if(@show_menu, do: "", else: "w-full")
           ]}>
             {render_slot(@inner_block)}
-          </div>
+          </main>
         </div>
-        <footer class="bg-zinc-900 text-zinc-400 text-sm py-4 px-6 border-t border-zinc-800">
+        <footer class="bg-white dark:bg-secondary-900 text-secondary-600 dark:text-secondary-400 text-sm py-4 px-6 border-t border-secondary-200 dark:border-secondary-800">
           <div class="flex justify-between items-center">
             <div>
               © {DateTime.utc_now().year} Jido. All rights reserved.
             </div>
             <div class="flex gap-4">
-              <a href="https://hexdocs.pm/jido" class="hover:text-lime-500">Documentation</a>
-              <a href="https://github.com/agentjido/jido" class="hover:text-lime-500">GitHub</a>
-              <a href="https://x.com/agentjido" class="hover:text-lime-500">Twitter</a>
+              <a href="https://hexdocs.pm/jido" class="hover:text-primary-600 dark:hover:text-primary-400">Documentation</a>
+              <a href="https://github.com/agentjido/jido" class="hover:text-primary-600 dark:hover:text-primary-400">GitHub</a>
+              <a href="https://x.com/agentjido" class="hover:text-primary-600 dark:hover:text-primary-400">Twitter</a>
             </div>
           </div>
         </footer>
@@ -67,10 +70,10 @@ defmodule JidoWorkbenchWeb.WorkbenchLayout do
     assigns = assign(assigns, :stars, stars)
 
     ~H"""
-    <nav class="sticky top-0 z-50 flex items-center justify-between w-full h-16 bg-zinc-900">
+    <nav class="sticky top-0 z-50 flex items-center justify-between w-full h-16 bg-white dark:bg-secondary-900 border-b border-secondary-200 dark:border-secondary-800">
       <div class="flex flex-wrap ml-3 sm:flex-nowrap sm:ml-4">
         <a class="inline-flex hover:opacity-90" href="/">
-          <div class="font-['VT323'] text-5xl text-gray-700 dark:text-lime-500 tracking-wide">
+          <div class="font-display text-3xl text-secondary-700 dark:text-primary-500 tracking-wide">
             AGENT JIDO
           </div>
         </a>
@@ -79,11 +82,11 @@ defmodule JidoWorkbenchWeb.WorkbenchLayout do
       <div class="flex justify-end gap-3 pr-4">
         <a
           target="_blank"
-          class="inline-flex items-center gap-2 p-2 text-gray-500 rounded dark:text-gray-400 dark:hover:text-gray-500 hover:text-gray-400 group"
+          class="inline-flex items-center gap-2 p-2 text-secondary-500 rounded dark:text-secondary-400 hover:text-secondary-400 dark:hover:text-secondary-500 group"
           href="https://github.com/agentjido/jido"
         >
           <svg
-            class="w-5 h-5 fill-gray-500"
+            class="w-5 h-5 fill-secondary-500 dark:fill-secondary-400"
             xmlns="http://www.w3.org/2000/svg"
             data-name="Layer 1"
             viewBox="0 0 24 24"
@@ -97,7 +100,7 @@ defmodule JidoWorkbenchWeb.WorkbenchLayout do
         </a>
         <a
           target="_blank"
-          class="inline-flex items-center gap-2 p-2 text-gray-500 rounded dark:text-gray-400 dark:hover:text-gray-500 hover:text-gray-400 group"
+          class="inline-flex items-center gap-2 p-2 text-secondary-500 rounded dark:text-secondary-400 hover:text-secondary-400 dark:hover:text-secondary-500 group"
           href="https://hexdocs.pm/jido/"
         >
           <.icon name="hero-book-open" solid class="w-5 h-5 m-0.5 mr-2" />
@@ -107,11 +110,11 @@ defmodule JidoWorkbenchWeb.WorkbenchLayout do
         </a>
         <a
           target="_blank"
-          class="inline-flex items-center gap-2 p-2 text-gray-500 rounded dark:text-gray-400 dark:hover:text-gray-500 hover:text-gray-400 group"
+          class="inline-flex items-center gap-2 p-2 text-secondary-500 rounded dark:text-secondary-400 hover:text-secondary-400 dark:hover:text-secondary-500 group"
           href="https://x.com/agentjido"
         >
           <svg
-            class="w-5 h-5 fill-gray-500"
+            class="w-5 h-5 fill-secondary-500 dark:fill-secondary-400"
             xmlns="http://www.w3.org/2000/svg"
             data-name="Layer 1"
             viewBox="0 0 24 24"

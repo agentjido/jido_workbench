@@ -39,6 +39,8 @@ defmodule JidoWorkbench.Application do
       JidoWorkbenchWeb.Endpoint,
       # Start the GitHub Stars Tracker
       {JidoWorkbench.GithubStarsTracker, []},
+      # Start the Livebook Registry
+      {JidoWorkbench.LivebookRegistry, []},
       # Jido Task Supervisor
       {Task.Supervisor, name: JidoWorkbench.TaskSupervisor}
 

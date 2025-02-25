@@ -54,7 +54,7 @@ defmodule JidoWorkbenchWeb.CoreComponents do
       phx-remove={hide_modal(@id)}
       class="relative z-50 hidden"
     >
-      <div id={"#{@id}-bg"} class="fixed inset-0 transition-opacity bg-zinc-50/90" aria-hidden="true" />
+      <div id={"#{@id}-bg"} class="fixed inset-0 transition-opacity bg-secondary-900/90 dark:bg-secondary-900/90" aria-hidden="true" />
       <div
         class="fixed inset-0 overflow-y-auto"
         aria-labelledby={"#{@id}-title"}
@@ -71,7 +71,7 @@ defmodule JidoWorkbenchWeb.CoreComponents do
               phx-window-keydown={hide_modal(@on_cancel, @id)}
               phx-key="escape"
               phx-click-away={hide_modal(@on_cancel, @id)}
-              class="relative hidden transition bg-white shadow-lg rounded-2xl p-14 shadow-zinc-700/10 ring-1 ring-zinc-700/10"
+              class="relative hidden transition bg-white dark:bg-secondary-900 shadow-lg rounded-2xl p-14 shadow-secondary-700/10 ring-1 ring-secondary-700/10"
             >
               <div class="absolute top-6 right-5">
                 <phx_button
@@ -85,13 +85,13 @@ defmodule JidoWorkbenchWeb.CoreComponents do
               </div>
               <div id={"#{@id}-content"}>
                 <header :if={@title != []}>
-                  <h1 id={"#{@id}-title"} class="text-lg font-semibold leading-8 text-zinc-800">
+                  <h1 id={"#{@id}-title"} class="text-lg font-semibold leading-8 text-secondary-900 dark:text-secondary-100">
                     {render_slot(@title)}
                   </h1>
                   <p
                     :if={@subtitle != []}
                     id={"#{@id}-description"}
-                    class="mt-2 text-sm leading-6 text-zinc-600"
+                    class="mt-2 text-sm leading-6 text-secondary-600 dark:text-secondary-400"
                   >
                     {render_slot(@subtitle)}
                   </p>
@@ -110,7 +110,7 @@ defmodule JidoWorkbenchWeb.CoreComponents do
                   <.link
                     :for={cancel <- @cancel}
                     phx-click={hide_modal(@on_cancel, @id)}
-                    class="text-sm font-semibold leading-6 text-zinc-900 hover:text-zinc-700"
+                    class="text-sm font-semibold leading-6 text-secondary-900 dark:text-secondary-100 hover:text-secondary-700 dark:hover:text-secondary-300"
                   >
                     {render_slot(cancel)}
                   </.link>
@@ -151,9 +151,9 @@ defmodule JidoWorkbenchWeb.CoreComponents do
       phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
       role="alert"
       class={[
-        "fixed hidden bottom-10 right-10 w-80 sm:w-96 z-50 rounded-lg p-3 shadow-md shadow-zinc-900/5 ring-1",
-        @kind == :info && "bg-emerald-50 text-emerald-800 ring-emerald-500 fill-cyan-900",
-        @kind == :error && "bg-rose-50 p-3 text-rose-900 shadow-md ring-rose-500 fill-rose-900"
+        "fixed hidden bottom-10 right-10 w-80 sm:w-96 z-50 rounded-lg p-3 shadow-md shadow-secondary-900/5 ring-1",
+        @kind == :info && "bg-success-50 dark:bg-success-900/30 text-success-800 dark:text-success-200 ring-success-500 fill-success-900",
+        @kind == :error && "bg-danger-50 dark:bg-danger-900/30 text-danger-900 dark:text-danger-200 ring-danger-500 fill-danger-900"
       ]}
       {@rest}
     >
@@ -262,8 +262,8 @@ defmodule JidoWorkbenchWeb.CoreComponents do
     <button
       type={@type}
       class={[
-        "phx-submit-loading:opacity-75 rounded-lg bg-zinc-900 hover:bg-zinc-700 py-2 px-3",
-        "text-sm font-semibold leading-6 text-white active:text-white/80",
+        "phx-submit-loading:opacity-75 rounded-lg bg-primary-600 dark:bg-primary-500 hover:bg-primary-700 dark:hover:bg-primary-400 py-2 px-3",
+        "text-sm font-semibold leading-6 text-white dark:text-secondary-900 active:text-white/80",
         @class
       ]}
       {@rest}
@@ -324,7 +324,7 @@ defmodule JidoWorkbenchWeb.CoreComponents do
 
     ~H"""
     <div>
-      <label class="flex items-center gap-4 text-sm leading-6 text-zinc-600">
+      <label class="flex items-center gap-4 text-sm leading-6 text-secondary-600 dark:text-secondary-400">
         <input type="hidden" name={@name} value="false" />
         <input
           type="checkbox"
@@ -332,7 +332,7 @@ defmodule JidoWorkbenchWeb.CoreComponents do
           name={@name}
           value="true"
           checked={@checked}
-          class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900"
+          class="rounded border-secondary-300 dark:border-secondary-600 text-primary-600 dark:text-primary-500 focus:ring-primary-600 dark:focus:ring-primary-500"
           {@rest}
         />
         {@label}
@@ -349,7 +349,7 @@ defmodule JidoWorkbenchWeb.CoreComponents do
       <select
         id={@id}
         name={@name}
-        class="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-zinc-500 focus:border-zinc-500 sm:text-sm"
+        class="block w-full px-3 py-2 mt-1 bg-white dark:bg-secondary-800 border border-secondary-300 dark:border-secondary-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400 sm:text-sm"
         multiple={@multiple}
         {@rest}
       >
@@ -369,10 +369,10 @@ defmodule JidoWorkbenchWeb.CoreComponents do
         id={@id || @name}
         name={@name}
         class={[
-          "mt-2 block min-h-[6rem] w-full rounded-lg border-zinc-300 py-[7px] px-[11px]",
-          "text-zinc-900 focus:border-zinc-400 focus:outline-none focus:ring-4 focus:ring-zinc-800/5 sm:text-sm sm:leading-6",
-          "border-zinc-300 focus:border-zinc-400 focus:ring-zinc-800/5",
-          @errors != [] && "border-rose-400 focus:border-rose-400 focus:ring-rose-400/10"
+          "mt-2 block min-h-[6rem] w-full rounded-lg border-secondary-300 dark:border-secondary-600 py-[7px] px-[11px]",
+          "text-secondary-900 dark:text-secondary-100 focus:border-primary-400 dark:focus:border-primary-500 focus:outline-none focus:ring-4 focus:ring-primary-500/5 dark:focus:ring-primary-500/5 sm:text-sm sm:leading-6",
+          "bg-white dark:bg-secondary-800",
+          @errors != [] && "border-danger-400 focus:border-danger-400 focus:ring-danger-400/10"
         ]}
         {@rest}
       ><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
@@ -391,10 +391,10 @@ defmodule JidoWorkbenchWeb.CoreComponents do
         id={@id || @name}
         value={Phoenix.HTML.Form.normalize_value(@type, @value)}
         class={[
-          "mt-2 block w-full rounded-lg border-zinc-300 py-[7px] px-[11px]",
-          "text-zinc-900 focus:outline-none focus:ring-4 sm:text-sm sm:leading-6",
-          "border-zinc-300 focus:border-zinc-400 focus:ring-zinc-800/5",
-          @errors != [] && "border-rose-400 focus:border-rose-400 focus:ring-rose-400/10"
+          "mt-2 block w-full rounded-lg border-secondary-300 dark:border-secondary-600 py-[7px] px-[11px]",
+          "text-secondary-900 dark:text-secondary-100 focus:outline-none focus:ring-4 sm:text-sm sm:leading-6",
+          "bg-white dark:bg-secondary-800 focus:border-primary-400 dark:focus:border-primary-500 focus:ring-primary-500/5 dark:focus:ring-primary-500/5",
+          @errors != [] && "border-danger-400 focus:border-danger-400 focus:ring-danger-400/10"
         ]}
         {@rest}
       />
@@ -411,7 +411,7 @@ defmodule JidoWorkbenchWeb.CoreComponents do
 
   def phx_label(assigns) do
     ~H"""
-    <label for={@for} class="block text-sm font-semibold leading-6 text-zinc-800">
+    <label for={@for} class="block text-sm font-semibold leading-6 text-secondary-900 dark:text-secondary-100">
       {render_slot(@inner_block)}
     </label>
     """
@@ -424,8 +424,8 @@ defmodule JidoWorkbenchWeb.CoreComponents do
 
   def error(assigns) do
     ~H"""
-    <p class="flex gap-3 mt-3 text-sm leading-6 text-rose-600">
-      <.icon name="hero-exclamation-circle-mini" class="mt-0.5 h-5 w-5 flex-none fill-rose-500" />
+    <p class="flex gap-3 mt-3 text-sm leading-6 text-danger-600 dark:text-danger-400">
+      <.icon name="hero-exclamation-circle-mini" class="mt-0.5 h-5 w-5 flex-none fill-danger-500" />
       {render_slot(@inner_block)}
     </p>
     """
@@ -444,10 +444,10 @@ defmodule JidoWorkbenchWeb.CoreComponents do
     ~H"""
     <header class={[@actions != [] && "flex items-center justify-between gap-6", @class]}>
       <div>
-        <h1 class="text-lg font-semibold leading-8 text-zinc-800">
+        <h1 class="text-lg font-semibold leading-8 text-secondary-900 dark:text-secondary-100">
           {render_slot(@inner_block)}
         </h1>
-        <p :if={@subtitle != []} class="mt-2 text-sm leading-6 text-zinc-600">
+        <p :if={@subtitle != []} class="mt-2 text-sm leading-6 text-secondary-600 dark:text-secondary-400">
           {render_slot(@subtitle)}
         </p>
       </div>

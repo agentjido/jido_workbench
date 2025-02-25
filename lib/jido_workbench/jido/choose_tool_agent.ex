@@ -40,7 +40,7 @@ defmodule JidoWorkbench.Jido.ChooseToolAgent do
   # Server Callbacks
   @impl true
   def init(initial_state) do
-    agent = new(UUID.uuid4(), initial_state)
+    agent = new(Jido.Util.generate_id(), initial_state)
     {:ok, agent}
   end
 

@@ -24,17 +24,15 @@ defmodule JidoWorkbenchWeb.Router do
     post("/settings/save", LLMKeyController, :save_settings)
 
     live("/jido", JidoLive, :index)
-    live("/jido2", JidoLive2, :index)
-    live("/team", TeamLive, :index)
-
-    # Docs
-    # live("/docs", DocsLive, :index)
+    # live("/jido2", JidoLive2, :index)
+    # live("/team", TeamLive, :index)
 
     # Examples
-    # live("/examples", ExamplesLive, :index)
+    live("/examples", LivebookDemoLive, :index, metadata: %{tag: :examples})
+    live("/examples/:demo_id", LivebookDemoLive, :index, metadata: %{tag: :examples})
 
-    # Showcase
-    live("/showcase", DemoIndexLive, :index, metadata: %{tag: :showcase})
+    live("/docs", LivebookDemoLive, :index, metadata: %{tag: :docs})
+    live("/docs/:demo_id", LivebookDemoLive, :index, metadata: %{tag: :docs})
 
     # Jido Catalog
     live("/catalog", CatalogLive, :index)
@@ -43,17 +41,16 @@ defmodule JidoWorkbenchWeb.Router do
     live("/catalog/sensors", CatalogSensorsLive, :index)
     live("/catalog/skills", CatalogSkillsLive, :index)
 
-    # Jido Demos
-    live("/demo", DemoIndexLive, :index, metadata: %{tag: :demo})
-
-    live("/demo/:demo_id", DemoShowLive, :index)
+    # # Jido Demos
+    # live("/demo", DemoIndexLive, :index, metadata: %{tag: :demo})
+    # live("/demo/:demo_id", DemoShowLive, :index)
 
     # Petal Boilerplate Helpers
-    live("/form", FormLive, :index)
-    live("/live", PageLive, :index)
-    live("/live/modal/:size", PageLive, :modal)
-    live("/live/slide_over/:origin", PageLive, :slide_over)
-    live("/live/pagination/:page", PageLive, :pagination)
+    # live("/form", FormLive, :index)
+    # live("/live", PageLive, :index)
+    # live("/live/modal/:size", PageLive, :modal)
+    # live("/live/slide_over/:origin", PageLive, :slide_over)
+    # live("/live/pagination/:page", PageLive, :pagination)
   end
 
   # Other scopes may use custom stacks.

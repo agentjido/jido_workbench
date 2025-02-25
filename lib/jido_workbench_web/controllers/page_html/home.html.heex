@@ -1,8 +1,8 @@
 <.workbench_layout current_page={:home} show_menu={false}>
-  <div class="flex flex-col items-center justify-center min-h-screen bg-zinc-900 text-gray-100">
+  <div class="flex flex-col items-center justify-center h-full bg-white dark:bg-secondary-900 text-secondary-900 dark:text-secondary-100">
     <.container class="text-center">
-      <.h1 class="mb-8 text-4xl font-bold text-lime-500">Orchestrate Thousands of Agents</.h1>
-      <.h3 class="mb-8 text-sm font-bold text-lime-500 max-w-prose mx-auto">
+      <.h1 class="mb-8 text-4xl font-bold text-primary-600 dark:text-primary-500">Orchestrate Thousands of Agents</.h1>
+      <.h3 class="mb-8 text-sm font-bold text-primary-600 dark:text-primary-500 max-w-prose mx-auto">
         Deploy agent swarms at scale with ease. Jido leverages Elixir's powerful runtime to handle thousands of concurrent agents efficiently on a single machine.
       </.h3>
 
@@ -10,7 +10,7 @@
         <.button
           link_type="live_redirect"
           to={~p"/jido"}
-          class="w-full py-3 text-lg bg-lime-500 hover:bg-lime-600 text-zinc-900"
+          class="w-full py-3 text-lg bg-primary-600 dark:bg-primary-500 text-white dark:text-secondary-900 hover:bg-primary-700 dark:hover:bg-primary-400"
         >
           <.icon name="hero-chat-bubble-left-ellipsis" solid class="w-6 h-6 m-0.5 mr-2" />
           Chat with Agent Jido
@@ -19,7 +19,7 @@
         <.button
           link_type="live_redirect"
           to={~p"/examples"}
-          class="w-full py-3 text-lg bg-lime-500 hover:bg-lime-600 text-zinc-900"
+          class="w-full py-3 text-lg bg-primary-600 dark:bg-primary-500 text-white dark:text-secondary-900 hover:bg-primary-700 dark:hover:bg-primary-400"
         >
           <.icon name="hero-beaker" solid class="w-6 h-6 m-0.5 mr-2" /> Examples
         </.button>
@@ -27,7 +27,7 @@
         <.button
           link_type="live_redirect"
           to={~p"/docs"}
-          class="w-full py-3 text-lg bg-lime-500 hover:bg-lime-600 text-zinc-900"
+          class="w-full py-3 text-lg bg-primary-600 dark:bg-primary-500 text-white dark:text-secondary-900 hover:bg-primary-700 dark:hover:bg-primary-400"
         >
           <.icon name="hero-book-open" solid class="w-6 h-6 m-0.5 mr-2" /> Docs
         </.button>
@@ -35,7 +35,7 @@
         <.button
           link_type="live_redirect"
           to={~p"/settings"}
-          class="w-full py-3 text-lg bg-lime-500 hover:bg-lime-600 text-zinc-900"
+          class="w-full py-3 text-lg bg-primary-600 dark:bg-primary-500 text-white dark:text-secondary-900 hover:bg-primary-700 dark:hover:bg-primary-400"
         >
           <.icon name="hero-cog" solid class="w-6 h-6 m-0.5 mr-2" /> Settings
         </.button>

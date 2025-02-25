@@ -3,118 +3,144 @@ defmodule JidoWorkbenchWeb.MenuItems do
   Defines the menu structure for the workbench layout.
   """
   use JidoWorkbenchWeb, :live_component
+  alias JidoWorkbench.LivebookRegistry
+  require Logger
+
+  @livebook_root "lib/jido_workbench_web/live"
 
   def menu_items() do
     [
       %{
         title: "",
         menu_items: [
-          %{name: :home, label: "Home", path: ~p"/", icon: "hero-home"},
+          %{name: :home, label: "Home", path: ~p"/", icon: nil},
           %{
             name: :jido,
             label: "Agent Jido",
             path: ~p"/jido",
-            icon: "hero-chat-bubble-left-ellipsis"
+            icon: nil
           },
           %{
             name: :settings,
             label: "Settings",
             path: ~p"/settings",
-            icon: "hero-wrench-screwdriver"
+            icon: nil
           }
         ]
       },
       %{
-        title: "Catalog",
-        menu_items: [
-          %{name: :actions, label: "Actions", path: ~p"/catalog/actions", icon: "hero-bolt"},
-          %{name: :agents, label: "Agents", path: ~p"/catalog/agents", icon: "hero-users"},
-          %{name: :sensors, label: "Sensors", path: ~p"/catalog/sensors", icon: "hero-sparkles"},
-          %{name: :skills, label: "Skills", path: ~p"/catalog/skills", icon: "hero-light-bulb"}
-        ]
+        title: "Examples",
+        menu_items: get_cached_menu(:examples)
       },
       %{
-        title: "Demos",
-        menu_items: build_demo_menu()
+        title: "Docs",
+        menu_items: get_cached_menu(:docs)
+      },
+      %{
+        title: "Catalog",
+        menu_items: [
+          %{name: :actions, label: "Actions", path: ~p"/catalog/actions", icon: nil},
+          %{name: :agents, label: "Agents", path: ~p"/catalog/agents", icon: nil},
+          %{name: :sensors, label: "Sensors", path: ~p"/catalog/sensors", icon: nil},
+          %{name: :skills, label: "Skills", path: ~p"/catalog/skills", icon: nil}
+        ]
       }
-      # %{
-      #   title: "Basic Demos",
-      #   menu_items: [
-      #     %{
-      #       name: :basic_task_agent,
-      #       label: "Basic Task Agent",
-      #       path: ~p"/demo/basic-task-agent",
-      #       icon: "hero-check-circle"
-      #     },
-      #     %{
-      #       name: :server_task_agent,
-      #       label: "Server Task Agent",
-      #       path: ~p"/demo/server-task-agent",
-      #       icon: "hero-check-circle",
-      #       menu_items: [
-      #         %{
-      #           name: :server_task_agent,
-      #           label: "Server Task Agent",
-      #           path: ~p"/demo/server-task-agent",
-      #           icon: "hero-check-circle"
-      #         }
-      #       ]
-      #     }
-      #   ]
-      # },
-      # %{
-      #   title: "Advanced Demos",
-      #   menu_items: [
-      #     %{
-      #       name: :choose_tool_agent,
-      #       label: "Choose Tool Agent",
-      #       path: ~p"/demo/choose-tool-agent",
-      #       icon: "hero-check-circle"
-      #     }
-      #   ]
-      # }
     ]
   end
 
-  def build_demo_menu do
-    demos = Jido.list_demos()
+  def build_livebook_menu(type) when type in [:examples, :docs] do
+    get_cached_menu(type)
+  end
 
-    # Add root "All Demos" menu item
-    all_demos_item = %{
-      name: :all_demos,
-      label: "All Demos",
-      path: ~p"/demo",
-      icon: "hero-beaker"
+  def find_livebook(type, demo_id) do
+    # Get raw livebooks from registry
+    LivebookRegistry.get_livebooks(type)
+    |> Enum.find(fn item ->
+      item.path
+      |> Path.relative_to(Path.join(@livebook_root, to_string(type)))
+      |> Path.rootname()
+      |> String.trim_leading("/")
+      |> String.replace("/", "-") == demo_id
+    end)
+    |> case do
+      nil -> nil
+      livebook -> build_menu_item(livebook, type)
+    end
+  end
+
+  # Private Functions
+
+  defp get_cached_menu(type) do
+    # Use process dictionary to cache the menu structure
+    # This is safe because LiveView processes are short-lived
+    cache_key = :"livebook_menu_#{type}"
+
+    case Process.get(cache_key) do
+      nil ->
+        menu = build_menu_structure(type)
+        Process.put(cache_key, menu)
+        menu
+
+      menu ->
+        menu
+    end
+  end
+
+  defp build_menu_structure(type) do
+    # Add root "All" menu item
+    root_item = %{
+      name: :"all_#{type}",
+      label: "All #{String.capitalize(to_string(type))}",
+      path: ~p"/#{type}",
+      icon: nil
     }
 
-    # Group demos by category
-    demos_by_category =
-      Enum.group_by(demos, fn demo ->
-        demo.category || "Uncategorized"
-      end)
+    # Get raw livebook data
+    livebooks = LivebookRegistry.get_livebooks(type)
 
-    # Build menu items for each category
+    # Group by category and build menu structure
     category_items =
-      demos_by_category
-      |> Enum.map(fn {category, category_demos} ->
+      livebooks
+      |> Enum.group_by(& &1.category)
+      |> Enum.map(fn {category, items} ->
         %{
           name: String.to_atom(category),
           label: category,
-          path: ~p"/demo",
-          icon: "hero-folder",
+          path: ~p"/#{type}",
+          icon: "hero-home",
           menu_items:
-            Enum.map(category_demos, fn demo ->
-              %{
-                name: demo.id,
-                label: demo.name,
-                path: ~p"/demo/#{demo.id}",
-                icon: demo.icon
-              }
-            end)
+            items
+            |> Enum.sort_by(& &1.order)
+            |> Enum.map(&build_menu_item(&1, type))
         }
       end)
       |> Enum.sort_by(& &1.label)
 
-    [all_demos_item | category_items]
+    [root_item | category_items]
+  end
+
+  defp build_menu_item(livebook, type) do
+    %{
+      name: String.to_atom(livebook.id),
+      label: livebook.title,
+      path: build_livebook_path(type, livebook),
+      icon: "hero-home",
+      description: livebook.description
+    }
+  end
+
+  defp build_livebook_path(type, livebook) do
+    # Create a flattened identifier from the path
+    identifier =
+      livebook.path
+      |> Path.relative_to(Path.join(@livebook_root, to_string(type)))
+      |> Path.rootname()
+      |> String.trim_leading("/")
+      |> String.replace("/", "-")
+
+    case type do
+      :docs -> ~p"/docs/#{identifier}"
+      :examples -> ~p"/examples/#{identifier}"
+    end
   end
 end
