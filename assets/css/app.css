@@ -51,7 +51,7 @@
 
 /* Add indentation for menu items under a section */
 .pc-vertical-menu__menu-group .pc-vertical-menu-item {
-  @apply pl-4 !important;
+  @apply pl-6 !important;
 }
 
 .pc-vertical-menu__menu-group__title {
@@ -63,7 +63,7 @@
 }
 
 .pc-vertical-menu-item__submenu-wrapper {
-  @apply pl-2 !important;
+  @apply pl-1 !important;
 }
 
 .pc-vertical-menu-item--active {
@@ -72,4 +72,41 @@
 
 .pc-vertical-menu-item--inactive {
   @apply text-secondary-700 hover:bg-secondary-50/70 dark:text-secondary-400 dark:hover:bg-secondary-800/30 !important;
+}
+
+/* Menu hover effects */
+button[type="button"].menu-button {
+  @apply transition-colors duration-200 ease-in-out hover:bg-secondary-800/50 rounded-md;
+}
+
+.menu-item {
+  @apply transition-colors duration-200 ease-in-out hover:bg-secondary-800/50 rounded-md;
+}
+
+/* Enhanced hover effects for leaf menu items */
+.pl-4 .menu-item {
+  @apply transition-all duration-200 ease-in-out hover:bg-secondary-600/70 rounded-md hover:scale-[1.03] transform-gpu hover:translate-x-1 hover:border-l-2 hover:border-primary-400 hover:shadow-md hover:shadow-primary-500/20;
+}
+
+.pl-4 .menu-item:hover span {
+  @apply text-white font-medium;
+  text-shadow: 0 0 2px rgba(255, 255, 255, 0.3);
+}
+
+/* Custom scrollbar styles */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #404040;
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }

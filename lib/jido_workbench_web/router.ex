@@ -19,11 +19,11 @@ defmodule JidoWorkbenchWeb.Router do
     pipe_through(:browser)
 
     get("/", PageController, :home)
-    live("/settings", SettingsLive, :index)
-    get("/settings/clear", LLMKeyController, :clear_session)
-    post("/settings/save", LLMKeyController, :save_settings)
+    # live("/settings", SettingsLive, :index)
+    # get("/settings/clear", LLMKeyController, :clear_session)
+    # post("/settings/save", LLMKeyController, :save_settings)
 
-    live("/jido", JidoLive, :index)
+    # live("/jido", JidoLive, :index)
     # live("/jido2", JidoLive2, :index)
     # live("/team", TeamLive, :index)
 

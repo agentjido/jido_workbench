@@ -124,15 +124,18 @@ defmodule JidoWorkbenchWeb.Menu do
       ]
   """
 
-  attr :menu_items, :list, required: true
-  attr :current_page, :atom, required: true
-  attr :title, :string, default: nil
+  attr(:menu_items, :list, required: true)
+  attr(:current_page, :atom, required: true)
+  attr(:title, :string, default: nil)
 
   attr(:js_lib, :string,
     default: PetalComponents.default_js_lib(),
     values: ["alpine_js", "live_view_js"],
     doc: "javascript library used for toggling"
   )
+
+  attr(:icon, :any, default: nil)
+  attr(:is_active, :boolean, default: false)
 
   def vertical_menu(%{menu_items: []} = assigns) do
     ~H"""
@@ -142,7 +145,7 @@ defmodule JidoWorkbenchWeb.Menu do
   def vertical_menu(assigns) do
     ~H"""
     <%= if menu_items_grouped?(@menu_items) do %>
-      <div class="pc-vertical-menu">
+      <div class="h-full bg-white dark:bg-secondary-950">
         <.menu_group
           :for={menu_group <- @menu_items}
           js_lib={@js_lib}
@@ -162,9 +165,9 @@ defmodule JidoWorkbenchWeb.Menu do
     """
   end
 
-  attr :current_page, :atom
-  attr :menu_items, :list
-  attr :title, :string
+  attr(:current_page, :atom)
+  attr(:menu_items, :list)
+  attr(:title, :string)
 
   attr(:js_lib, :string,
     default: PetalComponents.default_js_lib(),
@@ -174,35 +177,36 @@ defmodule JidoWorkbenchWeb.Menu do
 
   def menu_group(assigns) do
     ~H"""
-    <nav :if={@menu_items != []}>
-      <h3 :if={@title} class="pc-vertical-menu__menu-group__title">
+    <nav :if={@menu_items != []} class="pt-2">
+      <h3
+        :if={@title != ""}
+        class="px-4 py-1 mt-2 text-sm font-semibold tracking-wider text-secondary-900 dark:text-secondary-300 uppercase"
+      >
         {@title}
       </h3>
 
-      <div class="pc-vertical-menu__menu-group__wrapper">
-        <div class="pc-vertical-menu__menu-group">
-          <.vertical_menu_item
-            :for={menu_item <- @menu_items}
-            js_lib={@js_lib}
-            all_menu_items={@menu_items}
-            current_page={@current_page}
-            {menu_item}
-          />
-        </div>
+      <div>
+        <.vertical_menu_item
+          :for={menu_item <- @menu_items}
+          js_lib={@js_lib}
+          all_menu_items={@menu_items}
+          current_page={@current_page}
+          {menu_item}
+        />
       </div>
     </nav>
     """
   end
 
-  attr :current_page, :atom
-  attr :path, :string, default: nil
-  attr :icon, :any, default: nil
-  attr :label, :string
-  attr :name, :atom, default: nil
-  attr :menu_items, :list, default: nil
-  attr :all_menu_items, :list, default: nil
-  attr :patch_group, :atom, default: nil
-  attr :link_type, :string, default: "live_redirect"
+  attr(:current_page, :atom)
+  attr(:path, :string, default: nil)
+  attr(:icon, :any, default: nil)
+  attr(:label, :string)
+  attr(:name, :atom, default: nil)
+  attr(:menu_items, :list, default: nil)
+  attr(:all_menu_items, :list, default: nil)
+  attr(:patch_group, :atom, default: nil)
+  attr(:link_type, :string, default: "live_redirect")
 
   attr(:js_lib, :string,
     default: PetalComponents.default_js_lib(),
@@ -223,9 +227,11 @@ defmodule JidoWorkbenchWeb.Menu do
            do: "live_patch",
            else: "live_redirect"
       }
-      class={menu_item_classes(@current_page, @name)}
+      class={[menu_item_classes(@current_page, @name), "menu-item"]}
     >
-      <div class="pc-vertical-menu-item__label">{@label}</div>
+      <div class="flex items-center px-4 py-1 text-sm transition-colors duration-200">
+        <span>{@label}</span>
+      </div>
     </.a>
     """
   end
@@ -235,34 +241,32 @@ defmodule JidoWorkbenchWeb.Menu do
       assigns
       |> assign_new(:submenu_id, fn -> "submenu_#{Ecto.UUID.generate()}" end)
       |> assign_new(:icon_id, fn -> "icon_#{Ecto.UUID.generate()}" end)
+      |> assign_new(:menu_key, fn -> "menu_#{assigns.name}" end)
 
     ~H"""
     <div
       phx-update="ignore"
       id={"dropdown_#{@label |> String.downcase() |> String.replace(" ", "_")}"}
-      {js_attributes("container", @js_lib, %{name: @name, current_page: @current_page, menu_items: @menu_items})}
+      {js_attributes("container", @js_lib, %{name: @name, current_page: @current_page, menu_items: @menu_items, menu_key: @menu_key})}
     >
       <button
         type="button"
-        class={menu_item_classes(@current_page, @name)}
-        {js_attributes("button", @js_lib, %{submenu_id: @submenu_id, icon_id: @icon_id})}
+        class="w-full text-left flex items-center justify-between px-4 py-1 text-sm font-semibold text-secondary-900 dark:text-secondary-300 hover:text-primary-600 dark:hover:text-primary-400 menu-button transition-colors duration-200"
+        data-submenu-id={@submenu_id}
+        {js_attributes("button", @js_lib, %{submenu_id: @submenu_id, icon_id: @icon_id, menu_key: @menu_key})}
       >
-        <div class="pc-vertical-menu-item__toggle-label">
-          {@label}
-        </div>
-
-        <div class="pc-vertical-menu-item__toggle-chevron__wrapper">
-          <.icon
-            name="hero-chevron-right"
-            id={@icon_id}
-            {js_attributes("icon", @js_lib, %{class: "pc-vertical-menu-item__toggle-chevron__icon", name: @name, current_page: @current_page, menu_items: @menu_items})}
-          />
-        </div>
+        <span>{@label}</span>
+        <.icon
+          name="hero-chevron-right"
+          id={@icon_id}
+          class="w-4 h-4 text-secondary-900 dark:text-secondary-300 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-transform duration-200"
+          {js_attributes("icon", @js_lib, %{class: "w-4 h-4 transition-transform duration-200", name: @name, current_page: @current_page, menu_items: @menu_items})}
+        />
       </button>
       <div
         id={@submenu_id}
-        class="pc-vertical-menu-item__submenu-wrapper"
-        {js_attributes("submenu", @js_lib, %{name: @name, current_page: @current_page, menu_items: @menu_items})}
+        class="pl-4"
+        {js_attributes("submenu", @js_lib, %{name: @name, current_page: @current_page, menu_items: @menu_items, menu_key: @menu_key})}
       >
         <.vertical_menu_item :for={menu_item <- @menu_items} current_page={@current_page} {menu_item} />
       </div>
@@ -270,23 +274,8 @@ defmodule JidoWorkbenchWeb.Menu do
     """
   end
 
-  attr :icon, :any, default: nil
-  attr :is_active, :boolean, default: false
-
   defp menu_icon(assigns) do
     ~H"""
-    <%= cond do %>
-      <% is_function(@icon) -> %>
-        {Phoenix.LiveView.TagEngine.component(
-          @icon,
-          [class: menu_icon_classes(@is_active)],
-          {__ENV__.module, __ENV__.function, __ENV__.file, __ENV__.line}
-        )}
-      <% is_binary(@icon) && String.match?(@icon, ~r/svg|img/) -> %>
-        {Phoenix.HTML.raw(@icon)}
-      <% true -> %>
-        <.icon name={@icon} class={menu_icon_classes(@is_active)} />
-    <% end %>
     """
   end
 
@@ -304,20 +293,15 @@ defmodule JidoWorkbenchWeb.Menu do
       end)
   end
 
-  defp menu_icon_classes(is_active),
-    do:
-      "pc-vertical-menu-item__icon pc-vertical-menu-item__icon--#{if is_active, do: "active", else: "inactive"}"
-
-  defp menu_item_base_classes(),
-    do: "pc-vertical-menu-item"
-
   # Active state
-  defp menu_item_classes(page, page),
-    do: "#{menu_item_base_classes()} group pc-vertical-menu-item--active"
+  defp menu_item_classes(page, page) do
+    "w-full text-left text-white bg-primary-600 hover:bg-primary-700 dark:bg-primary-600 dark:hover:bg-primary-700 rounded-md group transition-colors duration-200"
+  end
 
   # Inactive state
-  defp menu_item_classes(_current_page, _link_page),
-    do: "#{menu_item_base_classes()} group pc-vertical-menu-item--inactive"
+  defp menu_item_classes(_current_page, _link_page) do
+    "w-full text-left text-secondary-900 hover:text-primary-600 dark:text-secondary-300 dark:hover:text-primary-400 hover:bg-secondary-50 dark:hover:bg-secondary-800 rounded-md group transition-colors duration-200"
+  end
 
   defp find_item(name, menu_items) when is_list(menu_items) do
     Enum.find(menu_items, fn menu_item ->
@@ -334,10 +318,13 @@ defmodule JidoWorkbenchWeb.Menu do
   defp js_attributes("container", "alpine_js", %{
          name: name,
          current_page: current_page,
-         menu_items: menu_items
+         menu_items: menu_items,
+         menu_key: menu_key
        }) do
     %{
-      "x-data": "{ open: #{menu_item_active?(name, current_page, menu_items)}}"
+      "x-data":
+        "{ open: localStorage.getItem('#{menu_key}') === 'true' || false,
+                  init() { this.$watch('open', val => localStorage.setItem('#{menu_key}', val)) } }"
     }
   end
 
@@ -360,29 +347,31 @@ defmodule JidoWorkbenchWeb.Menu do
          menu_items: menu_items
        }) do
     %{
-      "x-show": "open",
-      "x-cloak": "#{!menu_item_active?(name, current_page, menu_items)}"
+      "x-show": "open"
     }
   end
 
   defp js_attributes("container", "live_view_js", _args) do
-    %{}
+    %{
+      "phx-hook": "PersistMenuState"
+    }
   end
 
-  defp js_attributes("button", "live_view_js", %{submenu_id: submenu_id, icon_id: icon_id}) do
+  defp js_attributes("button", "live_view_js", %{
+         submenu_id: submenu_id,
+         icon_id: icon_id,
+         menu_key: menu_key
+       }) do
     click =
       JS.toggle(
         to: "##{submenu_id}",
         display: "block"
       )
-      |> JS.remove_class(
+      |> JS.toggle_class(
         "rotate-90",
-        to: "##{icon_id}.rotate-90"
+        to: "##{icon_id}"
       )
-      |> JS.add_class(
-        "rotate-90",
-        to: "##{icon_id}:not(.rotate-90)"
-      )
+      |> JS.dispatch("menu:toggled", detail: %{key: menu_key})
 
     %{
       "phx-click": click
@@ -395,22 +384,22 @@ defmodule JidoWorkbenchWeb.Menu do
          current_page: current_page,
          menu_items: menu_items
        }) do
-    rotate = if menu_item_active?(name, current_page, menu_items), do: "rotate-90"
-
+    # Default state is not rotated (pointing right)
     %{
-      class: [class, rotate]
+      class: class
     }
   end
 
   defp js_attributes("submenu", "live_view_js", %{
          name: name,
          current_page: current_page,
-         menu_items: menu_items
+         menu_items: menu_items,
+         menu_key: menu_key
        }) do
-    display = if menu_item_active?(name, current_page, menu_items), do: "block", else: "none"
-
+    # Initialize based on localStorage
     %{
-      style: "display: #{display};"
+      "data-menu-key": menu_key,
+      "phx-hook": "InitMenuState"
     }
   end
 end

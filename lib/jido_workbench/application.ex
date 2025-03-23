@@ -8,22 +8,16 @@ defmodule JidoWorkbench.Application do
   @impl true
   def start(_type, _args) do
     config = Application.fetch_env!(:jido_workbench, :agent_jido)
-    bus_name = config[:bus_name]
-    room_id = config[:room_id]
-    stream = config[:stream]
 
     jido_opts = [
-      id: config[:id],
-      log_level: :debug,
-      dispatch: [
-        {:logger, []}
-      ]
+      id: config[:agent_id],
     ]
 
+    # Room configuration
     room_opts = [
-      bus_name: bus_name,
-      room_id: room_id,
-      stream: stream
+      id: config[:room_id],
+      name: "Jido Chat Room",
+      strategy: Jido.Chat.Room.Strategy.FreeForm
     ]
 
     children = [
@@ -42,12 +36,13 @@ defmodule JidoWorkbench.Application do
       # Start the Livebook Registry
       {JidoWorkbench.LivebookRegistry, []},
       # Jido Task Supervisor
-      {Task.Supervisor, name: JidoWorkbench.TaskSupervisor}
+      {Task.Supervisor, name: JidoWorkbench.TaskSupervisor},
 
       # Jido
-      # {Jido.Bus, name: bus_name, adapter: :in_memory},
-      # {JidoWorkbench.AgentJido, [id: "sync_jido"]},
-      # {JidoWorkbench.AgentJido2, jido_opts},
+      # Start the Jido Agent
+      {JidoWorkbench.AgentJido, jido_opts},
+      # Start the Jido Chat Room
+      # {Jido.Chat.Room, room_opts}
       # {JidoWorkbench.ChatRoom, room_opts}
     ]
 

@@ -15,13 +15,17 @@
                     <.icon name="hero-arrow-left" class="w-4 h-4" />
                     <span>Back to Demos</span>
                   </.link>
-                  <h1 class="text-4xl font-bold text-primary-600 dark:text-primary-500">{@demo.name}</h1>
+                  <h1 class="text-4xl font-bold text-primary-600 dark:text-primary-500">
+                    {@demo.name}
+                  </h1>
                 </div>
                 <div class="text-primary-600 dark:text-primary-500">
                   <.icon name={@demo.icon} class="w-8 h-8" />
                 </div>
               </div>
-              <p class="text-lg text-secondary-600 dark:text-secondary-400">{@demo.description}</p>
+              <p class="text-lg text-secondary-600 dark:text-secondary-400">
+                {@demo.description}
+              </p>
               <div class="flex items-center space-x-4 text-sm text-secondary-500 dark:text-secondary-400">
                 <span>Version {@demo_meta.version || "TODO"}</span>
                 <span>•</span>
@@ -32,15 +36,19 @@
             <div class="space-y-8">
               <%= if @livebook_html do %>
                 <div class="prose dark:prose-invert max-w-none prose-pre:bg-secondary-100 dark:prose-pre:bg-secondary-800 prose-pre:border-0 prose-pre:rounded-lg prose-pre:w-full prose-pre:p-4">
-                  <%= raw(@livebook_html.html) %>
+                  {raw(@livebook_html.html)}
                 </div>
               <% else %>
                 <section id="overview" class="prose dark:prose-invert max-w-none">
-                  <h2 class="text-xl font-semibold text-primary-600 dark:text-primary-500">Overview</h2>
+                  <h2 class="text-xl font-semibold text-primary-600 dark:text-primary-500">
+                    Overview
+                  </h2>
                   <p class="text-base leading-7 text-secondary-600 dark:text-secondary-400">
                     {@demo.description}
                   </p>
-                  <h3 class="text-lg font-semibold text-primary-600 dark:text-primary-500 mt-4">Features</h3>
+                  <h3 class="text-lg font-semibold text-primary-600 dark:text-primary-500 mt-4">
+                    Features
+                  </h3>
                   <ul class="list-disc list-inside text-secondary-600 dark:text-secondary-400 space-y-2">
                     <li>Basic agent state management with tasks</li>
                     <li>Action handling for creating, updating, and completing tasks</li>
@@ -51,10 +59,14 @@
               <% end %>
 
               <section id="implementation" class="prose dark:prose-invert max-w-none">
-                <h2 class="text-xl font-semibold text-primary-600 dark:text-primary-500">Implementation</h2>
+                <h2 class="text-xl font-semibold text-primary-600 dark:text-primary-500">
+                  Implementation
+                </h2>
                 <div class="bg-white dark:bg-secondary-800 rounded-lg p-4">
                   <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold text-primary-600 dark:text-primary-500">Source Files</h3>
+                    <h3 class="text-lg font-semibold text-primary-600 dark:text-primary-500">
+                      Source Files
+                    </h3>
                     <div class="flex items-center gap-2">
                       <%= for file <- @demo.source_files do %>
                         <button
@@ -97,7 +109,9 @@
                           <%= Map.get(@source_files[@selected_file], :highlighted) %>
                         </code></pre>
                       <% else %>
-                        <div class="text-secondary-500 dark:text-secondary-400 italic">No source file selected</div>
+                        <div class="text-secondary-500 dark:text-secondary-400 italic">
+                          No source file selected
+                        </div>
                       <% end %>
                     </div>
                   </div>
@@ -105,7 +119,9 @@
               </section>
 
               <section id="demo" class="prose dark:prose-invert max-w-none">
-                <h2 class="text-xl font-semibold text-primary-600 dark:text-primary-500">Interactive Demo</h2>
+                <h2 class="text-xl font-semibold text-primary-600 dark:text-primary-500">
+                  Interactive Demo
+                </h2>
                 <div class="bg-white dark:bg-secondary-800 rounded-lg p-6 shadow-lg border border-secondary-200 dark:border-secondary-700">
                   <div class="flex justify-between items-center mb-4">
                     <div class="flex items-center space-x-2 text-sm text-success-600 dark:text-success-500">
@@ -127,10 +143,15 @@
                   href={resource.url}
                   class="flex items-center space-x-2 p-3 rounded-lg border border-secondary-200 dark:border-secondary-700 hover:bg-secondary-100 dark:hover:bg-secondary-800 transition-colors"
                 >
-                  <.icon name={resource.icon} class="w-4 h-4 text-primary-600 dark:text-primary-500" />
+                  <.icon
+                    name={resource.icon}
+                    class="w-4 h-4 text-primary-600 dark:text-primary-500"
+                  />
                   <div>
                     <div class="text-secondary-900 dark:text-secondary-100">{resource.title}</div>
-                    <div class="text-sm text-secondary-600 dark:text-secondary-400">{resource.description}</div>
+                    <div class="text-sm text-secondary-600 dark:text-secondary-400">
+                      {resource.description}
+                    </div>
                   </div>
                 </a>
               <% end %>
@@ -141,7 +162,9 @@
         <%!-- Side Navigation --%>
         <div class="hidden lg:block w-64 shrink-0">
           <div id="sidebar" class="sticky top-6 space-y-4" phx-hook="ScrollSpy">
-            <h3 class="text-lg font-semibold text-primary-600 dark:text-primary-500 mb-4">On this Page</h3>
+            <h3 class="text-lg font-semibold text-primary-600 dark:text-primary-500 mb-4">
+              On this Page
+            </h3>
             <nav class="space-y-1">
               <%= if @livebook_html do %>
                 <%= for section <- @livebook_html.toc do %>
@@ -223,7 +246,7 @@
                     class="flex items-center gap-2 text-primary-600 dark:text-primary-500 hover:text-primary-700 dark:hover:text-primary-400"
                   >
                     <.icon name="hero-arrow-left" class="w-4 h-4" />
-                    <span>Previous: <%= @prev_demo.name %></span>
+                    <span>Previous: {@prev_demo.name}</span>
                   </.link>
                 <% else %>
                   <.link
@@ -241,7 +264,7 @@
                     navigate={~p"/demo/#{@next_demo.id}"}
                     class="flex items-center gap-2 text-primary-600 dark:text-primary-500 hover:text-primary-700 dark:hover:text-primary-400"
                   >
-                    <span>Next: <%= @next_demo.name %></span>
+                    <span>Next: {@next_demo.name}</span>
                     <.icon name="hero-arrow-right" class="w-4 h-4" />
                   </.link>
                 <% else %>

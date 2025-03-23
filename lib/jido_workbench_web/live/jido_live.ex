@@ -2,36 +2,52 @@ defmodule JidoWorkbenchWeb.JidoLive do
   use JidoWorkbenchWeb, :live_view
   import JidoWorkbenchWeb.WorkbenchLayout
   alias JidoWorkbench.AgentJido
-  alias Jido.Chat.{Room, Message, Participant}
+  alias Jido.Chat.{Message, Participant, Room}
+  alias Jido.Chat
   require Logger
 
-  @agent_id "sync_jido"
-  @bus_name Application.compile_env(:jido_workbench, [:agent_jido, :bus_name])
+  @agent_id Application.compile_env(:jido_workbench, [:agent_jido, :agent_id])
   @room_id Application.compile_env(:jido_workbench, [:agent_jido, :room_id])
 
   @impl true
   def mount(_params, _session, socket) do
-    with {:ok, room} <- Room.resolve_room(@bus_name, @room_id),
-         {:ok, participant} <- Participant.new("operator", :human, display_name: "Operator"),
-         _ <- Room.add_participant(room, participant),
-         {:ok, messages} <- Room.get_messages(room) do
+    participant_opts = [
+      display_name: "Operator",
+      type: :human,
+      # Dispatch chat messages back to this LiveView process
+      dispatch: {:pid, target: self()}
+    ]
+
+    with {:ok, operator} = Chat.participant("operator", participant_opts),
+         :ok <- Chat.join(@room_id, operator) do
+
+      message = Message.new!(%{
+        sender: operator.id,
+        type: Message.type(:join),
+        content: "Operator has joined the room"
+      })
+
+      Chat.post_message(@room_id, message)
+
+      # Get existing messages
+      {:ok, messages} = Chat.get_messages(@room_id)
+
       {:ok,
        assign(socket,
-         room: room,
-         messages: messages,
-         message_history: [],
-         history_index: 0,
-         is_typing: false,
+         room_id: @room_id,
          agent: @agent_id,
+         operator: operator,
+         messages: messages,
+         is_typing: false,
          response_ref: nil
        )}
     else
       {:error, reason} ->
-        Logger.error("Failed to mount JidoLive: #{inspect(reason)}")
+        Logger.error("Chat room #{@room_id} not found: #{inspect(reason)}")
 
         socket =
           socket
-          |> put_flash(:error, "Failed to join chat room")
+          |> put_flash(:error, "Chat system not available")
           |> redirect(to: ~p"/")
 
         {:ok, socket}
@@ -40,7 +56,17 @@ defmodule JidoWorkbenchWeb.JidoLive do
 
   @impl true
   def terminate(_reason, socket) do
-    :ok = Room.remove_participant(socket.assigns.room, "operator")
+    # Create leave message
+    message = Message.new!(%{
+      sender: socket.assigns.operator.id,
+      type: Message.type(:leave),
+      content: "Operator has left the room"
+    })
+
+    Chat.post_message(@room_id, message)
+    Chat.leave(@room_id, socket.assigns.operator.id)
+
+    :ok
   end
 
   @impl true
@@ -52,12 +78,19 @@ defmodule JidoWorkbenchWeb.JidoLive do
   end
 
   defp add_user_message(socket, content) do
-    {:ok, _} = Room.post_message(socket.assigns.room, content, "operator")
-    {:ok, messages} = Room.get_messages(socket.assigns.room)
+    message = Message.new!(%{
+      sender: socket.assigns.operator.id,
+      type: Message.type(:message),
+      content: content
+    })
+
+    Chat.post_message(@room_id, message)
+
+    # Get updated messages
+    {:ok, messages} = Chat.get_messages(@room_id)
 
     assign(socket,
-      messages: messages,
-      message_history: [content | socket.assigns.message_history] |> Enum.take(50)
+      messages: messages
     )
   end
 
@@ -65,18 +98,22 @@ defmodule JidoWorkbenchWeb.JidoLive do
     # Set typing indicator before starting response
     socket = assign(socket, is_typing: true)
 
+    # Format messages for the agent
     history =
-      Enum.map(socket.assigns.messages, fn msg ->
+      Enum.filter(socket.assigns.messages, fn msg ->
+        msg.type == Message.type(:message)
+      end)
+      |> Enum.map(fn msg ->
         %{
-          role: if(Message.sender_id(msg) == "operator", do: "user", else: "assistant"),
-          content: Message.content(msg)
+          role: if(msg.sender == socket.assigns.operator.id, do: "user", else: "assistant"),
+          content: msg.content
         }
       end)
 
     # Start async task to get response
     task =
       Task.async(fn ->
-        AgentJido.generate_chat_response(@agent_id, history)
+        AgentJido.chat_response(@agent_id, history)
       end)
 
     {:noreply, assign(socket, response_ref: task.ref)}
@@ -87,8 +124,22 @@ defmodule JidoWorkbenchWeb.JidoLive do
     # Clean up task
     Process.demonitor(ref, [:flush])
 
-    {:ok, _} = Room.post_message(socket.assigns.room, response, "jido")
-    {:ok, messages} = Room.get_messages(socket.assigns.room)
+    # Create and publish agent message
+    {:ok, message} =
+      Message.new(%{
+        type: Message.type(:message),
+        room_id: socket.assigns.room_id,
+        sender: "Agent Jido",
+        content: response,
+        timestamp: DateTime.utc_now()
+      })
+
+    # Publish the message
+    signal = Message.to_signal(message)
+    {:ok, _} = Jido.Signal.Bus.publish(socket.assigns.bus_pid, [signal])
+
+    # Get updated messages
+    {:ok, messages} = Chat.get_messages(@room_id)
 
     {:noreply,
      socket
@@ -100,15 +151,22 @@ defmodule JidoWorkbenchWeb.JidoLive do
     Process.demonitor(ref, [:flush])
     Logger.error("Chat response failed: #{inspect(reason)}")
 
-    {:ok, _} =
-      Room.post_message(
-        socket.assigns.room,
-        "Sorry, I encountered an error. Please try again in a moment.",
-        "jido",
-        type: :system
-      )
+    # Create and publish system message
+    {:ok, message} =
+      Message.new(%{
+        type: Message.type(:system),
+        room_id: socket.assigns.room_id,
+        sender: "System",
+        content: "Sorry, I encountered an error. Please try again in a moment.",
+        timestamp: DateTime.utc_now()
+      })
 
-    {:ok, messages} = Room.get_messages(socket.assigns.room)
+    # Publish the message
+    signal = Message.to_signal(message)
+    {:ok, _} = Jido.Signal.Bus.publish(socket.assigns.bus_pid, [signal])
+
+    # Get updated messages
+    {:ok, messages} = Jido.Chat.Room.get_messages(socket.assigns.room_id)
 
     {:noreply,
      socket
@@ -119,19 +177,45 @@ defmodule JidoWorkbenchWeb.JidoLive do
   def handle_info({:DOWN, ref, :process, _pid, reason}, %{assigns: %{response_ref: ref}} = socket) do
     Logger.error("Chat response task crashed: #{inspect(reason)}")
 
-    {:ok, _} =
-      Room.post_message(
-        socket.assigns.room,
-        "Sorry, something went wrong. Please try again in a moment.",
-        "jido",
-        type: :system
-      )
+    # Create and publish system message
+    {:ok, message} =
+      Message.new(%{
+        type: Message.type(:system),
+        room_id: socket.assigns.room_id,
+        sender: "System",
+        content: "Sorry, something went wrong. Please try again in a moment.",
+        timestamp: DateTime.utc_now()
+      })
 
-    {:ok, messages} = Room.get_messages(socket.assigns.room)
+    # Publish the message
+    signal = Message.to_signal(message)
+    {:ok, _} = Jido.Signal.Bus.publish(socket.assigns.bus_pid, [signal])
+
+    # Get updated messages
+    {:ok, messages} = Jido.Chat.Room.get_messages(socket.assigns.room_id)
 
     {:noreply,
      socket
      |> assign(is_typing: false, response_ref: nil, messages: messages, history_index: 0)}
+  end
+
+  # Handle incoming chat signals
+  def handle_info({:signal, %{type: "chat.message", data: data}}, socket) do
+    # Refresh messages when a new message is received
+    {:ok, messages} = Jido.Chat.Room.get_messages(socket.assigns.room_id)
+    {:noreply, assign(socket, messages: messages)}
+  end
+
+  # Ignore other signals
+  def handle_info({:signal, _}, socket), do: {:noreply, socket}
+
+  # Helper functions for message type checking
+  def is_system_message(message) do
+    message.type == Message.type(:system)
+  end
+
+  def is_rich_message(message) do
+    message.type == Message.type(:rich)
   end
 
   defp format_line_breaks(content) do
@@ -140,29 +224,30 @@ defmodule JidoWorkbenchWeb.JidoLive do
 
   defp get_participant_name(participant_id) do
     case participant_id do
-      "operator" -> "Operator"
-      "jido" -> "Agent Jido"
+      "Operator" -> "Operator"
+      "Agent Jido" -> "Agent Jido"
+      "System" -> "System"
       _ -> participant_id
     end
   end
 
-  defp message_justify_class(participant_id) do
-    if participant_id == "operator", do: "flex justify-end", else: "flex justify-start"
+  defp message_justify_class(sender) do
+    if sender == "Operator", do: "flex justify-end", else: "flex justify-start"
   end
 
-  defp message_flex_direction(participant_id) do
-    if participant_id == "operator", do: "flex-row-reverse", else: ""
+  defp message_flex_direction(sender) do
+    if sender == "Operator", do: "flex-row-reverse", else: ""
   end
 
-  defp message_header_class(participant_id) do
+  defp message_header_class(sender) do
     base_class = "text-sm text-gray-500 dark:text-gray-400 mb-1 "
-    if participant_id == "operator", do: base_class <> "text-right", else: base_class
+    if sender == "Operator", do: base_class <> "text-right", else: base_class
   end
 
-  defp message_content_class(participant_id) do
+  defp message_content_class(sender) do
     base_class = "rounded-2xl px-4 py-2 max-w-prose break-words "
 
-    if participant_id == "operator" do
+    if sender == "Operator" do
       base_class <> "bg-lime-500 text-zinc-900 rounded-tr-none"
     else
       base_class <> "bg-zinc-800 text-gray-100 rounded-tl-none"

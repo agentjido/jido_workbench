@@ -27,7 +27,7 @@ defmodule JidoWorkbench.Agno.BasicAgent01 do
     require Logger
     Logger.info("Agent state: #{inspect(agent_state)}")
 
-    result = Agent.get_response(pid, "What is the capital of France?")
+    result = Agent.chat_response(pid, "What is the capital of France?")
     Logger.info("Result: #{inspect(result)}")
   end
 end

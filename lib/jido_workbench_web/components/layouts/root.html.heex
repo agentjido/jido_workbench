@@ -4,8 +4,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={get_csrf_token()} />
-    <.live_title suffix=" · Phoenix Framework">
-      {assigns[:page_title] || "JidoWorkbench"}
+    <.live_title suffix=" · Agent Jido">
+      {assigns[:page_title] || "Workbench"}
     </.live_title>
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
 
@@ -45,7 +45,12 @@
     </script>
 
     <%= if Application.get_env(:jido_workbench, :enable_analytics) do %>
-      <script defer data-domain={Application.get_env(:jido_workbench, :canonical_host) || "agentjido.xyz" } src="https://plausible.io/js/script.outbound-links.js"></script>
+      <script
+        defer
+        data-domain={Application.get_env(:jido_workbench, :canonical_host) || "agentjido.xyz"}
+        src="https://plausible.io/js/script.outbound-links.js"
+      >
+      </script>
       <script>
         window.plausible = window.plausible || function() {
           (window.plausible.q = window.plausible.q || []).push(arguments)

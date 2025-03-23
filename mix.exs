@@ -94,10 +94,10 @@ defmodule JidoWorkbench.MixProject do
     else
       deps ++
         [
-          {:jido, github: "agentjido/jido"},
-          # {:jido_chat, github: "agentjido/jido_chat"},
-          {:jido_ai, github: "agentjido/jido_ai"}
-          # {:jido_memory, github: "agentjido/jido_memory"}
+          {:jido, github: "agentjido/jido", branch: "main"},
+          # {:jido_chat, github: "agentjido/jido_chat", branch: "main"},
+          {:jido_ai, github: "agentjido/jido_ai", branch: "main"}
+          # {:jido_memory, github: "agentjido/jido_memory", branch: "main"}
         ]
     end
   end

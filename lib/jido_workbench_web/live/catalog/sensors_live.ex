@@ -25,7 +25,8 @@ defmodule JidoWorkbenchWeb.CatalogSensorsLive do
         <div class="w-96 border-r border-secondary-200 dark:border-secondary-700 flex flex-col">
           <div class="p-4 border-b border-secondary-200 dark:border-secondary-700">
             <h2 class="text-xl mb-4 flex items-center gap-2">
-              <.icon name="hero-signal" class="w-6 h-6 text-primary-600 dark:text-primary-500" /> Available Sensors
+              <.icon name="hero-signal" class="w-6 h-6 text-primary-600 dark:text-primary-500" />
+              Available Sensors
             </h2>
             <div class="relative">
               <.icon
@@ -84,12 +85,18 @@ defmodule JidoWorkbenchWeb.CatalogSensorsLive do
                   <.icon name="hero-signal" class="w-6 h-6" />
                 </div>
                 <div>
-                  <h1 class="text-2xl text-primary-600 dark:text-primary-500">{@selected_sensor.name}</h1>
-                  <div class="text-secondary-600 dark:text-secondary-400 text-sm">{@selected_sensor.category}</div>
+                  <h1 class="text-2xl text-primary-600 dark:text-primary-500">
+                    {@selected_sensor.name}
+                  </h1>
+                  <div class="text-secondary-600 dark:text-secondary-400 text-sm">
+                    {@selected_sensor.category}
+                  </div>
                 </div>
               </div>
 
-              <p class="text-secondary-600 dark:text-secondary-400 mb-8">{@selected_sensor.description}</p>
+              <p class="text-secondary-600 dark:text-secondary-400 mb-8">
+                {@selected_sensor.description}
+              </p>
 
               <.form
                 :let={f}

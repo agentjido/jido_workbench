@@ -34,23 +34,26 @@ defmodule JidoWorkbenchWeb.SettingsLive do
   def render(assigns) do
     ~H"""
     <.workbench_layout current_page={:settings}>
-      <div class="flex h-screen bg-white dark:bg-secondary-900 text-secondary-900 dark:text-secondary-100">
+      <div class="flex h-screen bg-secondary-50 dark:bg-secondary-950 text-secondary-700 dark:text-secondary-300">
         <div class="w-full p-6">
           <div class="max-w-4xl mx-auto">
             <div class="mb-8">
-              <h1 class="text-2xl font-bold text-primary-600 dark:text-primary-500 mb-4">API Key Settings</h1>
+              <h1 class="text-2xl font-bold text-white dark:text-white mb-4">API Key Settings</h1>
               <div class="text-secondary-600 dark:text-secondary-400">
                 <p>
                   Configure your API keys for various language models. These keys are required to use the AI features in the workbench.
                 </p>
                 <%= if !@any_valid_key? do %>
-                  <div class="mt-4 bg-warning-50 dark:bg-warning-900/30 border-l-4 border-warning-500 p-4">
+                  <div class="mt-4 bg-warning-900/30 dark:bg-warning-900/30 border-l-4 border-warning-800 dark:border-warning-800 p-4">
                     <div class="flex">
                       <div class="flex-shrink-0">
-                        <.icon name="hero-exclamation-triangle" class="h-5 w-5 text-warning-600 dark:text-warning-400" />
+                        <.icon
+                          name="hero-exclamation-triangle"
+                          class="h-5 w-5 text-warning-400 dark:text-warning-400"
+                        />
                       </div>
                       <div class="ml-3">
-                        <p class="text-sm text-warning-800 dark:text-warning-200">
+                        <p class="text-sm text-warning-200 dark:text-warning-200">
                           No valid API keys found. Please add at least one API key to use the AI features.
                         </p>
                       </div>
@@ -60,10 +63,10 @@ defmodule JidoWorkbenchWeb.SettingsLive do
               </div>
             </div>
 
-            <div class="bg-white dark:bg-secondary-800 shadow rounded-lg mb-8">
+            <div class="bg-secondary-900 dark:bg-secondary-900 border border-secondary-800 dark:border-secondary-800 shadow rounded-lg mb-8">
               <div class="px-4 py-5 sm:p-6">
-                <h3 class="text-lg font-medium text-primary-600 dark:text-primary-500">Security Notice</h3>
-                <div class="mt-2 text-sm text-secondary-600 dark:text-secondary-400">
+                <h3 class="text-lg font-medium text-white dark:text-white">Security Notice</h3>
+                <div class="mt-2 text-sm text-secondary-300 dark:text-secondary-300">
                   <p>
                     API keys are stored in your browser session for your use only. While we take security seriously,
                     if you're concerned about key security, we recommend:
@@ -77,7 +80,7 @@ defmodule JidoWorkbenchWeb.SettingsLive do
                 <div class="mt-3">
                   <a
                     href="https://github.com/agentjido/jido_workbench"
-                    class="inline-flex items-center text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300"
+                    class="inline-flex items-center text-sm text-secondary-400 dark:text-secondary-400 hover:text-primary-400 dark:hover:text-primary-400 transition-colors duration-200"
                   >
                     <.icon name="hero-arrow-top-right-on-square" class="h-4 w-4 mr-1" />
                     View on GitHub
@@ -88,31 +91,30 @@ defmodule JidoWorkbenchWeb.SettingsLive do
 
             <.form for={%{}} action={~p"/settings/save"} method="post" class="space-y-8">
               <%= for setting <- @settings do %>
-                <div class="bg-white dark:bg-secondary-800 shadow rounded-lg">
+                <div class="bg-secondary-900 dark:bg-secondary-900 border border-secondary-800 dark:border-secondary-800 shadow rounded-lg">
                   <div class="px-4 py-5 sm:p-6">
                     <div class="md:grid md:grid-cols-3 md:gap-6">
                       <div class="md:col-span-1">
-                        <h3 class="text-lg font-medium text-primary-600 dark:text-primary-500">
-                          <%= setting.name %>
+                        <h3 class="text-lg font-medium text-white dark:text-white">
+                          {setting.name}
                         </h3>
-                        <p class="mt-2 text-sm text-secondary-600 dark:text-secondary-400">
-                          <%= setting.description %>
+                        <p class="mt-2 text-sm text-secondary-300 dark:text-secondary-300">
+                          {setting.description}
                         </p>
                         <div class="mt-4 flex flex-col space-y-2">
                           <a
                             href={setting.signup_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            class="inline-flex items-center text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300"
+                            class="inline-flex items-center text-sm text-secondary-400 dark:text-secondary-400 hover:text-primary-400 dark:hover:text-primary-400 transition-colors duration-200"
                           >
-                            <.icon name="hero-key" class="h-4 w-4 mr-1" />
-                            Get API Key
+                            <.icon name="hero-key" class="h-4 w-4 mr-1" /> Get API Key
                           </a>
                           <a
                             href={setting.docs_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            class="inline-flex items-center text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300"
+                            class="inline-flex items-center text-sm text-secondary-400 dark:text-secondary-400 hover:text-primary-400 dark:hover:text-primary-400 transition-colors duration-200"
                           >
                             <.icon name="hero-document-text" class="h-4 w-4 mr-1" />
                             View Documentation
@@ -123,11 +125,16 @@ defmodule JidoWorkbenchWeb.SettingsLive do
                         <div class="space-y-4">
                           <div>
                             <div class="flex justify-between">
-                              <.form_label for={setting.key} class="text-secondary-900 dark:text-secondary-100">API Key</.form_label>
+                              <.form_label
+                                for={setting.key}
+                                class="text-secondary-300 dark:text-secondary-300"
+                              >
+                                API Key
+                              </.form_label>
                               <span class={
-                                "px-2 py-1 text-xs rounded-full #{if setting.value != "", do: "bg-success-50 dark:bg-success-900/30 text-success-800 dark:text-success-200", else: "bg-danger-50 dark:bg-danger-900/30 text-danger-900 dark:text-danger-200"}"
+                                "px-2 py-1 text-xs rounded-full #{if setting.value != "", do: "bg-success-900/30 dark:bg-success-900/30 text-success-200 dark:text-success-200 border border-success-800 dark:border-success-800", else: "bg-danger-900/30 dark:bg-danger-900/30 text-danger-200 dark:text-danger-200 border border-danger-800 dark:border-danger-800"}"
                               }>
-                                <%= if setting.value != "", do: "Valid", else: "Not Set" %>
+                                {if setting.value != "", do: "Valid", else: "Not Set"}
                               </span>
                             </div>
                             <div class="relative">
@@ -137,12 +144,12 @@ defmodule JidoWorkbenchWeb.SettingsLive do
                                 value={setting.value}
                                 placeholder={"Enter your #{setting.name}"}
                                 id={"input-#{setting.key}"}
-                                class="w-full bg-white dark:bg-secondary-700 border-secondary-300 dark:border-secondary-600 text-secondary-900 dark:text-secondary-100 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400"
+                                class="w-full bg-secondary-800 dark:bg-secondary-800 border-secondary-700 dark:border-secondary-700 text-white dark:text-white focus:border-primary-500 dark:focus:border-primary-500 focus:ring-primary-500 dark:focus:ring-primary-500 transition-colors duration-200"
                               />
                               <button
                                 type="button"
                                 onclick={"togglePasswordVisibility('input-#{setting.key}', this)"}
-                                class="absolute inset-y-0 right-0 pr-3 flex items-center text-secondary-400 dark:text-secondary-500 hover:text-secondary-500 dark:hover:text-secondary-400"
+                                class="absolute inset-y-0 right-0 pr-3 flex items-center text-secondary-400 dark:text-secondary-400 hover:text-primary-400 dark:hover:text-primary-400 transition-colors duration-200"
                               >
                                 <.icon name="hero-eye" class="h-5 w-5" />
                               </button>
@@ -151,21 +158,24 @@ defmodule JidoWorkbenchWeb.SettingsLive do
                           <%= if Map.has_key?(@test_results, setting.key) do %>
                             <div class={
                               "mt-2 p-2 rounded text-sm #{case @test_results[setting.key] do
-                                {:ok, _} -> "bg-success-50 dark:bg-success-900/30 text-success-800 dark:text-success-200"
-                                {:error, _} -> "bg-danger-50 dark:bg-danger-900/30 text-danger-900 dark:text-danger-200"
+                                {:ok, _} -> "bg-success-900/30 dark:bg-success-900/30 text-success-200 dark:text-success-200 border border-success-800 dark:border-success-800"
+                                {:error, _} -> "bg-danger-900/30 dark:bg-danger-900/30 text-danger-200 dark:text-danger-200 border border-danger-800 dark:border-danger-800"
                               end}"
                             }>
-                              <%= case @test_results[setting.key] do
+                              {case @test_results[setting.key] do
                                 {:ok, message} -> message
                                 {:error, message} -> message
-                              end %>
+                              end}
                             </div>
                           <% end %>
-                          <p class="text-sm text-secondary-600 dark:text-secondary-400">
-                            <%= setting.help_text %>
+                          <p class="text-sm text-secondary-300 dark:text-secondary-300">
+                            {setting.help_text}
                           </p>
                           <p class="text-xs text-secondary-500 dark:text-secondary-500">
-                            Environment Variable: <code class="bg-secondary-100 dark:bg-secondary-700 px-1 rounded"><%= setting.env_var %></code>
+                            Environment Variable:
+                            <code class="bg-secondary-800 dark:bg-secondary-800 px-1 rounded">
+                              {setting.env_var}
+                            </code>
                           </p>
                         </div>
                       </div>
@@ -177,28 +187,25 @@ defmodule JidoWorkbenchWeb.SettingsLive do
               <div class="flex justify-end space-x-3">
                 <.link
                   href={~p"/settings/clear"}
-                  class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-danger-600 dark:text-danger-400 bg-danger-50 dark:bg-danger-900/30 hover:bg-danger-100 dark:hover:bg-danger-900/50"
+                  class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-danger-400 dark:text-danger-400 bg-danger-900/30 dark:bg-danger-900/30 hover:bg-danger-900/50 dark:hover:bg-danger-900/50 transition-colors duration-200"
                 >
-                  <.icon name="hero-arrow-path" class="h-4 w-4 mr-2" />
-                  Reset to Defaults
+                  <.icon name="hero-arrow-path" class="h-4 w-4 mr-2" /> Reset to Defaults
                 </.link>
                 <.button
                   type="button"
                   theme="secondary"
                   phx-click="test_keys"
                   label="Test Keys"
-                  class="inline-flex items-center bg-secondary-100 dark:bg-secondary-700 hover:bg-secondary-200 dark:hover:bg-secondary-600 text-secondary-900 dark:text-secondary-100"
+                  class="inline-flex items-center bg-secondary-800 dark:bg-secondary-800 hover:bg-secondary-700 dark:hover:bg-secondary-700 text-white dark:text-white transition-colors duration-200"
                 >
-                  <.icon name="hero-beaker" class="h-4 w-4 mr-2" />
-                  Test Keys
+                  <.icon name="hero-beaker" class="h-4 w-4 mr-2" /> Test Keys
                 </.button>
                 <.button
                   type="submit"
                   label="Save Settings"
-                  class="inline-flex items-center bg-primary-600 dark:bg-primary-500 hover:bg-primary-700 dark:hover:bg-primary-400 text-white dark:text-secondary-900"
+                  class="inline-flex items-center bg-primary-600 dark:bg-primary-600 hover:bg-primary-700 dark:hover:bg-primary-700 text-white dark:text-white transition-colors duration-200"
                 >
-                  <.icon name="hero-check" class="h-4 w-4 mr-2" />
-                  Save Settings
+                  <.icon name="hero-check" class="h-4 w-4 mr-2" /> Save Settings
                 </.button>
               </div>
             </.form>

@@ -1,7 +1,9 @@
 <%!-- Side Navigation --%>
 <div class="hidden lg:block w-64 shrink-0">
   <div id="sidebar" class="sticky top-6 space-y-4" phx-hook="ScrollSpy">
-    <h3 class="text-lg font-semibold text-primary-600 dark:text-primary-500 mb-4">On this Page</h3>
+    <h3 class="text-lg font-semibold text-primary-600 dark:text-primary-500 mb-4">
+      On this Page
+    </h3>
     <nav class="space-y-1">
       <%= if @livebook_content do %>
         <%= for section <- @livebook_content.toc do %>
@@ -48,4 +50,4 @@
       <% end %>
     </div>
   </div>
-</div> 
+</div>

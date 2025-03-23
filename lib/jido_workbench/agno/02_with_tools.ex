@@ -25,7 +25,7 @@ defmodule JidoWorkbench.Agno.ToolAgent02 do
     require Logger
     Logger.info("Agent state: #{inspect(agent_state)}")
 
-    result = Agent.get_response(pid, "What is 100 + 100?")
+    result = Agent.tool_response(pid, "What is 100 + 100?")
     Logger.info("Result: #{inspect(result)}")
   end
 end

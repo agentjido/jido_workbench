@@ -17,7 +17,9 @@ defmodule JidoWorkbenchWeb.CatalogLive do
       <div class="bg-white dark:bg-secondary-900 text-secondary-900 dark:text-secondary-100 p-8">
         <div class="max-w-4xl mx-auto">
           <div class="text-center mb-12">
-            <h1 class="text-4xl font-bold text-primary-600 dark:text-primary-500 mb-4">Jido Catalog</h1>
+            <h1 class="text-4xl font-bold text-primary-600 dark:text-primary-500 mb-4">
+              Jido Catalog
+            </h1>
             <p class="text-xl text-secondary-600 dark:text-secondary-400">
               Explore and discover all available components in the Jido ecosystem. The catalog provides a comprehensive reference of Actions, Agents, Sensors, and Skills that you can use to build powerful workflows.
             </p>

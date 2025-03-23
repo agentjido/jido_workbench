@@ -193,20 +193,26 @@ defmodule JidoWorkbenchWeb.LivebookDemoLive do
                           class="text-primary-600 dark:text-primary-500 hover:text-primary-700 dark:hover:text-primary-400 mb-2 flex items-center gap-1"
                         >
                           <.icon name="hero-arrow-left" class="w-4 h-4" />
-                          <span>Back to <%= if @tag == :examples, do: "Examples", else: "Documentation" %></span>
+                          <span>
+                            Back to {if @tag == :examples, do: "Examples", else: "Documentation"}
+                          </span>
                         </.link>
-                        <h1 class="text-4xl font-bold text-primary-600 dark:text-primary-500"><%= @selected_livebook.label %></h1>
+                        <h1 class="text-4xl font-bold text-primary-600 dark:text-primary-500">
+                          {@selected_livebook.label}
+                        </h1>
                       </div>
                       <div class="text-primary-600 dark:text-primary-500">
                         <.icon name={@selected_livebook.icon} class="w-8 h-8" />
                       </div>
                     </div>
-                    <p class="text-lg text-secondary-600 dark:text-secondary-400"><%= @selected_livebook.description %></p>
+                    <p class="text-lg text-secondary-600 dark:text-secondary-400">
+                      {@selected_livebook.description}
+                    </p>
                   </div>
 
                   <%= if @livebook_content do %>
                     <div class="prose dark:prose-invert max-w-none prose-pre:bg-secondary-100 dark:prose-pre:bg-secondary-800 prose-pre:border-0 prose-pre:rounded-lg prose-pre:w-full prose-pre:p-4">
-                      <%= raw(@livebook_content.html) %>
+                      {raw(@livebook_content.html)}
                     </div>
                   <% end %>
                 </div>
@@ -214,14 +220,16 @@ defmodule JidoWorkbenchWeb.LivebookDemoLive do
                 <div class="max-w-4xl mx-auto">
                   <div class="mb-6">
                     <h1 class="text-2xl font-bold text-primary-600 dark:text-primary-500 mb-4">
-                      <%= if @tag == :examples, do: "Examples", else: "Documentation" %>
+                      {if @tag == :examples, do: "Examples", else: "Documentation"}
                     </h1>
                   </div>
 
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <%= for category <- Enum.drop(@livebooks, 1) do %>
                       <div class="bg-secondary-100 dark:bg-secondary-800 p-6 rounded-lg">
-                        <h2 class="text-xl font-semibold text-primary-600 dark:text-primary-500 mb-4"><%= category.label %></h2>
+                        <h2 class="text-xl font-semibold text-primary-600 dark:text-primary-500 mb-4">
+                          {category.label}
+                        </h2>
                         <div class="space-y-3">
                           <%= for item <- category.menu_items do %>
                             <.link navigate={item.path} class="block">
@@ -231,7 +239,9 @@ defmodule JidoWorkbenchWeb.LivebookDemoLive do
                                     <.icon name={item.icon} class="w-6 h-6" />
                                   </div>
                                   <div>
-                                    <h3 class="text-lg font-medium text-primary-600 dark:text-primary-500"><%= item.label %></h3>
+                                    <h3 class="text-lg font-medium text-primary-600 dark:text-primary-500">
+                                      {item.label}
+                                    </h3>
                                   </div>
                                 </div>
                               </div>
@@ -249,7 +259,9 @@ defmodule JidoWorkbenchWeb.LivebookDemoLive do
             <%= if @selected_livebook do %>
               <div class="hidden lg:block w-64 shrink-0">
                 <div id="sidebar" class="sticky top-6 space-y-4" phx-hook="ScrollSpy">
-                  <h3 class="text-lg font-semibold text-primary-600 dark:text-primary-500 mb-4">On this Page</h3>
+                  <h3 class="text-lg font-semibold text-primary-600 dark:text-primary-500 mb-4">
+                    On this Page
+                  </h3>
                   <nav class="space-y-1">
                     <%= if @livebook_content do %>
                       <%= for section <- @livebook_content.toc do %>

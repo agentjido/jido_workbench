@@ -16,12 +16,12 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: colors.sky, // Super bright neon green vibe
-        secondary: colors.zinc, // Industrial dark metallic
+        primary: colors.slate, // Changed to slate for a more subdued, professional look like ChatGPT/Anthropic
+        secondary: colors.neutral, // Neutral works well for secondary elements
         success: colors.emerald,
         danger: colors.red,
         warning: colors.yellow,
-        info: colors.cyan,
+        info: colors.gray, // Changed to gray for a more cohesive look
         gray: colors.gray,
       },
       fontFamily: {

@@ -115,7 +115,9 @@ defmodule JidoWorkbenchWeb.ChatComponents do
           <div class="mt-2 p-2 bg-secondary-100 dark:bg-secondary-700 rounded">
             <%= case @payload do %>
               <% %{url: url} -> %>
-                <a href={url} target="_blank" class="text-info-600 dark:text-info-400 hover:underline">{url}</a>
+                <a href={url} target="_blank" class="text-info-600 dark:text-info-400 hover:underline">
+                  {url}
+                </a>
               <% _ -> %>
                 <pre class="text-sm overflow-x-auto">{inspect(@payload, pretty: true)}</pre>
             <% end %>

@@ -1,0 +1,8 @@
+---
+title: "Hello World Agent"
+description: "Your first Jido agent implementation"
+category: "Basic Examples"
+icon: "hero-sparkles"
+tags: ["beginner", "tutorial"]
+order: 1
+---

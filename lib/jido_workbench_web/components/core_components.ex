@@ -54,7 +54,11 @@ defmodule JidoWorkbenchWeb.CoreComponents do
       phx-remove={hide_modal(@id)}
       class="relative z-50 hidden"
     >
-      <div id={"#{@id}-bg"} class="fixed inset-0 transition-opacity bg-secondary-900/90 dark:bg-secondary-900/90" aria-hidden="true" />
+      <div
+        id={"#{@id}-bg"}
+        class="fixed inset-0 transition-opacity bg-secondary-900/90 dark:bg-secondary-900/90"
+        aria-hidden="true"
+      />
       <div
         class="fixed inset-0 overflow-y-auto"
         aria-labelledby={"#{@id}-title"}
@@ -85,7 +89,10 @@ defmodule JidoWorkbenchWeb.CoreComponents do
               </div>
               <div id={"#{@id}-content"}>
                 <header :if={@title != []}>
-                  <h1 id={"#{@id}-title"} class="text-lg font-semibold leading-8 text-secondary-900 dark:text-secondary-100">
+                  <h1
+                    id={"#{@id}-title"}
+                    class="text-lg font-semibold leading-8 text-secondary-900 dark:text-secondary-100"
+                  >
                     {render_slot(@title)}
                   </h1>
                   <p
@@ -152,8 +159,10 @@ defmodule JidoWorkbenchWeb.CoreComponents do
       role="alert"
       class={[
         "fixed hidden bottom-10 right-10 w-80 sm:w-96 z-50 rounded-lg p-3 shadow-md shadow-secondary-900/5 ring-1",
-        @kind == :info && "bg-success-50 dark:bg-success-900/30 text-success-800 dark:text-success-200 ring-success-500 fill-success-900",
-        @kind == :error && "bg-danger-50 dark:bg-danger-900/30 text-danger-900 dark:text-danger-200 ring-danger-500 fill-danger-900"
+        @kind == :info &&
+          "bg-success-50 dark:bg-success-900/30 text-success-800 dark:text-success-200 ring-success-500 fill-success-900",
+        @kind == :error &&
+          "bg-danger-50 dark:bg-danger-900/30 text-danger-900 dark:text-danger-200 ring-danger-500 fill-danger-900"
       ]}
       {@rest}
     >
@@ -411,7 +420,10 @@ defmodule JidoWorkbenchWeb.CoreComponents do
 
   def phx_label(assigns) do
     ~H"""
-    <label for={@for} class="block text-sm font-semibold leading-6 text-secondary-900 dark:text-secondary-100">
+    <label
+      for={@for}
+      class="block text-sm font-semibold leading-6 text-secondary-900 dark:text-secondary-100"
+    >
       {render_slot(@inner_block)}
     </label>
     """
@@ -447,7 +459,10 @@ defmodule JidoWorkbenchWeb.CoreComponents do
         <h1 class="text-lg font-semibold leading-8 text-secondary-900 dark:text-secondary-100">
           {render_slot(@inner_block)}
         </h1>
-        <p :if={@subtitle != []} class="mt-2 text-sm leading-6 text-secondary-600 dark:text-secondary-400">
+        <p
+          :if={@subtitle != []}
+          class="mt-2 text-sm leading-6 text-secondary-600 dark:text-secondary-400"
+        >
           {render_slot(@subtitle)}
         </p>
       </div>

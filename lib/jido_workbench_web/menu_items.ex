@@ -13,37 +13,129 @@ defmodule JidoWorkbenchWeb.MenuItems do
       %{
         title: "",
         menu_items: [
-          %{name: :home, label: "Home", path: ~p"/", icon: nil},
           %{
-            name: :jido,
-            label: "Agent Jido",
-            path: ~p"/jido",
+            name: :home,
+            label: "Home",
+            path: ~p"/",
             icon: nil
-          },
-          %{
-            name: :settings,
-            label: "Settings",
-            path: ~p"/settings",
-            icon: nil
+          # },
+          # %{
+          #   name: :jido,
+          #   label: "Agent Jido",
+          #   path: ~p"/jido",
+          #   icon: nil
           }
         ]
       },
       %{
-        title: "Examples",
-        menu_items: get_cached_menu(:examples)
-      },
-      %{
-        title: "Docs",
-        menu_items: get_cached_menu(:docs)
-      },
-      %{
-        title: "Catalog",
+        title: "",
         menu_items: [
-          %{name: :actions, label: "Actions", path: ~p"/catalog/actions", icon: nil},
-          %{name: :agents, label: "Agents", path: ~p"/catalog/agents", icon: nil},
-          %{name: :sensors, label: "Sensors", path: ~p"/catalog/sensors", icon: nil},
-          %{name: :skills, label: "Skills", path: ~p"/catalog/skills", icon: nil}
+          # %{
+          #   name: :all_examples,
+          #   label: "All Examples",
+          #   path: ~p"/examples",
+          #   icon: nil
+          # },
+          %{
+            name: :advanced_examples,
+            label: "Advanced Examples",
+            menu_items: [
+              %{
+                name: :chat_bot_agent,
+                label: "Chat Bot Agent",
+                path: ~p"/examples/chat-bot-agent",
+                icon: nil
+              }
+            ]
+          },
+          %{
+            name: :basic_examples,
+            label: "Basic Examples",
+            menu_items: [
+              %{
+                name: :hello_world_agent,
+                label: "Hello World Agent",
+                path: ~p"/examples/hello-world-agent",
+                icon: nil
+              }
+            ]
+          },
+          %{
+            name: :uncategorized,
+            label: "Uncategorized",
+            menu_items: [
+              %{
+                name: :basic_agent,
+                label: "01_basic_agent",
+                path: ~p"/examples/01-basic-agent",
+                icon: nil
+              }
+            ]
+          }
         ]
+      },
+      %{
+        title: "",
+        menu_items: [
+          # %{
+          #   name: :all_docs,
+          #   label: "All Docs",
+          #   path: ~p"/docs",
+          #   icon: nil
+          # },
+          %{
+            name: :advanced,
+            label: "Advanced",
+            menu_items: [
+              %{
+                name: :jido_architecture,
+                label: "Jido Architecture",
+                path: ~p"/docs/jido-architecture",
+                icon: nil
+              }
+            ]
+          },
+          %{
+            name: :basic,
+            label: "Basic",
+            menu_items: [
+              %{
+                name: :getting_started,
+                label: "Getting Started with Jido",
+                path: ~p"/docs/getting-started",
+                icon: nil
+              }
+            ]
+          }
+        ]
+      },
+      %{
+        title: "",
+        menu_items: [
+          %{
+            name: :catalog,
+            label: "Catalog",
+            path: ~p"/catalog",
+            icon: nil,
+            menu_items: [
+              %{name: :agents, label: "Agents", path: ~p"/catalog/agents", icon: nil},
+              %{name: :actions, label: "Actions", path: ~p"/catalog/actions", icon: nil},
+              %{name: :skills, label: "Skills", path: ~p"/catalog/skills", icon: nil},
+              %{name: :sensors, label: "Sensors", path: ~p"/catalog/sensors", icon: nil}
+            ]
+          }
+        ]
+      # },
+      # %{
+      #   title: "",
+      #   menu_items: [
+      #     %{
+      #       name: :settings,
+      #       label: "Settings",
+      #       path: ~p"/settings",
+      #       icon: nil
+      #     }
+      #   ]
       }
     ]
   end

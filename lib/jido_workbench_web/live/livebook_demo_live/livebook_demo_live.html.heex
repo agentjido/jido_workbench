@@ -13,28 +13,34 @@
                     class="text-primary-600 dark:text-primary-500 hover:text-primary-700 dark:hover:text-primary-400 mb-2 flex items-center gap-1"
                   >
                     <.icon name="hero-arrow-left" class="w-4 h-4" />
-                    <span>Back to <%= if @tag == :examples, do: "Examples", else: "Documentation" %></span>
+                    <span>
+                      Back to {if @tag == :examples, do: "Examples", else: "Documentation"}
+                    </span>
                   </.link>
-                  <h1 class="text-4xl font-bold text-primary-600 dark:text-primary-500"><%= @selected_livebook.label %></h1>
+                  <h1 class="text-4xl font-bold text-primary-600 dark:text-primary-500">
+                    {@selected_livebook.label}
+                  </h1>
                 </div>
                 <div class="text-primary-600 dark:text-primary-500">
                   <.icon name={@selected_livebook.icon} class="w-8 h-8" />
                 </div>
               </div>
-              <p class="text-lg text-secondary-600 dark:text-secondary-400"><%= @selected_livebook.description %></p>
+              <p class="text-lg text-secondary-600 dark:text-secondary-400">
+                {@selected_livebook.description}
+              </p>
             </div>
 
             <%= if @livebook_content do %>
               <div class="prose dark:prose-invert max-w-none prose-pre:bg-secondary-100 dark:prose-pre:bg-secondary-800 prose-pre:border-0 prose-pre:rounded-lg prose-pre:w-full prose-pre:p-4">
-                <%= raw(@livebook_content.html) %>
+                {raw(@livebook_content.html)}
               </div>
             <% end %>
           </div>
         </div>
 
         <%!-- Side Navigation --%>
-        <%= render "sidebar_component.html", assigns %>
+        {render("sidebar_component.html", assigns)}
       </div>
     </div>
   </div>
-</.workbench_layout> 
+</.workbench_layout>

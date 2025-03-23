@@ -3,6 +3,7 @@
 #   alias Jido.Chat.{Room, Participant}
 #   require Logger
 
+#   @agent_id Application.compile_env!(:jido_workbench, [:agent_jido, :room_id])
 #   @room_id Application.compile_env!(:jido_workbench, [:agent_jido, :room_id])
 
 #   def start_link(opts) do
@@ -15,7 +16,7 @@
 
 #     case Room.start_link(room_opts) do
 #       {:ok, pid} ->
-#         with {:ok, jido} <- Participant.new("jido", :agent, display_name: "Agent Jido"),
+#         with {:ok, jido} <- Participant.new(@agent_id, :agent, display_name: "Agent Jido"),
 #              _ <- Room.add_participant(pid, jido),
 #              {:ok, _} <- Room.post_message(pid, "Hello, I'm Jido, what's your name?", "jido") do
 #           {:ok, pid}
