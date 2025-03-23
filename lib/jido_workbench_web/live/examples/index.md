@@ -1,5 +1,5 @@
 ---
-title: "Examples"
+title: "Jido Examples"
 description: "Examples of using the Jido framework"
 icon: "hero-beaker"
 ---

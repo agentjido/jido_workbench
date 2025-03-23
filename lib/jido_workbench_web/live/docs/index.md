@@ -1,5 +1,5 @@
 ---
-title: "Documentation"
+title: "Jido Documentation"
 description: "Documentation for the Jido framework"
 icon: "hero-book-open"
 ---

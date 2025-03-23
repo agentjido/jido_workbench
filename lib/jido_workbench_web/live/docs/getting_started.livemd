@@ -1,7 +1,7 @@
 ---
 title: "Getting Started with Jido"
 description: "Learn how to install and use the Jido framework for autonomous agents"
-category: "Basic"
+category: "Basic Concepts"
 icon: "hero-rocket-launch"
 tags: ["introduction", "setup", "quickstart"]
 order: 1

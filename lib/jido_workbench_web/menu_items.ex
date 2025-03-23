@@ -30,28 +30,28 @@ defmodule JidoWorkbenchWeb.MenuItems do
       %{
         title: "",
         menu_items: [
-          # Main docs menu item (will show all docs)
+          # Main docs menu item
           %{
             name: :all_docs,
             label: "Docs",
             path: ~p"/docs",
             icon: nil,
-            # Add categories as submenu items
-            menu_items: Enum.drop(docs_menu_items, 1)
+            # Add items directly or as submenus if they have menu_items
+            menu_items: get_menu_children(docs_menu_items)
           }
         ]
       },
       %{
         title: "",
         menu_items: [
-          # Main examples menu item (will show all examples)
+          # Main examples menu item
           %{
             name: :all_examples,
             label: "Examples",
             path: ~p"/examples",
             icon: nil,
-            # Add categories as submenu items
-            menu_items: Enum.drop(examples_menu_items, 1)
+            # Add items directly or as submenus if they have menu_items
+            menu_items: get_menu_children(examples_menu_items)
           }
         ]
       },
@@ -140,19 +140,39 @@ defmodule JidoWorkbenchWeb.MenuItems do
     category_items =
       livebooks
       |> Enum.group_by(& &1.category)
-      |> Enum.map(fn {category, items} ->
-        %{
-          name: String.to_atom(category),
-          label: category,
-          path: ~p"/#{type}",
-          icon: "hero-folder",
-          menu_items:
-            items
-            |> Enum.sort_by(& &1.order)
-            |> Enum.map(&build_menu_item(&1, type))
-        }
+      |> Enum.filter(fn {category, _} ->
+        # Only filter out exact matches of "Documentation" under :docs or "Examples" under :examples
+        # This allows categories like "Basic Concepts" to appear
+        not (
+          (type == :docs && category == "Documentation") ||
+          (type == :examples && category == "Examples")
+        )
       end)
-      |> Enum.sort_by(& &1.label)
+      |> Enum.map(fn {category, items} ->
+        # Skip adding extra nesting if there's only one item in a category
+        if length(items) == 1 && type in [:docs, :examples] do
+          # Just return the direct item for single-item categories
+          build_menu_item(List.first(items), type)
+        else
+          %{
+            name: String.to_atom(category),
+            label: category,
+            path: ~p"/#{type}",
+            icon: "hero-folder",
+            menu_items:
+              items
+              |> Enum.sort_by(& &1.order)
+              |> Enum.map(&build_menu_item(&1, type))
+          }
+        end
+      end)
+      |> Enum.sort_by(fn item ->
+        # Sort items by their label (either direct items or category items)
+        case item do
+          %{menu_items: _} -> item.label
+          _ -> item.label
+        end
+      end)
 
     [root_item | category_items]
   end
@@ -180,5 +200,11 @@ defmodule JidoWorkbenchWeb.MenuItems do
       :docs -> ~p"/docs/#{identifier}"
       :examples -> ~p"/examples/#{identifier}"
     end
+  end
+
+  # Helper to extract menu children from the menu structure
+  defp get_menu_children(menu_items) do
+    # Skip the first item (All X) and return the rest
+    Enum.drop(menu_items, 1)
   end
 end

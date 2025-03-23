@@ -265,35 +265,62 @@ defmodule JidoWorkbenchWeb.LivebookDemoLive do
                     </div>
                   <% end %>
 
-                  <%!-- Categories Grid --%>
+                  <%!-- Categories/Items Grid --%>
                   <h2 class="text-xl font-bold text-primary-600 dark:text-primary-500 mb-4">
-                    All {if @tag == :examples, do: "Examples", else: "Documentation"} by Category
+                    {if @tag == :examples, do: "Examples", else: "Documentation"}
                   </h2>
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <%= for category <- Enum.drop(@livebooks, 1) do %>
-                      <div class="bg-secondary-100 dark:bg-secondary-800 p-6 rounded-lg">
-                        <h3 class="text-xl font-semibold text-primary-600 dark:text-primary-500 mb-4">
-                          {category.label}
-                        </h3>
-                        <div class="space-y-3">
-                          <%= for item <- category.menu_items do %>
-                            <.link navigate={item.path} class="block">
-                              <div class="p-4 rounded-lg hover:bg-secondary-200 dark:hover:bg-secondary-700 transition-colors">
-                                <div class="flex items-center gap-3">
-                                  <div class="text-primary-600 dark:text-primary-500">
-                                    <.icon name={item.icon} class="w-6 h-6" />
-                                  </div>
-                                  <div>
-                                    <h4 class="text-lg font-medium text-primary-600 dark:text-primary-500">
-                                      {item.label}
-                                    </h4>
+                    <%= for item <- Enum.drop(@livebooks, 1) do %>
+                      <%= if Map.has_key?(item, :menu_items) do %>
+                        <%!-- Render Category with multiple items --%>
+                        <div class="bg-secondary-100 dark:bg-secondary-800 p-6 rounded-lg">
+                          <h3 class="text-xl font-semibold text-primary-600 dark:text-primary-500 mb-4">
+                            {item.label}
+                          </h3>
+                          <div class="space-y-3">
+                            <%= for menu_item <- item.menu_items do %>
+                              <.link navigate={menu_item.path} class="block">
+                                <div class="p-4 rounded-lg hover:bg-secondary-200 dark:hover:bg-secondary-700 transition-colors">
+                                  <div class="flex items-center gap-3">
+                                    <div class="text-primary-600 dark:text-primary-500">
+                                      <.icon name={menu_item.icon} class="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                      <h4 class="text-lg font-medium text-primary-600 dark:text-primary-500">
+                                        {menu_item.label}
+                                      </h4>
+                                      <%= if menu_item[:description] do %>
+                                        <p class="text-sm text-secondary-600 dark:text-secondary-400 mt-1">
+                                          {menu_item.description}
+                                        </p>
+                                      <% end %>
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            </.link>
-                          <% end %>
+                              </.link>
+                            <% end %>
+                          </div>
                         </div>
-                      </div>
+                      <% else %>
+                        <%!-- Render flattened single item --%>
+                        <.link navigate={item.path} class="block bg-secondary-100 dark:bg-secondary-800 p-6 rounded-lg hover:bg-secondary-200 dark:hover:bg-secondary-700 transition-colors">
+                          <div class="flex items-center gap-3">
+                            <div class="text-primary-600 dark:text-primary-500">
+                              <.icon name={item.icon} class="w-6 h-6" />
+                            </div>
+                            <div>
+                              <h4 class="text-lg font-medium text-primary-600 dark:text-primary-500">
+                                {item.label}
+                              </h4>
+                              <%= if item[:description] do %>
+                                <p class="text-sm text-secondary-600 dark:text-secondary-400 mt-1">
+                                  {item.description}
+                                </p>
+                              <% end %>
+                            </div>
+                          </div>
+                        </.link>
+                      <% end %>
                     <% end %>
                   </div>
                 </div>

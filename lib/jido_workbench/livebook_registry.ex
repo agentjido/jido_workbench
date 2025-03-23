@@ -217,6 +217,10 @@ defmodule JidoWorkbench.LivebookRegistry do
         entry_path = Path.join(type_path, entry)
         scan_directory(entry_path, entry, type)
       end)
+      |> Enum.reject(fn livebook ->
+        # Only exclude index files from menu (index.md, docs.md, examples.md)
+        Path.basename(livebook.path, Path.extname(livebook.path)) in @index_filenames
+      end)
     else
       Logger.warning("Directory for #{type} livebooks doesn't exist at: #{type_path}")
       []
@@ -310,11 +314,12 @@ defmodule JidoWorkbench.LivebookRegistry do
       end
 
     # Convert string keys to atoms and provide defaults
+    # Use a more direct approach to handle categories
     %{
       id: id,
       title: content["title"] || String.capitalize(id),
       description: content["description"] || "",
-      category: content["category"] || category || "Uncategorized",
+      category: content["category"] || (if category, do: category, else: "Uncategorized"),
       icon: content["icon"] || "hero-document",
       tags: content["tags"] || [],
       order: content["order"] || 999,
