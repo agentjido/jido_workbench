@@ -2,6 +2,8 @@ defmodule JidoWorkbench.LLMKeys do
   @moduledoc """
   GenServer that manages LLM API keys loaded from environment variables.
   Serves as the source of truth for environment-level API keys.
+
+  This needs to be replaced by Jido.AI.Keyring
   """
 
   use GenServer

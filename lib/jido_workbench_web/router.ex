@@ -27,16 +27,18 @@ defmodule JidoWorkbenchWeb.Router do
     # live("/jido2", JidoLive2, :index)
     # live("/team", TeamLive, :index)
 
+    # Documentation
+    live("/docs", LivebookDemoLive, :index, metadata: %{tag: :docs})
+    live("/docs/:demo_id", LivebookDemoLive, :index, metadata: %{tag: :docs})
+
     # Examples
     live("/examples", LivebookDemoLive, :index, metadata: %{tag: :examples})
     live("/examples/:demo_id", LivebookDemoLive, :index, metadata: %{tag: :examples})
 
-    live("/docs", LivebookDemoLive, :index, metadata: %{tag: :docs})
-    live("/docs/:demo_id", LivebookDemoLive, :index, metadata: %{tag: :docs})
-
     # Jido Catalog
     live("/catalog", CatalogLive, :index)
     live("/catalog/actions", CatalogActionsLive, :index)
+    live("/catalog/actions/:slug", CatalogActionsLive, :show)
     live("/catalog/agents", CatalogAgentsLive, :index)
     live("/catalog/sensors", CatalogSensorsLive, :index)
     live("/catalog/skills", CatalogSkillsLive, :index)

@@ -5,6 +5,8 @@ defmodule JidoWorkbenchWeb.LivebookDemoLive do
   alias JidoWorkbenchWeb.MenuItems
   require Logger
 
+  @livebook_root "lib/jido_workbench_web/live"
+
   @impl true
   def mount(_params, _session, socket) do
     {:ok, assign(socket, page_title: "Loading...", livebooks: [], selected_category: nil)}
@@ -40,9 +42,9 @@ defmodule JidoWorkbenchWeb.LivebookDemoLive do
             # Construct the actual filesystem path
             file_path =
               Path.join([
-                "lib/jido_workbench_web/live",
+                @livebook_root,
                 to_string(tag),
-                String.replace(demo_id, "-", "/")
+                demo_id |> String.split("-") |> Path.join()
               ])
 
             Logger.debug("Attempting to load content from base path: #{file_path}")
@@ -74,15 +76,40 @@ defmodule JidoWorkbenchWeb.LivebookDemoLive do
         end
 
       _ ->
-        # Index view - show all livebooks
+        # Index view - show all livebooks and index content if available
+        has_index = LivebookRegistry.has_index?(tag)
+        index_content = if has_index, do: LivebookRegistry.get_index_content(tag), else: nil
+
+        {html_content, toc} =
+          if index_content do
+            process_livebook_content(index_content.content)
+          else
+            {nil, nil}
+          end
+
         {:noreply,
          assign(socket,
            page_title: title,
            livebooks: livebooks,
            selected_livebook: nil,
+           index_content: %{html: html_content, toc: toc},
            tag: tag
          )}
     end
+  end
+
+  @impl true
+  def handle_event("refresh_livebooks", _, socket) do
+    type = socket.assigns.tag || :docs
+    :ok = JidoWorkbench.LivebookRegistry.refresh_cache(type)
+    Process.delete(:"livebook_menu_#{type}")
+    livebooks = JidoWorkbenchWeb.MenuItems.build_livebook_menu(type)
+
+    {:noreply,
+     socket
+     |> assign(:livebooks, livebooks)
+     |> put_flash(:info, "Successfully refreshed #{type} library")
+    }
   end
 
   defp get_route_tag(uri) do
@@ -175,12 +202,13 @@ defmodule JidoWorkbenchWeb.LivebookDemoLive do
     end)
   end
 
+  @impl true
   def render(assigns) do
     ~H"""
     <.workbench_layout current_page={@tag}>
       <div class="bg-white dark:bg-secondary-900 text-secondary-900 dark:text-secondary-100">
-        <div class="max-w-[calc(100%-1rem)] mx-auto p-6">
-          <div class="flex gap-8 justify-end">
+        <div class="max-w-[calc(100%-1rem)] mx-auto px-6 py-6">
+          <div class="flex gap-8">
             <%!-- Main Content --%>
             <div class="flex-1 max-w-[calc(100%-20rem)]">
               <%= if @selected_livebook do %>
@@ -217,19 +245,36 @@ defmodule JidoWorkbenchWeb.LivebookDemoLive do
                   <% end %>
                 </div>
               <% else %>
-                <div class="max-w-4xl mx-auto">
-                  <div class="mb-6">
-                    <h1 class="text-2xl font-bold text-primary-600 dark:text-primary-500 mb-4">
+                <%!-- Index Page --%>
+                <div class="max-w-4xl">
+                  <%!-- Header Section --%>
+                  <div class="mb-6 flex justify-between items-center">
+                    <h1 class="text-3xl font-bold text-primary-600 dark:text-primary-500">
                       {if @tag == :examples, do: "Examples", else: "Documentation"}
                     </h1>
+                    <!--button phx-click="refresh_livebooks" class="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-md flex items-center gap-1">
+                      <.icon name="hero-arrow-path" class="w-4 h-4" />
+                      <span>Refresh</span>
+                    </button-->
                   </div>
 
+                  <%!-- Index Content --%>
+                  <%= if @index_content && @index_content.html do %>
+                    <div class="prose dark:prose-invert max-w-none mb-8 prose-pre:bg-secondary-100 dark:prose-pre:bg-secondary-800 prose-pre:border-0 prose-pre:rounded-lg prose-pre:w-full prose-pre:p-4">
+                      {raw(@index_content.html)}
+                    </div>
+                  <% end %>
+
+                  <%!-- Categories Grid --%>
+                  <h2 class="text-xl font-bold text-primary-600 dark:text-primary-500 mb-4">
+                    All {if @tag == :examples, do: "Examples", else: "Documentation"} by Category
+                  </h2>
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <%= for category <- Enum.drop(@livebooks, 1) do %>
                       <div class="bg-secondary-100 dark:bg-secondary-800 p-6 rounded-lg">
-                        <h2 class="text-xl font-semibold text-primary-600 dark:text-primary-500 mb-4">
+                        <h3 class="text-xl font-semibold text-primary-600 dark:text-primary-500 mb-4">
                           {category.label}
-                        </h2>
+                        </h3>
                         <div class="space-y-3">
                           <%= for item <- category.menu_items do %>
                             <.link navigate={item.path} class="block">
@@ -239,9 +284,9 @@ defmodule JidoWorkbenchWeb.LivebookDemoLive do
                                     <.icon name={item.icon} class="w-6 h-6" />
                                   </div>
                                   <div>
-                                    <h3 class="text-lg font-medium text-primary-600 dark:text-primary-500">
+                                    <h4 class="text-lg font-medium text-primary-600 dark:text-primary-500">
                                       {item.label}
-                                    </h3>
+                                    </h4>
                                   </div>
                                 </div>
                               </div>
@@ -256,37 +301,61 @@ defmodule JidoWorkbenchWeb.LivebookDemoLive do
             </div>
 
             <%!-- Side Navigation --%>
-            <%= if @selected_livebook do %>
+            <%= if @selected_livebook || (@index_content && @index_content.toc && @index_content.toc != []) do %>
               <div class="hidden lg:block w-64 shrink-0">
                 <div id="sidebar" class="sticky top-6 space-y-4" phx-hook="ScrollSpy">
                   <h3 class="text-lg font-semibold text-primary-600 dark:text-primary-500 mb-4">
                     On this Page
                   </h3>
                   <nav class="space-y-1">
-                    <%= if @livebook_content do %>
-                      <%= for section <- @livebook_content.toc do %>
-                        <a
-                          href={"##{section.id}"}
-                          class="block px-3 py-2 hover:bg-secondary-100 dark:hover:bg-secondary-800 rounded-lg transition-colors text-secondary-700 dark:text-secondary-300 hover:text-primary-600 dark:hover:text-primary-500"
-                        >
-                          {section.title}
-                        </a>
-                        <%= if section.children != [] do %>
-                          <%= for child <- Enum.reverse(section.children) do %>
-                            <a
-                              href={"##{child.id}"}
-                              class="block pl-6 py-1 hover:bg-secondary-100 dark:hover:bg-secondary-800 rounded-lg transition-colors text-secondary-600 dark:text-secondary-400 hover:text-primary-600 dark:hover:text-primary-500 text-sm"
-                            >
-                              {child.title}
-                            </a>
+                    <%= cond do %>
+                      <% @selected_livebook && @livebook_content -> %>
+                        <%= for section <- @livebook_content.toc do %>
+                          <a
+                            href={"##{section.id}"}
+                            class="block px-3 py-2 hover:bg-secondary-100 dark:hover:bg-secondary-800 rounded-lg transition-colors text-secondary-700 dark:text-secondary-300 hover:text-primary-600 dark:hover:text-primary-500"
+                          >
+                            {section.title}
+                          </a>
+                          <%= if section.children != [] do %>
+                            <%= for child <- Enum.reverse(section.children) do %>
+                              <a
+                                href={"##{child.id}"}
+                                class="block pl-6 py-1 hover:bg-secondary-100 dark:hover:bg-secondary-800 rounded-lg transition-colors text-secondary-600 dark:text-secondary-400 hover:text-primary-600 dark:hover:text-primary-500 text-sm"
+                              >
+                                {child.title}
+                              </a>
+                            <% end %>
                           <% end %>
                         <% end %>
-                      <% end %>
+
+                      <% @index_content && @index_content.toc -> %>
+                        <%= for section <- @index_content.toc do %>
+                          <a
+                            href={"##{section.id}"}
+                            class="block px-3 py-2 hover:bg-secondary-100 dark:hover:bg-secondary-800 rounded-lg transition-colors text-secondary-700 dark:text-secondary-300 hover:text-primary-600 dark:hover:text-primary-500"
+                          >
+                            {section.title}
+                          </a>
+                          <%= if section.children != [] do %>
+                            <%= for child <- Enum.reverse(section.children) do %>
+                              <a
+                                href={"##{child.id}"}
+                                class="block pl-6 py-1 hover:bg-secondary-100 dark:hover:bg-secondary-800 rounded-lg transition-colors text-secondary-600 dark:text-secondary-400 hover:text-primary-600 dark:hover:text-primary-500 text-sm"
+                              >
+                                {child.title}
+                              </a>
+                            <% end %>
+                          <% end %>
+                        <% end %>
+
+                      <% true -> %>
+                        <div>No table of contents available</div>
                     <% end %>
                   </nav>
 
-                  <div class="pt-4 border-t border-secondary-200 dark:border-secondary-700">
-                    <%= if @livebook_path do %>
+                  <%= if @selected_livebook && @livebook_path do %>
+                    <div class="pt-4 border-t border-secondary-200 dark:border-secondary-700">
                       <a
                         href={"https://livebook.dev/run?url=https://github.com/agentjido/jido_workbench/blob/main/#{@livebook_path}"}
                         target="_blank"
@@ -305,8 +374,8 @@ defmodule JidoWorkbenchWeb.LivebookDemoLive do
                         <.icon name="hero-pencil-square" class="w-4 h-4" />
                         <span>Edit in GitHub</span>
                       </a>
-                    <% end %>
-                  </div>
+                    </div>
+                  <% end %>
                 </div>
               </div>
             <% end %>

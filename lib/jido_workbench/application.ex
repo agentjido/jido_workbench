@@ -42,7 +42,6 @@ defmodule JidoWorkbench.Application do
       # Start the Jido Agent
       {JidoWorkbench.AgentJido, jido_opts},
       # Start the Jido Chat Room
-      # {Jido.Chat.Room, room_opts}
       # {JidoWorkbench.ChatRoom, room_opts}
     ]
 

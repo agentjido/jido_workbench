@@ -9,103 +9,49 @@ defmodule JidoWorkbenchWeb.MenuItems do
   @livebook_root "lib/jido_workbench_web/live"
 
   def menu_items() do
+    # Generate dynamic menu structures for docs and examples
+    docs_menu_items = build_livebook_menu(:docs)
+    examples_menu_items = build_livebook_menu(:examples)
+
     [
       %{
         title: "",
         menu_items: [
-          %{
-            name: :home,
-            label: "Home",
-            path: ~p"/",
-            icon: nil
-          # },
+          %{ name: :home, label: "Home", path: ~p"/", icon: nil }
           # %{
           #   name: :jido,
           #   label: "Agent Jido",
           #   path: ~p"/jido",
           #   icon: nil
+          # }
+
+        ]
+      },
+      %{
+        title: "",
+        menu_items: [
+          # Main docs menu item (will show all docs)
+          %{
+            name: :all_docs,
+            label: "Docs",
+            path: ~p"/docs",
+            icon: nil,
+            # Add categories as submenu items
+            menu_items: Enum.drop(docs_menu_items, 1)
           }
         ]
       },
       %{
         title: "",
         menu_items: [
-          # %{
-          #   name: :all_examples,
-          #   label: "All Examples",
-          #   path: ~p"/examples",
-          #   icon: nil
-          # },
+          # Main examples menu item (will show all examples)
           %{
-            name: :advanced_examples,
-            label: "Advanced Examples",
-            menu_items: [
-              %{
-                name: :chat_bot_agent,
-                label: "Chat Bot Agent",
-                path: ~p"/examples/chat-bot-agent",
-                icon: nil
-              }
-            ]
-          },
-          %{
-            name: :basic_examples,
-            label: "Basic Examples",
-            menu_items: [
-              %{
-                name: :hello_world_agent,
-                label: "Hello World Agent",
-                path: ~p"/examples/hello-world-agent",
-                icon: nil
-              }
-            ]
-          },
-          %{
-            name: :uncategorized,
-            label: "Uncategorized",
-            menu_items: [
-              %{
-                name: :basic_agent,
-                label: "01_basic_agent",
-                path: ~p"/examples/01-basic-agent",
-                icon: nil
-              }
-            ]
-          }
-        ]
-      },
-      %{
-        title: "",
-        menu_items: [
-          # %{
-          #   name: :all_docs,
-          #   label: "All Docs",
-          #   path: ~p"/docs",
-          #   icon: nil
-          # },
-          %{
-            name: :advanced,
-            label: "Advanced",
-            menu_items: [
-              %{
-                name: :jido_architecture,
-                label: "Jido Architecture",
-                path: ~p"/docs/jido-architecture",
-                icon: nil
-              }
-            ]
-          },
-          %{
-            name: :basic,
-            label: "Basic",
-            menu_items: [
-              %{
-                name: :getting_started,
-                label: "Getting Started with Jido",
-                path: ~p"/docs/getting-started",
-                icon: nil
-              }
-            ]
+            name: :all_examples,
+            label: "Examples",
+            path: ~p"/examples",
+            icon: nil,
+            # Add categories as submenu items
+            menu_items: Enum.drop(examples_menu_items, 1)
           }
         ]
       },
@@ -184,7 +130,7 @@ defmodule JidoWorkbenchWeb.MenuItems do
       name: :"all_#{type}",
       label: "All #{String.capitalize(to_string(type))}",
       path: ~p"/#{type}",
-      icon: nil
+      icon: "hero-folder"
     }
 
     # Get raw livebook data
@@ -199,7 +145,7 @@ defmodule JidoWorkbenchWeb.MenuItems do
           name: String.to_atom(category),
           label: category,
           path: ~p"/#{type}",
-          icon: "hero-home",
+          icon: "hero-folder",
           menu_items:
             items
             |> Enum.sort_by(& &1.order)
@@ -216,7 +162,7 @@ defmodule JidoWorkbenchWeb.MenuItems do
       name: String.to_atom(livebook.id),
       label: livebook.title,
       path: build_livebook_path(type, livebook),
-      icon: "hero-home",
+      icon: livebook.icon || "hero-document",
       description: livebook.description
     }
   end

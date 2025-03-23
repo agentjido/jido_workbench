@@ -98,7 +98,6 @@ defmodule JidoWorkbenchWeb.WorkbenchLayout do
 
       <div class="flex justify-end gap-3 pr-4">
         <a
-          target="_blank"
           class="inline-flex items-center gap-2 p-2 text-secondary-600 dark:text-secondary-400 rounded hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200 group"
           href={~p"/docs"}
         >
@@ -112,7 +111,6 @@ defmodule JidoWorkbenchWeb.WorkbenchLayout do
           </span>
         </a>
         <a
-          target="_blank"
           class="inline-flex items-center gap-2 p-2 text-secondary-600 dark:text-secondary-400 rounded hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200 group"
           href={~p"/examples"}
         >
@@ -126,7 +124,6 @@ defmodule JidoWorkbenchWeb.WorkbenchLayout do
           </span>
         </a>
         <a
-          target="_blank"
           class="inline-flex items-center gap-2 p-2 text-secondary-600 dark:text-secondary-400 rounded hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200 group"
           href={~p"/catalog"}
         >
