@@ -1,6 +1,6 @@
 %{
 title: "Tool Use Intro",
-category: :examples,
+category: :cookbook,
 order: 100,
 tags: [:tool_use, :getting_started]
 }

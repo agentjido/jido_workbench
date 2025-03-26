@@ -1,6 +1,6 @@
 %{
-  title: "Examples",
-  category: :examples,
+  title: "Cookbook",
+  category: :cookbook,
 }
 ---
 # Welcome to Jido!

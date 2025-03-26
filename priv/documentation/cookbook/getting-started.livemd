@@ -1,6 +1,6 @@
 %{
 title: "Getting Started",
-category: :examples,
+category: :cookbook,
 order: 10,
 tags: [:getting_started]
 }
