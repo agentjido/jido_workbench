@@ -45,7 +45,7 @@ defmodule JidoWorkbench.MixProject do
       {:phoenix_live_reload, "~> 1.5", only: [:dev, :test]},
       {:phoenix_live_view, "~> 1.0.1"},
       {:heroicons, github: "tailwindlabs/heroicons", tag: "v2.1.5", app: false, compile: false, sparse: "optimized"},
-      {:floki, "~> 0.35", only: [:dev, :test]},
+      {:floki, "~> 0.35"},
       {:phoenix_live_dashboard, "~> 0.8.3"},
       {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
       {:tailwind, "~> 0.2", runtime: Mix.env() == :dev},

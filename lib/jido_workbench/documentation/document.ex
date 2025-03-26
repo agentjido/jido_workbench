@@ -18,6 +18,8 @@ defmodule JidoWorkbench.Documentation.Document do
     :is_livebook,
     # URL to the livebook file in GitHub
     :github_url,
+    # URL to run the livebook file in Livebook
+    :livebook_url,
     # List of path segments for menu hierarchy
     :menu_path
   ]
@@ -95,6 +97,14 @@ defmodule JidoWorkbench.Documentation.Document do
         nil
       end
 
+    # Create the Livebook URL for Livebook files
+    livebook_url =
+      if is_livebook do
+        "https://livebook.dev/run?url=#{github_url}"
+      else
+        nil
+      end
+
     # Build the menu tree path components
     menu_path =
       path
@@ -112,6 +122,7 @@ defmodule JidoWorkbench.Documentation.Document do
         source_path: source_path,
         is_livebook: is_livebook,
         github_url: github_url,
+        livebook_url: livebook_url,
         menu_path: menu_path,
         order: order
       ] ++ Map.to_list(attrs)

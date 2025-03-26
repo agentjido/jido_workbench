@@ -253,11 +253,11 @@ end
 defmodule Jido.Skills.DataAnalysis do
   use Jido.Skill, name: "data_analysis"
 
-  def mount(agents, opts \\ []) do
+  def mount(agents, opts \\\\ []) do
     Jido.Agent.register_action(agent, [analyze_trends])
   end
 
-  def router(opts \\ []) do
+  def router(opts \\\\ []) do
     [
       {"jido.data_analysis.analyze",
         %Instruction{
