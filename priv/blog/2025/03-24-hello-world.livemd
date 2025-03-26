@@ -2,13 +2,11 @@
 title: "Hello world!",
 author: "Mike Hostetler",
 tags: ~w(hello),
-description: "Let's learn how to say hello world"
+description: "Starter blog post - announcement post coming soon."
 }
 
 ---
 
-This is the post.
+Starter blog post - announcement post coming soon.
 
-```elixir
-IO.puts "Hello world!"
-```
+For now look at https://hexdocs.pm/jido

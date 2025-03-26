@@ -118,21 +118,21 @@
 
           <h2 class="text-xl font-bold mb-4 text-secondary-900 dark:text-white">Search</h2>
           <form action={~p"/blog/search"} method="get" class="mb-6">
-            <div class="flex gap-2">
+            <div class="flex flex-col gap-2">
               <input
                 type="text"
                 name="q"
                 placeholder="Search..."
-                class="flex-1 px-4 py-2 bg-secondary-100 dark:bg-secondary-800 border border-secondary-300 dark:border-secondary-700 text-secondary-900 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-500"
+                class="w-full px-3 py-2 bg-secondary-100 dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-md text-secondary-900 dark:text-white placeholder-secondary-500 dark:placeholder-secondary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-500 focus:border-transparent"
               />
               <button
                 type="submit"
-                class="px-4 py-2 bg-primary-600 dark:bg-primary-600 text-white hover:bg-primary-700 dark:hover:bg-primary-700 rounded-md transition-colors duration-200"
+                class="w-full px-4 py-2 bg-primary-600 dark:bg-primary-600 text-white hover:bg-primary-700 dark:hover:bg-primary-700 rounded-md transition-colors duration-200 font-medium"
               >
                 Search
               </button>
             </div>
-            <div class="mt-2 text-xs text-secondary-500 dark:text-secondary-500">
+            <div class="mt-2 text-xs text-secondary-500 dark:text-secondary-400">
               Searches via DuckDuckGo
             </div>
           </form>
