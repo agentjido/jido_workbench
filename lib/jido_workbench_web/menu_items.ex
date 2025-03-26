@@ -52,9 +52,9 @@ defmodule JidoWorkbenchWeb.MenuItems do
   def menu_items() do
     doc_tree = JidoWorkbench.Documentation.menu_tree()
     docs_section = get_in(doc_tree, ["docs", :children]) || %{}
-    examples_section = get_in(doc_tree, ["examples", :children]) || %{}
+    cookbook_section = get_in(doc_tree, ["cookbook", :children]) || %{}
     docs_menu_items = convert_doc_tree_to_menu_items(docs_section, ~p"/docs")
-    examples_menu_items = convert_doc_tree_to_menu_items(examples_section, ~p"/examples")
+    cookbook_menu_items = convert_doc_tree_to_menu_items(cookbook_section, ~p"/cookbook")
 
     [
       %{
@@ -73,7 +73,7 @@ defmodule JidoWorkbenchWeb.MenuItems do
       %{
         title: "",
         menu_items: [
-          %{name: :all_examples, label: "Examples", path: ~p"/examples", icon: nil, menu_items: examples_menu_items}
+          %{name: :all_cookbook, label: "Cookbook", path: ~p"/cookbook", icon: nil, menu_items: cookbook_menu_items}
         ]
       },
       %{

@@ -109,7 +109,7 @@ defmodule JidoWorkbenchWeb.WorkbenchLayout do
         </a>
         <a
           class="inline-flex items-center gap-2 p-2 text-secondary-600 dark:text-secondary-400 rounded hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200 group"
-          href={~p"/examples"}
+          href={~p"/cookbook"}
         >
           <.icon
             name="hero-beaker"

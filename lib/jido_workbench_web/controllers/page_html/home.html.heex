@@ -1,13 +1,13 @@
 <.workbench_layout current_page={:home} show_menu={false}>
-  <div class="flex flex-col items-center w-full bg-secondary-950 text-secondary-300">
+  <div class="flex flex-col items-center w-full bg-secondary-50 dark:bg-secondary-950 text-secondary-700 dark:text-secondary-300">
     <.container class="text-center px-4 max-w-4xl py-16">
-      <p class="text-primary-500 font-medium mb-4">Built for Production, Not Just Prototypes</p>
+      <p class="text-primary-600 dark:text-primary-500 font-medium mb-4">Built for Production, Not Just Prototypes</p>
       
-      <.h1 class="mb-6 text-5xl font-bold text-white">
+      <.h1 class="mb-6 text-5xl font-bold text-secondary-900 dark:text-white">
         The Elixir Autonomous Agent Framework
       </.h1>
       
-      <.h3 class="mb-10 text-xl font-normal text-secondary-300 max-w-3xl mx-auto leading-relaxed">
+      <.h3 class="mb-10 text-xl font-normal text-secondary-600 dark:text-secondary-300 max-w-3xl mx-auto leading-relaxed">
         Create distributed, adaptive agent systems powered by Elixir's unmatched concurrency and reliability. 
       </.h3>
 
@@ -15,15 +15,15 @@
         <.button
           link_type="live_redirect"
           to={~p"/docs/getting-started"}
-          class="py-3 px-6 text-lg bg-primary-600 text-white hover:bg-primary-700 rounded-md transition-colors duration-200"
+          class="py-3 px-6 text-lg bg-primary-600 dark:bg-primary-600 text-white hover:bg-primary-700 dark:hover:bg-primary-700 rounded-md transition-colors duration-200"
         >
           <.icon name="hero-arrow-right-circle" solid class="w-5 h-5 mr-2" /> Get Started
         </.button>
 
         <.button
           link_type="live_redirect"
-          to={~p"/examples"}
-          class="py-3 px-6 text-lg bg-secondary-800 text-white hover:bg-secondary-700 rounded-md transition-colors duration-200"
+          to={~p"/cookbook"}
+          class="py-3 px-6 text-lg bg-secondary-700 dark:bg-secondary-800 text-white hover:bg-secondary-800 dark:hover:bg-secondary-700 rounded-md transition-colors duration-200"
         >
           <.icon name="hero-beaker" solid class="w-5 h-5 mr-2" /> Cookbook
         </.button>
@@ -31,7 +31,7 @@
     </.container>
     
     <div class="w-full max-w-5xl mx-auto px-4 pb-24">
-      <div class="bg-secondary-900 rounded-lg p-8 mb-12">
+      <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-lg p-8 mb-12">
 <%= Makeup.highlight("""
 defmodule MyAgent do
   use Jido.Agent, name: "my_agent"
@@ -56,37 +56,37 @@ iex(1)> MyAgent.start_link()
 """, formatter_options: [css_class: "makeup"]) |> Phoenix.HTML.raw() %>
       </div>
       
-      <h2 class="text-4xl font-bold text-primary-500 mb-10">Production-Ready From Day One</h2>
+      <h2 class="text-4xl font-bold text-primary-600 dark:text-primary-500 mb-10">Production-Ready From Day One</h2>
       
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-secondary-900 rounded-lg p-6">
+        <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-lg p-6">
           <div class="flex items-center mb-4">
-            <div class="text-primary-500 mr-3">
+            <div class="text-primary-600 dark:text-primary-500 mr-3">
               <.icon name="hero-cube" solid class="w-6 h-6" />
             </div>
-            <h3 class="text-xl font-bold text-white">Small Memory Footprint</h3>
+            <h3 class="text-xl font-bold text-secondary-900 dark:text-white">Small Memory Footprint</h3>
           </div>
-          <p class="text-secondary-400">Run 10,000 agents for the cost of one container</p>
+          <p class="text-secondary-600 dark:text-secondary-400">Run 10,000 agents for the cost of one container</p>
         </div>
         
-        <div class="bg-secondary-900 rounded-lg p-6">
+        <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-lg p-6">
           <div class="flex items-center mb-4">
-            <div class="text-primary-500 mr-3">
+            <div class="text-primary-600 dark:text-primary-500 mr-3">
               <.icon name="hero-bolt" solid class="w-6 h-6" />
             </div>
-            <h3 class="text-xl font-bold text-white">Native Concurrency</h3>
+            <h3 class="text-xl font-bold text-secondary-900 dark:text-white">Native Concurrency</h3>
           </div>
-          <p class="text-secondary-400">True parallel execution with BEAM's actor model</p>
+          <p class="text-secondary-600 dark:text-secondary-400">True parallel execution with BEAM's actor model</p>
         </div>
         
-        <div class="bg-secondary-900 rounded-lg p-6">
+        <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-lg p-6">
           <div class="flex items-center mb-4">
-            <div class="text-primary-500 mr-3">
+            <div class="text-primary-600 dark:text-primary-500 mr-3">
               <.icon name="hero-shield-check" solid class="w-6 h-6" />
             </div>
-            <h3 class="text-xl font-bold text-white">Built-in Resilience</h3>
+            <h3 class="text-xl font-bold text-secondary-900 dark:text-white">Built-in Resilience</h3>
           </div>
-          <p class="text-secondary-400">Automatic recovery from failures without external tools</p>
+          <p class="text-secondary-600 dark:text-secondary-400">Automatic recovery from failures without external tools</p>
         </div>
       </div>
     </div>
@@ -96,29 +96,29 @@ iex(1)> MyAgent.start_link()
         <!-- Actions Section -->
         <div>
           <div class="text-center mb-12">
-            <h2 class="text-4xl font-bold text-primary-500 mb-4">Actions</h2>
-            <p class="text-xl text-secondary-300">From Thought to Execution</p>
-            <p class="text-secondary-400 mt-4 max-w-3xl mx-auto">
+            <h2 class="text-4xl font-bold text-primary-600 dark:text-primary-500 mb-4">Actions</h2>
+            <p class="text-xl text-secondary-700 dark:text-secondary-300">From Thought to Execution</p>
+            <p class="text-secondary-600 dark:text-secondary-400 mt-4 max-w-3xl mx-auto">
               Actions transform agent intentions into real-world results. They provide a structured way for agents to affect your systems, interact with external services, and collaborate to solve complex problems.
             </p>
           </div>
 
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div class="bg-secondary-900 rounded-lg p-4 text-center">
-              <p class="text-primary-500 font-medium">Composable</p>
+            <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-lg p-4 text-center">
+              <p class="text-primary-600 dark:text-primary-500 font-medium">Composable</p>
             </div>
-            <div class="bg-secondary-900 rounded-lg p-4 text-center">
-              <p class="text-primary-500 font-medium">Validated</p>
+            <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-lg p-4 text-center">
+              <p class="text-primary-600 dark:text-primary-500 font-medium">Validated</p>
             </div>
-            <div class="bg-secondary-900 rounded-lg p-4 text-center">
-              <p class="text-primary-500 font-medium">Resilient</p>
+            <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-lg p-4 text-center">
+              <p class="text-primary-600 dark:text-primary-500 font-medium">Resilient</p>
             </div>
-            <div class="bg-secondary-900 rounded-lg p-4 text-center">
-              <p class="text-primary-500 font-medium">Extensible</p>
+            <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-lg p-4 text-center">
+              <p class="text-primary-600 dark:text-primary-500 font-medium">Extensible</p>
             </div>
           </div>
 
-          <div class="bg-secondary-900 rounded-lg p-8">
+          <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-lg p-8">
 <%= Makeup.highlight("""
 defmodule CreateInvoice do
   use Jido.Action, name: "create_invoice"
@@ -137,29 +137,29 @@ end
         <!-- Agents Section -->
         <div>
           <div class="text-center mb-12">
-            <h2 class="text-4xl font-bold text-primary-500 mb-4">Agents</h2>
-            <p class="text-xl text-secondary-300">Autonomous, Scalable, Resilient</p>
-            <p class="text-secondary-400 mt-4 max-w-3xl mx-auto">
+            <h2 class="text-4xl font-bold text-primary-600 dark:text-primary-500 mb-4">Agents</h2>
+            <p class="text-xl text-secondary-700 dark:text-secondary-300">Autonomous, Scalable, Resilient</p>
+            <p class="text-secondary-600 dark:text-secondary-400 mt-4 max-w-3xl mx-auto">
               Jido Agents are lightweight, autonomous processes designed to work together in complex systems. Built on Elixir's actor model, they provide unmatched concurrency, fault tolerance, and scalability for your AI applications.
             </p>
           </div>
 
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div class="bg-secondary-900 rounded-lg p-4 text-center">
-              <p class="text-primary-500 font-medium">Lightweight</p>
+            <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-lg p-4 text-center">
+              <p class="text-primary-600 dark:text-primary-500 font-medium">Lightweight</p>
             </div>
-            <div class="bg-secondary-900 rounded-lg p-4 text-center">
-              <p class="text-primary-500 font-medium">Self-Healing</p>
+            <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-lg p-4 text-center">
+              <p class="text-primary-600 dark:text-primary-500 font-medium">Self-Healing</p>
             </div>
-            <div class="bg-secondary-900 rounded-lg p-4 text-center">
-              <p class="text-primary-500 font-medium">AI-Ready</p>
+            <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-lg p-4 text-center">
+              <p class="text-primary-600 dark:text-primary-500 font-medium">AI-Ready</p>
             </div>
-            <div class="bg-secondary-900 rounded-lg p-4 text-center">
-              <p class="text-primary-500 font-medium">Tool-Equipped</p>
+            <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-lg p-4 text-center">
+              <p class="text-primary-600 dark:text-primary-500 font-medium">Tool-Equipped</p>
             </div>
           </div>
 
-          <div class="bg-secondary-900 rounded-lg p-8">
+          <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-lg p-8">
 <%= Makeup.highlight("""
 defmodule CustomerSupportAgent do
   use Jido.Agent, name: "support_agent"
@@ -185,29 +185,29 @@ end
         <!-- Signals Section -->
         <div>
           <div class="text-center mb-12">
-            <h2 class="text-4xl font-bold text-primary-500 mb-4">Signals</h2>
-            <p class="text-xl text-secondary-300">The Nervous System of Your Agent Network</p>
-            <p class="text-secondary-400 mt-4 max-w-3xl mx-auto">
+            <h2 class="text-4xl font-bold text-primary-600 dark:text-primary-500 mb-4">Signals</h2>
+            <p class="text-xl text-secondary-700 dark:text-secondary-300">The Nervous System of Your Agent Network</p>
+            <p class="text-secondary-600 dark:text-secondary-400 mt-4 max-w-3xl mx-auto">
               Signals provide a standardized messaging system for your distributed agents, based on the CloudEvents specification. They serve as the communication backbone, allowing agents to exchange information, commands, and state changes seamlessly.
             </p>
           </div>
 
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div class="bg-secondary-900 rounded-lg p-4 text-center">
-              <p class="text-primary-500 font-medium">Standardized Structure</p>
+            <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-lg p-4 text-center">
+              <p class="text-primary-600 dark:text-primary-500 font-medium">Standardized Structure</p>
             </div>
-            <div class="bg-secondary-900 rounded-lg p-4 text-center">
-              <p class="text-primary-500 font-medium">Flexible Dispatch</p>
+            <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-lg p-4 text-center">
+              <p class="text-primary-600 dark:text-primary-500 font-medium">Flexible Dispatch</p>
             </div>
-            <div class="bg-secondary-900 rounded-lg p-4 text-center">
-              <p class="text-primary-500 font-medium">Rich Context</p>
+            <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-lg p-4 text-center">
+              <p class="text-primary-600 dark:text-primary-500 font-medium">Rich Context</p>
             </div>
-            <div class="bg-secondary-900 rounded-lg p-4 text-center">
-              <p class="text-primary-500 font-medium">Instruction Handling</p>
+            <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-lg p-4 text-center">
+              <p class="text-primary-600 dark:text-primary-500 font-medium">Instruction Handling</p>
             </div>
           </div>
 
-          <div class="bg-secondary-900 rounded-lg p-8">
+          <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-lg p-8">
 <%= Makeup.highlight("""
 {:ok, signal} = Jido.Signal.new(%{
   type: "order.payment.processed", 
@@ -219,6 +219,62 @@ end
     {:pid, [target: pid, async: true]}
   ]
 })
+""", formatter_options: [css_class: "makeup"]) |> Phoenix.HTML.raw() %>
+          </div>
+        </div>
+
+        <!-- Skills Section -->
+        <div>
+          <div class="text-center mb-12">
+            <h2 class="text-4xl font-bold text-primary-600 dark:text-primary-500 mb-4">Skills</h2>
+            <p class="text-xl text-secondary-700 dark:text-secondary-300">Composable Agent Capabilities</p>
+            <p class="text-secondary-600 dark:text-secondary-400 mt-4 max-w-3xl mx-auto">
+              Skills are modular, reusable modules that encapsulate specific agent capabilities. They provide a clean way to share functionality between agents, making it easy to build sophisticated behaviors from simple, composable building blocks.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-lg p-4 text-center">
+              <p class="text-primary-600 dark:text-primary-500 font-medium">Modular</p>
+            </div>
+            <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-lg p-4 text-center">
+              <p class="text-primary-600 dark:text-primary-500 font-medium">Shareable</p>
+            </div>
+            <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-lg p-4 text-center">
+              <p class="text-primary-600 dark:text-primary-500 font-medium">Configurable</p>
+            </div>
+            <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-lg p-4 text-center">
+              <p class="text-primary-600 dark:text-primary-500 font-medium">Versioned</p>
+            </div>
+          </div>
+
+          <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-lg p-8">
+<%= Makeup.highlight("""
+defmodule Jido.Skills.DataAnalysis do
+  use Jido.Skill, name: "data_analysis"
+
+  def mount(agents, opts \\ []) do
+    Jido.Agent.register_action(agent, [analyze_trends])
+  end
+
+  def router(opts \\ []) do
+    [
+      {"jido.data_analysis.analyze",
+        %Instruction{
+          action: Jido.DataAnalysis.Actions.AnalyzeTrends,
+          params: %{model: model}
+        }},    
+    ]
+  end
+
+  def handle_signal(%{type: "data.analysis.analyze"} = signal, _skill_opts) do
+    {:ok, signal}
+  end
+
+  def transform_result(signal, result, _skill_opts) do
+    {:ok, result}
+  end
+end
 """, formatter_options: [css_class: "makeup"]) |> Phoenix.HTML.raw() %>
           </div>
         </div>

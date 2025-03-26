@@ -33,7 +33,7 @@ defmodule JidoWorkbenchWeb.LivebookDemoLive do
 
     case path do
       "/docs" -> handle_index(socket, :docs, documents, menu_items)
-      "/examples" -> handle_index(socket, :examples, documents, menu_items)
+      "/cookbook" -> handle_index(socket, :cookbook, documents, menu_items)
       _ -> handle_show(socket, type, path, documents, menu_items)
     end
   end
@@ -63,7 +63,7 @@ defmodule JidoWorkbenchWeb.LivebookDemoLive do
       # Otherwise, show the index listing
       {:noreply,
        assign(socket,
-         page_title: if(type == :examples, do: "Examples", else: "Documentation"),
+         page_title: if(type == :cookbook, do: "Cookbook", else: "Documentation"),
          documents: documents,
          selected_document: nil,
          type: type,
@@ -116,26 +116,26 @@ defmodule JidoWorkbenchWeb.LivebookDemoLive do
 
   @doc """
   Gets the route tag from the URI path.
-  Returns :docs for /docs/* paths and :examples for /examples/* paths.
+  Returns :docs for /docs/* paths and :cookbook for /cookbook/* paths.
 
   ## Examples
 
       iex> get_route_tag(%URI{path: "/docs/getting-started"})
       :docs
 
-      iex> get_route_tag(%URI{path: "/examples/tool-use-intro"})
-      :examples
+      iex> get_route_tag(%URI{path: "/cookbook/tool-use-intro"})
+      :cookbook
   """
   defp get_route_tag(uri) do
-    # Extract the first part of the path to determine if we're in docs or examples
+    # Extract the first part of the path to determine if we're in docs or cookbook
     path = URI.parse(uri).path || "/"
     base_path = path |> String.split("/") |> Enum.at(1, "")
 
     case base_path do
       "docs" -> :docs
-      "examples" -> :examples
-      # Default to examples for root path
-      _ -> :examples
+      "cookbook" -> :cookbook
+      # Default to cookbook for root path
+      _ -> :cookbook
     end
   end
 
@@ -261,7 +261,7 @@ defmodule JidoWorkbenchWeb.LivebookDemoLive do
 
               %{
                 label: item.title,
-                path: ~p"/#{if item.category == :docs, do: "docs", else: "examples"}/#{path_segment}",
+                path: ~p"/#{if item.category == :docs, do: "docs", else: "cookbook"}/#{path_segment}",
                 icon: Map.get(item, :icon, "hero-document"),
                 description: item.description
               }
@@ -293,7 +293,7 @@ defmodule JidoWorkbenchWeb.LivebookDemoLive do
 
               %{
                 label: item.title,
-                path: ~p"/#{if item.category == :docs, do: "docs", else: "examples"}/#{path_segment}",
+                path: ~p"/#{if item.category == :docs, do: "docs", else: "cookbook"}/#{path_segment}",
                 icon: Map.get(item, :icon, "hero-document"),
                 description: item.description
               }

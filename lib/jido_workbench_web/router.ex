@@ -6,7 +6,7 @@ defmodule JidoWorkbenchWeb.Router do
 
   @doc_routes [
                 {"/docs", LivebookDemoLive, :index, %{tag: :docs}},
-                {"/examples", LivebookDemoLive, :index, %{tag: :examples}}
+                {"/cookbook", LivebookDemoLive, :index, %{tag: :cookbook}}
               ] ++
                 ((for doc <- JidoWorkbench.Documentation.all_documents() do
                     path_without_category =
@@ -20,8 +20,8 @@ defmodule JidoWorkbenchWeb.Router do
                         :docs ->
                           {"/docs/#{path_without_category}", LivebookDemoLive, :show, %{tag: :docs}}
 
-                        :examples ->
-                          {"/examples/#{path_without_category}", LivebookDemoLive, :show, %{tag: :examples}}
+                        :cookbook ->
+                          {"/cookbook/#{path_without_category}", LivebookDemoLive, :show, %{tag: :cookbook}}
 
                         _ ->
                           nil

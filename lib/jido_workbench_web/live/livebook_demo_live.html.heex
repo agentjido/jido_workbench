@@ -15,7 +15,7 @@
                     >
                       <.icon name="hero-arrow-left" class="w-4 h-4" />
                       <span>
-                        Back to {if @type == :examples, do: "Examples", else: "Documentation"}
+                        Back to {if @type == :cookbook, do: "Cookbook", else: "Documentation"}
                       </span>
                     </.link>
                     <h1 class="text-4xl font-bold text-primary-600 dark:text-primary-500">
@@ -43,7 +43,7 @@
               <%!-- Header Section --%>
               <div class="mb-6 flex justify-between items-center">
                 <h1 class="text-3xl font-bold text-primary-600 dark:text-primary-500">
-                  {if @type == :examples, do: "Examples", else: "Documentation"}
+                  {if @type == :cookbook, do: "Cookbook", else: "Documentation"}
                 </h1>
               </div>
 
