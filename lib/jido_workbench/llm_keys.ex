@@ -43,6 +43,23 @@ defmodule JidoWorkbench.LLMKeys do
       You can get an API key by signing up at platform.openai.com.
       OpenAI's GPT models are widely used for various AI tasks and natural language processing.
       """
+    },
+    %{
+      group: :llm,
+      name: "OpenRouter API Key",
+      description: "API key for accessing multiple LLM providers through OpenRouter",
+      key: :openrouter,
+      type: :string,
+      default: "",
+      config_path: [:openrouter, :api_key],
+      session_key: "openrouter_api_key",
+      env_var: "OPENROUTER_API_KEY",
+      signup_url: "https://openrouter.ai/keys",
+      docs_url: "https://openrouter.ai/docs",
+      help_text: """
+      You can get an API key by signing up at openrouter.ai.
+      OpenRouter provides unified access to multiple LLM providers including Anthropic, OpenAI, Google and more.
+      """
     }
   ]
 

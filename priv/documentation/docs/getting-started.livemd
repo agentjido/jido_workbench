@@ -1,5 +1,5 @@
 %{
-title: "Docs Started",
+title: "Getting Started",
 category: :docs,
 order: 10,
 tags: [:getting_started]

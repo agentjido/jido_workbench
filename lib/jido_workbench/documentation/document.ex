@@ -90,12 +90,7 @@ defmodule JidoWorkbench.Documentation.Document do
       |> String.replace("/", "-")
 
     # Create the GitHub URL for Livebook files
-    github_url =
-      if is_livebook do
-        "#{@github_repo}/blob/main#{doc_root}#{path}.livemd"
-      else
-        nil
-      end
+    github_url = "#{@github_repo}/blob/main#{doc_root}#{path}.livemd"
 
     # Create the Livebook URL for Livebook files
     livebook_url =

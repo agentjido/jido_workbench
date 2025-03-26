@@ -1,5 +1,5 @@
 %{
-title: "Tool Use Intro",
+title: "Tool Response",
 category: :cookbook,
 order: 100,
 tags: [:tool_use, :getting_started]

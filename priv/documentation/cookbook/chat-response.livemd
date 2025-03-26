@@ -1,8 +1,8 @@
 %{
-title: "Getting Started",
+title: "Chat Response",
 category: :cookbook,
 order: 10,
-tags: [:getting_started]
+tags: [:chat_response]
 }
 
 ---

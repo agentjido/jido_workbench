@@ -38,7 +38,7 @@ defmodule JidoWorkbenchWeb.SettingsLive do
         <div class="w-full p-6">
           <div class="max-w-4xl mx-auto">
             <div class="mb-8">
-              <h1 class="text-2xl font-bold text-white dark:text-white mb-4">API Key Settings</h1>
+              <h1 class="text-2xl font-bold text-primary-600 dark:text-primary-500 mb-4">API Key Settings</h1>
               <div class="text-secondary-600 dark:text-secondary-400">
                 <p>
                   Configure your API keys for various language models. These keys are required to use the AI features in the workbench.
@@ -60,10 +60,10 @@ defmodule JidoWorkbenchWeb.SettingsLive do
               </div>
             </div>
 
-            <div class="bg-secondary-900 dark:bg-secondary-900 border border-secondary-800 dark:border-secondary-800 shadow-lg rounded-lg mb-8">
+            <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 shadow-lg rounded-lg mb-8">
               <div class="px-4 py-5 sm:p-6">
-                <h3 class="text-lg font-medium text-white dark:text-white">Security Notice</h3>
-                <div class="mt-2 text-sm text-secondary-300 dark:text-secondary-300">
+                <h3 class="text-lg font-medium text-secondary-900 dark:text-white">Security Notice</h3>
+                <div class="mt-2 text-sm text-secondary-600 dark:text-secondary-300">
                   <p>
                     API keys are stored in your browser session for your use only. While we take security seriously,
                     if you're concerned about key security, we recommend:
@@ -77,7 +77,7 @@ defmodule JidoWorkbenchWeb.SettingsLive do
                 <div class="mt-3">
                   <a
                     href="https://github.com/agentjido/jido_workbench"
-                    class="inline-flex items-center text-sm text-secondary-400 dark:text-secondary-400 hover:text-primary-400 dark:hover:text-primary-400 transition-colors duration-200"
+                    class="inline-flex items-center text-sm text-secondary-500 dark:text-secondary-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200"
                   >
                     <.icon name="hero-arrow-top-right-on-square" class="h-4 w-4 mr-1" /> View on GitHub
                   </a>
@@ -87,14 +87,14 @@ defmodule JidoWorkbenchWeb.SettingsLive do
 
             <.form for={%{}} action={~p"/settings/save"} method="post" class="space-y-8">
               <%= for setting <- @settings do %>
-                <div class="bg-secondary-900 dark:bg-secondary-900 border border-secondary-800 dark:border-secondary-800 shadow rounded-lg">
+                <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 shadow rounded-lg">
                   <div class="px-4 py-5 sm:p-6">
                     <div class="md:grid md:grid-cols-3 md:gap-6">
                       <div class="md:col-span-1">
-                        <h3 class="text-lg font-medium text-white dark:text-white">
+                        <h3 class="text-lg font-medium text-secondary-900 dark:text-white">
                           {setting.name}
                         </h3>
-                        <p class="mt-2 text-sm text-secondary-300 dark:text-secondary-300">
+                        <p class="mt-2 text-sm text-secondary-600 dark:text-secondary-300">
                           {setting.description}
                         </p>
                         <div class="mt-4 flex flex-col space-y-2">
@@ -102,7 +102,7 @@ defmodule JidoWorkbenchWeb.SettingsLive do
                             href={setting.signup_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            class="inline-flex items-center text-sm text-secondary-400 hover:text-primary-400 transition-colors duration-200"
+                            class="inline-flex items-center text-sm text-secondary-500 hover:text-primary-600 dark:text-secondary-400 dark:hover:text-primary-400 transition-colors duration-200"
                           >
                             <.icon name="hero-key" class="h-4 w-4 mr-1" /> Get API Key
                           </a>
@@ -110,7 +110,7 @@ defmodule JidoWorkbenchWeb.SettingsLive do
                             href={setting.docs_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            class="inline-flex items-center text-sm text-secondary-400 hover:text-primary-400 transition-colors duration-200"
+                            class="inline-flex items-center text-sm text-secondary-500 hover:text-primary-600 dark:text-secondary-400 dark:hover:text-primary-400 transition-colors duration-200"
                           >
                             <.icon name="hero-document-text" class="h-4 w-4 mr-1" /> View Documentation
                           </a>
@@ -120,11 +120,11 @@ defmodule JidoWorkbenchWeb.SettingsLive do
                         <div class="space-y-4">
                           <div>
                             <div class="flex justify-between">
-                              <.form_label for={setting.key} class="text-secondary-300 dark:text-secondary-300">
+                              <.form_label for={setting.key} class="text-secondary-700 dark:text-secondary-300">
                                 API Key
                               </.form_label>
                               <span class={
-                                "px-2 py-1 text-xs rounded-full #{if setting.value != "", do: "bg-success-900/30 text-success-200 border border-success-600", else: "bg-danger-900/30 text-danger-200 border border-danger-600"}"
+                                "px-2 py-1 text-xs rounded-full #{if setting.value != "", do: "bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-200 border border-success-200 dark:border-success-600", else: "bg-danger-100 dark:bg-danger-900/30 text-danger-700 dark:text-danger-200 border border-danger-200 dark:border-danger-600"}"
                               }>
                                 {if setting.value != "", do: "Valid", else: "Not Set"}
                               </span>
@@ -136,12 +136,12 @@ defmodule JidoWorkbenchWeb.SettingsLive do
                                 value={setting.value}
                                 placeholder={"Enter your #{setting.name}"}
                                 id={"input-#{setting.key}"}
-                                class="w-full bg-secondary-800 border-secondary-700 text-white focus:border-primary-500 focus:ring-primary-500 transition-colors duration-200"
+                                class="w-full bg-white dark:bg-secondary-800 border-secondary-300 dark:border-secondary-700 text-secondary-900 dark:text-white focus:border-primary-500 focus:ring-primary-500 transition-colors duration-200"
                               />
                               <button
                                 type="button"
                                 onclick={"togglePasswordVisibility('input-#{setting.key}', this)"}
-                                class="absolute inset-y-0 right-0 pr-3 flex items-center text-secondary-400 hover:text-primary-400 transition-colors duration-200"
+                                class="absolute inset-y-0 right-0 pr-3 flex items-center text-secondary-500 dark:text-secondary-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200"
                               >
                                 <.icon name="hero-eye" class="h-5 w-5" />
                               </button>
@@ -150,8 +150,8 @@ defmodule JidoWorkbenchWeb.SettingsLive do
                           <%= if Map.has_key?(@test_results, setting.key) do %>
                             <div class={
                               "mt-2 p-2 rounded text-sm #{case @test_results[setting.key] do
-                                {:ok, _} -> "bg-success-900/30 text-success-200 border border-success-600"
-                                {:error, _} -> "bg-danger-900/30 text-danger-200 border border-danger-600"
+                                {:ok, _} -> "bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-200 border border-success-200 dark:border-success-600"
+                                {:error, _} -> "bg-danger-100 dark:bg-danger-900/30 text-danger-700 dark:text-danger-200 border border-danger-200 dark:border-danger-600"
                               end}"
                             }>
                               {case @test_results[setting.key] do
@@ -160,12 +160,12 @@ defmodule JidoWorkbenchWeb.SettingsLive do
                               end}
                             </div>
                           <% end %>
-                          <p class="text-sm text-secondary-300">
+                          <p class="text-sm text-secondary-600 dark:text-secondary-300">
                             {setting.help_text}
                           </p>
                           <p class="text-xs text-secondary-500">
                             Environment Variable:
-                            <code class="bg-secondary-800 px-1 rounded">
+                            <code class="bg-secondary-100 dark:bg-secondary-800 px-1 rounded text-secondary-700 dark:text-secondary-300">
                               {setting.env_var}
                             </code>
                           </p>
@@ -179,7 +179,7 @@ defmodule JidoWorkbenchWeb.SettingsLive do
               <div class="flex justify-end space-x-3">
                 <.link
                   href={~p"/settings/clear"}
-                  class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-danger-400 bg-danger-900/30 hover:bg-danger-900/50 transition-colors duration-200"
+                  class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-danger-700 dark:text-danger-400 bg-danger-100 dark:bg-danger-900/30 hover:bg-danger-200 dark:hover:bg-danger-900/50 transition-colors duration-200"
                 >
                   <.icon name="hero-arrow-path" class="h-4 w-4 mr-2" /> Reset to Defaults
                 </.link>
@@ -188,7 +188,7 @@ defmodule JidoWorkbenchWeb.SettingsLive do
                   theme="secondary"
                   phx-click="test_keys"
                   label="Test Keys"
-                  class="inline-flex items-center bg-secondary-800 hover:bg-secondary-700 text-white transition-colors duration-200"
+                  class="inline-flex items-center bg-secondary-100 dark:bg-secondary-800 hover:bg-secondary-200 dark:hover:bg-secondary-700 text-secondary-900 dark:text-white border border-secondary-300 dark:border-secondary-700 transition-colors duration-200"
                 >
                   <.icon name="hero-beaker" class="h-4 w-4 mr-2" /> Test Keys
                 </.button>

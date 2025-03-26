@@ -91,34 +91,7 @@ defmodule JidoWorkbenchWeb.CatalogSensorsLive do
                 {@selected_sensor.description}
               </p>
 
-              <.form :let={f} for={build_form(@selected_sensor)} phx-submit="execute" class="space-y-6">
-                <%= for {field, schema} <- @selected_sensor.schema do %>
-                  <div>
-                    <label class="block mb-2 text-secondary-700 dark:text-secondary-300">
-                      {field}
-                      <%= if schema[:required] do %>
-                        <span class="text-danger-500 ml-1">*</span>
-                      <% end %>
-                    </label>
-                    <.input
-                      type={get_field_type(schema)}
-                      field={f[field]}
-                      class="w-full bg-white dark:bg-secondary-800 rounded-md py-2 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400"
-                    />
-                  </div>
-                <% end %>
 
-                <.button class="w-full bg-primary-600 dark:bg-primary-500 hover:bg-primary-700 dark:hover:bg-primary-400 text-white dark:text-secondary-900 font-bold py-3 px-4 rounded-md transition-colors">
-                  Execute Sensor
-                </.button>
-              </.form>
-
-              <%= if @result do %>
-                <div class="mt-8">
-                  <h3 class="text-xl text-primary-600 dark:text-primary-500 mb-4">Result</h3>
-                  <pre class="bg-secondary-100 dark:bg-secondary-800 p-4 rounded-md overflow-x-auto"><%= inspect(@result, pretty: true) %></pre>
-                </div>
-              <% end %>
             </div>
           <% else %>
             <div class="h-full flex items-center justify-center text-secondary-500 dark:text-secondary-400">

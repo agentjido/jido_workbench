@@ -215,39 +215,6 @@ defmodule JidoWorkbenchWeb.CatalogActionsLive do
                 </div>
               </div>
 
-              <.form
-                :let={f}
-                for={build_form(@selected_action)}
-                phx-submit="execute"
-                class="space-y-6 bg-secondary-900/5 dark:bg-secondary-800 px-4 py-5 rounded-lg"
-              >
-                <%= for {field, schema} <- @selected_action.schema do %>
-                  <div>
-                    <label class="block mb-2 text-sm font-medium text-secondary-700 dark:text-secondary-300">
-                      {field}
-                      <%= if schema[:required] do %>
-                        <span class="text-danger-500 ml-1">*</span>
-                      <% end %>
-                    </label>
-                    <.input
-                      type={get_field_type(schema)}
-                      field={f[field]}
-                      class="w-full bg-white dark:bg-secondary-900 rounded-md py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 border border-secondary-300 dark:border-secondary-700"
-                    />
-                  </div>
-                <% end %>
-
-                <.button class="w-full bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-400 text-white dark:text-secondary-900 font-medium py-2.5 px-4 rounded-md transition-colors text-sm">
-                  Execute Action
-                </.button>
-              </.form>
-
-              <%= if @result do %>
-                <div class="mt-8">
-                  <h3 class="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-4">Result</h3>
-                  <pre class="bg-secondary-900/5 dark:bg-secondary-800 p-4 rounded-lg overflow-x-auto font-mono text-sm"><%= inspect(@result, pretty: true) %></pre>
-                </div>
-              <% end %>
             </div>
           <% else %>
             <div class="h-full flex items-center justify-center text-secondary-500 dark:text-secondary-400">
