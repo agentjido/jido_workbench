@@ -214,7 +214,6 @@ defmodule JidoWorkbenchWeb.CatalogActionsLive do
                   <% end %>
                 </div>
               </div>
-
             </div>
           <% else %>
             <div class="h-full flex items-center justify-center text-secondary-500 dark:text-secondary-400">

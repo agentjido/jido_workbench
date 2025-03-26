@@ -35,13 +35,11 @@ defmodule JidoWorkbenchWeb.WorkbenchLayout do
             </aside>
           <% end %>
 
-          <main
-            class={[
-              "flex-1",
-              "bg-secondary-50 dark:bg-secondary-950",
-              "overflow-y-auto w-full"
-            ]}
-          >
+          <main class={[
+            "flex-1",
+            "bg-secondary-50 dark:bg-secondary-950",
+            "overflow-y-auto w-full"
+          ]}>
             {render_slot(@inner_block)}
           </main>
         </div>
@@ -162,10 +160,9 @@ defmodule JidoWorkbenchWeb.WorkbenchLayout do
           <svg
             class="w-5 h-5 fill-secondary-600 dark:fill-secondary-400 group-hover:fill-primary-600 dark:group-hover:fill-primary-400 transition-colors duration-200"
             xmlns="http://www.w3.org/2000/svg"
-            data-name="Layer 1"
             viewBox="0 0 24 24"
           >
-            <path d="M22,5.8a8.49,8.49,0,0,1-2.36.64,4.13,4.13,0,0,0,1.81-2.27,8.21,8.21,0,0,1-2.61,1,4.1,4.1,0,0,0-7,3.74A11.64,11.64,0,0,1,3.39,4.62a4.16,4.16,0,0,0-.55,2.07A4.09,4.09,0,0,0,4.66,10.1,4.05,4.05,0,0,1,2.8,9.59v.05a4.1,4.1,0,0,0,3.3,4A3.93,3.93,0,0,1,5,13.81a4.9,4.9,0,0,1-.77-.07,4.11,4.11,0,0,0,3.83,2.84A8.22,8.22,0,0,1,3,18.34a7.93,7.93,0,0,1-1-.06,11.57,11.57,0,0,0,6.29,1.85A11.59,11.59,0,0,0,20,8.45c0-.17,0-.35,0-.53A8.43,8.43,0,0,0,22,5.8Z" />
+            <path d="M14.095479,10.316482L22.286354,1h-1.940718l-7.115352,8.087682L7.551414,1H1l8.589488,12.231093L1,23h1.940717  l7.509372-8.542861L16.448587,23H23L14.095479,10.316482z M11.436522,13.338465l-0.871624-1.218704l-6.924311-9.68815h2.981339  l5.58978,7.82155l0.867949,1.218704l7.26506,10.166271h-2.981339L11.436522,13.338465z" />
           </svg>
         </a>
         <.color_scheme_switch />

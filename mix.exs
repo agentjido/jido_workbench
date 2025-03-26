@@ -58,6 +58,7 @@ defmodule JidoWorkbench.MixProject do
       {:plug_cowboy, "~> 2.5"},
       {:petal_components, "~> 2.8.1"},
       {:plug_canonical_host, "~> 2.0"},
+      {:phoenix_seo, "~> 0.1.11"},
 
       # AI
       {:instructor, "~> 0.1.0", override: true},

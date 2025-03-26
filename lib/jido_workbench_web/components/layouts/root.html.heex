@@ -4,9 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={get_csrf_token()} />
-    <.live_title suffix=" · Agent Jido">
-      {assigns[:page_title] || "Workbench"}
-    </.live_title>
+
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
 
     <script defer src="https://unpkg.com/@alpinejs/collapse@3.x.x/dist/cdn.min.js">
@@ -24,17 +22,6 @@
       rel="stylesheet"
     />
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js">
-    </script>
-    <!-- Add commonly used languages -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/elixir.min.js">
-    </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js">
-    </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js">
-    </script>
-
     <%= if Application.get_env(:jido_workbench, :enable_analytics) do %>
       <script
         defer
@@ -50,6 +37,8 @@
     <% end %>
 
     <.color_scheme_switch_js />
+
+    <SEO.juice conn={@conn} config={JidoWorkbenchWeb.SEO.config()} page_title={assigns[:page_title]} />
   </head>
   <body class="antialiased bg-white dark:bg-zinc-900 font-sans">
     {@inner_content}
