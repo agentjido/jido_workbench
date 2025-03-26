@@ -1,6 +1,35 @@
 defmodule JidoWorkbenchWeb.Router do
   use JidoWorkbenchWeb, :router
 
+  # Build documentation routes at compile time
+  @menu_tree JidoWorkbench.Documentation.menu_tree()
+
+  @doc_routes [
+                {"/docs", LivebookDemoLive, :index, %{tag: :docs}},
+                {"/examples", LivebookDemoLive, :index, %{tag: :examples}}
+              ] ++
+                ((for doc <- JidoWorkbench.Documentation.all_documents() do
+                    path_without_category =
+                      case String.trim_leading(doc.path, "/") |> String.split("/", parts: 2) do
+                        [_category, rest] -> rest
+                        _ -> nil
+                      end
+
+                    if path_without_category do
+                      case doc.category do
+                        :docs ->
+                          {"/docs/#{path_without_category}", LivebookDemoLive, :show, %{tag: :docs}}
+
+                        :examples ->
+                          {"/examples/#{path_without_category}", LivebookDemoLive, :show, %{tag: :examples}}
+
+                        _ ->
+                          nil
+                      end
+                    end
+                  end)
+                 |> Enum.reject(&is_nil/1))
+
   pipeline :browser do
     plug(:accepts, ["html"])
     plug(:fetch_session)
@@ -19,21 +48,17 @@ defmodule JidoWorkbenchWeb.Router do
     pipe_through(:browser)
 
     get("/", PageController, :home)
-    # live("/settings", SettingsLive, :index)
-    # get("/settings/clear", LLMKeyController, :clear_session)
-    # post("/settings/save", LLMKeyController, :save_settings)
+    live("/settings", SettingsLive, :index)
+    get("/settings/clear", LLMKeyController, :clear_session)
+    post("/settings/save", LLMKeyController, :save_settings)
 
     # live("/jido", JidoLive, :index)
     # live("/jido2", JidoLive2, :index)
     # live("/team", TeamLive, :index)
 
-    # Documentation
-    live("/docs", LivebookDemoLive, :index, metadata: %{tag: :docs})
-    live("/docs/:demo_id", LivebookDemoLive, :index, metadata: %{tag: :docs})
-
-    # Examples
-    live("/examples", LivebookDemoLive, :index, metadata: %{tag: :examples})
-    live("/examples/:demo_id", LivebookDemoLive, :index, metadata: %{tag: :examples})
+    for {path, live_view, action, metadata} <- @doc_routes do
+      live path, live_view, action, metadata: metadata
+    end
 
     # Jido Catalog
     live("/catalog", CatalogLive, :index)
@@ -42,10 +67,6 @@ defmodule JidoWorkbenchWeb.Router do
     live("/catalog/agents", CatalogAgentsLive, :index)
     live("/catalog/sensors", CatalogSensorsLive, :index)
     live("/catalog/skills", CatalogSkillsLive, :index)
-
-    # # Jido Demos
-    # live("/demo", DemoIndexLive, :index, metadata: %{tag: :demo})
-    # live("/demo/:demo_id", DemoShowLive, :index)
 
     # Petal Boilerplate Helpers
     # live("/form", FormLive, :index)

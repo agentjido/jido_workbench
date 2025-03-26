@@ -44,12 +44,7 @@ defmodule JidoWorkbench.MixProject do
       {:phoenix_html, "~> 4.1"},
       {:phoenix_live_reload, "~> 1.5", only: [:dev, :test]},
       {:phoenix_live_view, "~> 1.0.1"},
-      {:heroicons,
-       github: "tailwindlabs/heroicons",
-       tag: "v2.1.5",
-       app: false,
-       compile: false,
-       sparse: "optimized"},
+      {:heroicons, github: "tailwindlabs/heroicons", tag: "v2.1.5", app: false, compile: false, sparse: "optimized"},
       {:floki, "~> 0.35", only: [:dev, :test]},
       {:phoenix_live_dashboard, "~> 0.8.3"},
       {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
@@ -70,6 +65,10 @@ defmodule JidoWorkbench.MixProject do
 
       # Markdown
       {:earmark, "~> 1.4"},
+      {:nimble_publisher, "~> 1.1"},
+      {:makeup_elixir, "~> 1.0"},
+      {:makeup_js, "~> 0.1.0"},
+      {:makeup_html, "~> 0.2.0"},
 
       # Env Vars
       {:dotenvy, "~> 1.0"},

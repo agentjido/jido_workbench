@@ -10,7 +10,7 @@ defmodule JidoWorkbench.Application do
     config = Application.fetch_env!(:jido_workbench, :agent_jido)
 
     jido_opts = [
-      id: config[:agent_id],
+      id: config[:agent_id]
     ]
 
     # Room configuration
@@ -33,14 +33,12 @@ defmodule JidoWorkbench.Application do
       JidoWorkbenchWeb.Endpoint,
       # Start the GitHub Stars Tracker
       {JidoWorkbench.GithubStarsTracker, []},
-      # Start the Livebook Registry
-      {JidoWorkbench.LivebookRegistry, []},
       # Jido Task Supervisor
       {Task.Supervisor, name: JidoWorkbench.TaskSupervisor},
 
       # Jido
       # Start the Jido Agent
-      {JidoWorkbench.AgentJido, jido_opts},
+      {JidoWorkbench.AgentJido, jido_opts}
       # Start the Jido Chat Room
       # {JidoWorkbench.ChatRoom, room_opts}
     ]

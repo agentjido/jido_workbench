@@ -2,6 +2,7 @@
 @import "../../deps/petal_components/assets/default.css";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
+@import "./syntax.css";
 
 @layer base {
   /* Add base styles here (eg. styles that are the defaults for common elements)
@@ -91,22 +92,4 @@ button[type="button"].menu-button {
 .pl-4 .menu-item:hover span {
   @apply text-white font-medium;
   text-shadow: 0 0 2px rgba(255, 255, 255, 0.3);
-}
-
-/* Custom scrollbar styles */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: #1a1a1a;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #404040;
-  border-radius: 3px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #555;
 }

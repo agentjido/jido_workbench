@@ -1,0 +1,30 @@
+%{
+title: "Getting Started",
+category: :examples,
+order: 10,
+tags: [:getting_started]
+}
+
+---
+
+# Welcome to Jido!
+
+Jido is a powerful SDK for building AI agents that can interact with the world in meaningful ways. Whether you're looking to create a simple chatbot or a complex autonomous system, Jido provides the building blocks you need.
+
+## What is Jido?
+
+At its core, Jido is an AI agent framework that makes it easy to:
+
+- Create agents with different personalities and capabilities
+- Add sensors so agents can perceive their environment
+- Define actions agents can take
+- Build skills by combining actions and decision-making
+- Deploy agents that can learn and adapt
+
+## Getting Started with Your First Agent
+
+Creating your first Jido agent is straightforward. The SDK provides a simple API for defining agents and their capabilities.
+
+### Basic Agent Creation
+
+Here's a simple example of creating a basic agent:

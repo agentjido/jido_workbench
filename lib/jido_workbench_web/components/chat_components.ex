@@ -36,8 +36,7 @@ defmodule JidoWorkbenchWeb.ChatComponents do
             </h2>
             <div class="flex items-center">
               <div class="relative h-2 w-2 mr-2">
-                <span class="absolute inline-flex h-2 w-2 rounded-full bg-success-500 opacity-75 animate-ping">
-                </span>
+                <span class="absolute inline-flex h-2 w-2 rounded-full bg-success-500 opacity-75 animate-ping"></span>
               </div>
               <span class="text-sm text-secondary-500 dark:text-secondary-400">Online</span>
             </div>
@@ -53,11 +52,7 @@ defmodule JidoWorkbenchWeb.ChatComponents do
 
   def messages_container(assigns) do
     ~H"""
-    <div
-      id="messages-container"
-      phx-hook="ScrollBottom"
-      class="flex-1 overflow-y-auto px-6 py-4 space-y-4"
-    >
+    <div id="messages-container" phx-hook="ScrollBottom" class="flex-1 overflow-y-auto px-6 py-4 space-y-4">
       <%= for message <- @messages do %>
         <.message_item message={message} />
       <% end %>
@@ -149,21 +144,9 @@ defmodule JidoWorkbenchWeb.ChatComponents do
           </div>
           <div class="rounded-2xl max-w-prose break-words bg-secondary-100 dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-tl-none">
             <div class="flex items-center space-x-2 px-4 py-4">
-              <div
-                class="w-2 h-2 rounded-full bg-secondary-400 animate-bounce"
-                style="animation-delay: 0ms"
-              >
-              </div>
-              <div
-                class="w-2 h-2 rounded-full bg-secondary-400 animate-bounce"
-                style="animation-delay: 150ms"
-              >
-              </div>
-              <div
-                class="w-2 h-2 rounded-full bg-secondary-400 animate-bounce"
-                style="animation-delay: 300ms"
-              >
-              </div>
+              <div class="w-2 h-2 rounded-full bg-secondary-400 animate-bounce" style="animation-delay: 0ms"></div>
+              <div class="w-2 h-2 rounded-full bg-secondary-400 animate-bounce" style="animation-delay: 150ms"></div>
+              <div class="w-2 h-2 rounded-full bg-secondary-400 animate-bounce" style="animation-delay: 300ms"></div>
             </div>
           </div>
         </div>
@@ -185,8 +168,7 @@ defmodule JidoWorkbenchWeb.ChatComponents do
   defp message_header_class(_), do: "text-sm text-secondary-500 dark:text-secondary-400 mb-1"
 
   defp message_content_class(sender_id) when sender_id == "operator",
-    do:
-      "rounded-2xl max-w-prose break-words bg-primary-500 text-white dark:text-secondary-900 px-4 py-2 rounded-tr-none"
+    do: "rounded-2xl max-w-prose break-words bg-primary-500 text-white dark:text-secondary-900 px-4 py-2 rounded-tr-none"
 
   defp message_content_class(_),
     do:

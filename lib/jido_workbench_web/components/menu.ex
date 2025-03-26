@@ -155,12 +155,7 @@ defmodule JidoWorkbenchWeb.Menu do
         />
       </div>
     <% else %>
-      <.menu_group
-        js_lib={@js_lib}
-        title={@title}
-        menu_items={@menu_items}
-        current_page={@current_page}
-      />
+      <.menu_group js_lib={@js_lib} title={@title} menu_items={@menu_items} current_page={@current_page} />
     <% end %>
     """
   end
@@ -178,21 +173,12 @@ defmodule JidoWorkbenchWeb.Menu do
   def menu_group(assigns) do
     ~H"""
     <nav :if={@menu_items != []} class="pt-2">
-      <h3
-        :if={@title != ""}
-        class="px-4 py-1 mt-2 text-sm font-semibold tracking-wider text-secondary-900 dark:text-secondary-300 uppercase"
-      >
+      <h3 :if={@title != ""} class="px-4 py-1 mt-2 text-sm font-semibold tracking-wider text-secondary-900 dark:text-secondary-300 uppercase">
         {@title}
       </h3>
 
       <div>
-        <.vertical_menu_item
-          :for={menu_item <- @menu_items}
-          js_lib={@js_lib}
-          all_menu_items={@menu_items}
-          current_page={@current_page}
-          {menu_item}
-        />
+        <.vertical_menu_item :for={menu_item <- @menu_items} js_lib={@js_lib} all_menu_items={@menu_items} current_page={@current_page} {menu_item} />
       </div>
     </nav>
     """
@@ -322,8 +308,7 @@ defmodule JidoWorkbenchWeb.Menu do
          menu_key: menu_key
        }) do
     %{
-      "x-data":
-        "{ open: localStorage.getItem('#{menu_key}') === 'true' || false,
+      "x-data": "{ open: localStorage.getItem('#{menu_key}') === 'true' || false,
                   init() { this.$watch('open', val => localStorage.setItem('#{menu_key}', val)) } }"
     }
   end

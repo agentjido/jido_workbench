@@ -15,6 +15,7 @@ defmodule JidoWorkbenchWeb.CatalogActionsLive do
         actions
       else
         search_term = String.downcase(search_term)
+
         Enum.filter(actions, fn action ->
           searchable_text =
             [
@@ -59,14 +60,10 @@ defmodule JidoWorkbenchWeb.CatalogActionsLive do
         <div class="w-96 border-r border-secondary-200 dark:border-secondary-700 flex flex-col">
           <div class="p-4 border-b border-secondary-200 dark:border-secondary-700">
             <h2 class="text-xl mb-4 flex items-center gap-2">
-              <.icon name="hero-bolt" class="w-6 h-6 text-primary-600 dark:text-primary-500" />
-              Available Actions
+              <.icon name="hero-bolt" class="w-6 h-6 text-primary-600 dark:text-primary-500" /> Available Actions
             </h2>
             <div class="relative">
-              <.icon
-                name="hero-magnifying-glass"
-                class="w-5 h-5 absolute left-3 top-2.5 text-secondary-400 dark:text-secondary-500"
-              />
+              <.icon name="hero-magnifying-glass" class="w-5 h-5 absolute left-3 top-2.5 text-secondary-400 dark:text-secondary-500" />
               <.input
                 type="text"
                 name="search"
@@ -106,10 +103,7 @@ defmodule JidoWorkbenchWeb.CatalogActionsLive do
                     </div>
                   </div>
                 </div>
-                <.icon
-                  name="hero-chevron-right"
-                  class="w-5 h-5 text-secondary-400 dark:text-secondary-500 opacity-0 group-hover:opacity-100"
-                />
+                <.icon name="hero-chevron-right" class="w-5 h-5 text-secondary-400 dark:text-secondary-500 opacity-0 group-hover:opacity-100" />
               </.link>
             <% end %>
           </div>
@@ -281,27 +275,29 @@ defmodule JidoWorkbenchWeb.CatalogActionsLive do
         search_term = String.downcase(search_term)
         Logger.info("Filtering actions with term: #{search_term}")
 
-        filtered = Enum.filter(socket.assigns.all_actions, fn action ->
-          searchable_text =
-            [
-              action.name,
-              action.description,
-              action.category,
-              Atom.to_string(action.module),
-              action |> Map.get(:tags, []) |> Enum.join(" ")
-            ]
-            |> Enum.join(" ")
-            |> String.downcase()
+        filtered =
+          Enum.filter(socket.assigns.all_actions, fn action ->
+            searchable_text =
+              [
+                action.name,
+                action.description,
+                action.category,
+                Atom.to_string(action.module),
+                action |> Map.get(:tags, []) |> Enum.join(" ")
+              ]
+              |> Enum.join(" ")
+              |> String.downcase()
 
-          String.contains?(searchable_text, search_term)
-        end)
-        |> Enum.sort_by(& &1.name)
+            String.contains?(searchable_text, search_term)
+          end)
+          |> Enum.sort_by(& &1.name)
 
         Logger.info("Found #{length(filtered)} matching actions")
         filtered
       end
 
-    Process.sleep(50) # Small delay to ensure spinner is visible even for fast searches
+    # Small delay to ensure spinner is visible even for fast searches
+    Process.sleep(50)
 
     # Push the search term to the URL to maintain state during navigation
     push_patch_opts = [
@@ -334,7 +330,9 @@ defmodule JidoWorkbenchWeb.CatalogActionsLive do
 
     result =
       case action do
-        nil -> {:error, "Action not found"}
+        nil ->
+          {:error, "Action not found"}
+
         action ->
           case converted_params do
             %{error: reason} -> {:error, reason}

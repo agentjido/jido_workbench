@@ -48,7 +48,9 @@ config :jido_workbench, JidoWorkbenchWeb.Endpoint,
     patterns: [
       ~r"priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$",
       ~r"priv/gettext/.*(po)$",
-      ~r"lib/jido_workbench_web/(controllers|live|components)/.*(ex|heex)$"
+      ~r"lib/jido_workbench_web/(controllers|live|components)/.*(ex|heex)$",
+      ~r"priv/blog/.*(md|livemd)$",
+      ~r"priv/documentation/.*(md|livemd)$"
     ]
   ]
 

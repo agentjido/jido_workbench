@@ -39,10 +39,7 @@ defmodule JidoWorkbenchWeb.DemoIndexLive do
             <div class="mb-6">
               <h1 class="text-2xl font-bold text-lime-500 mb-4">Available Demos</h1>
               <div class="relative">
-                <.icon
-                  name="hero-magnifying-glass"
-                  class="w-5 h-5 absolute left-3 top-2.5 text-zinc-400"
-                />
+                <.icon name="hero-magnifying-glass" class="w-5 h-5 absolute left-3 top-2.5 text-zinc-400" />
                 <.input
                   type="text"
                   name="search"

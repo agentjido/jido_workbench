@@ -20,12 +20,12 @@ defmodule JidoWorkbenchWeb.JidoLive do
 
     with {:ok, operator} = Chat.participant("operator", participant_opts),
          :ok <- Chat.join(@room_id, operator) do
-
-      message = Message.new!(%{
-        sender: operator.id,
-        type: Message.type(:join),
-        content: "Operator has joined the room"
-      })
+      message =
+        Message.new!(%{
+          sender: operator.id,
+          type: Message.type(:join),
+          content: "Operator has joined the room"
+        })
 
       Chat.post_message(@room_id, message)
 
@@ -57,11 +57,12 @@ defmodule JidoWorkbenchWeb.JidoLive do
   @impl true
   def terminate(_reason, socket) do
     # Create leave message
-    message = Message.new!(%{
-      sender: socket.assigns.operator.id,
-      type: Message.type(:leave),
-      content: "Operator has left the room"
-    })
+    message =
+      Message.new!(%{
+        sender: socket.assigns.operator.id,
+        type: Message.type(:leave),
+        content: "Operator has left the room"
+      })
 
     Chat.post_message(@room_id, message)
     Chat.leave(@room_id, socket.assigns.operator.id)
@@ -78,11 +79,12 @@ defmodule JidoWorkbenchWeb.JidoLive do
   end
 
   defp add_user_message(socket, content) do
-    message = Message.new!(%{
-      sender: socket.assigns.operator.id,
-      type: Message.type(:message),
-      content: content
-    })
+    message =
+      Message.new!(%{
+        sender: socket.assigns.operator.id,
+        type: Message.type(:message),
+        content: content
+      })
 
     Chat.post_message(@room_id, message)
 

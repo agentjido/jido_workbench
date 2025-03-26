@@ -1,0 +1,10 @@
+%{
+title: "Tool Use Intro",
+category: :examples,
+order: 100,
+tags: [:tool_use, :getting_started]
+}
+
+---
+
+Getting started with Jido Workbench!

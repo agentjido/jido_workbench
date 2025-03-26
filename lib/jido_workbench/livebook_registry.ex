@@ -51,9 +51,7 @@ defmodule JidoWorkbench.LivebookRegistry do
   def init(_opts) do
     state = scan_and_cache_livebooks()
 
-    Logger.info(
-      "LivebookRegistry initialized with #{length(state.examples)} examples and #{length(state.docs)} docs"
-    )
+    Logger.info("LivebookRegistry initialized with #{length(state.examples)} examples and #{length(state.docs)} docs")
 
     {:ok, state}
   end
@@ -67,7 +65,9 @@ defmodule JidoWorkbench.LivebookRegistry do
   def handle_call({:get_index_content, type}, _from, state) do
     result =
       case Map.get(state, :index_files, %{}) |> Map.get(type) do
-        nil -> nil
+        nil ->
+          nil
+
         index_path ->
           case Map.get(state.content_cache, index_path) do
             nil ->
@@ -76,7 +76,9 @@ defmodule JidoWorkbench.LivebookRegistry do
               new_state = put_in(state.content_cache[index_path], content)
               GenServer.cast(self(), {:update_state, new_state})
               content
-            content -> content
+
+            content ->
+              content
           end
       end
 
@@ -108,9 +110,7 @@ defmodule JidoWorkbench.LivebookRegistry do
           Map.put(state, type, scan_livebooks(type))
       end
 
-    Logger.info(
-      "Cache refresh complete - #{length(new_state.examples)} examples and #{length(new_state.docs)} docs"
-    )
+    Logger.info("Cache refresh complete - #{length(new_state.examples)} examples and #{length(new_state.docs)} docs")
 
     {:reply, :ok, new_state}
   end
@@ -177,22 +177,23 @@ defmodule JidoWorkbench.LivebookRegistry do
 
   defp scan_index_files(state) do
     # Look for index files in the docs and examples root directories
-    index_files = Enum.reduce([:docs, :examples], %{}, fn type, acc ->
-      type_path = Path.join(@livebook_root, to_string(type))
+    index_files =
+      Enum.reduce([:docs, :examples], %{}, fn type, acc ->
+        type_path = Path.join(@livebook_root, to_string(type))
 
-      if File.exists?(type_path) and File.dir?(type_path) do
-        # Try each possible index filename with each possible extension
-        index_path = find_index_file(type_path)
+        if File.exists?(type_path) and File.dir?(type_path) do
+          # Try each possible index filename with each possible extension
+          index_path = find_index_file(type_path)
 
-        if index_path do
-          Map.put(acc, type, index_path)
+          if index_path do
+            Map.put(acc, type, index_path)
+          else
+            acc
+          end
         else
           acc
         end
-      else
-        acc
-      end
-    end)
+      end)
 
     Map.put(state, :index_files, index_files)
   end
@@ -247,9 +248,7 @@ defmodule JidoWorkbench.LivebookRegistry do
           files =
             path
             |> File.ls!()
-            |> Enum.filter(
-              &Enum.any?(@livebook_extensions, fn ext -> String.ends_with?(&1, ext) end)
-            )
+            |> Enum.filter(&Enum.any?(@livebook_extensions, fn ext -> String.ends_with?(&1, ext) end))
 
           Logger.debug("Found #{length(files)} livebook files in directory #{path}")
 
@@ -319,7 +318,7 @@ defmodule JidoWorkbench.LivebookRegistry do
       id: id,
       title: content["title"] || String.capitalize(id),
       description: content["description"] || "",
-      category: content["category"] || (if category, do: category, else: "Uncategorized"),
+      category: content["category"] || if(category, do: category, else: "Uncategorized"),
       icon: content["icon"] || "hero-document",
       tags: content["tags"] || [],
       order: content["order"] || 999,

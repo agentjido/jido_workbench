@@ -30,6 +30,7 @@ export_locals_without_parens = [
 [
   import_deps: [:ecto, :phoenix],
   inputs: ["*.{heex,ex,exs}", "priv/*/seeds.exs", "{config,lib,test}/**/*.{heex,ex,exs}"],
+  line_length: 150,
   locals_without_parens: export_locals_without_parens,
   export: [locals_without_parens: export_locals_without_parens],
   subdirectories: ["priv/*/migrations"],

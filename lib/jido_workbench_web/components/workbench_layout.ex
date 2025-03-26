@@ -23,13 +23,12 @@ defmodule JidoWorkbenchWeb.WorkbenchLayout do
     ~H"""
     <%= if @show_layout do %>
       <div class="h-screen flex flex-col">
-        <.nav_bar />
-        <div class="flex flex-1 overflow-hidden">
+        <div class="fixed top-0 left-0 right-0 z-50">
+          <.nav_bar />
+        </div>
+        <div class="flex flex-1 mt-16">
           <%= if @show_menu do %>
-            <aside
-              class="w-64 overflow-y-auto bg-secondary-50 dark:bg-secondary-950 flex-shrink-0 border-r border-secondary-800 dark:border-secondary-800 custom-scrollbar"
-              style="scrollbar-width: thin; scrollbar-color: #404040 #1a1a1a;"
-            >
+            <aside class="w-64 overflow-y-auto bg-secondary-50 dark:bg-secondary-950 flex-shrink-0 border-r border-secondary-800 dark:border-secondary-800">
               <div class="py-4">
                 <Menu.vertical_menu current_page={@current_page} menu_items={MenuItems.menu_items()} />
               </div>
@@ -40,10 +39,8 @@ defmodule JidoWorkbenchWeb.WorkbenchLayout do
             class={[
               "flex-1",
               "bg-secondary-50 dark:bg-secondary-950",
-              "custom-scrollbar",
-              if(@show_menu, do: "overflow-y-auto", else: "w-full overflow-hidden")
+              "overflow-y-auto w-full"
             ]}
-            style="scrollbar-width: thin; scrollbar-color: #404040 #1a1a1a;"
           >
             {render_slot(@inner_block)}
           </main>
@@ -120,7 +117,7 @@ defmodule JidoWorkbenchWeb.WorkbenchLayout do
             class="w-5 h-5 m-0.5 mr-2 text-secondary-600 dark:text-secondary-400 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors duration-200"
           />
           <span class="hidden font-semibold sm:block text-secondary-600 dark:text-secondary-400 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors duration-200">
-            Examples
+            Cookbook
           </span>
         </a>
         <a

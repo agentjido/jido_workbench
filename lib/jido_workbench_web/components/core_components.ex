@@ -48,17 +48,8 @@ defmodule JidoWorkbenchWeb.CoreComponents do
 
   def phx_modal(assigns) do
     ~H"""
-    <div
-      id={@id}
-      phx-mounted={@show && show_modal(@id)}
-      phx-remove={hide_modal(@id)}
-      class="relative z-50 hidden"
-    >
-      <div
-        id={"#{@id}-bg"}
-        class="fixed inset-0 transition-opacity bg-secondary-900/90 dark:bg-secondary-900/90"
-        aria-hidden="true"
-      />
+    <div id={@id} phx-mounted={@show && show_modal(@id)} phx-remove={hide_modal(@id)} class="relative z-50 hidden">
+      <div id={"#{@id}-bg"} class="fixed inset-0 transition-opacity bg-secondary-900/90 dark:bg-secondary-900/90" aria-hidden="true" />
       <div
         class="fixed inset-0 overflow-y-auto"
         aria-labelledby={"#{@id}-title"}
@@ -89,29 +80,16 @@ defmodule JidoWorkbenchWeb.CoreComponents do
               </div>
               <div id={"#{@id}-content"}>
                 <header :if={@title != []}>
-                  <h1
-                    id={"#{@id}-title"}
-                    class="text-lg font-semibold leading-8 text-secondary-900 dark:text-secondary-100"
-                  >
+                  <h1 id={"#{@id}-title"} class="text-lg font-semibold leading-8 text-secondary-900 dark:text-secondary-100">
                     {render_slot(@title)}
                   </h1>
-                  <p
-                    :if={@subtitle != []}
-                    id={"#{@id}-description"}
-                    class="mt-2 text-sm leading-6 text-secondary-600 dark:text-secondary-400"
-                  >
+                  <p :if={@subtitle != []} id={"#{@id}-description"} class="mt-2 text-sm leading-6 text-secondary-600 dark:text-secondary-400">
                     {render_slot(@subtitle)}
                   </p>
                 </header>
                 {render_slot(@inner_block)}
                 <div :if={@confirm != [] or @cancel != []} class="flex items-center gap-5 mb-4 ml-6">
-                  <.phx_button
-                    :for={confirm <- @confirm}
-                    id={"#{@id}-confirm"}
-                    phx-click={@on_confirm}
-                    phx-disable-with
-                    class="px-3 py-2"
-                  >
+                  <.phx_button :for={confirm <- @confirm} id={"#{@id}-confirm"} phx-click={@on_confirm} phx-disable-with class="px-3 py-2">
                     {render_slot(confirm)}
                   </.phx_button>
                   <.link
@@ -172,16 +150,8 @@ defmodule JidoWorkbenchWeb.CoreComponents do
         {@title}
       </p>
       <p class="mt-2 text-[0.8125rem] leading-5">{msg}</p>
-      <button
-        :if={@close}
-        type="button"
-        class="absolute p-2 group top-2 right-1"
-        aria-label={gettext("close")}
-      >
-        <.icon
-          name="hero-x-mark-solid"
-          class="w-5 h-5 stroke-current opacity-40 group-hover:opacity-70"
-        />
+      <button :if={@close} type="button" class="absolute p-2 group top-2 right-1" aria-label={gettext("close")}>
+        <.icon name="hero-x-mark-solid" class="w-5 h-5 stroke-current opacity-40 group-hover:opacity-70" />
       </button>
     </div>
     """
@@ -209,8 +179,7 @@ defmodule JidoWorkbenchWeb.CoreComponents do
       phx-disconnected={show("#disconnected")}
       phx-connected={hide("#disconnected")}
     >
-      Attempting to reconnect
-      <.icon name="hero-arrow-path" class="inline w-3 h-3 ml-1 animate-spin" />
+      Attempting to reconnect <.icon name="hero-arrow-path" class="inline w-3 h-3 ml-1 animate-spin" />
     </.flash>
     """
   end
@@ -305,9 +274,7 @@ defmodule JidoWorkbenchWeb.CoreComponents do
                range radio search select tel text textarea time url week)
   )
 
-  attr(:field, Phoenix.HTML.FormField,
-    doc: "a form field struct retrieved from the form, for example: @form[:email]"
-  )
+  attr(:field, Phoenix.HTML.FormField, doc: "a form field struct retrieved from the form, for example: @form[:email]")
 
   attr(:errors, :list, default: [])
   attr(:checked, :boolean, doc: "the checked flag for checkbox inputs")
@@ -420,10 +387,7 @@ defmodule JidoWorkbenchWeb.CoreComponents do
 
   def phx_label(assigns) do
     ~H"""
-    <label
-      for={@for}
-      class="block text-sm font-semibold leading-6 text-secondary-900 dark:text-secondary-100"
-    >
+    <label for={@for} class="block text-sm font-semibold leading-6 text-secondary-900 dark:text-secondary-100">
       {render_slot(@inner_block)}
     </label>
     """
@@ -459,10 +423,7 @@ defmodule JidoWorkbenchWeb.CoreComponents do
         <h1 class="text-lg font-semibold leading-8 text-secondary-900 dark:text-secondary-100">
           {render_slot(@inner_block)}
         </h1>
-        <p
-          :if={@subtitle != []}
-          class="mt-2 text-sm leading-6 text-secondary-600 dark:text-secondary-400"
-        >
+        <p :if={@subtitle != []} class="mt-2 text-sm leading-6 text-secondary-600 dark:text-secondary-400">
           {render_slot(@subtitle)}
         </p>
       </div>
@@ -533,10 +494,7 @@ defmodule JidoWorkbenchWeb.CoreComponents do
             <td :if={@action != []} class="relative p-0 w-14">
               <div class="relative py-4 text-sm font-medium text-right whitespace-nowrap">
                 <span class="absolute left-0 -inset-y-px -right-4 group-hover:bg-zinc-50 sm:rounded-r-xl" />
-                <span
-                  :for={action <- @action}
-                  class="relative ml-4 font-semibold leading-6 text-zinc-900 hover:text-zinc-700"
-                >
+                <span :for={action <- @action} class="relative ml-4 font-semibold leading-6 text-zinc-900 hover:text-zinc-700">
                   {render_slot(action, @row_item.(row))}
                 </span>
               </div>
@@ -588,10 +546,7 @@ defmodule JidoWorkbenchWeb.CoreComponents do
   def back(assigns) do
     ~H"""
     <div class="mt-16">
-      <.link
-        navigate={@navigate}
-        class="text-sm font-semibold leading-6 text-zinc-900 hover:text-zinc-700"
-      >
+      <.link navigate={@navigate} class="text-sm font-semibold leading-6 text-zinc-900 hover:text-zinc-700">
         <.icon name="hero-arrow-left-solid" class="inline w-3 h-3 stroke-current" />
         {render_slot(@inner_block)}
       </.link>
@@ -612,29 +567,33 @@ defmodule JidoWorkbenchWeb.CoreComponents do
       phx-hook="ColorSchemeHook"
       type="button"
       id={Ecto.UUID.generate()}
-      class="color-scheme text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5"
+      class="color-scheme relative text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5"
     >
-      <svg
-        class="hidden w-5 h-5 color-scheme-dark-icon"
-        fill="currentColor"
-        viewBox="0 0 20 20"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
-      </svg>
-      <svg
-        class="hidden w-5 h-5 color-scheme-light-icon"
-        fill="currentColor"
-        viewBox="0 0 20 20"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
-          fill-rule="evenodd"
-          clip-rule="evenodd"
+      <div class="relative w-5 h-5">
+        <svg
+          class="absolute inset-0 w-5 h-5 transition-opacity duration-300 color-scheme-dark-icon"
+          style="opacity: var(--initial-dark-opacity, 1)"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+          xmlns="http://www.w3.org/2000/svg"
         >
-        </path>
-      </svg>
+          <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+        </svg>
+        <svg
+          class="absolute inset-0 w-5 h-5 transition-opacity duration-300 color-scheme-light-icon"
+          style="opacity: var(--initial-light-opacity, 0)"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
+            fill-rule="evenodd"
+            clip-rule="evenodd"
+          >
+          </path>
+        </svg>
+      </div>
     </button>
     """
   end
@@ -652,24 +611,30 @@ defmodule JidoWorkbenchWeb.CoreComponents do
   def color_scheme_switch_js(assigns) do
     ~H"""
     <script>
+      (function() {
+        const isDark = localStorage.scheme === 'dark' || (!('scheme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.style.setProperty('--initial-dark-opacity', isDark ? '0' : '1');
+        document.documentElement.style.setProperty('--initial-light-opacity', isDark ? '1' : '0');
+      })();
+
       window.applyScheme = function(scheme) {
         if (scheme === "light") {
           document.documentElement.classList.remove('dark')
           document
             .querySelectorAll(".color-scheme-dark-icon")
-            .forEach((el) => el.classList.remove("hidden"));
+            .forEach((el) => el.style.opacity = '1');
           document
             .querySelectorAll(".color-scheme-light-icon")
-            .forEach((el) => el.classList.add("hidden"));
+            .forEach((el) => el.style.opacity = '0');
           localStorage.scheme = 'light'
         } else {
           document.documentElement.classList.add('dark')
           document
             .querySelectorAll(".color-scheme-dark-icon")
-            .forEach((el) => el.classList.add("hidden"));
+            .forEach((el) => el.style.opacity = '0');
           document
             .querySelectorAll(".color-scheme-light-icon")
-            .forEach((el) => el.classList.remove("hidden"));
+            .forEach((el) => el.style.opacity = '1');
           localStorage.scheme = 'dark'
         }
       };
@@ -703,8 +668,7 @@ defmodule JidoWorkbenchWeb.CoreComponents do
     JS.show(js,
       to: selector,
       transition:
-        {"transition-all transform ease-out duration-300",
-         "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95",
+        {"transition-all transform ease-out duration-300", "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95",
          "opacity-100 translate-y-0 sm:scale-100"}
     )
   end
@@ -714,8 +678,7 @@ defmodule JidoWorkbenchWeb.CoreComponents do
       to: selector,
       time: 200,
       transition:
-        {"transition-all transform ease-in duration-200",
-         "opacity-100 translate-y-0 sm:scale-100",
+        {"transition-all transform ease-in duration-200", "opacity-100 translate-y-0 sm:scale-100",
          "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"}
     )
   end

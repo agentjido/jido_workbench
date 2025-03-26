@@ -39,8 +39,7 @@ defmodule JidoWorkbenchWeb.PageLive do
       <.h3 label="" />
       <.dropdown label="Dropdown" js_lib="live_view_js" placement="right">
         <.dropdown_menu_item type="button">
-          <.icon name="hero-home" class="w-5 h-5 text-gray-500 dark:text-gray-300" />
-          Button item with icon
+          <.icon name="hero-home" class="w-5 h-5 text-gray-500 dark:text-gray-300" /> Button item with icon
         </.dropdown_menu_item>
         <.dropdown_menu_item type="a" to="/" label="a item" />
         <.dropdown_menu_item type="live_patch" to="/" label="Live Patch item" />
@@ -89,22 +88,14 @@ defmodule JidoWorkbenchWeb.PageLive do
           <div class="gap-5 text-sm">
             <.form_label label="Add some text here." />
             <div class="flex justify-end">
-              <.button
-                label="close"
-                phx-click={PetalComponents.SlideOver.hide_slide_over(@slide_over)}
-              />
+              <.button label="close" phx-click={PetalComponents.SlideOver.hide_slide_over(@slide_over)} />
             </div>
           </div>
         </.slide_over>
       <% end %>
 
       <.h2 underline class="mt-10" label="Interactive Pagination" />
-      <.pagination
-        link_type="live_patch"
-        path="/live/pagination/:page"
-        current_page={@pagination_page}
-        total_pages={@total_pages}
-      />
+      <.pagination link_type="live_patch" path="/live/pagination/:page" current_page={@pagination_page} total_pages={@total_pages} />
 
       <.h2 underline class="mt-10" label="Accordion" />
       <.accordion js_lib="live_view_js">

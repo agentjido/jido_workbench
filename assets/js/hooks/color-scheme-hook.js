@@ -2,14 +2,30 @@
 const ColorSchemeHook = {
   deadViewCompatible: true,
   mounted() {
-    this.init();
+    // Only initialize if icons are in their default hidden state
+    const darkIcon = this.el.querySelector(".color-scheme-dark-icon");
+    const lightIcon = this.el.querySelector(".color-scheme-light-icon");
+    if (
+      darkIcon.classList.contains("hidden") &&
+      lightIcon.classList.contains("hidden")
+    ) {
+      this.init();
+    }
+    this.el.addEventListener("click", window.toggleScheme);
   },
   updated() {
-    this.init();
+    // Only initialize if icons are in their default hidden state
+    const darkIcon = this.el.querySelector(".color-scheme-dark-icon");
+    const lightIcon = this.el.querySelector(".color-scheme-light-icon");
+    if (
+      darkIcon.classList.contains("hidden") &&
+      lightIcon.classList.contains("hidden")
+    ) {
+      this.init();
+    }
   },
   init() {
     initScheme();
-    this.el.addEventListener("click", window.toggleScheme);
   },
 };
 

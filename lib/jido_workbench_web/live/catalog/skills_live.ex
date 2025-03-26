@@ -25,14 +25,10 @@ defmodule JidoWorkbenchWeb.CatalogSkillsLive do
         <div class="w-96 border-r border-secondary-200 dark:border-secondary-700 flex flex-col">
           <div class="p-4 border-b border-secondary-200 dark:border-secondary-700">
             <h2 class="text-xl mb-4 flex items-center gap-2">
-              <.icon name="hero-bolt" class="w-6 h-6 text-primary-600 dark:text-primary-500" />
-              Available Skills
+              <.icon name="hero-bolt" class="w-6 h-6 text-primary-600 dark:text-primary-500" /> Available Skills
             </h2>
             <div class="relative">
-              <.icon
-                name="hero-magnifying-glass"
-                class="w-5 h-5 absolute left-3 top-2.5 text-secondary-400 dark:text-secondary-500"
-              />
+              <.icon name="hero-magnifying-glass" class="w-5 h-5 absolute left-3 top-2.5 text-secondary-400 dark:text-secondary-500" />
               <.input
                 type="text"
                 name="search"
@@ -68,10 +64,7 @@ defmodule JidoWorkbenchWeb.CatalogSkillsLive do
                     </div>
                   </div>
                 </div>
-                <.icon
-                  name="hero-chevron-right"
-                  class="w-5 h-5 text-secondary-400 dark:text-secondary-500 opacity-0 group-hover:opacity-100"
-                />
+                <.icon name="hero-chevron-right" class="w-5 h-5 text-secondary-400 dark:text-secondary-500 opacity-0 group-hover:opacity-100" />
               </button>
             <% end %>
           </div>

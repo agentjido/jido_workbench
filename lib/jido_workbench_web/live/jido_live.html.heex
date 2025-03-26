@@ -14,8 +14,7 @@
               </h2>
               <div class="flex items-center">
                 <div class="relative h-2 w-2 mr-2">
-                  <span class="absolute inline-flex h-2 w-2 rounded-full bg-emerald-500 opacity-75 animate-ping">
-                  </span>
+                  <span class="absolute inline-flex h-2 w-2 rounded-full bg-emerald-500 opacity-75 animate-ping"></span>
                 </div>
                 <span class="text-sm text-zinc-400">Online</span>
               </div>
@@ -25,11 +24,7 @@
       </div>
       
 <!-- Messages Container -->
-      <div
-        id="messages-container"
-        phx-hook="ScrollBottom"
-        class="flex-1 overflow-y-auto px-6 py-4 space-y-4"
-      >
+      <div id="messages-container" phx-hook="ScrollBottom" class="flex-1 overflow-y-auto px-6 py-4 space-y-4">
         <%= for message <- @messages do %>
           <%= if is_system_message(message) do %>
             <div class="flex justify-center">
@@ -58,11 +53,7 @@
                           <div class="mt-2 p-2 bg-zinc-700 rounded">
                             <%= case message.payload do %>
                               <% %{url: url} -> %>
-                                <a
-                                  href={url}
-                                  target="_blank"
-                                  class="text-blue-400 hover:underline"
-                                >
+                                <a href={url} target="_blank" class="text-blue-400 hover:underline">
                                   {url}
                                 </a>
                               <% _ -> %>
@@ -94,21 +85,9 @@
                 </div>
                 <div class="rounded-2xl max-w-prose break-words bg-zinc-800 text-gray-100 rounded-tl-none">
                   <div class="flex items-center space-x-2 px-4 py-4">
-                    <div
-                      class="w-2 h-2 rounded-full bg-zinc-400 animate-bounce"
-                      style="animation-delay: 0ms"
-                    >
-                    </div>
-                    <div
-                      class="w-2 h-2 rounded-full bg-zinc-400 animate-bounce"
-                      style="animation-delay: 150ms"
-                    >
-                    </div>
-                    <div
-                      class="w-2 h-2 rounded-full bg-zinc-400 animate-bounce"
-                      style="animation-delay: 300ms"
-                    >
-                    </div>
+                    <div class="w-2 h-2 rounded-full bg-zinc-400 animate-bounce" style="animation-delay: 0ms"></div>
+                    <div class="w-2 h-2 rounded-full bg-zinc-400 animate-bounce" style="animation-delay: 150ms"></div>
+                    <div class="w-2 h-2 rounded-full bg-zinc-400 animate-bounce" style="animation-delay: 300ms"></div>
                   </div>
                 </div>
               </div>

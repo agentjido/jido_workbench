@@ -82,8 +82,7 @@ defmodule JidoWorkbenchWeb.JidoLive2 do
       %{
         type: "generate_chat_response",
         data: history,
-        jido_dispatch:
-          {:pid, target: self(), delivery_mode: :async, message_format: &{:jido_live, &1}}
+        jido_dispatch: {:pid, target: self(), delivery_mode: :async, message_format: &{:jido_live, &1}}
       }
       |> Signal.new!()
 

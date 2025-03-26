@@ -47,10 +47,7 @@ defmodule JidoWorkbenchWeb.SettingsLive do
                   <div class="mt-4 bg-warning-900/30 dark:bg-warning-900/30 border-l-4 border-warning-800 dark:border-warning-800 p-4">
                     <div class="flex">
                       <div class="flex-shrink-0">
-                        <.icon
-                          name="hero-exclamation-triangle"
-                          class="h-5 w-5 text-warning-400 dark:text-warning-400"
-                        />
+                        <.icon name="hero-exclamation-triangle" class="h-5 w-5 text-warning-400 dark:text-warning-400" />
                       </div>
                       <div class="ml-3">
                         <p class="text-sm text-warning-200 dark:text-warning-200">
@@ -82,8 +79,7 @@ defmodule JidoWorkbenchWeb.SettingsLive do
                     href="https://github.com/agentjido/jido_workbench"
                     class="inline-flex items-center text-sm text-secondary-400 dark:text-secondary-400 hover:text-primary-400 dark:hover:text-primary-400 transition-colors duration-200"
                   >
-                    <.icon name="hero-arrow-top-right-on-square" class="h-4 w-4 mr-1" />
-                    View on GitHub
+                    <.icon name="hero-arrow-top-right-on-square" class="h-4 w-4 mr-1" /> View on GitHub
                   </a>
                 </div>
               </div>
@@ -116,8 +112,7 @@ defmodule JidoWorkbenchWeb.SettingsLive do
                             rel="noopener noreferrer"
                             class="inline-flex items-center text-sm text-secondary-400 dark:text-secondary-400 hover:text-primary-400 dark:hover:text-primary-400 transition-colors duration-200"
                           >
-                            <.icon name="hero-document-text" class="h-4 w-4 mr-1" />
-                            View Documentation
+                            <.icon name="hero-document-text" class="h-4 w-4 mr-1" /> View Documentation
                           </a>
                         </div>
                       </div>
@@ -125,10 +120,7 @@ defmodule JidoWorkbenchWeb.SettingsLive do
                         <div class="space-y-4">
                           <div>
                             <div class="flex justify-between">
-                              <.form_label
-                                for={setting.key}
-                                class="text-secondary-300 dark:text-secondary-300"
-                              >
+                              <.form_label for={setting.key} class="text-secondary-300 dark:text-secondary-300">
                                 API Key
                               </.form_label>
                               <span class={
