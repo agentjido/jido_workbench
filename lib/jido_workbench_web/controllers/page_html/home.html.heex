@@ -45,14 +45,17 @@
                   prompt: "You are a helpful AI assistant built with Elixir."
                 ],
                 tools: [
-                  Jido.Tool.MarketData,
-                  Jido.Tool.News
+                  Jido.Tool.Weather,
                 ]
               )
             end
           end
 
-          iex(1)> MyAgent.start_link()
+          iex(1)> {:ok, pid} = MyAgent.start_link()
+          {:ok, #PID<0.123.0>}
+
+          iex(2)> MyAgent.chat_response(pid, "What is the weather in Tokyo?")
+          {:ok, "The weather in Tokyo is sunny with a temperature of 20 degrees Celsius."}
 
           """,
           formatter_options: [css_class: "makeup"]
