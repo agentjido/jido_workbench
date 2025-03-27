@@ -26,45 +26,11 @@ import Highlight from "./hooks/highlight";
 import ColorSchemeHook from "./hooks/color-scheme-hook";
 import ScrollSpy from "./hooks/scroll_spy";
 
-// Menu state persistence hooks
-const PersistMenuState = {
-  mounted() {
-    this.el.addEventListener("menu:toggled", (e) => {
-      const menuKey = e.detail.key;
-      const submenuId = e.target.getAttribute("data-submenu-id");
-      const isOpen =
-        document.getElementById(submenuId).style.display !== "none";
-      localStorage.setItem(menuKey, isOpen);
-    });
-  },
-};
-
-const InitMenuState = {
-  mounted() {
-    const menuKey = this.el.getAttribute("data-menu-key");
-    const isOpen = localStorage.getItem(menuKey) === "true";
-
-    if (isOpen) {
-      this.el.style.display = "block";
-      // Find and rotate the associated icon
-      const parentButton = this.el.previousElementSibling;
-      const icon = parentButton.querySelector("svg");
-      if (icon) {
-        icon.classList.add("rotate-90");
-      }
-    } else {
-      this.el.style.display = "none";
-    }
-  },
-};
-
 let Hooks = {
   CopyToClipboard,
   Highlight,
   ColorSchemeHook,
   ScrollSpy,
-  PersistMenuState,
-  InitMenuState,
 };
 
 let csrfToken = document
