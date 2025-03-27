@@ -5,33 +5,40 @@ defmodule JidoWorkbench.CodeExamples do
 
   def hero_example do
     %Example{
-      id: :basic_agent,
-      title: "Basic Agent Example",
+      id: :weather_agent,
+      title: "Weather Agent Example",
       content: """
-      defmodule MyAgent do
-        use Jido.Agent, name: "my_agent"
+      defmodule WeatherAgent do
+        use Jido.Agent, name: "weather_agent"
 
         def start_link(opts \\\\ []) do
-          Agent.start_link(
+          Jido.AI.Agent.start_link(
             agent: __MODULE__,
             ai: [
               model: {:openai, model: "gpt-4o-mini"},
-              prompt: "You are a helpful AI assistant built with Elixir."
-            ],
-            tools: [
-              Jido.Tool.Weather,
+              prompt: \"""
+              You are an enthusiastic weather reporter.
+              <%= @message %>
+              \""",
+              tools: [
+                Jido.Tools.Weather
+              ]
             ]
           )
         end
+
+        defdelegate chat_response(pid, message), to: Jido.AI.Agent
+        defdelegate tool_response(pid, message), to: Jido.AI.Agent
       end
 
-      iex(1)> {:ok, pid} = MyAgent.start_link()
+      iex(1)> {:ok, pid} = WeatherAgent.start_link()
       {:ok, #PID<0.123.0>}
 
-      iex(2)> MyAgent.chat_response(pid, "What is the weather in Tokyo?")
+      iex(2)> WeatherAgent.tool_response(pid, "What is the weather in Tokyo?")
       {:ok, "The weather in Tokyo is sunny with a temperature of 20 degrees Celsius."}
       """,
-      livebook_url: "https://raw.githubusercontent.com/jido-systems/jido/main/examples/basic_agent.livemd"
+      livebook_url:
+        "https://raw.githubusercontent.com/agentjido/jido_workbench/refs/heads/main/priv/documentation/cookbook/weather-tool-response.livemd"
     }
   end
 
@@ -71,8 +78,8 @@ defmodule JidoWorkbench.CodeExamples do
               prompt: "You help customers solve product issues."
             ],
             tools: [
-              Jido.Tool.KnowledgeBase,
-              Jido.Tool.TicketSystem
+              Jido.Tools.KnowledgeBase,
+              Jido.Tools.TicketSystem
             ]
           )
         end

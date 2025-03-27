@@ -86,18 +86,18 @@ defmodule JidoWorkbench.MixProject do
 
       deps ++
         [
-          {:jido, path: "../jido"},
-          # {:jido_chat, path: "../jido_chat"},
-          {:jido_ai, path: "../jido_ai"}
+          {:jido, path: "../jido", override: true},
+          # {:jido_chat, path: "../jido_chat", override: true},
+          {:jido_ai, path: "../jido_ai", override: true},
+          {:jido_tools, path: "../jido_tools", override: true}
           # {:jido_memory, path: "../jido_memory"}
         ]
     else
       deps ++
         [
-          {:jido, github: "agentjido/jido", branch: "main"},
-          # {:jido_chat, github: "agentjido/jido_chat", branch: "main"},
-          {:jido_ai, github: "agentjido/jido_ai", branch: "main"}
-          # {:jido_memory, github: "agentjido/jido_memory", branch: "main"}
+          {:jido, "~> 1.1.0-rc.2"},
+          {:jido_ai, "~> 0.5.0"},
+          {:jido_tools, "~> 0.1.0"}
         ]
     end
   end

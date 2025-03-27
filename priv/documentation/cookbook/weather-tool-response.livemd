@@ -1,0 +1,78 @@
+# Using the Weather Agent
+
+## Section
+
+%{
+title: "Weather Tool Response",
+category: :cookbook,
+order: 1,
+tags: [:tool_use, :getting_started]
+}
+
+---
+
+In this guide, we'll walk through setting up and using the Weather Agent to fetch weather information. We'll start with the necessary setup and then show how to interact with the agent.
+
+## Setup
+
+First, we need to set up our dependencies and configure our OpenWeather API key.
+
+```elixir
+Mix.install([
+  {:jido, "~> 1.1.0-rc.2"},
+  {:jido_ai, "~> 0.5.0"},
+  {:jido_tools, "~> 0.1.0"},
+])
+```
+
+### Setting up OpenWeather API Key
+
+1. Create an API Key for the OpenWeather One Call API 3.0 [here](https://openweathermap.org/api/one-call-3)
+2. Try running the block of code below. It will fail and you will see a message that looks like `Missing secret "OPENWEATHER_API_KEY"` with an "Add secret" button.
+3. Click the "Add Secret" button
+4. Enter your API key in the "Value" input (leave the "Name" input with the prefilled name of "OPENWEATHER_API_KEY")
+5. Click "+Add"
+6. Reevaluate the block of code below
+
+```elixir
+api_key = System.fetch_env!("LB_OPENWEATHER_API_KEY")
+"API key configured successfully!"
+```
+
+## Using the Weather Agent
+
+Now that we have our API key set up, let's create and use our Weather Agent. The agent is configured to be an enthusiastic weather reporter that can fetch weather information for any location.
+
+First, let's start our agent:
+
+```elixir
+{:ok, pid} = Examples.Hero.WeatherAgent.start_link()
+```
+
+Now we can ask for the weather in Tokyo:
+
+```elixir
+Examples.Hero.WeatherAgent.tool_response(pid, "What is the weather in Tokyo?")
+```
+
+### Important Note About Test Data
+
+By default, the Weather tool uses fake test data to avoid unnecessary API calls. The test data simulates rainy weather conditions. This is controlled by the `test: true` parameter in the Weather tool's configuration.
+
+If you want to fetch real weather data, you'll need to ensure:
+
+1. You have configured your OpenWeather API key as shown above
+2. The `test` parameter is set to `false` in the tool configuration
+
+## What's Happening Behind the Scenes?
+
+When you make a request:
+
+1. The WeatherAgent receives your message
+2. It processes it through a GPT-4 model configured to act as an enthusiastic weather reporter
+3. The agent uses the `Jido.Tools.Weather` tool to fetch the weather data
+4. The response is formatted and returned in a friendly, weather-reporter style
+
+In the next sections, we'll explore more advanced usage patterns and how to customize the weather reporting experience.
+
+<!-- livebook:{"offset":2545,"stamp":{"token":"XCP.5qvhRjVztofP9x08j5VVXXqh1u8kRp9jY9dj6jW5FEIarh-6jS3UHHA_4HYLyGflNcbd3epMw2ic92eSfDgf5mJjqn0x1iRDJwjI9we721Mre16C_4SJPKZxdJPGJg","version":2}} -->
