@@ -31,35 +31,27 @@
     </.container>
 
     <div class="w-full max-w-5xl mx-auto px-4 pb-24">
-      <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-lg p-8 mb-12">
-        {Makeup.highlight(
-          """
-          defmodule MyAgent do
-            use Jido.Agent, name: "my_agent"
-
-            def start_link(opts \\\\ []) do
-              Agent.start_link(
-                agent: __MODULE__,
-                ai: [
-                  model: {:openai, model: "gpt-4o-mini"},
-                  prompt: "You are a helpful AI assistant built with Elixir."
-                ],
-                tools: [
-                  Jido.Tool.Weather,
-                ]
-              )
-            end
-          end
-
-          iex(1)> {:ok, pid} = MyAgent.start_link()
-          {:ok, #PID<0.123.0>}
-
-          iex(2)> MyAgent.chat_response(pid, "What is the weather in Tokyo?")
-          {:ok, "The weather in Tokyo is sunny with a temperature of 20 degrees Celsius."}
-
-          """,
-          formatter_options: [css_class: "makeup"]
-        )
+      <% example = JidoWorkbench.CodeExamples.hero_example() %>
+      <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-lg p-8 mb-12 relative">
+        <div class="absolute top-4 right-4 flex gap-2">
+          <button
+            data-copy-button
+            data-content={example.content}
+            class="p-2 text-secondary-600 hover:text-primary-600 dark:text-secondary-400 dark:hover:text-primary-500 transition-colors duration-200"
+            aria-label="Copy code"
+          >
+            <.icon name="hero-clipboard" solid class="w-5 h-5" />
+          </button>
+          <a
+            href={"https://livebook.dev/run?url=#{example.livebook_url}"}
+            target="_blank"
+            class="p-2 text-secondary-600 hover:text-primary-600 dark:text-secondary-400 dark:hover:text-primary-500 transition-colors duration-200"
+            aria-label="Run in Livebook"
+          >
+            <.icon name="hero-play-circle" solid class="w-5 h-5" />
+          </a>
+        </div>
+        {Makeup.highlight(example.content, formatter_options: [css_class: "makeup"])
         |> Phoenix.HTML.raw()}
       </div>
 
@@ -125,27 +117,32 @@
             </div>
           </div>
 
-          <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-lg p-8">
-            {Makeup.highlight(
-              """
-              defmodule CreateInvoice do
-                use Jido.Action, name: "create_invoice"
-
-                def run(%{customer_id: id, amount: amount}, _ctx) do
-                  with {:ok, invoice} <- BillingSystem.create_invoice(id, amount),
-                       {:ok, _} <- NotificationSystem.notify(:invoice_created, invoice) do
-                    {:ok, %{invoice_id: invoice.id}}
-                  end
-                end
-              end
-              """,
-              formatter_options: [css_class: "makeup"]
-            )
+          <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-lg p-8 relative">
+            <% example = JidoWorkbench.CodeExamples.action_example() %>
+            <div class="absolute top-4 right-4 flex gap-2">
+              <button
+                data-copy-button
+                data-content={example.content}
+                class="p-2 text-secondary-600 hover:text-primary-600 dark:text-secondary-400 dark:hover:text-primary-500 transition-colors duration-200"
+                aria-label="Copy code"
+              >
+                <.icon name="hero-clipboard" solid class="w-5 h-5" />
+              </button>
+              <a
+                href={"https://livebook.dev/run?url=#{example.livebook_url}"}
+                target="_blank"
+                class="p-2 text-secondary-600 hover:text-primary-600 dark:text-secondary-400 dark:hover:text-primary-500 transition-colors duration-200"
+                aria-label="Run in Livebook"
+              >
+                <.icon name="hero-play-circle" solid class="w-5 h-5" />
+              </a>
+            </div>
+            {Makeup.highlight(example.content, formatter_options: [css_class: "makeup"])
             |> Phoenix.HTML.raw()}
           </div>
         </div>
         
-<!-- Agents Section -->
+        <!-- Agents Section -->
         <div>
           <div class="text-center mb-12">
             <h2 class="text-4xl font-bold text-primary-600 dark:text-primary-500 mb-4">Agents</h2>
@@ -170,34 +167,32 @@
             </div>
           </div>
 
-          <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-lg p-8">
-            {Makeup.highlight(
-              """
-              defmodule CustomerSupportAgent do
-                use Jido.Agent, name: "support_agent"
-
-                def start_link(opts \\\\ []) do
-                  Agent.start_link(
-                    agent: __MODULE__,
-                    ai: [
-                      model: {:openai, model: "gpt-4o-mini"},
-                      prompt: "You help customers solve product issues."
-                    ],
-                    tools: [
-                      Jido.Tool.KnowledgeBase,
-                      Jido.Tool.TicketSystem
-                    ]
-                  )
-                end
-              end
-              """,
-              formatter_options: [css_class: "makeup"]
-            )
+          <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-lg p-8 relative">
+            <% example = JidoWorkbench.CodeExamples.agent_example() %>
+            <div class="absolute top-4 right-4 flex gap-2">
+              <button
+                data-copy-button
+                data-content={example.content}
+                class="p-2 text-secondary-600 hover:text-primary-600 dark:text-secondary-400 dark:hover:text-primary-500 transition-colors duration-200"
+                aria-label="Copy code"
+              >
+                <.icon name="hero-clipboard" solid class="w-5 h-5" />
+              </button>
+              <a
+                href={"https://livebook.dev/run?url=#{example.livebook_url}"}
+                target="_blank"
+                class="p-2 text-secondary-600 hover:text-primary-600 dark:text-secondary-400 dark:hover:text-primary-500 transition-colors duration-200"
+                aria-label="Run in Livebook"
+              >
+                <.icon name="hero-play-circle" solid class="w-5 h-5" />
+              </a>
+            </div>
+            {Makeup.highlight(example.content, formatter_options: [css_class: "makeup"])
             |> Phoenix.HTML.raw()}
           </div>
         </div>
         
-<!-- Signals Section -->
+        <!-- Signals Section -->
         <div>
           <div class="text-center mb-12">
             <h2 class="text-4xl font-bold text-primary-600 dark:text-primary-500 mb-4">Signals</h2>
@@ -222,27 +217,32 @@
             </div>
           </div>
 
-          <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-lg p-8">
-            {Makeup.highlight(
-              """
-              {:ok, signal} = Jido.Signal.new(%{
-                type: "order.payment.processed", 
-                source: "/payments",
-                data: %{order_id: "456"},
-                jido_dispatch: [
-                  {:pubsub, [topic: "transactions"]},
-                  {:bus, [target: :audit_bus]},
-                  {:pid, [target: pid, async: true]}
-                ]
-              })
-              """,
-              formatter_options: [css_class: "makeup"]
-            )
+          <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-lg p-8 relative">
+            <% example = JidoWorkbench.CodeExamples.signal_example() %>
+            <div class="absolute top-4 right-4 flex gap-2">
+              <button
+                data-copy-button
+                data-content={example.content}
+                class="p-2 text-secondary-600 hover:text-primary-600 dark:text-secondary-400 dark:hover:text-primary-500 transition-colors duration-200"
+                aria-label="Copy code"
+              >
+                <.icon name="hero-clipboard" solid class="w-5 h-5" />
+              </button>
+              <a
+                href={"https://livebook.dev/run?url=#{example.livebook_url}"}
+                target="_blank"
+                class="p-2 text-secondary-600 hover:text-primary-600 dark:text-secondary-400 dark:hover:text-primary-500 transition-colors duration-200"
+                aria-label="Run in Livebook"
+              >
+                <.icon name="hero-play-circle" solid class="w-5 h-5" />
+              </a>
+            </div>
+            {Makeup.highlight(example.content, formatter_options: [css_class: "makeup"])
             |> Phoenix.HTML.raw()}
           </div>
         </div>
         
-<!-- Skills Section -->
+        <!-- Skills Section -->
         <div>
           <div class="text-center mb-12">
             <h2 class="text-4xl font-bold text-primary-600 dark:text-primary-500 mb-4">Skills</h2>
@@ -267,37 +267,27 @@
             </div>
           </div>
 
-          <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-lg p-8">
-            {Makeup.highlight(
-              """
-              defmodule Jido.Skills.DataAnalysis do
-                use Jido.Skill, name: "data_analysis"
-
-                def mount(agents, opts \\\\ []) do
-                  Jido.Agent.register_action(agent, [analyze_trends])
-                end
-
-                def router(opts \\\\ []) do
-                  [
-                    {"jido.data_analysis.analyze",
-                      %Instruction{
-                        action: Jido.DataAnalysis.Actions.AnalyzeTrends,
-                        params: %{model: model}
-                      }},    
-                  ]
-                end
-
-                def handle_signal(%{type: "data.analysis.analyze"} = signal, _skill_opts) do
-                  {:ok, signal}
-                end
-
-                def transform_result(signal, result, _skill_opts) do
-                  {:ok, result}
-                end
-              end
-              """,
-              formatter_options: [css_class: "makeup"]
-            )
+          <div class="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-lg p-8 relative">
+            <% example = JidoWorkbench.CodeExamples.skill_example() %>
+            <div class="absolute top-4 right-4 flex gap-2">
+              <button
+                data-copy-button
+                data-content={example.content}
+                class="p-2 text-secondary-600 hover:text-primary-600 dark:text-secondary-400 dark:hover:text-primary-500 transition-colors duration-200"
+                aria-label="Copy code"
+              >
+                <.icon name="hero-clipboard" solid class="w-5 h-5" />
+              </button>
+              <a
+                href={"https://livebook.dev/run?url=#{example.livebook_url}"}
+                target="_blank"
+                class="p-2 text-secondary-600 hover:text-primary-600 dark:text-secondary-400 dark:hover:text-primary-500 transition-colors duration-200"
+                aria-label="Run in Livebook"
+              >
+                <.icon name="hero-play-circle" solid class="w-5 h-5" />
+              </a>
+            </div>
+            {Makeup.highlight(example.content, formatter_options: [css_class: "makeup"])
             |> Phoenix.HTML.raw()}
           </div>
         </div>

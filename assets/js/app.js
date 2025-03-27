@@ -95,3 +95,26 @@ liveSocket.connect();
 // >> liveSocket.enableLatencySim(1000)  // enabled for duration of browser session
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket;
+
+// Add copy to clipboard functionality
+document.addEventListener("click", (e) => {
+  if (e.target.closest("[data-copy-button]")) {
+    const button = e.target.closest("[data-copy-button]");
+    const content = button.getAttribute("data-content");
+
+    navigator.clipboard.writeText(content).then(() => {
+      // Store the original icon HTML
+      const originalIcon = button.innerHTML;
+
+      // Replace with checkmark icon
+      button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+        <path fill-rule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clip-rule="evenodd" />
+      </svg>`;
+
+      // Restore original icon after 2 seconds
+      setTimeout(() => {
+        button.innerHTML = originalIcon;
+      }, 2000);
+    });
+  }
+});
