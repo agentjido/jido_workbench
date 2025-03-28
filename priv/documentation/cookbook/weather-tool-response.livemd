@@ -14,8 +14,8 @@ tags: [:agent_sdk, :getting_started]
 ```elixir
 Mix.install([
   {:jido, "~> 1.1.0-rc.2"},
-  {:jido_ai, "~> 0.5.0"},
-  {:jido_tools, "~> 0.1.0"},
+  {:jido_ai, "~> 0.5.1"},
+  {:jido_tools, "~> 0.1.1"},
 ])
 ```
 
