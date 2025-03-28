@@ -43,6 +43,10 @@ defmodule JidoWorkbenchWeb.SettingsLive do
                 <p>
                   Configure your API keys for various language models. These keys are required to use the AI features in the workbench.
                 </p>
+                <br />
+                <p>
+                  <em>These keys aren't used for anything yet, but will be used in the future to power the AI features in the workbench.</em>
+                </p>
                 <%= if !@any_valid_key? do %>
                   <div class="mt-4 bg-warning-900/30 dark:bg-warning-900/30 border-l-4 border-warning-600 dark:border-warning-600 p-4">
                     <div class="flex">
