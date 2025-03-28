@@ -58,8 +58,7 @@ defmodule JidoWorkbench.CodeExamples do
         end
       end
       """,
-      livebook_url:
-        "https://raw.githubusercontent.com/jido-systems/jido/main/examples/actions.livemd"
+      livebook_url: ""
     }
   end
 
@@ -86,8 +85,7 @@ defmodule JidoWorkbench.CodeExamples do
         end
       end
       """,
-      livebook_url:
-        "https://raw.githubusercontent.com/jido-systems/jido/main/examples/customer_support.livemd"
+      livebook_url: ""
     }
   end
 
@@ -107,8 +105,7 @@ defmodule JidoWorkbench.CodeExamples do
         ]
       })
       """,
-      livebook_url:
-        "https://raw.githubusercontent.com/jido-systems/jido/main/examples/signals.livemd"
+      livebook_url: ""
     }
   end
 
@@ -143,8 +140,7 @@ defmodule JidoWorkbench.CodeExamples do
         end
       end
       """,
-      livebook_url:
-        "https://raw.githubusercontent.com/jido-systems/jido/main/examples/skills.livemd"
+      livebook_url: ""
     }
   end
 end

@@ -1,13 +1,10 @@
-%{
+<!-- %{
 title: "Weather Agent",
 description: "This guide will walk you through building a Weather Agent using the Jido Agent SDK. We'll create an agent that can respond to natural language queries about weather conditions in different locations.",
 category: :cookbook,
 order: 100,
 tags: [:agent_sdk, :getting_started]
-
-}
-
----
+} -->
 
 # Building a Weather Agent with Jido Agent SDK
 

@@ -1,12 +1,14 @@
 defmodule JidoWorkbench.Documentation do
   alias JidoWorkbench.Documentation.Document
+  alias JidoWorkbench.Documentation.LivebookParser
 
   # Update the pattern to include both .md and .livemd files
   use NimblePublisher,
     build: Document,
     from: Application.app_dir(:jido_workbench, "priv/documentation/**/*.{md,livemd}"),
     as: :documents,
-    highlighters: [:makeup_elixir, :makeup_js, :makeup_html]
+    highlighters: [:makeup_elixir, :makeup_js, :makeup_html],
+    parser: LivebookParser
 
   # Sort documents by order
   @documents Enum.sort_by(@documents, & &1.order)
