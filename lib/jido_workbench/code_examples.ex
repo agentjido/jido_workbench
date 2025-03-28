@@ -11,7 +11,7 @@ defmodule JidoWorkbench.CodeExamples do
       defmodule WeatherAgent do
         use Jido.Agent, name: "weather_agent"
 
-        def start_link(opts \\\\ []) do
+        def start_link(_opts \\\\ []) do
           Jido.AI.Agent.start_link(
             agent: __MODULE__,
             ai: [
@@ -58,7 +58,8 @@ defmodule JidoWorkbench.CodeExamples do
         end
       end
       """,
-      livebook_url: "https://raw.githubusercontent.com/jido-systems/jido/main/examples/actions.livemd"
+      livebook_url:
+        "https://raw.githubusercontent.com/jido-systems/jido/main/examples/actions.livemd"
     }
   end
 
@@ -85,7 +86,8 @@ defmodule JidoWorkbench.CodeExamples do
         end
       end
       """,
-      livebook_url: "https://raw.githubusercontent.com/jido-systems/jido/main/examples/customer_support.livemd"
+      livebook_url:
+        "https://raw.githubusercontent.com/jido-systems/jido/main/examples/customer_support.livemd"
     }
   end
 
@@ -105,7 +107,8 @@ defmodule JidoWorkbench.CodeExamples do
         ]
       })
       """,
-      livebook_url: "https://raw.githubusercontent.com/jido-systems/jido/main/examples/signals.livemd"
+      livebook_url:
+        "https://raw.githubusercontent.com/jido-systems/jido/main/examples/signals.livemd"
     }
   end
 
@@ -140,7 +143,8 @@ defmodule JidoWorkbench.CodeExamples do
         end
       end
       """,
-      livebook_url: "https://raw.githubusercontent.com/jido-systems/jido/main/examples/skills.livemd"
+      livebook_url:
+        "https://raw.githubusercontent.com/jido-systems/jido/main/examples/skills.livemd"
     }
   end
 end
