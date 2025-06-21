@@ -106,7 +106,7 @@ end
 {:ok, pid} = WeatherAgent.start_link()
 ```
 
-This module uses `Jido.Agent`, marking it as a Jido agent process. The key part is `Jido.AI.Agent.start_link/1`. This function, provided by the `jido_ai` package, sets up a specialized Jido Agent GenServer pre-configured with AI capabilities. We pass it:
+This module uses `Jido.Agent`, marking it as a Jido agent process. The key part is `Jido.AI.Agent.start_link/1`. This starts the specialized `Jido.AI.Agent`, provided by the `jido_ai` package, pre-configured with AI capabilities. We pass it:
 
 - `agent: __MODULE__`: Links this definition to the running process.
 - `ai: [...]`: A keyword list containing configuration for the AI behavior:
