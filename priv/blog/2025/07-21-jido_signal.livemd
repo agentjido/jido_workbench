@@ -7,8 +7,6 @@ description: "Jido Signal is now available as a standalone package, extracted fr
 
 ---
 
-# Jido Signal 1.0 Released
-
 We're excited to announce the 1.0 release of Jido Signal, now available as a standalone package. Originally part of the Jido framework, Signal has proven valuable enough to deserve its own life as an independent library for building robust event-driven systems in Elixir.
 
 ## Why the Split?

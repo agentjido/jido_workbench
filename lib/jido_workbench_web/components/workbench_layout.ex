@@ -132,6 +132,19 @@ defmodule JidoWorkbenchWeb.WorkbenchLayout do
           </span>
         </a>
         <a
+          class="inline-flex items-center gap-2 p-2 text-secondary-600 dark:text-secondary-400 rounded hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200 group"
+          href={~p"/blog"}
+        >
+          <.icon
+            name="hero-document-text"
+            solid
+            class="w-5 h-5 m-0.5 mr-2 text-secondary-600 dark:text-secondary-400 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors duration-200"
+          />
+          <span class="hidden font-semibold sm:block text-secondary-600 dark:text-secondary-400 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors duration-200">
+            Blog
+          </span>
+        </a>
+        <a
           target="_blank"
           class="inline-flex items-center gap-2 p-2 text-secondary-600 dark:text-secondary-400 rounded hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200 group"
           href="https://github.com/agentjido/jido"
