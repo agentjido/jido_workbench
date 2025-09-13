@@ -2,7 +2,7 @@
 title: "Introducing ReqLLM: Req Plugins for LLM Interactions",
 author: "Mike Hostetler",
 tags: ~w(agent jido req elixir),
-description: "Jido Signal is now available as a standalone package, extracted from the core Jido library."
+description: "Easy Req based LLM interactions in Elixir for multiple AI providers"
 }
 
 ---
