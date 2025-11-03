@@ -1,0 +1,146 @@
+%{
+title: "Announcing ReqLLM 1.0",
+author: "Mike Hostetler",
+tags: ~w(elixir llm ai reqllm),
+description: "Announcing ReqLLM 1.0 - a stable, provider-agnostic Elixir library for working with LLMs using familiar patterns."
+}
+
+---
+
+Today we're excited to announce [ReqLLM](https://github.com/agentjido/req_llm) 1.0 - a new, stable Elixir library for working with LLMs. After multiple release candidates and extensive community feedback, 1.0 is now available for teams who want a reliable, provider-agnostic way to work with LLMs using familiar patterns.
+
+## Community Appreciation
+
+ReqLLM is truly a community effort. To date, the project has seen:
+
+- **21 contributors**
+- **332 commits**
+- **58 issues**
+- **106 pull requests**
+
+Several companies and startups are already running ReqLLM in production. Thank you to everyone who filed issues, reviewed PRs, tested RCs, and pushed on edge cases. This release is yours as much as it is ours. We're truly grateful for the community's support and feedback.
+
+## What ships in 1.0
+
+- Stable public API for chat, streaming, and object generation
+- **11 provider implementations** out of the box supporting **125+ models**
+- **Fixture-based tests** across providers to ensure consistent behavior and normalization
+- Model registry with metadata auto-synced from [models.dev](https://models.dev) (covering **665+ models** across **45 providers**)
+- Production-focused ergonomics: consistent request/response structs, normalized usage metadata, and consistent error handling
+
+## Key learnings and the technical journey
+
+Building ReqLLM has been an adventure in learning the state of LLM API providers, their capabilities, and their quirks. In the process, we've discovered three critical lessons that shaped the 1.0 architecture.
+
+### 1. Streaming architecture: Why we needed Finch
+
+Early on, we discovered that Req's plugin architecture—while excellent for composable HTTP—doesn't support the long-running, stateful connections required for Server-Sent Events. Req does support basic streaming for response bodies, but LLM streaming is different: tokens arrive incrementally over minutes-long connections, requiring careful error handling, backpressure management, and connection state tracking across the entire request lifecycle.
+
+Rather than contort Req into something it wasn't designed for, we took a pragmatic architectural decision: use **Finch** (the HTTP client Req is built on) directly for streaming. Finch gives us the low-level control needed for:
+
+- **Persistent connection management** across long-running SSE streams
+- **Incremental token parsing** as Server-Sent Event chunks arrive
+- **Error recovery and reconnection** when streams fail mid-response
+- **Backpressure handling** to prevent memory issues with fast-streaming models
+
+Beyond SSE, we learned that LLM providers are experimenting with multiple streaming protocols—some use SSE, others use chunked transfer encoding with custom delimiters, and future protocols may vary further. Finch's lower-level API gives us the flexibility to support these evolving patterns without breaking the external ReqLLM API.
+
+The result: streaming is powered by Finch under the hood, while the external API remains Req-first and plugin-based. You keep the same ergonomics, middleware composition, and observability you expect from Req, but streaming works reliably.
+
+### 2. The fixture system: Guaranteeing cross-provider consistency
+
+A core promise of ReqLLM is that switching providers shouldn't change your application logic. To guarantee this, we built a comprehensive fixture-based testing system that became one of the largest engineering investments in 1.0.
+
+The fixture system validates that every model, across every provider, behaves identically for core operations: text generation, streaming, tool calling, object generation, and usage tracking. Tests run against cached fixtures by default for speed, but can be re-recorded against live APIs with `REQ_LLM_FIXTURES_MODE=record`.
+
+Here's an example of how our macro-based test suite works. A single `use` statement generates up to 9 focused tests per model:
+
+```elixir
+defmodule ReqLLM.Coverage.OpenAI.ComprehensiveTest do
+  use ReqLLM.ProviderTest.Comprehensive, provider: :openai
+end
+```
+
+Under the hood, `ReqLLM.ProviderTest.Comprehensive` generates tests like:
+
+```elixir
+@tag scenario: :basic
+test "basic generate_text (non-streaming)" do
+  opts = reasoning_overlay(@model_spec, param_bundles().deterministic, 2000)
+
+  ReqLLM.generate_text(
+    @model_spec,
+    "Hello world!",
+    fixture_opts("basic", opts)
+  )
+  |> assert_basic_response()
+end
+
+@tag scenario: :streaming
+test "stream_text with system context and creative params" do
+  context = ReqLLM.Context.new([
+    system("You are a helpful, creative assistant."),
+    user("Say hello in one short, imaginative sentence.")
+  ])
+
+  opts = reasoning_overlay(@model_spec, param_bundles().creative, 2000)
+
+  {:ok, stream_response} =
+    ReqLLM.stream_text(@model_spec, context, fixture_opts("streaming", opts))
+
+  {:ok, response} = ReqLLM.StreamResponse.to_response(stream_response)
+
+  # Validate response structure, usage metadata, etc.
+  assert %ReqLLM.Response{} = response
+  assert response.message.role == :assistant
+  # ... usage validation, token counts, etc.
+end
+```
+
+This macro-driven approach means we can test **125+ models** across **11 providers** with consistent coverage. When a provider changes their API, fixtures catch the regression quickly. When we add a new capability (like reasoning tokens or image generation), we add one test to the macro and it validates across all providers.
+
+We built a custom Mix Task to help with this: `mix req_llm.model_compat`. This task makes it easy to test local fixtures against our code and record new fixtures against live APIs when we need to.
+
+### 3. Model metadata and registry: Learning from models.dev
+
+Managing model metadata for a growing list of providers and models is a moving target. Model capabilities, pricing, context windows, and availability change constantly. Initially, we auto-synced from [models.dev](https://models.dev), which gave us a helpful kickstart and continues to power our model registry updates.
+
+In practice, however, we've learned that models.dev alone isn't enough for production use:
+
+- **Capability detection is critical**: We need to know not just that a model exists, but whether it supports streaming, tool calling, vision, JSON mode, thinking/reasoning tokens, etc. These capabilities drive which code paths are available in ReqLLM's macro system.
+- **Usage and cost tracking requires precision**: Billing metadata must be accurate and up-to-date for production observability.
+- **Provider-specific quirks need encoding**: Some models require different parameter names (e.g., OpenAI's o1 models use `max_completion_tokens` instead of `max_tokens`), and this needs to be encoded in metadata to drive automatic translation.
+
+For 1.0, we're shipping with models.dev as the foundation, but **we're building a more robust supported model metadata system** that:
+
+- Feeds from models.dev for baseline data
+- Layers on capability detection and provider-specific overrides
+- Supports explicit versioning and stability guarantees for production use
+- Drives macro-based plugin behavior (e.g., auto-generating provider modules based on capabilities)
+
+This metadata system is still evolving, but it's foundational to ReqLLM's long-term goal: one API, many providers, with compile-time guarantees about what each model supports.
+
+## What's next
+
+With this release, ReqLLM 1.0 is stable and production-ready, but we're just getting started. We're committed to active development:
+
+- **Model metadata v2**: Stabilize the capability-driven metadata system for robust production use
+- **Expanded provider coverage**: Continue adding providers and syncing model updates as the ecosystem evolves
+- **Fixture refinement**: Tighten edge-case coverage as providers ship new features and API changes
+- **Ergonomics improvements**: Incremental DX wins driven by production feedback from the community
+
+ReqLLM will be closely watched and actively maintained. If you're using it in production, we want to hear from you.
+
+## Call to action
+
+- **Watch the YouTube overview video**: https://www.youtube.com/watch?v=-U2sQ3e3R-0
+- **Join The Swarm: Elixir AI Collective** on Discord: https://discord.gg/YG4qQuyy
+- **Adopt ReqLLM in your apps**: it's 1.0, stable, and already powering production workloads.
+
+## Thank you
+
+To the **21 contributors** and everyone who opened the **58 issues** and **106 PRs** across **332 commits**: thank you. Your testing, feedback, and persistence made 1.0 possible. We're excited to see what you build next with ReqLLM.
+
+---
+
+_ReqLLM is part of the [Jido](https://github.com/agentjido/jido) ecosystem. Check out the [ReqLLM repository](https://github.com/agentjido/req_llm) on GitHub to get started._
