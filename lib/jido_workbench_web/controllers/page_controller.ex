@@ -130,4 +130,9 @@ defmodule JidoWorkbenchWeb.PageController do
 
     render(conn, :home, active_tab: :home)
   end
+
+  def discord(conn, _params) do
+    discord_invite_link = Application.get_env(:jido_workbench, :discord_invite_link)
+    redirect(conn, external: discord_invite_link)
+  end
 end
