@@ -30,7 +30,8 @@ config :instructor,
 config :jido_workbench,
   canonical_host: env!("CANONICAL_HOST", :string, nil),
   # Set to true/false to control Plausible analytics loading, only in production
-  enable_analytics: env!("ENABLE_ANALYTICS", :boolean, false)
+  enable_analytics: env!("ENABLE_ANALYTICS", :boolean, false),
+  discord_invite_link: env!("DISCORD_INVITE_LINK", :string, "https://discord.gg/dMh8CqEH8Q")
 
 if config_env() == :prod do
   # The secret key base is used to sign/encrypt cookies and other secrets.
