@@ -42,7 +42,7 @@ defmodule JidoWorkbench.MixProject do
       # {:ecto_sql, "~> 3.10"},
       # {:postgrex, ">= 0.0.0"},
       {:phoenix_html, "~> 4.1"},
-      {:phoenix_live_reload, "~> 1.5", only: [:dev, :test]},
+      {:phoenix_live_reload, "~> 1.6", only: [:dev, :test]},
       {:phoenix_live_view, "~> 1.0.1"},
       {:heroicons, github: "tailwindlabs/heroicons", tag: "v2.1.5", app: false, compile: false, sparse: "optimized"},
       {:floki, "~> 0.35"},
@@ -59,10 +59,12 @@ defmodule JidoWorkbench.MixProject do
       {:petal_components, "~> 2.8.1"},
       {:plug_canonical_host, "~> 2.0"},
       {:phoenix_seo, "~> 0.1.11"},
+      {:tidewave, "~> 0.5"},
 
       # AI
       {:instructor, "~> 0.1.0", override: true},
       {:langchain, "~> 0.3.1", override: true},
+      {:req_llm, "~> 1.0"},
 
       # Markdown
       {:earmark, "~> 1.4"},
@@ -88,16 +90,16 @@ defmodule JidoWorkbench.MixProject do
         [
           {:jido, path: "../jido", override: true},
           # {:jido_chat, path: "../jido_chat", override: true},
-          {:jido_ai, path: "../jido_ai", override: true},
-          {:jido_tools, path: "../jido_tools", override: true}
+          {:jido_ai, path: "../jido_ai", override: true}
+          # {:jido_tools, path: "../jido_tools", override: true}
           # {:jido_memory, path: "../jido_memory"}
         ]
     else
       deps ++
         [
           {:jido, "~> 1.1.0-rc.2"},
-          {:jido_ai, "~> 0.5.0"},
-          {:jido_tools, "~> 0.1.0"}
+          {:jido_ai, "~> 0.5.0"}
+          # {:jido_tools, "~> 0.1.0"}
         ]
     end
   end
