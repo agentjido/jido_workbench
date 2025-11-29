@@ -189,7 +189,7 @@ defmodule JidoWorkbenchWeb.SettingsLive do
                 </.link>
                 <.button
                   type="button"
-                  theme="secondary"
+                  color="secondary"
                   phx-click="test_keys"
                   label="Test Keys"
                   class="inline-flex items-center bg-secondary-100 dark:bg-secondary-800 hover:bg-secondary-200 dark:hover:bg-secondary-700 text-secondary-900 dark:text-white border border-secondary-300 dark:border-secondary-700 transition-colors duration-200"

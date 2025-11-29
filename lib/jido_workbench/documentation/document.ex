@@ -69,10 +69,10 @@ defmodule JidoWorkbench.Documentation.Document do
       end
 
     # Generate a unique and consistent ID
-    id =
-      path
-      |> String.trim_leading("/")
-      |> String.replace("/", "-")
+    # id =
+    #   path
+    #   |> String.trim_leading("/")
+    #   |> String.replace("/", "-")
 
     # For empty path (root), use "root" as the ID
     id =

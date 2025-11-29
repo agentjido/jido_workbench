@@ -122,49 +122,49 @@ defmodule JidoWorkbenchWeb.CatalogSkillsLive do
     {:noreply, assign(socket, skills: filtered_skills, search: search_term)}
   end
 
-  @impl true
-  def handle_event("execute", params, socket) do
-    skill = Enum.find(socket.assigns.skills, &(&1.slug == params["skill_slug"]))
-    IO.inspect(params, label: "Params")
-    IO.inspect(skill, label: "Skill")
+  # @impl true
+  # def handle_event("execute", params, socket) do
+  #   skill = Enum.find(socket.assigns.skills, &(&1.slug == params["skill_slug"]))
+  #   IO.inspect(params, label: "Params")
+  #   IO.inspect(skill, label: "Skill")
+  #
+  #   result =
+  #     case skill do
+  #       nil -> {:error, "Skill not found"}
+  #       skill -> Jido.Workflow.run(skill.module, params, %{}, [])
+  #     end
+  #
+  #   {:noreply, assign(socket, result: result)}
+  # end
 
-    result =
-      case skill do
-        nil -> {:error, "Skill not found"}
-        skill -> Jido.Workflow.run(skill.module, params, %{}, [])
-      end
+  # defp build_form(skill) do
+  #   types =
+  #     skill.schema
+  #     |> Enum.map(fn {field, opts} -> {field, get_ecto_type(opts[:type])} end)
+  #     |> Map.new()
+  #     |> Map.put(:skill_slug, :string)
+  #
+  #   data = %{skill_slug: skill.slug}
+  #
+  #   {data, types}
+  #   |> Ecto.Changeset.cast(%{}, Map.keys(types))
+  #   |> to_form(as: "skill")
+  # end
 
-    {:noreply, assign(socket, result: result)}
-  end
+  # defp get_ecto_type(:non_neg_integer), do: :integer
+  # defp get_ecto_type(:integer), do: :integer
+  # defp get_ecto_type(:float), do: :float
+  # defp get_ecto_type(:boolean), do: :boolean
+  # defp get_ecto_type(:atom), do: :string
+  # defp get_ecto_type(_), do: :string
 
-  defp build_form(skill) do
-    types =
-      skill.schema
-      |> Enum.map(fn {field, opts} -> {field, get_ecto_type(opts[:type])} end)
-      |> Map.new()
-      |> Map.put(:skill_slug, :string)
-
-    data = %{skill_slug: skill.slug}
-
-    {data, types}
-    |> Ecto.Changeset.cast(%{}, Map.keys(types))
-    |> to_form(as: "skill")
-  end
-
-  defp get_ecto_type(:non_neg_integer), do: :integer
-  defp get_ecto_type(:integer), do: :integer
-  defp get_ecto_type(:float), do: :float
-  defp get_ecto_type(:boolean), do: :boolean
-  defp get_ecto_type(:atom), do: :string
-  defp get_ecto_type(_), do: :string
-
-  defp get_field_type(options) do
-    case options[:type] do
-      :boolean -> :checkbox
-      :non_neg_integer -> :number
-      :integer -> :number
-      :float -> :number
-      _ -> :text
-    end
-  end
+  # defp get_field_type(options) do
+  #   case options[:type] do
+  #     :boolean -> :checkbox
+  #     :non_neg_integer -> :number
+  #     :integer -> :number
+  #     :float -> :number
+  #     _ -> :text
+  #   end
+  # end
 end

@@ -20,5 +20,5 @@ defmodule JidoWorkbenchWeb.Gettext do
 
   See the [Gettext Docs](https://hexdocs.pm/gettext) for detailed usage.
   """
-  use Gettext, otp_app: :jido_workbench
+  use Gettext.Backend, otp_app: :jido_workbench
 end

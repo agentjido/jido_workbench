@@ -43,7 +43,7 @@ defmodule JidoWorkbenchWeb do
         layouts: [html: JidoWorkbenchWeb.Layouts]
 
       import Plug.Conn
-      import JidoWorkbenchWeb.Gettext
+      use Gettext, backend: JidoWorkbenchWeb.Gettext
 
       unquote(verified_routes())
     end
@@ -86,7 +86,7 @@ defmodule JidoWorkbenchWeb do
       # Core UI components and translation
       import JidoWorkbenchWeb.CoreComponents
       use PetalComponents
-      import JidoWorkbenchWeb.Gettext
+      use Gettext, backend: JidoWorkbenchWeb.Gettext
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS

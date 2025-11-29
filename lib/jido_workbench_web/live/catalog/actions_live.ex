@@ -282,82 +282,82 @@ defmodule JidoWorkbenchWeb.CatalogActionsLive do
     {:noreply, socket}
   end
 
-  @impl true
-  def handle_event("execute", params, socket) do
-    action = socket.assigns.selected_action.module
-    %{"action" => action_params} = params
-
-    # Convert string keys to atoms safely
-    converted_params =
-      case safe_atomize_keys(action_params) do
-        {:ok, converted} -> converted
-        {:error, reason} -> %{error: reason}
-      end
-
-    result =
-      case action do
-        nil ->
-          {:error, "Action not found"}
-
-        action ->
-          case converted_params do
-            %{error: reason} -> {:error, reason}
-            params -> Jido.Workflow.run(action, params, %{}, [])
-          end
-      end
-
-    {:noreply, assign(socket, result: result)}
-  end
+  # @impl true
+  # def handle_event("execute", params, socket) do
+  #   action = socket.assigns.selected_action.module
+  #   %{"action" => action_params} = params
+  #
+  #   # Convert string keys to atoms safely
+  #   converted_params =
+  #     case safe_atomize_keys(action_params) do
+  #       {:ok, converted} -> converted
+  #       {:error, reason} -> %{error: reason}
+  #     end
+  #
+  #   result =
+  #     case action do
+  #       nil ->
+  #         {:error, "Action not found"}
+  #
+  #       action ->
+  #         case converted_params do
+  #           %{error: reason} -> {:error, reason}
+  #           params -> Jido.Workflow.run(action, params, %{}, [])
+  #         end
+  #     end
+  #
+  #   {:noreply, assign(socket, result: result)}
+  # end
 
   # Safely converts string keys to existing atoms
-  defp safe_atomize_keys(map) when is_map(map) do
-    Enum.reduce_while(map, {:ok, %{}}, fn {key, val}, {:ok, acc} ->
-      case safe_existing_atom(key) do
-        {:ok, atom_key} -> {:cont, {:ok, Map.put(acc, atom_key, val)}}
-        {:error, reason} -> {:halt, {:error, reason}}
-      end
-    end)
-  end
+  # defp safe_atomize_keys(map) when is_map(map) do
+  #   Enum.reduce_while(map, {:ok, %{}}, fn {key, val}, {:ok, acc} ->
+  #     case safe_existing_atom(key) do
+  #       {:ok, atom_key} -> {:cont, {:ok, Map.put(acc, atom_key, val)}}
+  #       {:error, reason} -> {:halt, {:error, reason}}
+  #     end
+  #   end)
+  # end
 
-  defp safe_existing_atom(string) when is_binary(string) do
-    try do
-      {:ok, String.to_existing_atom(string)}
-    rescue
-      ArgumentError ->
-        {:error, "Invalid parameter: #{string} is not a recognized field"}
-    end
-  end
+  # defp safe_existing_atom(string) when is_binary(string) do
+  #   try do
+  #     {:ok, String.to_existing_atom(string)}
+  #   rescue
+  #     ArgumentError ->
+  #       {:error, "Invalid parameter: #{string} is not a recognized field"}
+  #   end
+  # end
 
-  defp build_form(action) do
-    types =
-      action.schema
-      |> Enum.map(fn {field, opts} -> {field, get_ecto_type(opts[:type])} end)
-      |> Map.new()
-      |> Map.put(:action_slug, :string)
+  # defp build_form(action) do
+  #   types =
+  #     action.schema
+  #     |> Enum.map(fn {field, opts} -> {field, get_ecto_type(opts[:type])} end)
+  #     |> Map.new()
+  #     |> Map.put(:action_slug, :string)
+  #
+  #   data = %{action_slug: action.slug}
+  #
+  #   {data, types}
+  #   |> Ecto.Changeset.cast(%{}, Map.keys(types))
+  #   |> to_form(as: "action")
+  # end
 
-    data = %{action_slug: action.slug}
+  # defp get_ecto_type(:non_neg_integer), do: :integer
+  # defp get_ecto_type(:integer), do: :integer
+  # defp get_ecto_type(:float), do: :float
+  # defp get_ecto_type(:boolean), do: :boolean
+  # defp get_ecto_type(:atom), do: :string
+  # defp get_ecto_type(_), do: :string
 
-    {data, types}
-    |> Ecto.Changeset.cast(%{}, Map.keys(types))
-    |> to_form(as: "action")
-  end
-
-  defp get_ecto_type(:non_neg_integer), do: :integer
-  defp get_ecto_type(:integer), do: :integer
-  defp get_ecto_type(:float), do: :float
-  defp get_ecto_type(:boolean), do: :boolean
-  defp get_ecto_type(:atom), do: :string
-  defp get_ecto_type(_), do: :string
-
-  defp get_field_type(options) do
-    case options[:type] do
-      :boolean -> :checkbox
-      :non_neg_integer -> :number
-      :integer -> :number
-      :float -> :number
-      _ -> :text
-    end
-  end
+  # defp get_field_type(options) do
+  #   case options[:type] do
+  #     :boolean -> :checkbox
+  #     :non_neg_integer -> :number
+  #     :integer -> :number
+  #     :float -> :number
+  #     _ -> :text
+  #   end
+  # end
 
   defp format_type({:in, values}), do: "one of #{inspect(values)}"
   defp format_type(:string), do: "string"

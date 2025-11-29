@@ -5,11 +5,8 @@ defmodule JidoWorkbenchWeb.MenuItems do
   use JidoWorkbenchWeb, :live_component
   require Logger
 
-  @livebook_root "lib/jido_workbench_web/live"
+  # @livebook_root "lib/jido_workbench_web/live"
 
-  @doc """
-  Converts a documentation menu tree node into the menu items format.
-  """
   # In lib/jido_workbench_web/menu_items.ex
   defp convert_doc_tree_to_menu_items(tree, base_path) do
     tree
@@ -42,7 +39,7 @@ defmodule JidoWorkbenchWeb.MenuItems do
       if Enum.empty?(children) do
         menu_item
       else
-        child_base_path = "#{base_path}/#{section_name}"
+        _child_base_path = "#{base_path}/#{section_name}"
         Map.put(menu_item, :menu_items, convert_doc_tree_to_menu_items(children, base_path))
       end
     end)

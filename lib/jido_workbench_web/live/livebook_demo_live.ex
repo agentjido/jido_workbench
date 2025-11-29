@@ -10,7 +10,7 @@ defmodule JidoWorkbenchWeb.LivebookDemoLive do
   end
 
   @impl true
-  def handle_params(params, uri, socket) do
+  def handle_params(_params, uri, socket) do
     type = get_route_tag(uri)
     path = URI.parse(uri).path
 
@@ -88,7 +88,7 @@ defmodule JidoWorkbenchWeb.LivebookDemoLive do
           {:noreply,
            socket
            |> put_flash(:error, "Document not found")
-           |> push_navigate(to: ~p"/#{type}")}
+           |> push_navigate(to: "/#{type}")}
 
         doc ->
           toc = build_toc(doc.body)
@@ -110,23 +110,23 @@ defmodule JidoWorkbenchWeb.LivebookDemoLive do
         {:noreply,
          socket
          |> put_flash(:error, "Error loading document")
-         |> push_navigate(to: ~p"/#{type}")}
-    end
-  end
+         |> push_navigate(to: "/#{type}")}
+        end
+        end
 
-  @doc """
-  Gets the route tag from the URI path.
-  Returns :docs for /docs/* paths and :cookbook for /cookbook/* paths.
-
-  ## Examples
-
-      iex> get_route_tag(%URI{path: "/docs/getting-started"})
-      :docs
-
-      iex> get_route_tag(%URI{path: "/cookbook/tool-use-intro"})
-      :cookbook
-  """
-  defp get_route_tag(uri) do
+        # @doc """
+        # Gets the route tag from the URI path.
+        # Returns :docs for /docs/* paths and :cookbook for /cookbook/* paths.
+        #
+        # ## Examples
+        #
+        #     iex> get_route_tag(%URI{path: "/docs/getting-started"})
+        #     :docs
+        #
+        #     iex> get_route_tag(%URI{path: "/cookbook/tool-use-intro"})
+        #     :cookbook
+        # """
+        defp get_route_tag(uri) do
     # Extract the first part of the path to determine if we're in docs or cookbook
     path = URI.parse(uri).path || "/"
     base_path = path |> String.split("/") |> Enum.at(1, "")
@@ -148,7 +148,7 @@ defmodule JidoWorkbenchWeb.LivebookDemoLive do
           |> Floki.find("h1, h2, h3")
           |> Enum.map(fn header ->
             # Get the header level from the tag name
-            {tag_name, attrs, content} = header
+            {tag_name, attrs, _content} = header
             level = String.to_integer(String.trim_leading(tag_name, "h"))
 
             # Get existing ID from attributes or generate one
@@ -261,7 +261,7 @@ defmodule JidoWorkbenchWeb.LivebookDemoLive do
 
               %{
                 label: item.title,
-                path: ~p"/#{if item.category == :docs, do: "docs", else: "cookbook"}/#{path_segment}",
+                path: "/#{if item.category == :docs, do: "docs", else: "cookbook"}/#{path_segment}",
                 icon: Map.get(item, :icon, "hero-document"),
                 description: item.description
               }
@@ -293,7 +293,7 @@ defmodule JidoWorkbenchWeb.LivebookDemoLive do
 
               %{
                 label: item.title,
-                path: ~p"/#{if item.category == :docs, do: "docs", else: "cookbook"}/#{path_segment}",
+                path: "/#{if item.category == :docs, do: "docs", else: "cookbook"}/#{path_segment}",
                 icon: Map.get(item, :icon, "hero-document"),
                 description: item.description
               }
