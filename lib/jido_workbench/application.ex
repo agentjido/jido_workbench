@@ -14,11 +14,11 @@ defmodule JidoWorkbench.Application do
     ]
 
     # Room configuration
-    room_opts = [
-      id: config[:room_id],
-      name: "Jido Chat Room",
-      strategy: Jido.Chat.Room.Strategy.FreeForm
-    ]
+    # room_opts = [
+    #   id: config[:room_id],
+    #   name: "Jido Chat Room",
+    #   strategy: Jido.Chat.Room.Strategy.FreeForm
+    # ]
 
     children = [
       # Start the LLM Keys manager first

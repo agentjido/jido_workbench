@@ -1,9 +1,9 @@
 defmodule JidoWorkbenchWeb.ChatComponents do
   use Phoenix.Component
-  import JidoWorkbenchWeb.CoreComponents
-  import PetalComponents.Icon
+  # import JidoWorkbenchWeb.CoreComponents
+  # import PetalComponents.Icon
   import PetalComponents.Avatar
-  alias Jido.Chat.Message
+  # alias Jido.Chat.Message
 
   attr :messages, :list, required: true
   attr :is_typing, :boolean, default: false
@@ -67,28 +67,28 @@ defmodule JidoWorkbenchWeb.ChatComponents do
     ~H"""
     <div class="flex justify-center">
       <div class="text-xs text-secondary-500 dark:text-secondary-400 italic px-4 py-1">
-        {Phoenix.HTML.raw(format_line_breaks(Message.content(@message)))}
+        {Phoenix.HTML.raw(format_line_breaks(@message.content))}
       </div>
     </div>
     """
   end
 
-  def message_item(%{message: message} = assigns) do
+  def message_item(%{message: _message} = assigns) do
     ~H"""
-    <div class={message_justify_class(Message.sender_id(@message))}>
-      <div class={"flex max-w-[70%] gap-3 #{message_flex_direction(Message.sender_id(@message))}"}>
+    <div class={message_justify_class(@message.sender_id)}>
+      <div class={"flex max-w-[70%] gap-3 #{message_flex_direction(@message.sender_id)}"}>
         <div class="flex-shrink-0">
-          <.avatar name={get_participant_name(Message.sender_id(@message))} random_color />
+          <.avatar name={get_participant_name(@message.sender_id)} random_color />
         </div>
         <div class="flex flex-col">
-          <div class={message_header_class(Message.sender_id(@message))}>
-            {get_participant_name(Message.sender_id(@message))}
+          <div class={message_header_class(@message.sender_id)}>
+            {get_participant_name(@message.sender_id)}
           </div>
           <.message_content
-            type={Message.type(@message)}
-            content={Message.content(@message)}
-            payload={Message.payload(@message)}
-            sender_id={Message.sender_id(@message)}
+            type={@message.type}
+            content={@message.content}
+            payload={@message.payload}
+            sender_id={@message.sender_id}
           />
         </div>
       </div>

@@ -12,7 +12,7 @@ defmodule JidoWorkbenchWeb.CoreComponents do
   use Phoenix.Component
 
   alias Phoenix.LiveView.JS
-  import JidoWorkbenchWeb.Gettext
+  use Gettext, backend: JidoWorkbenchWeb.Gettext
   import PetalComponents.Icon
 
   @doc """

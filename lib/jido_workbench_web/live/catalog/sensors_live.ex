@@ -122,49 +122,49 @@ defmodule JidoWorkbenchWeb.CatalogSensorsLive do
     {:noreply, assign(socket, sensors: filtered_sensors, search: search_term)}
   end
 
-  @impl true
-  def handle_event("execute", params, socket) do
-    sensor = Enum.find(socket.assigns.sensors, &(&1.slug == params["sensor_slug"]))
-    IO.inspect(params, label: "Params")
-    IO.inspect(sensor, label: "Sensor")
+  # @impl true
+  # def handle_event("execute", params, socket) do
+  #   sensor = Enum.find(socket.assigns.sensors, &(&1.slug == params["sensor_slug"]))
+  #   IO.inspect(params, label: "Params")
+  #   IO.inspect(sensor, label: "Sensor")
+  #
+  #   result =
+  #     case sensor do
+  #       nil -> {:error, "Sensor not found"}
+  #       sensor -> Jido.Workflow.run(sensor.module, params, %{}, [])
+  #     end
+  #
+  #   {:noreply, assign(socket, result: result)}
+  # end
 
-    result =
-      case sensor do
-        nil -> {:error, "Sensor not found"}
-        sensor -> Jido.Workflow.run(sensor.module, params, %{}, [])
-      end
+  # defp build_form(sensor) do
+  #   types =
+  #     sensor.schema
+  #     |> Enum.map(fn {field, opts} -> {field, get_ecto_type(opts[:type])} end)
+  #     |> Map.new()
+  #     |> Map.put(:sensor_slug, :string)
+  #
+  #   data = %{sensor_slug: sensor.slug}
+  #
+  #   {data, types}
+  #   |> Ecto.Changeset.cast(%{}, Map.keys(types))
+  #   |> to_form(as: "sensor")
+  # end
 
-    {:noreply, assign(socket, result: result)}
-  end
+  # defp get_ecto_type(:non_neg_integer), do: :integer
+  # defp get_ecto_type(:integer), do: :integer
+  # defp get_ecto_type(:float), do: :float
+  # defp get_ecto_type(:boolean), do: :boolean
+  # defp get_ecto_type(:atom), do: :string
+  # defp get_ecto_type(_), do: :string
 
-  defp build_form(sensor) do
-    types =
-      sensor.schema
-      |> Enum.map(fn {field, opts} -> {field, get_ecto_type(opts[:type])} end)
-      |> Map.new()
-      |> Map.put(:sensor_slug, :string)
-
-    data = %{sensor_slug: sensor.slug}
-
-    {data, types}
-    |> Ecto.Changeset.cast(%{}, Map.keys(types))
-    |> to_form(as: "sensor")
-  end
-
-  defp get_ecto_type(:non_neg_integer), do: :integer
-  defp get_ecto_type(:integer), do: :integer
-  defp get_ecto_type(:float), do: :float
-  defp get_ecto_type(:boolean), do: :boolean
-  defp get_ecto_type(:atom), do: :string
-  defp get_ecto_type(_), do: :string
-
-  defp get_field_type(options) do
-    case options[:type] do
-      :boolean -> :checkbox
-      :non_neg_integer -> :number
-      :integer -> :number
-      :float -> :number
-      _ -> :text
-    end
-  end
+  # defp get_field_type(options) do
+  #   case options[:type] do
+  #     :boolean -> :checkbox
+  #     :non_neg_integer -> :number
+  #     :integer -> :number
+  #     :float -> :number
+  #     _ -> :text
+  #   end
+  # end
 end

@@ -2,7 +2,7 @@ defmodule JidoWorkbenchWeb.Router do
   use JidoWorkbenchWeb, :router
 
   # Build documentation routes at compile time
-  @menu_tree JidoWorkbench.Documentation.menu_tree()
+  # @menu_tree JidoWorkbench.Documentation.menu_tree()
 
   @doc_routes [
                 {"/docs", LivebookDemoLive, :index, %{tag: :docs}},

@@ -23,7 +23,7 @@ defmodule JidoWorkbenchWeb.SEO do
 
   # Or arity 0 is also supported, which can be great if you're using
   # Phoenix verified routes and don't need the conn to generate paths.
-  def site_config(conn) do
+  def site_config(_conn) do
     SEO.Site.build(
       default_title: "Agent Jido",
       description: "Agent Jido is the Elixir Autonomous Agent Framework",

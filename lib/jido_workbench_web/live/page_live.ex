@@ -48,12 +48,14 @@ defmodule JidoWorkbenchWeb.PageLive do
 
       <.h2 underline class="mt-10" label="Modal" />
 
+      <!--
       <.button label="sm" link_type="live_patch" to={~p"/live/modal/sm"} />
       <.button label="md" link_type="live_patch" to={~p"/live/modal/md"} />
       <.button label="lg" link_type="live_patch" to={~p"/live/modal/lg"} />
       <.button label="xl" link_type="live_patch" to={~p"/live/modal/xl"} />
       <.button label="2xl" link_type="live_patch" to={~p"/live/modal/2xl"} />
       <.button label="full" link_type="live_patch" to={~p"/live/modal/full"} />
+      -->
 
       <.h2 underline class="mt-10" label="Button Group" />
 
@@ -78,10 +80,12 @@ defmodule JidoWorkbenchWeb.PageLive do
 
       <.h2 underline class="mt-10" label="SlideOver" />
 
+      <!--
       <.button label="left" link_type="live_patch" to={~p"/live/slide_over/left"} />
       <.button label="top" link_type="live_patch" to={~p"/live/slide_over/top"} />
       <.button label="right" link_type="live_patch" to={~p"/live/slide_over/right"} />
       <.button label="bottom" link_type="live_patch" to={~p"/live/slide_over/bottom"} />
+      -->
 
       <%= if @slide_over do %>
         <.slide_over origin={@slide_over} title="SlideOver">
@@ -135,6 +139,6 @@ defmodule JidoWorkbenchWeb.PageLive do
 
   @impl true
   def handle_event("goto-page", %{"page" => page}, socket) do
-    {:noreply, push_patch(socket, to: ~p"/live/pagination/#{page}")}
+    {:noreply, push_patch(socket, to: "/live/pagination/#{page}")}
   end
 end
