@@ -1,112 +1,24 @@
-# Contributing to Jido Workbench
+# Contributing
 
-Thank you for your interest in contributing to Jido Workbench! This guide outlines the expectations and requirements for contributions.
+Thank you for your interest in contributing!
 
-## Table of Contents
-
-- [Core Principles](#core-principles)
-- [Development Setup](#development-setup)
-- [Testing Requirements](#testing-requirements)
-- [Code Quality Standards](#code-quality-standards)
-- [Commit Message Convention](#commit-message-convention)
-- [Pull Request Process](#pull-request-process)
-- [Questions?](#questions)
-
-## Core Principles
-
-Jido Workbench is the interactive development environment for building and testing Jido agents. We value:
-
-1. **Quality Over Speed**: Code must pass all quality checks before review
-2. **Conventional Commits**: All commits must follow the conventional commits specification
-3. **Test Coverage**: New features require comprehensive tests
-
-## Development Setup
+## Getting Started
 
 ```bash
-# Clone the repository
-git clone https://github.com/agentjido/jido_workbench.git
+git clone git@github.com:agentjido/jido_workbench.git
 cd jido_workbench
-
-# Install dependencies
 mix deps.get
-
-# Set up the database
-mix ecto.setup
-
-# Install git hooks (enforces conventional commits)
-mix git_hooks.install
-
-# Verify setup
 mix test
 mix quality
 ```
 
-### Git Hooks
+## Development
 
-We use [`git_hooks`](https://hex.pm/packages/git_hooks) to enforce commit message conventions:
+- Run `mix quality` (or `mix q`) before committing
+- Follow [conventional commits](https://www.conventionalcommits.org/)
+- Install git hooks: `mix git_hooks.install`
 
-```bash
-mix git_hooks.install
-```
-
-This installs a `commit-msg` hook that validates your commit messages follow the conventional commits specification. See [Commit Message Convention](#commit-message-convention) for details.
-
-## Testing Requirements
-
-```bash
-# Run all tests
-mix test
-
-# Run tests with coverage
-mix test --cover
-
-# Run specific test file
-mix test test/jido_workbench/your_test.exs
-```
-
-### Database Tests
-
-Jido Workbench uses PostgreSQL. Ensure you have a test database configured:
-
-```bash
-# Create and migrate test database
-MIX_ENV=test mix ecto.create
-MIX_ENV=test mix ecto.migrate
-```
-
-## Code Quality Standards
-
-All contributions must pass these checks:
-
-### Formatting
-```bash
-mix format
-mix format --check-formatted  # CI check
-```
-
-### Compilation
-```bash
-mix compile --warnings-as-errors
-```
-
-### Static Analysis
-```bash
-mix dialyzer
-```
-
-### Linting
-```bash
-mix credo --strict
-```
-
-### Combined Check
-```bash
-mix quality  # Runs all of the above
-```
-
-## Commit Message Convention
-
-We use [Conventional Commits](https://www.conventionalcommits.org/) enforced by `git_ops`. All commit messages must follow this format:
+## Commit Message Format
 
 ```
 <type>[optional scope]: <description>
@@ -116,90 +28,31 @@ We use [Conventional Commits](https://www.conventionalcommits.org/) enforced by 
 [optional footer(s)]
 ```
 
-### Types
+**Types:** feat, fix, docs, style, refactor, perf, test, chore, ci
 
-| Type | Description |
-|------|-------------|
-| `feat` | A new feature |
-| `fix` | A bug fix |
-| `docs` | Documentation only changes |
-| `style` | Changes that don't affect code meaning (formatting) |
-| `refactor` | Code change that neither fixes a bug nor adds a feature |
-| `perf` | Performance improvement |
-| `test` | Adding or correcting tests |
-| `chore` | Changes to build process or auxiliary tools |
-| `ci` | CI configuration changes |
-
-### Examples
-
-```bash
-# Feature
-git commit -m "feat(agents): add real-time collaboration support"
-
-# Bug fix
-git commit -m "fix(ui): resolve panel resize flickering"
-
-# Breaking change
-git commit -m "feat(api)!: change response format for agent status"
+**Examples:**
+```
+feat: add retry logic to API client
+fix(auth): handle expired tokens gracefully
+feat!: rename User to Account (breaking change)
 ```
 
-### Validation
-
-The `git_hooks` commit-msg hook will reject non-conforming commits:
+## Testing
 
 ```bash
-# This will be rejected
-git commit -m "fixed stuff"
-
-# This will pass
-git commit -m "fix(agents): resolve memory leak in long-running sessions"
+mix test                   # Run all tests
+mix test --only tag_name   # Run specific tests
+mix test --cover           # With coverage
 ```
 
 ## Pull Request Process
 
-1. **Create a Feature Branch**
-   ```bash
-   git checkout -b feat/your-feature-name
-   ```
-
-2. **Develop with Tests**
-   - Write tests first (TDD encouraged)
-   - Run quality checks frequently
-
-3. **Verify Everything Passes**
-   ```bash
-   mix test
-   mix quality
-   ```
-
-4. **Update Documentation**
-   - Add/update module docs
-   - Update README if needed
-   - Add CHANGELOG entry
-
-5. **Submit Pull Request**
-   - Use descriptive title following conventional commits
-   - Reference related issues
-   - Include test output
-
-### PR Checklist
-
-- [ ] All tests pass (`mix test`)
-- [ ] Quality checks pass (`mix quality`)
-- [ ] New tests added for new functionality
-- [ ] Documentation updated
-- [ ] CHANGELOG.md updated
-- [ ] Commit messages follow conventional commits
+1. Create a feature branch from `main`
+2. Make changes following our code style
+3. Run `mix quality` - all checks must pass
+4. Write a descriptive PR with conventional commit format
+5. Reference related issues
 
 ## Questions?
 
-- **Issues**: Open an issue for questions or bug reports
-- **Discussions**: Use GitHub Discussions for general questions
-
-## License
-
-By contributing to Jido Workbench, you agree that your contributions will be licensed under the MIT License.
-
----
-
-Thank you for helping make Jido Workbench better!
+Open a GitHub issue or join our [Discord](https://agentjido.xyz/discord).

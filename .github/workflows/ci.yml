@@ -1,16 +1,14 @@
-# Standardized CI workflow using central reusable workflows
-# See: https://github.com/agentjido/github-actions 
-
 name: CI
 
 on:
-  push:
-    branches: [main]
   pull_request:
-    branches: [main]
+  push:
+    branches:
+      - main
 
-permissions:
-  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   lint:
@@ -21,4 +19,5 @@ jobs:
     name: Test
     uses: agentjido/github-actions/.github/workflows/elixir-test.yml@v1
     with:
+      test_command: mix test
       postgres: true
