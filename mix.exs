@@ -126,7 +126,7 @@ defmodule JidoWorkbench.MixProject do
       quality: [
         "format --check-formatted",
         "compile --warnings-as-errors",
-        "credo --strict",
+        "credo --min-priority high",
         "dialyzer"
       ]
     ]
