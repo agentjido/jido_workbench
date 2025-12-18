@@ -79,7 +79,13 @@ defmodule JidoWorkbench.MixProject do
       # Testing
       {:mix_test_watch, "~> 1.0", only: [:dev, :test], runtime: false},
       {:httpoison, "~> 2.0"},
-      {:yaml_elixir, "~> 2.9"}
+      {:yaml_elixir, "~> 2.9"},
+
+      # Development & Quality Tools
+      {:git_ops, "~> 2.9", only: :dev, runtime: false},
+      {:git_hooks, "~> 0.5.0", only: [:dev, :test], runtime: false},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false}
     ]
 
     if use_local_deps do
@@ -115,7 +121,14 @@ defmodule JidoWorkbench.MixProject do
       setup: ["deps.get", "assets.setup", "assets.build"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
       "assets.build": ["tailwind default", "esbuild default"],
-      "assets.deploy": ["tailwind default --minify", "esbuild default --minify", "phx.digest"]
+      "assets.deploy": ["tailwind default --minify", "esbuild default --minify", "phx.digest"],
+      q: ["quality"],
+      quality: [
+        "format --check-formatted",
+        "compile --warnings-as-errors",
+        "credo --strict",
+        "dialyzer"
+      ]
     ]
   end
 end
