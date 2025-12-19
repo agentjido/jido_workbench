@@ -66,7 +66,8 @@ config :petal_components,
 config :jido_workbench, ash_domains: [JidoWorkbench.Folio]
 
 # Git hooks and git_ops configuration for conventional commits
-if config_env() != :prod do
+# Only configure when the dependencies are actually available (dev environment)
+if config_env() == :dev do
   config :git_hooks,
     auto_install: true,
     verbose: true,
