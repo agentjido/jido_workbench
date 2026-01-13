@@ -25,12 +25,14 @@ import CopyToClipboard from "./hooks/copy_to_clipboard";
 import Highlight from "./hooks/highlight";
 import ColorSchemeHook from "./hooks/color-scheme-hook";
 import ScrollSpy from "./hooks/scroll_spy";
+import ScrollReveal from "./hooks/scroll_reveal";
 
 let Hooks = {
   CopyToClipboard,
   Highlight,
   ColorSchemeHook,
   ScrollSpy,
+  ScrollReveal,
 };
 
 let csrfToken = document
@@ -61,6 +63,29 @@ liveSocket.connect();
 // >> liveSocket.enableLatencySim(1000)  // enabled for duration of browser session
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket;
+
+// Theme toggle functionality for Jido marketing pages
+const THEME_STORAGE_KEY = "jido-theme";
+
+function applyStoredTheme() {
+  const html = document.documentElement;
+  const stored = localStorage.getItem(THEME_STORAGE_KEY);
+  if (stored === "light") {
+    html.classList.add("light");
+  } else {
+    html.classList.remove("light");
+  }
+}
+
+// Apply theme on initial load
+applyStoredTheme();
+
+// Global toggle function
+window.toggleJidoTheme = function () {
+  const html = document.documentElement;
+  const isLight = html.classList.toggle("light");
+  localStorage.setItem(THEME_STORAGE_KEY, isLight ? "light" : "dark");
+};
 
 // Add copy to clipboard functionality
 document.addEventListener("click", (e) => {

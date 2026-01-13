@@ -47,7 +47,12 @@ defmodule JidoWorkbenchWeb.Router do
   scope "/", JidoWorkbenchWeb do
     pipe_through(:browser)
 
-    get("/", PageController, :home)
+    live "/", JidoHomeLive, :index
+    live "/ecosystem", JidoEcosystemLive, :index
+    live "/getting-started", JidoGettingStartedLive, :index
+    live "/examples", JidoExamplesLive, :index
+    live "/benchmarks", JidoBenchmarksLive, :index
+    live "/partners", JidoPartnersLive, :index
     get("/discord", PageController, :discord)
     live("/settings", SettingsLive, :index)
     get("/settings/clear", LLMKeyController, :clear_session)

@@ -16,21 +16,71 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: colors.slate, // Changed to slate for a more subdued, professional look like ChatGPT/Anthropic
-        secondary: colors.neutral, // Neutral works well for secondary elements
+        primary: {
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
+        },
+        secondary: {
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
+        },
         success: colors.emerald,
         danger: colors.red,
         warning: colors.yellow,
-        info: colors.gray, // Changed to gray for a more cohesive look
+        info: colors.gray,
         gray: colors.gray,
+        border: "hsl(var(--border))",
+        "border-strong": "hsl(var(--border-strong))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        surface: "hsl(var(--surface))",
+        elevated: "hsl(var(--elevated))",
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
+        },
+        accent: {
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
+          green: "hsl(var(--accent-green))",
+          yellow: "hsl(var(--accent-yellow))",
+          cyan: "hsl(var(--accent-cyan))",
+          red: "hsl(var(--accent-red))",
+        },
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
+        },
+        code: {
+          bg: "hsl(var(--code-bg))",
+          border: "hsl(var(--code-border))",
+          keyword: "hsl(var(--code-keyword))",
+          string: "hsl(var(--code-string))",
+          comment: "hsl(var(--code-comment))",
+          function: "hsl(var(--code-function))",
+          type: "hsl(var(--code-type))",
+        },
       },
       fontFamily: {
-        // Main text font - clean monospace
-        mono: ["JetBrains Mono", "Share Tech Mono", "monospace"],
-        // System text font
+        mono: ["IBM Plex Mono", "JetBrains Mono", "Share Tech Mono", "monospace"],
         sans: ["Inter", "system-ui", "sans-serif"],
-        // Display/heading font
         display: ["VT323", "monospace"],
+      },
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
+      },
+      keyframes: {
+        "fade-in": {
+          from: { opacity: "0", transform: "translateY(10px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+      },
+      animation: {
+        "fade-in": "fade-in 0.5s ease-out forwards",
       },
     },
   },
