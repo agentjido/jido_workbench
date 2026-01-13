@@ -1,0 +1,278 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Jido Design System - Code-centric, terminal-inspired aesthetic */
+/* IBM Plex Mono for that hacker feel */
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+
+@layer base {
+  :root {
+    /* Dark theme as default - True dark terminal aesthetic */
+    --background: 0 0% 4%;
+    --foreground: 0 0% 91%;
+
+    --surface: 0 0% 7%;
+    --elevated: 0 0% 10%;
+
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 91%;
+
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 91%;
+
+    /* Primary - Neon Green */
+    --primary: 152 100% 50%;
+    --primary-foreground: 0 0% 4%;
+
+    /* Secondary */
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 85%;
+
+    /* Muted tones */
+    --muted: 0 0% 16%;
+    --muted-foreground: 0 0% 40%;
+
+    /* Accent colors */
+    --accent-green: 152 100% 50%;
+    --accent-yellow: 43 100% 50%;
+    --accent-cyan: 192 100% 50%;
+    --accent-red: 0 73% 71%;
+
+    /* Default accent uses cyan */
+    --accent: 192 100% 50%;
+    --accent-foreground: 0 0% 4%;
+
+    --destructive: 0 73% 71%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 16%;
+    --border-strong: 0 0% 23%;
+    --input: 0 0% 16%;
+    --ring: 152 100% 50%;
+
+    --radius: 0.375rem;
+
+    /* Code block tokens */
+    --code-bg: 0 0% 3%;
+    --code-border: 0 0% 16%;
+    --code-keyword: 152 100% 50%;
+    --code-string: 43 100% 50%;
+    --code-comment: 0 0% 40%;
+    --code-function: 192 100% 50%;
+    --code-type: 0 73% 71%;
+
+    /* Sidebar tokens */
+    --sidebar-background: 0 0% 5%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 152 100% 50%;
+    --sidebar-primary-foreground: 0 0% 4%;
+    --sidebar-accent: 0 0% 10%;
+    --sidebar-accent-foreground: 0 0% 90%;
+    --sidebar-border: 0 0% 16%;
+    --sidebar-ring: 152 100% 50%;
+  }
+
+  /* Light mode */
+  .light {
+    --background: 40 33% 98%;
+    --foreground: 24 10% 10%;
+
+    --surface: 0 0% 100%;
+    --elevated: 40 20% 96%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 24 10% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 24 10% 10%;
+
+    /* Primary - Darker green for light mode */
+    --primary: 160 84% 39%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 40 20% 94%;
+    --secondary-foreground: 24 10% 10%;
+
+    --muted: 40 20% 92%;
+    --muted-foreground: 24 8% 45%;
+
+    /* Accent colors - darker for light mode */
+    --accent-green: 160 84% 39%;
+    --accent-yellow: 32 95% 44%;
+    --accent-cyan: 189 94% 43%;
+    --accent-red: 0 72% 51%;
+
+    --accent: 189 94% 43%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 24 6% 91%;
+    --border-strong: 24 6% 84%;
+    --input: 24 6% 91%;
+    --ring: 160 84% 39%;
+
+    --code-bg: 40 20% 96%;
+    --code-border: 24 6% 91%;
+    --code-keyword: 160 84% 39%;
+    --code-string: 32 95% 44%;
+    --code-comment: 24 8% 65%;
+    --code-function: 189 94% 43%;
+    --code-type: 0 72% 51%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  }
+
+  /* Selection styling */
+  ::selection {
+    background: hsl(var(--primary) / 0.3);
+  }
+}
+
+@layer components {
+  /* Package card with colored top border */
+  .package-card {
+    @apply bg-card border border-border rounded-md p-5 transition-all duration-200;
+  }
+
+  .package-card:hover {
+    @apply border-border-strong;
+  }
+
+  .package-card-core {
+    @apply package-card border-t-[3px];
+    border-top-color: hsl(var(--accent-green));
+  }
+
+  .package-card-ai {
+    @apply package-card border-t-[3px];
+    border-top-color: hsl(var(--accent-yellow));
+  }
+
+  .package-card-foundation {
+    @apply package-card border-t-[3px];
+    border-top-color: hsl(var(--accent-cyan));
+  }
+
+  .package-card-app {
+    @apply package-card border-t-[3px];
+    border-top-color: hsl(var(--accent-red));
+  }
+
+  /* Badge variants */
+  .badge-core {
+    @apply text-[9px] font-bold tracking-wider px-2 py-0.5 rounded;
+    color: hsl(var(--accent-green));
+    background: hsl(var(--accent-green) / 0.15);
+  }
+
+  .badge-ai {
+    @apply text-[9px] font-bold tracking-wider px-2 py-0.5 rounded;
+    color: hsl(var(--accent-yellow));
+    background: hsl(var(--accent-yellow) / 0.15);
+  }
+
+  .badge-foundation {
+    @apply text-[9px] font-bold tracking-wider px-2 py-0.5 rounded;
+    color: hsl(var(--accent-cyan));
+    background: hsl(var(--accent-cyan) / 0.15);
+  }
+
+  .badge-app {
+    @apply text-[9px] font-bold tracking-wider px-2 py-0.5 rounded;
+    color: hsl(var(--accent-red));
+    background: hsl(var(--accent-red) / 0.15);
+  }
+
+  /* Code block styling */
+  .code-block {
+    @apply rounded-md border overflow-x-auto;
+    background: hsl(var(--code-bg));
+    border-color: hsl(var(--code-border));
+  }
+
+  .code-header {
+    @apply px-5 py-3 border-b flex items-center justify-between;
+    background: hsl(var(--elevated));
+    border-color: hsl(var(--code-border));
+  }
+
+  /* Metric card */
+  .metric-card {
+    @apply text-center py-5 px-4;
+    background: hsl(var(--surface));
+  }
+
+  /* Feature card with hover */
+  .feature-card {
+    @apply bg-card border border-border rounded-md p-6 transition-all duration-200;
+  }
+
+  .feature-card:hover {
+    @apply border-primary/50;
+  }
+
+  /* Gradient text using primary green */
+  .gradient-text {
+    background: linear-gradient(135deg, hsl(var(--accent-green)), hsl(var(--accent-yellow)));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* CTA glow effect */
+  .cta-glow {
+    background: hsl(var(--primary) / 0.05);
+    border: 1px solid hsl(var(--primary) / 0.2);
+  }
+
+  /* Terminal-style nav */
+  .nav-surface {
+    @apply bg-card border border-border rounded-md;
+  }
+}
+
+/* Syntax highlighting tokens */
+@layer utilities {
+  .syntax-keyword { color: hsl(var(--code-keyword)); }
+  .syntax-string { color: hsl(var(--code-string)); }
+  .syntax-comment { color: hsl(var(--code-comment)); }
+  .syntax-function { color: hsl(var(--code-function)); }
+  .syntax-type { color: hsl(var(--code-type)); }
+  .syntax-module { color: hsl(var(--code-type)); }
+  .syntax-atom { color: hsl(var(--code-function)); }
+  .syntax-number { color: hsl(var(--code-string)); }
+  .syntax-operator { color: hsl(var(--muted-foreground)); }
+
+  /* Accent color utilities */
+  .text-accent-green { color: hsl(var(--accent-green)); }
+  .text-accent-yellow { color: hsl(var(--accent-yellow)); }
+  .text-accent-cyan { color: hsl(var(--accent-cyan)); }
+  .text-accent-red { color: hsl(var(--accent-red)); }
+
+  .bg-accent-green { background-color: hsl(var(--accent-green)); }
+  .bg-accent-yellow { background-color: hsl(var(--accent-yellow)); }
+  .bg-accent-cyan { background-color: hsl(var(--accent-cyan)); }
+  .bg-accent-red { background-color: hsl(var(--accent-red)); }
+
+  .border-accent-green { border-color: hsl(var(--accent-green)); }
+  .border-accent-yellow { border-color: hsl(var(--accent-yellow)); }
+  .border-accent-cyan { border-color: hsl(var(--accent-cyan)); }
+  .border-accent-red { border-color: hsl(var(--accent-red)); }
+}
