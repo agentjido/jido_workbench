@@ -12,7 +12,7 @@ defmodule JidoWorkbenchWeb.JidoGettingStartedLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <.marketing_layout>
+    <.marketing_layout current_path="/getting-started">
       <div class="container max-w-[800px] mx-auto px-6">
         <section class="py-16 text-center">
           <h1 class="text-3xl md:text-4xl font-bold mb-4">Getting Started</h1>

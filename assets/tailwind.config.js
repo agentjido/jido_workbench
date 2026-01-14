@@ -14,15 +14,44 @@ module.exports = {
     "../deps/petal_components/**/*.*ex",
   ],
   theme: {
+    container: {
+      center: true,
+      padding: "1.5rem",
+      screens: {
+        "2xl": "1000px",
+      },
+    },
     extend: {
       colors: {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          50: "hsl(var(--primary))",
+          100: "hsl(var(--primary) / 0.9)",
+          200: "hsl(var(--primary) / 0.8)",
+          300: "hsl(var(--primary) / 0.7)",
+          400: "hsl(var(--primary) / 0.6)",
+          500: "hsl(var(--primary) / 0.5)",
+          600: "hsl(var(--primary))",
+          700: "hsl(var(--primary) / 0.85)",
+          800: "hsl(var(--primary) / 0.75)",
+          900: "hsl(var(--primary) / 0.65)",
+          950: "hsl(var(--primary) / 0.5)",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
+          50: "hsl(var(--secondary) / 0.5)",
+          100: "hsl(var(--secondary) / 0.4)",
+          200: "hsl(var(--secondary) / 0.35)",
+          300: "hsl(var(--secondary) / 0.3)",
+          400: "hsl(var(--secondary) / 0.25)",
+          500: "hsl(var(--secondary) / 0.2)",
+          600: "hsl(var(--secondary))",
+          700: "hsl(var(--secondary) / 0.8)",
+          800: "hsl(var(--secondary) / 0.7)",
+          900: "hsl(var(--secondary) / 0.6)",
+          950: "hsl(var(--secondary) / 0.5)",
         },
         success: colors.emerald,
         danger: colors.red,
@@ -53,6 +82,24 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
+        },
+        popover: {
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
+        },
+        sidebar: {
+          DEFAULT: "hsl(var(--sidebar-background))",
+          foreground: "hsl(var(--sidebar-foreground))",
+          primary: "hsl(var(--sidebar-primary))",
+          "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
+          accent: "hsl(var(--sidebar-accent))",
+          "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
+          border: "hsl(var(--sidebar-border))",
+          ring: "hsl(var(--sidebar-ring))",
+        },
         code: {
           bg: "hsl(var(--code-bg))",
           border: "hsl(var(--code-border))",
@@ -78,9 +125,22 @@ module.exports = {
           from: { opacity: "0", transform: "translateY(10px)" },
           to: { opacity: "1", transform: "translateY(0)" },
         },
+        "pulse-glow": {
+          "0%, 100%": {
+            opacity: "1",
+            boxShadow:
+              "0 0 5px theme(colors.success.400), 0 0 20px theme(colors.success.400)",
+          },
+          "50%": {
+            opacity: ".7",
+            boxShadow:
+              "0 0 2px theme(colors.success.400), 0 0 10px theme(colors.success.400)",
+          },
+        },
       },
       animation: {
         "fade-in": "fade-in 0.5s ease-out forwards",
+        "pulse-glow": "pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
       },
     },
   },
@@ -163,21 +223,6 @@ module.exports = {
         ".neon-border": {
           border: "1px solid theme(colors.success.400)",
           boxShadow: "0 0 5px theme(colors.success.400)",
-        },
-        ".animate-pulse-glow": {
-          animation: "pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
-        },
-        "@keyframes pulse-glow": {
-          "0%, 100%": {
-            opacity: "1",
-            boxShadow:
-              "0 0 5px theme(colors.success.400), 0 0 20px theme(colors.success.400)",
-          },
-          "50%": {
-            opacity: ".7",
-            boxShadow:
-              "0 0 2px theme(colors.success.400), 0 0 10px theme(colors.success.400)",
-          },
         },
       });
     }),

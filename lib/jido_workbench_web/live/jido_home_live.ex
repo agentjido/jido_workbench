@@ -17,7 +17,7 @@ defmodule JidoWorkbenchWeb.JidoHomeLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <.marketing_layout>
+    <.marketing_layout current_path="/">
       <div class="container max-w-[1000px] mx-auto px-6">
         <.hero_section />
         <.metrics_strip />

@@ -5,7 +5,7 @@ defmodule JidoWorkbenchWeb.Router do
   # @menu_tree JidoWorkbench.Documentation.menu_tree()
 
   @doc_routes [
-                {"/docs", LivebookDemoLive, :index, %{tag: :docs}},
+                {"/docs", JidoDocsLive, :index, %{}},
                 {"/cookbook", LivebookDemoLive, :index, %{tag: :cookbook}}
               ] ++
                 ((for doc <- JidoWorkbench.Documentation.all_documents() do
@@ -18,7 +18,7 @@ defmodule JidoWorkbenchWeb.Router do
                     if path_without_category do
                       case doc.category do
                         :docs ->
-                          {"/docs/#{path_without_category}", LivebookDemoLive, :show, %{tag: :docs}}
+                          {"/docs/#{path_without_category}", JidoDocsLive, :show, %{}}
 
                         :cookbook ->
                           {"/cookbook/#{path_without_category}", LivebookDemoLive, :show, %{tag: :cookbook}}

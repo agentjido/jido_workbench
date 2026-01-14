@@ -15,6 +15,18 @@
 //     import "some-package"
 //
 
+// Initialize theme on page load
+(function() {
+  const stored = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  
+  if (stored === 'light' || (!stored && !prefersDark)) {
+    document.documentElement.classList.add('light');
+  } else {
+    document.documentElement.classList.remove('light');
+  }
+})();
+
 // Include phoenix_html to handle method=PUT/DELETE in forms and buttons.
 import "phoenix_html";
 // Establish Phoenix Socket and LiveView configuration.
@@ -34,6 +46,146 @@ let Hooks = {
   ScrollSpy,
   ScrollReveal,
 };
+
+// Theme Toggle Hook
+Hooks.ThemeToggle = {
+  mounted() {
+    const theme = this.el.dataset.theme;
+    
+    // Initialize button state from current theme
+    this.updateButtonStates();
+    
+    this.el.addEventListener("click", () => {
+      const isDark = theme === "dark";
+      if (isDark) {
+        document.documentElement.classList.remove("light");
+        localStorage.setItem("theme", "dark");
+      } else {
+        document.documentElement.classList.add("light");
+        localStorage.setItem("theme", "light");
+      }
+      this.updateButtonStates();
+    });
+  },
+  
+  updateButtonStates() {
+    const isLight = document.documentElement.classList.contains("light");
+    const darkBtn = document.getElementById("theme-dark-btn");
+    const lightBtn = document.getElementById("theme-light-btn");
+    
+    if (darkBtn && lightBtn) {
+      if (isLight) {
+        darkBtn.className = "px-3 py-1.5 rounded text-[10px] font-semibold transition-colors text-muted-foreground hover:text-foreground";
+        lightBtn.className = "px-3 py-1.5 rounded text-[10px] font-semibold transition-colors bg-primary text-primary-foreground";
+      } else {
+        darkBtn.className = "px-3 py-1.5 rounded text-[10px] font-semibold transition-colors bg-primary text-primary-foreground";
+        lightBtn.className = "px-3 py-1.5 rounded text-[10px] font-semibold transition-colors text-muted-foreground hover:text-foreground";
+      }
+    }
+  }
+}
+
+// Scroll Shrink Hook for header
+Hooks.ScrollShrink = {
+  mounted() {
+    this.handleScroll = () => {
+      const isScrolled = window.scrollY > 20;
+      const header = this.el;
+      const nav = header.querySelector("nav");
+      const logo = header.querySelector("a > div:first-child");
+      const logoText = header.querySelector("a > span:first-of-type");
+      
+      if (isScrolled) {
+        header.classList.remove("pt-6", "pb-12");
+        header.classList.add("pt-2", "pb-2");
+        if (nav) {
+          nav.classList.remove("py-5");
+          nav.classList.add("py-3");
+        }
+        if (logo) {
+          logo.classList.remove("w-7", "h-7", "text-sm");
+          logo.classList.add("w-6", "h-6", "text-xs");
+        }
+        if (logoText) {
+          logoText.classList.remove("text-base");
+          logoText.classList.add("text-sm");
+        }
+      } else {
+        header.classList.add("pt-6", "pb-12");
+        header.classList.remove("pt-2", "pb-2");
+        if (nav) {
+          nav.classList.add("py-5");
+          nav.classList.remove("py-3");
+        }
+        if (logo) {
+          logo.classList.add("w-7", "h-7", "text-sm");
+          logo.classList.remove("w-6", "h-6", "text-xs");
+        }
+        if (logoText) {
+          logoText.classList.add("text-base");
+          logoText.classList.remove("text-sm");
+        }
+      }
+    };
+    
+    window.addEventListener("scroll", this.handleScroll);
+    this.handleScroll(); // Initial check
+  },
+  
+  destroyed() {
+    window.removeEventListener("scroll", this.handleScroll);
+  }
+}
+
+// Scroll Reveal Hook for sections
+Hooks.ScrollReveal = {
+  mounted() {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.remove("opacity-0");
+            entry.target.classList.add("animate-fade-in");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+    
+    observer.observe(this.el);
+  }
+}
+
+// Copy Code Hook
+Hooks.CopyCode = {
+  mounted() {
+    this.el.addEventListener("click", () => {
+      // Find the code content - look for data-content attribute or sibling pre/code
+      let content = this.el.dataset.content;
+      
+      if (!content) {
+        const codeBlock = this.el.closest(".code-block");
+        if (codeBlock) {
+          const codeElement = codeBlock.querySelector("pre code") || codeBlock.querySelector("pre");
+          if (codeElement) {
+            content = codeElement.textContent;
+          }
+        }
+      }
+      
+      if (content) {
+        navigator.clipboard.writeText(content).then(() => {
+          const originalText = this.el.textContent;
+          this.el.textContent = "COPIED!";
+          setTimeout(() => {
+            this.el.textContent = originalText;
+          }, 2000);
+        });
+      }
+    });
+  }
+}
 
 let csrfToken = document
   .querySelector("meta[name='csrf-token']")

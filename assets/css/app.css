@@ -186,6 +186,27 @@
   .nav-surface {
     @apply bg-card border border-border rounded-md;
   }
+
+  /* Icon card style */
+  .icon-card {
+    @apply bg-card border border-border rounded-md p-5 transition-colors;
+  }
+  .icon-card:hover {
+    @apply border-primary/40;
+  }
+
+  /* Numbered card for steps */
+  .numbered-card {
+    @apply bg-card border border-border rounded-md p-5;
+  }
+
+  /* Quickstart card */
+  .quickstart-card {
+    @apply bg-card border border-border rounded-md p-4 flex items-center gap-3 transition-colors;
+  }
+  .quickstart-card:hover {
+    @apply border-primary/40;
+  }
 }
 
 @layer utilities {
