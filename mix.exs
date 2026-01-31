@@ -64,7 +64,7 @@ defmodule JidoWorkbench.MixProject do
       # AI
       {:instructor, "~> 0.1.0", override: true},
       {:langchain, "~> 0.3.1", override: true},
-      {:req_llm, "~> 1.0"},
+      {:req_llm, "~> 1.4"},
 
       # Markdown
       {:earmark, "~> 1.4"},
