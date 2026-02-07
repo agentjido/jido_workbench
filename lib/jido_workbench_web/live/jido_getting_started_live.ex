@@ -25,30 +25,28 @@ defmodule JidoWorkbenchWeb.JidoGettingStartedLive do
           <!-- Step 1 -->
           <div>
             <h2 class="text-lg font-bold mb-4 flex items-center gap-3">
-              <span class="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm">1</span>
-              Add Dependencies
+              <span class="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm">1</span> Add Dependencies
             </h2>
             <.code_block
               title="mix.exs"
               code={~s|defp deps do
-  [
+    [
     {:jido, "~> 1.0"},
     {:jido_ai, "~> 1.0"}
-  ]
-end|}
+    ]
+    end|}
             />
           </div>
-
-          <!-- Step 2 -->
+          
+    <!-- Step 2 -->
           <div>
             <h2 class="text-lg font-bold mb-4 flex items-center gap-3">
-              <span class="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm">2</span>
-              Fetch Dependencies
+              <span class="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm">2</span> Fetch Dependencies
             </h2>
             <.terminal_command command="mix deps.get" />
           </div>
-
-          <!-- Step 3 -->
+          
+    <!-- Step 3 -->
           <div>
             <h2 class="text-lg font-bold mb-4 flex items-center gap-3">
               <span class="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm">3</span>
@@ -57,35 +55,37 @@ end|}
             <.code_block
               title="lib/my_app/my_agent.ex"
               code={~s|defmodule MyApp.MyAgent do
-  use Jido.Agent,
+    use Jido.Agent,
     name: "my_agent",
     description: "My first AI agent"
 
-  def handle_signal(:greet, %{name: name}, state) do
+    def handle_signal(:greet, %{name: name}, state) do
     {:ok, "Hello, \#{name}!", state}
-  end
-end|}
+    end
+    end|}
             />
           </div>
-
-          <!-- Step 4 -->
+          
+    <!-- Step 4 -->
           <div>
             <h2 class="text-lg font-bold mb-4 flex items-center gap-3">
-              <span class="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm">4</span>
-              Run Your Agent
+              <span class="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm">4</span> Run Your Agent
             </h2>
             <.code_block
               title="iex -S mix"
               language="elixir"
               code={~s|iex> {:ok, pid} = MyApp.MyAgent.start_link()
-iex> MyApp.MyAgent.signal(pid, :greet, %{name: "World"})
-{:ok, "Hello, World!"}|}
+    iex> MyApp.MyAgent.signal(pid, :greet, %{name: "World"})
+    {:ok, "Hello, World!"}|}
             />
           </div>
         </section>
 
         <section class="text-center pb-16">
-          <.link navigate="/docs" class="bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-bold px-6 py-3 rounded inline-block transition-colors">
+          <.link
+            navigate="/docs"
+            class="bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-bold px-6 py-3 rounded inline-block transition-colors"
+          >
             READ THE DOCS →
           </.link>
         </section>

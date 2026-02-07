@@ -4,7 +4,7 @@ defmodule JidoWorkbenchWeb.CatalogSkillsLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    skills = Jido.list_skills()
+    skills = Jido.Discovery.list_plugins()
 
     {:ok,
      assign(socket,

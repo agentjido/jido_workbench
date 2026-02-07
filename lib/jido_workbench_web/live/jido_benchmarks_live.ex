@@ -82,7 +82,7 @@ defmodule JidoWorkbenchWeb.JidoBenchmarksLive do
             </table>
           </div>
           <p class="text-sm text-muted-foreground mt-4">
-            <strong>Test scenario:</strong> Agent behavior is a simple state machine with periodic work. 
+            <strong>Test scenario:</strong> Agent behavior is a simple state machine with periodic work.
             Measurement via <code class="text-accent-cyan">:observer</code> and telemetry aggregation over 10-minute sustained load.
           </p>
         </section>
@@ -147,7 +147,11 @@ defmodule JidoWorkbenchWeb.JidoBenchmarksLive do
           <div class="code-block overflow-hidden">
             <div class="code-header">
               <span class="text-muted-foreground text-xs">bash</span>
-              <button phx-hook="CopyCode" id="copy-benchmark-code" class="bg-surface border border-border text-secondary-foreground px-3 py-1 rounded text-[10px] hover:text-foreground transition-colors">
+              <button
+                phx-hook="CopyCode"
+                id="copy-benchmark-code"
+                class="bg-surface border border-border text-secondary-foreground px-3 py-1 rounded text-[10px] hover:text-foreground transition-colors"
+              >
                 COPY
               </button>
             </div>
@@ -167,13 +171,24 @@ defmodule JidoWorkbenchWeb.JidoBenchmarksLive do
         <section class="text-center mb-16">
           <h2 class="text-2xl font-bold mb-6">See it in Action</h2>
           <div class="flex flex-wrap justify-center gap-4">
-            <a href="#" class="border border-border text-foreground hover:border-border-strong px-6 py-3 rounded text-sm transition-colors flex items-center gap-2">
+            <a
+              href="#"
+              class="border border-border text-foreground hover:border-border-strong px-6 py-3 rounded text-sm transition-colors flex items-center gap-2"
+            >
               ▶ 10,000 agents with Observer
             </a>
-            <a href="#" class="border border-border text-foreground hover:border-border-strong px-6 py-3 rounded text-sm transition-colors flex items-center gap-2">
+            <a
+              href="#"
+              class="border border-border text-foreground hover:border-border-strong px-6 py-3 rounded text-sm transition-colors flex items-center gap-2"
+            >
               ▶ Node failover in real-time
             </a>
-            <a href="https://github.com/agentjido/benchmarks" target="_blank" rel="noopener noreferrer" class="border border-border text-foreground hover:border-border-strong px-6 py-3 rounded text-sm transition-colors flex items-center gap-2">
+            <a
+              href="https://github.com/agentjido/benchmarks"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="border border-border text-foreground hover:border-border-strong px-6 py-3 rounded text-sm transition-colors flex items-center gap-2"
+            >
               📁 Benchmark repo
             </a>
           </div>

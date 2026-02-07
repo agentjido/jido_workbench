@@ -19,7 +19,7 @@ defmodule JidoWorkbenchWeb.Jido.MarketingCode do
             <span class="w-2.5 h-2.5 rounded-full bg-accent-yellow"></span>
             <span class="w-2.5 h-2.5 rounded-full bg-accent-green"></span>
           </div>
-          <span class="text-[10px] text-muted-foreground"><%= @title %></span>
+          <span class="text-[10px] text-muted-foreground">{@title}</span>
         </div>
       <% end %>
       <pre class="p-5 text-[11px] leading-relaxed overflow-x-auto"><code class={"language-#{@language}"}><%= @code %></code></pre>
@@ -43,7 +43,7 @@ defmodule JidoWorkbenchWeb.Jido.MarketingCode do
       </div>
       <div class="p-5 text-[11px] leading-relaxed">
         <span class="text-primary">$</span>
-        <span class="text-foreground ml-2"><%= @command %></span>
+        <span class="text-foreground ml-2">{@command}</span>
       </div>
     </div>
     """
@@ -58,15 +58,15 @@ defmodule JidoWorkbenchWeb.Jido.MarketingCode do
       <%= for {step, index} <- Enum.with_index(@steps, 1) do %>
         <div class="flex gap-4 items-start">
           <div class="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold shrink-0">
-            <%= index %>
+            {index}
           </div>
           <div class="flex-1">
-            <p class="text-sm font-medium text-foreground mb-2"><%= step.title %></p>
+            <p class="text-sm font-medium text-foreground mb-2">{step.title}</p>
             <%= if step[:code] do %>
               <.terminal_command command={step.code} />
             <% end %>
             <%= if step[:description] do %>
-              <p class="text-xs text-muted-foreground mt-2"><%= step.description %></p>
+              <p class="text-xs text-muted-foreground mt-2">{step.description}</p>
             <% end %>
           </div>
         </div>

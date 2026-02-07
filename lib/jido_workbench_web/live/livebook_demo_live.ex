@@ -111,22 +111,22 @@ defmodule JidoWorkbenchWeb.LivebookDemoLive do
          socket
          |> put_flash(:error, "Error loading document")
          |> push_navigate(to: "/#{type}")}
-        end
-        end
+    end
+  end
 
-        # @doc """
-        # Gets the route tag from the URI path.
-        # Returns :docs for /docs/* paths and :cookbook for /cookbook/* paths.
-        #
-        # ## Examples
-        #
-        #     iex> get_route_tag(%URI{path: "/docs/getting-started"})
-        #     :docs
-        #
-        #     iex> get_route_tag(%URI{path: "/cookbook/tool-use-intro"})
-        #     :cookbook
-        # """
-        defp get_route_tag(uri) do
+  # @doc """
+  # Gets the route tag from the URI path.
+  # Returns :docs for /docs/* paths and :cookbook for /cookbook/* paths.
+  #
+  # ## Examples
+  #
+  #     iex> get_route_tag(%URI{path: "/docs/getting-started"})
+  #     :docs
+  #
+  #     iex> get_route_tag(%URI{path: "/cookbook/tool-use-intro"})
+  #     :cookbook
+  # """
+  defp get_route_tag(uri) do
     # Extract the first part of the path to determine if we're in docs or cookbook
     path = URI.parse(uri).path || "/"
     base_path = path |> String.split("/") |> Enum.at(1, "")

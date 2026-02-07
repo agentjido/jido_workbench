@@ -40,14 +40,13 @@ defmodule JidoWorkbench.MixProject do
       {:heroicons, github: "tailwindlabs/heroicons", tag: "v2.1.5", app: false, compile: false, sparse: "optimized"},
       {:floki, "~> 0.35"},
       {:lazy_html, ">= 0.0.0", only: :test},
-      {:petal_components, "~> 3.0.1"},
+      {:petal_components, "~> 2.8"},
 
       # HTTP / Server
       {:plug_cowboy, "~> 2.5"},
       {:plug_canonical_host, "~> 2.0"},
       {:phoenix_seo, "~> 0.1.11"},
       {:finch, "~> 0.13"},
-      {:httpoison, "~> 2.0"},
       {:swoosh, "~> 1.5"},
 
       # Assets
@@ -68,8 +67,6 @@ defmodule JidoWorkbench.MixProject do
 
       # AI / Jido
       {:jido, "~> 2.0.0-rc.4"},
-      {:jido_ai, github: "agentjido/jido_ai", branch: "main"},
-      {:req_llm, "~> 1.5"},
 
       # Config / Env
       {:dotenvy, "~> 1.0"},

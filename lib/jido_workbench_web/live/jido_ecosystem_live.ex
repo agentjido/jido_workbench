@@ -180,10 +180,10 @@ defmodule JidoWorkbenchWeb.JidoEcosystemLive do
                      │
         ┌────────────┴────────────┐
         │                         │
- ┌──────▼──────┐          ┌───────▼──────┐
- │  <span class="text-accent-cyan">req_llm</span>   │          │    <span class="text-accent-cyan">llmdb</span>    │
- │ <span class="text-muted-foreground">HTTP client</span>│          │ <span class="text-muted-foreground">model registry</span>│
- └─────────────┘          └──────────────┘
+    ┌──────▼──────┐          ┌───────▼──────┐
+    │  <span class="text-accent-cyan">req_llm</span>   │          │    <span class="text-accent-cyan">llmdb</span>    │
+    │ <span class="text-muted-foreground">HTTP client</span>│          │ <span class="text-muted-foreground">model registry</span>│
+    └─────────────┘          └──────────────┘
     """)
   end
 
@@ -214,13 +214,21 @@ defmodule JidoWorkbenchWeb.JidoEcosystemLive do
         name: "jido_action",
         desc: "Schema-based action validation. Required fields, defaults, type constraints. Composable action primitives.",
         layer: :core,
-        links: %{"hex" => "https://hex.pm/packages/jido_action", "docs" => "/docs/packages/jido-action", "github" => "https://github.com/agentjido/jido"}
+        links: %{
+          "hex" => "https://hex.pm/packages/jido_action",
+          "docs" => "/docs/packages/jido-action",
+          "github" => "https://github.com/agentjido/jido"
+        }
       },
       %{
         name: "jido_signal",
         desc: "Pub/sub signaling between agents. Decoupled coordination via BEAM message-passing. No external broker.",
         layer: :core,
-        links: %{"hex" => "https://hex.pm/packages/jido_signal", "docs" => "/docs/packages/jido-signal", "github" => "https://github.com/agentjido/jido"}
+        links: %{
+          "hex" => "https://hex.pm/packages/jido_signal",
+          "docs" => "/docs/packages/jido-signal",
+          "github" => "https://github.com/agentjido/jido"
+        }
       },
       %{
         name: "jido_ai",
@@ -232,7 +240,11 @@ defmodule JidoWorkbenchWeb.JidoEcosystemLive do
         name: "jido_coder",
         desc: "AI coding agent with file operations, git integration, code analysis, and test execution workflows.",
         layer: :app,
-        links: %{"hex" => "https://hex.pm/packages/jido_coder", "docs" => "/docs/packages/jido-coder", "github" => "https://github.com/agentjido/jido_coder"}
+        links: %{
+          "hex" => "https://hex.pm/packages/jido_coder",
+          "docs" => "/docs/packages/jido-coder",
+          "github" => "https://github.com/agentjido/jido_coder"
+        }
       }
     ]
   end

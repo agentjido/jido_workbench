@@ -4,7 +4,7 @@ defmodule JidoWorkbenchWeb.CatalogActionsLive do
 
   @impl true
   def mount(params, _session, socket) do
-    actions = Jido.list_actions()
+    actions = Jido.Discovery.list_actions()
 
     # Get search term from URL params or default to empty
     search_term = Map.get(params, "search", "")

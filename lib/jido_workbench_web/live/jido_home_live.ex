@@ -42,22 +42,25 @@ defmodule JidoWorkbenchWeb.JidoHomeLive do
       </div>
 
       <h1 class="text-4xl sm:text-[42px] font-bold leading-tight mb-5 tracking-tight">
-        From <span class="text-accent-cyan">LLM calls</span> to
-        <br />
+        From <span class="text-accent-cyan">LLM calls</span> to <br />
         <span class="text-primary">autonomous agents</span>
       </h1>
 
       <p class="text-secondary-foreground text-[15px] leading-relaxed mb-8 max-w-lg mx-auto">
-        7 composable packages. One unified stack.
-        <br />
-        Run 10,000+ agents on a single BEAM node.
+        7 composable packages. One unified stack. <br /> Run 10,000+ agents on a single BEAM node.
       </p>
 
       <div class="flex gap-3 justify-center mb-12">
-        <.link navigate="/ecosystem" class="bg-primary text-primary-foreground hover:bg-primary/90 text-[13px] font-bold px-7 py-5 rounded transition-colors">
+        <.link
+          navigate="/ecosystem"
+          class="bg-primary text-primary-foreground hover:bg-primary/90 text-[13px] font-bold px-7 py-5 rounded transition-colors"
+        >
           EXPLORE ECOSYSTEM →
         </.link>
-        <.link navigate="/benchmarks" class="border-2 border-accent-yellow text-accent-yellow hover:bg-accent-yellow/10 text-[13px] font-semibold px-6 py-5 rounded transition-colors">
+        <.link
+          navigate="/benchmarks"
+          class="border-2 border-accent-yellow text-accent-yellow hover:bg-accent-yellow/10 text-[13px] font-semibold px-6 py-5 rounded transition-colors"
+        >
           VIEW BENCHMARKS
         </.link>
       </div>
@@ -90,8 +93,8 @@ defmodule JidoWorkbenchWeb.JidoHomeLive do
           view all →
         </.link>
       </div>
-
-      <!-- Row 1: App + AI -->
+      
+    <!-- Row 1: App + AI -->
       <div class="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-3 mb-3">
         <.package_card
           name="jido_coder"
@@ -114,8 +117,8 @@ defmodule JidoWorkbenchWeb.JidoHomeLive do
           />
         </div>
       </div>
-
-      <!-- Row 2: Core -->
+      
+    <!-- Row 2: Core -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
         <.package_card
           name="jido"
@@ -136,8 +139,8 @@ defmodule JidoWorkbenchWeb.JidoHomeLive do
           links={%{}}
         />
       </div>
-
-      <!-- Row 3: Foundation -->
+      
+    <!-- Row 3: Foundation -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <.package_card
           name="req_llm"
@@ -321,9 +324,9 @@ defmodule JidoWorkbenchWeb.JidoHomeLive do
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <%= for feature <- @features do %>
           <div class="feature-card text-center">
-            <div class={"text-2xl mb-4 #{feature.color_class}"}><%= feature.icon %></div>
-            <div class="font-bold text-[13px] mb-2"><%= feature.title %></div>
-            <p class="text-muted-foreground text-xs leading-relaxed"><%= feature.desc %></p>
+            <div class={"text-2xl mb-4 #{feature.color_class}"}>{feature.icon}</div>
+            <div class="font-bold text-[13px] mb-2">{feature.title}</div>
+            <p class="text-muted-foreground text-xs leading-relaxed">{feature.desc}</p>
           </div>
         <% end %>
       </div>
@@ -440,10 +443,16 @@ defmodule JidoWorkbenchWeb.JidoHomeLive do
           Start with the getting started guide or explore production examples.
         </p>
         <div class="flex gap-3 justify-center">
-          <.link navigate="/getting-started" class="bg-primary text-primary-foreground hover:bg-primary/90 text-[13px] font-bold px-7 py-5 rounded transition-colors">
+          <.link
+            navigate="/getting-started"
+            class="bg-primary text-primary-foreground hover:bg-primary/90 text-[13px] font-bold px-7 py-5 rounded transition-colors"
+          >
             $ mix jido.new my_app
           </.link>
-          <.link navigate="/docs" class="border border-accent-cyan text-accent-cyan hover:bg-accent-cyan/10 text-[13px] font-medium px-7 py-5 rounded transition-colors">
+          <.link
+            navigate="/docs"
+            class="border border-accent-cyan text-accent-cyan hover:bg-accent-cyan/10 text-[13px] font-medium px-7 py-5 rounded transition-colors"
+          >
             READ THE DOCS
           </.link>
         </div>

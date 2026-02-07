@@ -68,7 +68,7 @@ defmodule JidoWorkbenchWeb.Menu do
     ~H"""
     <nav :if={@menu_items != []} class="menu-group">
       <h3 :if={@title != ""} class="menu-group-title">
-        <%= @title %>
+        {@title}
       </h3>
 
       <div class="menu-items">
@@ -107,7 +107,7 @@ defmodule JidoWorkbenchWeb.Menu do
           @active && !@exact_match && @has_children && "parent-active"
         ]}
       >
-        <%= @label %>
+        {@label}
       </.a>
 
       <%= if @menu_items do %>

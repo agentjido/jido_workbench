@@ -13,14 +13,14 @@ defmodule JidoWorkbenchWeb.Jido.MarketingCards do
     ~H"""
     <div class={"package-card-#{@layer} hover:-translate-y-0.5 cursor-pointer transition-transform duration-200"}>
       <div class="flex justify-between items-start mb-3">
-        <span class="text-sm font-bold text-foreground"><%= @name %></span>
+        <span class="text-sm font-bold text-foreground">{@name}</span>
         <.layer_badge layer={@layer} />
       </div>
-      <p class="text-xs text-muted-foreground leading-relaxed mb-4"><%= @desc %></p>
+      <p class="text-xs text-muted-foreground leading-relaxed mb-4">{@desc}</p>
       <div class="flex gap-2 flex-wrap">
         <%= for {label, href} <- @links do %>
           <a href={href} target="_blank" class="text-[10px] px-2 py-1 rounded bg-elevated text-muted-foreground hover:text-primary transition-colors">
-            <%= label %>
+            {label}
           </a>
         <% end %>
       </div>
@@ -32,7 +32,7 @@ defmodule JidoWorkbenchWeb.Jido.MarketingCards do
 
   def layer_badge(assigns) do
     ~H"""
-    <span class={"badge-#{@layer} uppercase"}><%= @layer %></span>
+    <span class={"badge-#{@layer} uppercase"}>{@layer}</span>
     """
   end
 
@@ -44,10 +44,10 @@ defmodule JidoWorkbenchWeb.Jido.MarketingCards do
     ~H"""
     <div class="metric-card rounded-md">
       <div class={"text-xl sm:text-[22px] font-bold #{@color_class}"}>
-        <%= @value %>
+        {@value}
       </div>
       <div class="text-[10px] text-muted-foreground uppercase tracking-wider mt-1.5">
-        <%= @label %>
+        {@label}
       </div>
     </div>
     """
@@ -59,7 +59,7 @@ defmodule JidoWorkbenchWeb.Jido.MarketingCards do
   def feature_card(assigns) do
     ~H"""
     <div class={"feature-card #{@class}"}>
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </div>
     """
   end
@@ -73,10 +73,10 @@ defmodule JidoWorkbenchWeb.Jido.MarketingCards do
     ~H"""
     <div class={"bg-card border border-border rounded-md p-6 #{@class}"}>
       <%= if @icon do %>
-        <div class="text-primary mb-3 text-2xl"><%= @icon %></div>
+        <div class="text-primary mb-3 text-2xl">{@icon}</div>
       <% end %>
-      <h3 class="text-sm font-bold text-foreground mb-2"><%= @title %></h3>
-      <p class="text-xs text-muted-foreground leading-relaxed"><%= @description %></p>
+      <h3 class="text-sm font-bold text-foreground mb-2">{@title}</h3>
+      <p class="text-xs text-muted-foreground leading-relaxed">{@description}</p>
     </div>
     """
   end

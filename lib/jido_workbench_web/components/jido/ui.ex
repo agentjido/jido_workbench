@@ -24,7 +24,7 @@ defmodule JidoWorkbenchWeb.Jido.UI do
       ]}
       {@rest}
     >
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </button>
     """
   end
@@ -47,9 +47,9 @@ defmodule JidoWorkbenchWeb.Jido.UI do
     ~H"""
     <span class={["badge-#{@kind}", @class]}>
       <%= if @inner_block != [] do %>
-        <%= render_slot(@inner_block) %>
+        {render_slot(@inner_block)}
       <% else %>
-        <%= String.upcase(to_string(@kind)) %>
+        {String.upcase(to_string(@kind))}
       <% end %>
     </span>
     """
@@ -67,9 +67,9 @@ defmodule JidoWorkbenchWeb.Jido.UI do
     <div class={["code-block overflow-hidden", @class]}>
       <%= if @title do %>
         <div class="code-header">
-          <span class="text-muted-foreground text-xs"><%= @title %></span>
+          <span class="text-muted-foreground text-xs">{@title}</span>
           <div class="flex items-center gap-3">
-            <span class="text-muted-foreground text-[10px] uppercase tracking-widest"><%= @language %></span>
+            <span class="text-muted-foreground text-[10px] uppercase tracking-widest">{@language}</span>
             <%= if @show_copy do %>
               <button
                 phx-hook="CopyCode"
@@ -101,15 +101,15 @@ defmodule JidoWorkbenchWeb.Jido.UI do
     ~H"""
     <%= if @href do %>
       <.link navigate={@href} class={["icon-card block cursor-pointer", @class]}>
-        <div class={"text-2xl mb-3 #{@icon_color}"}><%= @icon %></div>
-        <div class="font-bold text-[13px] mb-2 text-foreground"><%= @title %></div>
-        <p class="text-muted-foreground text-xs leading-relaxed"><%= @description %></p>
+        <div class={"text-2xl mb-3 #{@icon_color}"}>{@icon}</div>
+        <div class="font-bold text-[13px] mb-2 text-foreground">{@title}</div>
+        <p class="text-muted-foreground text-xs leading-relaxed">{@description}</p>
       </.link>
     <% else %>
       <div class={["icon-card", @class]}>
-        <div class={"text-2xl mb-3 #{@icon_color}"}><%= @icon %></div>
-        <div class="font-bold text-[13px] mb-2 text-foreground"><%= @title %></div>
-        <p class="text-muted-foreground text-xs leading-relaxed"><%= @description %></p>
+        <div class={"text-2xl mb-3 #{@icon_color}"}>{@icon}</div>
+        <div class="font-bold text-[13px] mb-2 text-foreground">{@title}</div>
+        <p class="text-muted-foreground text-xs leading-relaxed">{@description}</p>
       </div>
     <% end %>
     """
@@ -129,20 +129,20 @@ defmodule JidoWorkbenchWeb.Jido.UI do
       3 => "text-accent-cyan border-accent-cyan/30",
       4 => "text-accent-red border-accent-red/30"
     }
-    
+
     color_class = Map.get(number_colors, assigns.number, "text-primary border-primary/30")
     assigns = assign(assigns, :color_class, color_class)
-    
+
     ~H"""
     <%= if @href do %>
       <.link navigate={@href} class={["numbered-card block cursor-pointer hover:border-border-strong transition-colors", @class]}>
         <div class="flex items-start gap-4">
           <div class={"w-8 h-8 rounded-full border flex items-center justify-center text-sm font-bold #{@color_class}"}>
-            <%= @number %>
+            {@number}
           </div>
           <div class="flex-1">
-            <div class="font-bold text-[13px] mb-1 text-foreground"><%= @title %></div>
-            <p class="text-muted-foreground text-xs leading-relaxed"><%= @description %></p>
+            <div class="font-bold text-[13px] mb-1 text-foreground">{@title}</div>
+            <p class="text-muted-foreground text-xs leading-relaxed">{@description}</p>
           </div>
         </div>
       </.link>
@@ -150,11 +150,11 @@ defmodule JidoWorkbenchWeb.Jido.UI do
       <div class={["numbered-card", @class]}>
         <div class="flex items-start gap-4">
           <div class={"w-8 h-8 rounded-full border flex items-center justify-center text-sm font-bold #{@color_class}"}>
-            <%= @number %>
+            {@number}
           </div>
           <div class="flex-1">
-            <div class="font-bold text-[13px] mb-1 text-foreground"><%= @title %></div>
-            <p class="text-muted-foreground text-xs leading-relaxed"><%= @description %></p>
+            <div class="font-bold text-[13px] mb-1 text-foreground">{@title}</div>
+            <p class="text-muted-foreground text-xs leading-relaxed">{@description}</p>
           </div>
         </div>
       </div>
@@ -172,13 +172,13 @@ defmodule JidoWorkbenchWeb.Jido.UI do
     ~H"""
     <%= if @href do %>
       <.link navigate={@href} class={["quickstart-card cursor-pointer", @class]}>
-        <span class="text-xl"><%= @emoji %></span>
-        <span class="text-sm font-medium text-foreground"><%= @title %></span>
+        <span class="text-xl">{@emoji}</span>
+        <span class="text-sm font-medium text-foreground">{@title}</span>
       </.link>
     <% else %>
       <div class={["quickstart-card", @class]}>
-        <span class="text-xl"><%= @emoji %></span>
-        <span class="text-sm font-medium text-foreground"><%= @title %></span>
+        <span class="text-xl">{@emoji}</span>
+        <span class="text-sm font-medium text-foreground">{@title}</span>
       </div>
     <% end %>
     """
@@ -194,14 +194,14 @@ defmodule JidoWorkbenchWeb.Jido.UI do
     ~H"""
     <div class="flex justify-between items-center mb-6">
       <div>
-        <span class="font-bold text-sm tracking-wider"><%= @title %></span>
+        <span class="font-bold text-sm tracking-wider">{@title}</span>
         <%= if @subtitle do %>
-          <span class="text-muted-foreground text-xs ml-4"><%= @subtitle %></span>
+          <span class="text-muted-foreground text-xs ml-4">{@subtitle}</span>
         <% end %>
       </div>
       <%= if @link_text && @link_href do %>
         <.link navigate={@link_href} class="text-primary text-xs hover:underline">
-          <%= @link_text %>
+          {@link_text}
         </.link>
       <% end %>
     </div>

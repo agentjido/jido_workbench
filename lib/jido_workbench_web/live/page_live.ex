@@ -47,8 +47,8 @@ defmodule JidoWorkbenchWeb.PageLive do
       </.dropdown>
 
       <.h2 underline class="mt-10" label="Modal" />
-
-      <!--
+      
+    <!--
       <.button label="sm" link_type="live_patch" to={~p"/live/modal/sm"} />
       <.button label="md" link_type="live_patch" to={~p"/live/modal/md"} />
       <.button label="lg" link_type="live_patch" to={~p"/live/modal/lg"} />
@@ -79,8 +79,8 @@ defmodule JidoWorkbenchWeb.PageLive do
       <% end %>
 
       <.h2 underline class="mt-10" label="SlideOver" />
-
-      <!--
+      
+    <!--
       <.button label="left" link_type="live_patch" to={~p"/live/slide_over/left"} />
       <.button label="top" link_type="live_patch" to={~p"/live/slide_over/top"} />
       <.button label="right" link_type="live_patch" to={~p"/live/slide_over/right"} />

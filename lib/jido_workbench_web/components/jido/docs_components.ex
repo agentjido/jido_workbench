@@ -28,13 +28,13 @@ defmodule JidoWorkbenchWeb.Jido.DocsComponents do
               navigate={item}
               class={"text-xs transition-colors #{if @current_path && String.starts_with?(@current_path, item), do: "text-primary font-semibold", else: "text-muted-foreground hover:text-foreground"}"}
             >
-              <%= String.replace_prefix(item, "/", "") %>
+              {String.replace_prefix(item, "/", "")}
             </.link>
           <% end %>
         </div>
       </div>
-
-      <!-- Right: Search + Ask AI -->
+      
+    <!-- Right: Search + Ask AI -->
       <div class="flex items-center gap-3">
         <!-- Search Box -->
         <div class="hidden md:flex items-center gap-2 bg-elevated border border-border rounded px-3 py-2 min-w-[200px] cursor-pointer hover:border-muted-foreground transition-colors">
@@ -44,11 +44,10 @@ defmodule JidoWorkbenchWeb.Jido.DocsComponents do
             ⌘K
           </kbd>
         </div>
-
-        <!-- Ask AI Button -->
+        
+    <!-- Ask AI Button -->
         <button class="hidden md:flex items-center gap-2 bg-primary/10 border border-primary/30 rounded px-3 py-2 text-xs text-primary font-medium hover:bg-primary/20 transition-colors">
-          <.icon name="hero-sparkles" class="h-3 w-3" />
-          Ask AI
+          <.icon name="hero-sparkles" class="h-3 w-3" /> Ask AI
         </button>
 
         <a
@@ -120,8 +119,7 @@ defmodule JidoWorkbenchWeb.Jido.DocsComponents do
           <!-- Jido Docs header -->
           <div class="flex items-center justify-between px-4 mb-4">
             <.link navigate="/docs" class="flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors">
-              <.icon name="hero-home" class="h-4 w-4" />
-              Jido Docs
+              <.icon name="hero-home" class="h-4 w-4" /> Jido Docs
             </.link>
             <button
               phx-click="toggle_sidebar"
@@ -235,8 +233,8 @@ defmodule JidoWorkbenchWeb.Jido.DocsComponents do
           </nav>
         </div>
       <% end %>
-
-      <!-- Quick Links -->
+      
+    <!-- Quick Links -->
       <div class="p-4 rounded-md bg-card border border-border">
         <div class="text-[10px] font-semibold text-muted-foreground mb-2">
           QUICK LINKS

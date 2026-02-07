@@ -37,7 +37,6 @@ defmodule JidoWorkbenchWeb.Router do
     plug(:put_root_layout, {JidoWorkbenchWeb.Layouts, :root})
     plug(:protect_from_forgery)
     plug(:put_secure_browser_headers)
-    plug(JidoWorkbenchWeb.Plugs.LLMKeysPlug)
   end
 
   pipeline :api do
@@ -55,8 +54,6 @@ defmodule JidoWorkbenchWeb.Router do
     live "/partners", JidoPartnersLive, :index
     get("/discord", PageController, :discord)
     live("/settings", SettingsLive, :index)
-    get("/settings/clear", LLMKeyController, :clear_session)
-    post("/settings/save", LLMKeyController, :save_settings)
 
     get("/blog", BlogController, :index)
     get("/blog/tags/:tag", BlogController, :tag)

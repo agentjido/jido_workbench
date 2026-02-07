@@ -26,9 +26,9 @@ config :jido_workbench, JidoWorkbenchWeb.Endpoint,
 # at the `config/runtime.exs`.
 config :jido_workbench, JidoWorkbench.Mailer, adapter: Swoosh.Adapters.Local
 
-config :jido_workbench, :agent_jido,
-  agent_id: "agent_jido",
-  room_id: "agent_jido_chat_room"
+config :jido_workbench, JidoWorkbench.Jido,
+  max_tasks: 1000,
+  agent_pools: []
 
 # Configure esbuild (the version is required)
 config :esbuild,

@@ -87,15 +87,16 @@ defmodule JidoWorkbenchWeb.JidoExamplesLive do
   end
 
   attr :example, :map, required: true
+
   defp example_card(assigns) do
     ~H"""
     <div class="feature-card">
       <div class="flex justify-between items-start mb-3">
-        <span class="text-lg"><%= @example.emoji %></span>
-        <span class={"badge-#{@example.layer}"}><%= String.upcase(to_string(@example.layer)) %></span>
+        <span class="text-lg">{@example.emoji}</span>
+        <span class={"badge-#{@example.layer}"}>{String.upcase(to_string(@example.layer))}</span>
       </div>
-      <h3 class="font-bold text-[15px] mb-2"><%= @example.title %></h3>
-      <p class="text-muted-foreground text-xs leading-relaxed mb-4"><%= @example.desc %></p>
+      <h3 class="font-bold text-[15px] mb-2">{@example.title}</h3>
+      <p class="text-muted-foreground text-xs leading-relaxed mb-4">{@example.desc}</p>
       <div class="flex gap-2">
         <a href={@example.livebook_url} class="text-[10px] px-2 py-1 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
           Livebook
@@ -110,28 +111,112 @@ defmodule JidoWorkbenchWeb.JidoExamplesLive do
 
   defp getting_started_examples do
     [
-      %{emoji: "👋", title: "Hello Agent", desc: "Your first Jido agent in 5 lines. Covers basic setup and message passing.", layer: :core, livebook_url: "#", github_url: "#"},
-      %{emoji: "🔄", title: "State Machines", desc: "Build agents with state transitions. Finite state machine patterns.", layer: :core, livebook_url: "#", github_url: "#"},
-      %{emoji: "📡", title: "Signal & Respond", desc: "Pub/sub patterns between agents. Event-driven coordination.", layer: :core, livebook_url: "#", github_url: "#"},
-      %{emoji: "⚡", title: "Action Pipelines", desc: "Compose actions into workflows. Validation and error handling.", layer: :core, livebook_url: "#", github_url: "#"}
+      %{
+        emoji: "👋",
+        title: "Hello Agent",
+        desc: "Your first Jido agent in 5 lines. Covers basic setup and message passing.",
+        layer: :core,
+        livebook_url: "#",
+        github_url: "#"
+      },
+      %{
+        emoji: "🔄",
+        title: "State Machines",
+        desc: "Build agents with state transitions. Finite state machine patterns.",
+        layer: :core,
+        livebook_url: "#",
+        github_url: "#"
+      },
+      %{
+        emoji: "📡",
+        title: "Signal & Respond",
+        desc: "Pub/sub patterns between agents. Event-driven coordination.",
+        layer: :core,
+        livebook_url: "#",
+        github_url: "#"
+      },
+      %{
+        emoji: "⚡",
+        title: "Action Pipelines",
+        desc: "Compose actions into workflows. Validation and error handling.",
+        layer: :core,
+        livebook_url: "#",
+        github_url: "#"
+      }
     ]
   end
 
   defp ai_examples do
     [
-      %{emoji: "💬", title: "Chat Agent", desc: "Multi-turn conversations with memory. Token budget management.", layer: :ai, livebook_url: "#", github_url: "#"},
-      %{emoji: "🔧", title: "Tool Calling", desc: "Agents that call tools and functions. Structured outputs.", layer: :ai, livebook_url: "#", github_url: "#"},
-      %{emoji: "📊", title: "Research Agent", desc: "Web search, summarization, report generation. Real-world workflow.", layer: :ai, livebook_url: "#", github_url: "#"},
-      %{emoji: "🤖", title: "Multi-Agent", desc: "Orchestrate multiple AI agents. Delegation and coordination.", layer: :ai, livebook_url: "#", github_url: "#"}
+      %{
+        emoji: "💬",
+        title: "Chat Agent",
+        desc: "Multi-turn conversations with memory. Token budget management.",
+        layer: :ai,
+        livebook_url: "#",
+        github_url: "#"
+      },
+      %{
+        emoji: "🔧",
+        title: "Tool Calling",
+        desc: "Agents that call tools and functions. Structured outputs.",
+        layer: :ai,
+        livebook_url: "#",
+        github_url: "#"
+      },
+      %{
+        emoji: "📊",
+        title: "Research Agent",
+        desc: "Web search, summarization, report generation. Real-world workflow.",
+        layer: :ai,
+        livebook_url: "#",
+        github_url: "#"
+      },
+      %{
+        emoji: "🤖",
+        title: "Multi-Agent",
+        desc: "Orchestrate multiple AI agents. Delegation and coordination.",
+        layer: :ai,
+        livebook_url: "#",
+        github_url: "#"
+      }
     ]
   end
 
   defp production_examples do
     [
-      %{emoji: "📈", title: "Supervision Trees", desc: "Production supervision strategies. Restart policies and isolation.", layer: :core, livebook_url: "#", github_url: "#"},
-      %{emoji: "📊", title: "Telemetry & Metrics", desc: "Observability patterns. Grafana dashboards and alerting.", layer: :core, livebook_url: "#", github_url: "#"},
-      %{emoji: "🔒", title: "Rate Limiting", desc: "LLM API rate limiting and cost control. Budget enforcement.", layer: :ai, livebook_url: "#", github_url: "#"},
-      %{emoji: "🌐", title: "Distributed Agents", desc: "Multi-node agent deployment. Failover and redistribution.", layer: :core, livebook_url: "#", github_url: "#"}
+      %{
+        emoji: "📈",
+        title: "Supervision Trees",
+        desc: "Production supervision strategies. Restart policies and isolation.",
+        layer: :core,
+        livebook_url: "#",
+        github_url: "#"
+      },
+      %{
+        emoji: "📊",
+        title: "Telemetry & Metrics",
+        desc: "Observability patterns. Grafana dashboards and alerting.",
+        layer: :core,
+        livebook_url: "#",
+        github_url: "#"
+      },
+      %{
+        emoji: "🔒",
+        title: "Rate Limiting",
+        desc: "LLM API rate limiting and cost control. Budget enforcement.",
+        layer: :ai,
+        livebook_url: "#",
+        github_url: "#"
+      },
+      %{
+        emoji: "🌐",
+        title: "Distributed Agents",
+        desc: "Multi-node agent deployment. Failover and redistribution.",
+        layer: :core,
+        livebook_url: "#",
+        github_url: "#"
+      }
     ]
   end
 end

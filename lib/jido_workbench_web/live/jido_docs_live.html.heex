@@ -1,8 +1,8 @@
 <div class="min-h-screen bg-background flex flex-col">
   <!-- Docs Header -->
   <.docs_header current_path={@request_path} />
-
-  <!-- Secondary Navigation -->
+  
+<!-- Secondary Navigation -->
   <.docs_secondary_nav current_path={@request_path} />
 
   <div class="flex flex-1">
@@ -12,8 +12,8 @@
       current_path={@request_path}
       open={@sidebar_open}
     />
-
-    <!-- Main Content -->
+    
+<!-- Main Content -->
     <main class="flex-1 min-w-0 flex flex-col items-center">
       <div class="flex-1 max-w-[900px] px-8 lg:px-16 py-12 w-full">
         <%= if @selected_document do %>
@@ -46,8 +46,8 @@
                 Run <span class="text-primary">10,000+ supervised agents</span> on a single node
                 with OTP supervision, isolated processes, and native concurrency.
               </p>
-
-              <!-- Quick Install CTA -->
+              
+<!-- Quick Install CTA -->
               <div class="rounded-md p-5 mb-8 bg-primary/[0.08] border border-primary/20">
                 <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div>
@@ -66,8 +66,8 @@
                 </div>
               </div>
             </section>
-
-            <!-- Get Started Section -->
+            
+<!-- Get Started Section -->
             <section id="get-started" class="mb-12">
               <h2 class="text-lg font-bold mb-5 flex items-center gap-2">
                 <span class="text-primary">#</span> Get Started
@@ -100,8 +100,8 @@
                 />
               </div>
             </section>
-
-            <!-- Package Ecosystem -->
+            
+<!-- Package Ecosystem -->
             <section id="package-ecosystem" class="mb-12">
               <h2 class="text-lg font-bold mb-5 flex items-center gap-2">
                 <span class="text-accent-yellow">#</span> Package Ecosystem
@@ -138,8 +138,8 @@
                 />
               </div>
             </section>
-
-            <!-- Quickstarts -->
+            
+<!-- Quickstarts -->
             <section id="quickstarts" class="mb-12">
               <div class="flex items-center justify-between mb-5">
                 <h2 class="text-lg font-bold flex items-center gap-2">
@@ -193,8 +193,8 @@
                 />
               </div>
             </section>
-
-            <!-- Explore the Docs -->
+            
+<!-- Explore the Docs -->
             <section id="explore-docs" class="mb-12">
               <h2 class="text-lg font-bold mb-5 flex items-center gap-2">
                 <span class="text-accent-red">#</span> Explore the Docs
@@ -245,8 +245,8 @@
                 />
               </div>
             </section>
-
-            <!-- Quick Example -->
+            
+<!-- Quick Example -->
             <section id="quick-example" class="mb-12">
               <h2 class="text-lg font-bold mb-5 flex items-center gap-2">
                 <span class="text-primary">#</span> Quick Example
@@ -277,8 +277,8 @@ sup = Jido.Supervisor.start_link()
   Jido.start_agent(sup, WeatherAgent, location: city)
 <span class="text-code-keyword">end</span></code></pre>
               </div>
-
-              <!-- Metrics -->
+              
+<!-- Metrics -->
               <div class="grid grid-cols-3 gap-px mt-4 bg-border rounded-md overflow-hidden">
                 <div class="bg-card p-4 text-center">
                   <div class="text-lg font-bold text-primary">5,000</div>
@@ -300,8 +300,8 @@ sup = Jido.Supervisor.start_link()
                 </div>
               </div>
             </section>
-
-            <!-- Community Section -->
+            
+<!-- Community Section -->
             <section id="community" class="mb-12">
               <h2 class="text-lg font-bold mb-5 flex items-center gap-2">
                 <span class="text-accent-cyan">#</span> Join the Community
@@ -339,8 +339,8 @@ sup = Jido.Supervisor.start_link()
           </div>
         <% end %>
       </div>
-
-      <!-- Footer -->
+      
+<!-- Footer -->
       <footer class="border-t border-border py-6 px-8 lg:px-16 w-full">
         <div class="flex items-center justify-between text-[11px] text-muted-foreground">
           <span>Last updated: January 2026</span>
@@ -355,11 +355,10 @@ sup = Jido.Supervisor.start_link()
         </div>
       </footer>
     </main>
-
-    <!-- Right Sidebar (On This Page) -->
+    
+<!-- Right Sidebar (On This Page) -->
     <%= if @toc && @toc != [] do %>
       <.docs_right_sidebar toc={@toc} />
     <% end %>
   </div>
 </div>
-

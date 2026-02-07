@@ -4,7 +4,7 @@ defmodule JidoWorkbenchWeb.CatalogAgentsLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    agents = Jido.list_agents()
+    agents = Jido.Discovery.list_agents()
 
     {:ok,
      assign(socket,

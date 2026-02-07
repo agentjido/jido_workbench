@@ -4,7 +4,7 @@ defmodule JidoWorkbenchWeb.CatalogSensorsLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    sensors = Jido.list_sensors()
+    sensors = Jido.Discovery.list_sensors()
 
     {:ok,
      assign(socket,
