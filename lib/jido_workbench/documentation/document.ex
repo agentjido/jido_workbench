@@ -1,27 +1,66 @@
 defmodule JidoWorkbench.Documentation.Document do
+  @moduledoc """
+  Represents a documentation document parsed from a Markdown or Livebook file.
+
+  ## Fields
+
+  - `id` - Unique identifier derived from path (e.g., "chat-response")
+  - `title` - Document title from frontmatter
+  - `description` - Optional description
+  - `category` - Category atom (e.g., :cookbook, :docs)
+  - `tags` - List of tag atoms for filtering
+  - `order` - Sort order within category (default: 9999)
+  - `body` - Parsed HTML content
+  - `path` - URL path relative to documentation root
+  - `source_path` - Original file path on disk
+  - `is_livebook` - Whether this is a .livemd file
+  - `github_url` - Link to view on GitHub
+  - `livebook_url` - Link to run in Livebook
+  - `menu_path` - List of path segments for menu hierarchy
+  - `draft` - If true, document is hidden from listings
+  - `in_menu` - If false, document is hidden from navigation menu
+  - `menu_label` - Override title in menu display
+  """
+
   @github_repo "https://github.com/agentjido/jido_workbench"
+
+  @type t :: %__MODULE__{
+          id: String.t(),
+          title: String.t(),
+          description: String.t() | nil,
+          category: atom(),
+          tags: [atom()],
+          order: integer(),
+          body: String.t(),
+          path: String.t(),
+          source_path: String.t(),
+          is_livebook: boolean(),
+          github_url: String.t(),
+          livebook_url: String.t() | nil,
+          menu_path: [String.t()],
+          draft: boolean(),
+          in_menu: boolean(),
+          menu_label: String.t() | nil
+        }
+
   @enforce_keys [:title, :category]
-  # Extended struct with new fields
   defstruct [
     :id,
     :title,
     :body,
     :description,
     :category,
-    :tags,
-    # Path relative to documentation root
     :path,
-    :order,
-    # Original file path
     :source_path,
-    # Boolean flag for livebook files
     :is_livebook,
-    # URL to the livebook file in GitHub
     :github_url,
-    # URL to run the livebook file in Livebook
     :livebook_url,
-    # List of path segments for menu hierarchy
-    :menu_path
+    :menu_path,
+    :menu_label,
+    tags: [],
+    order: 9999,
+    draft: false,
+    in_menu: true
   ]
 
   @doc """
@@ -32,82 +71,24 @@ defmodule JidoWorkbench.Documentation.Document do
   - body: The parsed content of the file
   """
   def build(filename, attrs, body) do
-    # Ensure required fields are present
-    unless Map.has_key?(attrs, :title) and Map.has_key?(attrs, :category) do
-      raise ArgumentError, "Document requires both title and category in frontmatter"
-    end
+    order = Map.get(attrs, :order, 9999)
 
-    order = Map.get(attrs, :order, 0)
-
-    # Get the full application path
     full_app_path = Application.app_dir(:jido_workbench)
-
-    # Store the original source path
     source_path = filename
-
-    # Extract path relative to the application directory
     app_relative_path = String.replace(filename, full_app_path, "")
 
-    # Extract path relative to priv/documentation
     doc_root = "/priv/documentation"
     path = String.replace(app_relative_path, doc_root, "")
 
-    # Determine if it's a Livebook file
     is_livebook = String.ends_with?(filename, ".livemd")
 
-    # Build the path
-    path =
-      if String.ends_with?(path, "/index.md") or
-           String.ends_with?(path, "/index.livemd") do
-        # For index files, just use the directory path
-        path
-        |> String.replace(~r{/index\.(md|livemd)$}, "")
-      else
-        # For normal files, replace extension with nothing
-        path
-        |> String.replace(~r{\.(md|livemd)$}, "")
-      end
+    path = normalize_path(path)
+    id = derive_id(path)
+    menu_path = derive_menu_path(path)
 
-    # Generate a unique and consistent ID
-    # id =
-    #   path
-    #   |> String.trim_leading("/")
-    #   |> String.replace("/", "-")
+    github_url = build_github_url(doc_root, path, is_livebook)
+    livebook_url = build_livebook_url(github_url, is_livebook)
 
-    # For empty path (root), use "root" as the ID
-    id =
-      path
-      |> String.trim_leading("/")
-      |> String.split("/", parts: 2)
-      |> case do
-        # Remove category from ID
-        [_category, rest] -> rest
-        # For root documents
-        [only] -> only
-        # Fallback
-        [] -> "root"
-      end
-      |> String.replace("/", "-")
-
-    # Create the GitHub URL for Livebook files
-    github_url = "#{@github_repo}/blob/main#{doc_root}#{path}.livemd"
-
-    # Create the Livebook URL for Livebook files
-    livebook_url =
-      if is_livebook do
-        "https://livebook.dev/run?url=#{github_url}"
-      else
-        nil
-      end
-
-    # Build the menu tree path components
-    menu_path =
-      path
-      |> String.trim_leading("/")
-      |> String.split("/")
-      |> Enum.filter(fn part -> part != "index" end)
-
-    # Build the struct with all fields
     struct!(
       __MODULE__,
       [
@@ -119,8 +100,57 @@ defmodule JidoWorkbench.Documentation.Document do
         github_url: github_url,
         livebook_url: livebook_url,
         menu_path: menu_path,
-        order: order
-      ] ++ Map.to_list(attrs)
+        order: order,
+        tags: Map.get(attrs, :tags, []),
+        draft: Map.get(attrs, :draft, false),
+        in_menu: Map.get(attrs, :in_menu, true),
+        menu_label: Map.get(attrs, :menu_label)
+      ] ++ Map.to_list(Map.drop(attrs, [:order, :tags, :draft, :in_menu, :menu_label]))
     )
   end
+
+  defp normalize_path(path) do
+    if String.ends_with?(path, "/index.md") or String.ends_with?(path, "/index.livemd") do
+      String.replace(path, ~r{/index\.(md|livemd)$}, "")
+    else
+      String.replace(path, ~r{\.(md|livemd)$}, "")
+    end
+  end
+
+  defp derive_id(path) do
+    path
+    |> String.trim_leading("/")
+    |> String.split("/", parts: 2)
+    |> case do
+      [_category, rest] -> rest
+      [only] -> only
+      [] -> "root"
+    end
+    |> String.replace("/", "-")
+    |> case do
+      "" -> "index"
+      id -> id
+    end
+  end
+
+  defp derive_menu_path(path) do
+    path
+    |> String.trim_leading("/")
+    |> String.split("/")
+    |> Enum.filter(&(&1 != "index" and &1 != ""))
+  end
+
+  defp build_github_url(doc_root, path, true = _is_livebook) do
+    "#{@github_repo}/blob/main#{doc_root}#{path}.livemd"
+  end
+
+  defp build_github_url(doc_root, path, false = _is_livebook) do
+    "#{@github_repo}/blob/main#{doc_root}#{path}.md"
+  end
+
+  defp build_livebook_url(github_url, true = _is_livebook) do
+    "https://livebook.dev/run?url=#{github_url}"
+  end
+
+  defp build_livebook_url(_github_url, false = _is_livebook), do: nil
 end
