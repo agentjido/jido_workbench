@@ -7,6 +7,8 @@ defmodule JidoWorkbench.MixProject do
       version: "0.1.0",
       elixir: "~> 1.14",
       elixirc_paths: elixirc_paths(Mix.env()),
+      compilers: Mix.compilers() ++ [:phoenix_live_view],
+      listeners: [Phoenix.CodeReloader],
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps()
@@ -30,14 +32,15 @@ defmodule JidoWorkbench.MixProject do
   defp deps do
     [
       # Phoenix / Web
-      {:phoenix, "~> 1.7.17"},
+      {:phoenix, "~> 1.8.3"},
       {:phoenix_html, "~> 4.1"},
-      {:phoenix_live_view, "~> 1.0.1"},
-      {:phoenix_live_dashboard, "~> 0.8.3"},
+      {:phoenix_live_view, "~> 1.1.0"},
+      {:phoenix_live_dashboard, "~> 0.8.7"},
       {:phoenix_live_reload, "~> 1.6", only: :dev},
       {:heroicons, github: "tailwindlabs/heroicons", tag: "v2.1.5", app: false, compile: false, sparse: "optimized"},
       {:floki, "~> 0.35"},
-      {:petal_components, "~> 2.8.1"},
+      {:lazy_html, ">= 0.0.0", only: :test},
+      {:petal_components, "~> 3.0.1"},
 
       # HTTP / Server
       {:plug_cowboy, "~> 2.5"},
@@ -58,7 +61,6 @@ defmodule JidoWorkbench.MixProject do
       {:jason, "~> 1.2"},
 
       # Content / Markdown
-      {:earmark, "~> 1.4"},
       {:nimble_publisher, "~> 1.1"},
       {:makeup_elixir, "~> 1.0"},
       {:makeup_js, "~> 0.1.0"},

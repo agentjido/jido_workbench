@@ -34,11 +34,11 @@ defmodule JidoWorkbench.Application do
       # Start the GitHub Stars Tracker
       {JidoWorkbench.GithubStarsTracker, []},
       # Jido Task Supervisor
-      {Task.Supervisor, name: JidoWorkbench.TaskSupervisor},
+      {Task.Supervisor, name: JidoWorkbench.TaskSupervisor}
 
       # Jido
       # Start the Jido Agent
-      {JidoWorkbench.AgentJido, jido_opts}
+      # {JidoWorkbench.AgentJido, jido_opts}
       # Start the Jido Chat Room
       # {JidoWorkbench.ChatRoom, room_opts}
     ]
