@@ -40,7 +40,7 @@ defmodule JidoWorkbench.MixProject do
       {:heroicons, github: "tailwindlabs/heroicons", tag: "v2.1.5", app: false, compile: false, sparse: "optimized"},
       {:floki, "~> 0.35"},
       {:lazy_html, ">= 0.0.0", only: :test},
-      {:petal_components, "~> 2.8"},
+      {:petal_components, "~> 3.0"},
 
       # HTTP / Server
       {:plug_cowboy, "~> 2.5"},
@@ -51,7 +51,7 @@ defmodule JidoWorkbench.MixProject do
 
       # Assets
       {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
-      {:tailwind, "~> 0.2", runtime: Mix.env() == :dev},
+      {:tailwind, "~> 0.3", runtime: Mix.env() == :dev},
 
       # Telemetry / i18n / Serialization
       {:telemetry_metrics, "~> 1.0"},
@@ -67,6 +67,8 @@ defmodule JidoWorkbench.MixProject do
 
       # AI / Jido
       {:jido, "~> 2.0.0-rc.4"},
+      {:jido_ai, github: "agentjido/jido_ai", branch: "main"},
+      {:req_llm, "~> 1.5"},
 
       # Config / Env
       {:dotenvy, "~> 1.0"},
