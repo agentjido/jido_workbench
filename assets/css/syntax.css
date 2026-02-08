@@ -2,7 +2,7 @@
 .makeup {
   border-radius: theme('borderRadius.lg');
   overflow-x: auto;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   line-height: 1.5;
 }
 

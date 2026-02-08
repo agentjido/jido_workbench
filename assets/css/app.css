@@ -14,6 +14,26 @@
 @plugin "@tailwindcss/typography";
 @plugin "./tailwind_heroicons.js";
 
+/*
+ * CSS Architecture — Two Systems
+ *
+ * NEW SYSTEM (canonical): CSS custom properties defined in :root / .light blocks.
+ *   Tokens: bg-background, text-foreground, bg-card, text-muted-foreground, etc.
+ *   Used by: marketing pages, docs pages, marketing_layouts.ex, docs_components.ex
+ *
+ * LEGACY SYSTEM (to be migrated): Petal's color scale mapped through @theme inline.
+ *   Tokens: bg-primary-600, text-secondary-400, dark:bg-secondary-900, etc.
+ *   Used by: workbench pages (catalog, blog, cookbook), workbench_layout.ex, core_components.ex
+ *   Depends on: @custom-variant dark, @theme inline block, Petal default.css import
+ *
+ * Migration path:
+ *   1. Migrate remaining workbench pages to CSS custom property tokens
+ *   2. Remove @theme inline Petal compat shim
+ *   3. Remove Petal default.css import
+ *   4. Remove @custom-variant dark
+ *   5. Remove menu.css
+ */
+
 @custom-variant dark (&:where(.dark, .dark *));
 
 @utility phx-click-loading {
