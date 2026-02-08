@@ -53,17 +53,12 @@ defmodule AgentJidoWeb.Router do
     live "/benchmarks", JidoBenchmarksLive, :index
     live "/partners", JidoPartnersLive, :index
     get("/discord", PageController, :discord)
-    live("/settings", SettingsLive, :index)
 
     get("/blog", BlogController, :index)
     get("/blog/tags/:tag", BlogController, :tag)
     get("/blog/search", BlogController, :search)
     get("/blog/:slug", BlogController, :show)
     get("/feed", BlogController, :feed)
-
-    # live("/jido", JidoLive, :index)
-    # live("/jido2", JidoLive2, :index)
-    # live("/team", TeamLive, :index)
 
     for {path, live_view, action, metadata} <- @doc_routes do
       live path, live_view, action, metadata: metadata
@@ -76,13 +71,6 @@ defmodule AgentJidoWeb.Router do
     live("/catalog/agents", CatalogAgentsLive, :index)
     live("/catalog/sensors", CatalogSensorsLive, :index)
     live("/catalog/skills", CatalogSkillsLive, :index)
-
-    # Petal Boilerplate Helpers
-    # live("/form", FormLive, :index)
-    # live("/live", PageLive, :index)
-    # live("/live/modal/:size", PageLive, :modal)
-    # live("/live/slide_over/:origin", PageLive, :slide_over)
-    # live("/live/pagination/:page", PageLive, :pagination)
   end
 
   # Other scopes may use custom stacks.

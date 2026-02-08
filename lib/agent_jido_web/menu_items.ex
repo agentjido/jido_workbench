@@ -93,8 +93,7 @@ defmodule AgentJidoWeb.MenuItems do
       %{
         title: "",
         menu_items: [
-          %{name: :blog, label: "Blog", path: ~p"/blog", icon: nil},
-          %{name: :settings, label: "Settings", path: ~p"/settings", icon: nil}
+          %{name: :blog, label: "Blog", path: ~p"/blog", icon: nil}
         ]
       }
     ]
