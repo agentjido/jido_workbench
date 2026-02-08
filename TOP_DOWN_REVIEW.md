@@ -372,15 +372,28 @@ Each step should be completed before starting the next within a phase. Phases 2-
 | 6 | Dead-Code & Scaffold Sweep | ✅ Done | `34b47f2` | Deleted JidoLive, PageLive, FormLive, SettingsLive, ChatComponents, PageHTML, dead JS hooks. ~1,399 lines removed |
 | 7 | Component Deduplication | ✅ Done | `4c2a462` | Deleted unused `Jido.UI` module (210 lines) |
 | 8 | CSS Architecture & Token Reconciliation | ✅ Done | `ba0a711` | Added architecture comment to app.css. Fixed syntax.css stale font reference |
-| 9 | Final Smoke-Test & Docs Update | ✅ Done | (this commit) | Compile clean (`--warnings-as-errors`), 27 tests pass, routes verified |
+| 9 | Final Smoke-Test & Docs Update | ✅ Done | `2099d33` | Compile clean (`--warnings-as-errors`), 27 tests pass, routes verified |
+| 10 | Docs Content Rendering & Shell Consistency | ✅ Done | (this commit) | Doc only: `STEP10_DOCS_SHELL.md`. P0: @toc never assigned in :show; 30/32 sidebar links are dead |
+| 11 | Catalog & Blog — Migrate or Isolate | ✅ Done | (this commit) | Doc only: `STEP11_CATALOG_BLOG_MIGRATION.md`. 296 `dark:` classes to migrate; blog easiest, catalog largest |
+| 12 | React Prototype Parity Check | ✅ Done | (this commit) | Doc only: `STEP12_REACT_PARITY.md`. CSS tokens 100% parity; 4 docs components missing (search, breadcrumb, prev/next, ask AI) |
 
-### Remaining Work (Future Phases)
+### Remaining Implementation Work
 
-The following items from Steps 10–12 are deferred to future work:
+Based on Steps 10–12 analysis, the following implementation tasks remain:
 
-- **Migrate blog** (`/blog/*`) from `workbench_layout` + `dark:` variants → `marketing_layout` + CSS custom properties
-- **Migrate cookbook** (`/cookbook/*`) from `workbench_layout` → docs shell layout
-- **Migrate catalog** (`/catalog/*`) from `workbench_layout` → docs shell or marketing layout
-- **Delete WorkbenchLayout stack** (`workbench_layout.ex`, `menu.ex`, `menu_items.ex`, `menu.css`) once all consumers are migrated
-- **Remove Petal `default.css` import** and `@theme inline` compat shim once no pages use `dark:` variants
-- **React prototype parity check** (Step 12)
+**P0 — Bugs**
+- Fix `@toc` assign in `JidoDocsLive` `:show` action (causes KeyError or stale TOC)
+- Replace 30 dead sidebar links with actual document paths from `Documentation.menu_tree()`
+
+**P1 — Migration (from STEP11)**
+- Migrate blog (`/blog/*`) to `marketing_layout` + CSS custom properties (S effort)
+- Migrate cookbook (`/cookbook/*`) to docs shell layout (M effort)
+- Migrate catalog (`/catalog/*`) to docs shell layout (L effort)
+- Delete WorkbenchLayout stack after all migrations (~528 LOC)
+- Remove Petal CSS shim (`@theme inline`, `@custom-variant dark`, `default.css`, `menu.css`)
+
+**P1 — Missing Ports (from STEP12)**
+- Port `DocsSearch` (⌘K search modal)
+- Port `DocsBreadcrumb` navigation
+- Port `DocsPrevNext` navigation
+- Wire up ToC scroll-spy active highlighting
