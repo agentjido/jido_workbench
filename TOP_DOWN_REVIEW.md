@@ -357,3 +357,30 @@ Phase 5: Polish
 ```
 
 Each step should be completed before starting the next within a phase. Phases 2-3 can partially overlap once Phase 1 decisions are locked in.
+
+---
+
+## Completion Log
+
+| Step | Title | Status | Commit | Notes |
+|------|-------|--------|--------|-------|
+| 1 | Route → Layout Inventory | ✅ Done | — | Doc only: `STEP1_ROUTE_LAYOUT_INVENTORY.md` |
+| 2 | Layout Strategy Decision | ✅ Done | — | Doc only: `STEP2_LAYOUT_STRATEGY.md` |
+| 3 | Theme System Unification | ✅ Done | `8c1ff43` | Single canonical toggle (localStorage.theme, .light/.dark on html). Removed AlpineJS, js-cookie CDNs, ColorSchemeHook, old Petal color_scheme_switch components |
+| 4 | Root Layout & Asset Hygiene | ✅ Done | `248d19a` | Removed unused fonts (Inter, VT323, JetBrains Mono). Consolidated to IBM Plex Mono only |
+| 5 | Header/Nav/Footer Consolidation | ✅ Done | `3abeb84` | Created shared `Jido.Nav` module. Refactored MarketingLayouts and DocsComponents to use it |
+| 6 | Dead-Code & Scaffold Sweep | ✅ Done | `34b47f2` | Deleted JidoLive, PageLive, FormLive, SettingsLive, ChatComponents, PageHTML, dead JS hooks. ~1,399 lines removed |
+| 7 | Component Deduplication | ✅ Done | `4c2a462` | Deleted unused `Jido.UI` module (210 lines) |
+| 8 | CSS Architecture & Token Reconciliation | ✅ Done | `ba0a711` | Added architecture comment to app.css. Fixed syntax.css stale font reference |
+| 9 | Final Smoke-Test & Docs Update | ✅ Done | (this commit) | Compile clean (`--warnings-as-errors`), 27 tests pass, routes verified |
+
+### Remaining Work (Future Phases)
+
+The following items from Steps 10–12 are deferred to future work:
+
+- **Migrate blog** (`/blog/*`) from `workbench_layout` + `dark:` variants → `marketing_layout` + CSS custom properties
+- **Migrate cookbook** (`/cookbook/*`) from `workbench_layout` → docs shell layout
+- **Migrate catalog** (`/catalog/*`) from `workbench_layout` → docs shell or marketing layout
+- **Delete WorkbenchLayout stack** (`workbench_layout.ex`, `menu.ex`, `menu_items.ex`, `menu.css`) once all consumers are migrated
+- **Remove Petal `default.css` import** and `@theme inline` compat shim once no pages use `dark:` variants
+- **React prototype parity check** (Step 12)
