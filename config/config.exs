@@ -8,13 +8,13 @@
 import Config
 
 # Configures the endpoint
-config :jido_workbench, JidoWorkbenchWeb.Endpoint,
+config :agent_jido, AgentJidoWeb.Endpoint,
   url: [host: "localhost"],
   render_errors: [
-    formats: [html: JidoWorkbenchWeb.ErrorHTML, json: JidoWorkbenchWeb.ErrorJSON],
+    formats: [html: AgentJidoWeb.ErrorHTML, json: AgentJidoWeb.ErrorJSON],
     layout: false
   ],
-  pubsub_server: JidoWorkbench.PubSub,
+  pubsub_server: AgentJido.PubSub,
   live_view: [signing_salt: "8Hv+cWMw"]
 
 # Configures the mailer
@@ -24,9 +24,9 @@ config :jido_workbench, JidoWorkbenchWeb.Endpoint,
 #
 # For production it's recommended to configure a different adapter
 # at the `config/runtime.exs`.
-config :jido_workbench, JidoWorkbench.Mailer, adapter: Swoosh.Adapters.Local
+config :agent_jido, AgentJido.Mailer, adapter: Swoosh.Adapters.Local
 
-config :jido_workbench, JidoWorkbench.Jido,
+config :agent_jido, AgentJido.Jido,
   max_tasks: 1000,
   agent_pools: []
 
@@ -60,9 +60,9 @@ config :phoenix, :json_library, Jason
 
 config :petal_components,
        :error_translator_function,
-       {JidoWorkbenchWeb.CoreComponents, :translate_error}
+       {AgentJidoWeb.CoreComponents, :translate_error}
 
-config :jido_workbench, ash_domains: [JidoWorkbench.Folio]
+config :agent_jido, ash_domains: [AgentJido.Folio]
 
 # Git hooks and git_ops configuration for conventional commits
 # Only configure when the dependencies are actually available (dev environment)
@@ -79,9 +79,9 @@ if config_env() == :dev do
     ]
 
   config :git_ops,
-    mix_project: JidoWorkbench.MixProject,
+    mix_project: AgentJido.MixProject,
     changelog_file: "CHANGELOG.md",
-    repository_url: "https://github.com/agentjido/jido_workbench",
+    repository_url: "https://github.com/agentjido/agent_jido",
     manage_mix_version?: true,
     version_tag_prefix: "v",
     types: [

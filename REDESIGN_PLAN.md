@@ -333,7 +333,7 @@ Add to `assets/css/app.css`:
 ### File Structure
 
 ```
-lib/jido_workbench_web/components/
+lib/agent_jido_web/components/
   jido/
     marketing_layouts.ex     # Layout, header, footer
     marketing_cards.ex       # Package cards, feature cards, metric cards
@@ -344,8 +344,8 @@ lib/jido_workbench_web/components/
 ### 2.1 Marketing Layouts (`marketing_layouts.ex`)
 
 ```elixir
-defmodule JidoWorkbenchWeb.Jido.MarketingLayouts do
-  use JidoWorkbenchWeb, :html
+defmodule AgentJidoWeb.Jido.MarketingLayouts do
+  use AgentJidoWeb, :html
 
   attr :title, :string, default: "Jido"
   slot :inner_block, required: true
@@ -412,8 +412,8 @@ end
 ### 2.2 Marketing Cards (`marketing_cards.ex`)
 
 ```elixir
-defmodule JidoWorkbenchWeb.Jido.MarketingCards do
-  use JidoWorkbenchWeb, :html
+defmodule AgentJidoWeb.Jido.MarketingCards do
+  use AgentJidoWeb, :html
 
   attr :name, :string, required: true
   attr :desc, :string, required: true
@@ -479,8 +479,8 @@ end
 ### 2.3 Marketing Code (`marketing_code.ex`)
 
 ```elixir
-defmodule JidoWorkbenchWeb.Jido.MarketingCode do
-  use JidoWorkbenchWeb, :html
+defmodule AgentJidoWeb.Jido.MarketingCode do
+  use AgentJidoWeb, :html
 
   attr :title, :string, default: nil
   attr :language, :string, default: "elixir"
@@ -513,10 +513,10 @@ end
 
 ### 3.1 Add LiveViews
 
-Create files in `lib/jido_workbench_web/live/`:
+Create files in `lib/agent_jido_web/live/`:
 
 ```
-lib/jido_workbench_web/live/
+lib/agent_jido_web/live/
   jido_home_live.ex
   jido_ecosystem_live.ex
   jido_getting_started_live.ex
@@ -527,10 +527,10 @@ lib/jido_workbench_web/live/
 
 ### 3.2 Update Router
 
-In `lib/jido_workbench_web/router.ex`:
+In `lib/agent_jido_web/router.ex`:
 
 ```elixir
-scope "/", JidoWorkbenchWeb do
+scope "/", AgentJidoWeb do
   pipe_through(:browser)
 
   # New marketing pages
@@ -550,12 +550,12 @@ end
 ### 3.3 Example LiveView Structure
 
 ```elixir
-defmodule JidoWorkbenchWeb.JidoHomeLive do
-  use JidoWorkbenchWeb, :live_view
+defmodule AgentJidoWeb.JidoHomeLive do
+  use AgentJidoWeb, :live_view
 
-  import JidoWorkbenchWeb.Jido.MarketingLayouts
-  import JidoWorkbenchWeb.Jido.MarketingCards
-  import JidoWorkbenchWeb.Jido.MarketingCode
+  import AgentJidoWeb.Jido.MarketingLayouts
+  import AgentJidoWeb.Jido.MarketingCards
+  import AgentJidoWeb.Jido.MarketingCode
 
   def mount(_params, _session, socket) do
     {:ok, socket}

@@ -6,7 +6,7 @@ import Config
 # The watchers configuration can be used to run external
 # watchers to your application. For example, we use it
 # with esbuild to bundle .js and .css sources.
-config :jido_workbench, JidoWorkbenchWeb.Endpoint,
+config :agent_jido, AgentJidoWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
   http: [ip: {127, 0, 0, 1}, port: 4000],
@@ -47,19 +47,19 @@ config :phoenix_live_view,
 # different ports.
 
 # Watch static and templates for browser reloading.
-config :jido_workbench, JidoWorkbenchWeb.Endpoint,
+config :agent_jido, AgentJidoWeb.Endpoint,
   live_reload: [
     patterns: [
       ~r"priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$",
       ~r"priv/gettext/.*(po)$",
-      ~r"lib/jido_workbench_web/(controllers|live|components)/.*(ex|heex)$",
+      ~r"lib/agent_jido_web/(controllers|live|components)/.*(ex|heex)$",
       ~r"priv/blog/.*(md|livemd)$",
       ~r"priv/documentation/.*(md|livemd)$"
     ]
   ]
 
 # Enable dev routes for dashboard and mailbox
-config :jido_workbench, dev_routes: true
+config :agent_jido, dev_routes: true
 
 # Do not include metadata nor timestamps in development logs
 # config :logger, :console, format: "[$level] $message\n"

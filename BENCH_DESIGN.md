@@ -911,7 +911,7 @@ Claims about concurrency and resilience are cheap; these are the numbers Jido ac
 
 6. **Routes**
    ```elixir
-   scope "/", JidoWorkbenchWeb do
+   scope "/", AgentJidoWeb do
      pipe_through :browser
      
      get "/", PageController, :home
@@ -922,7 +922,7 @@ Claims about concurrency and resilience are cheap; these are the numbers Jido ac
      live "/getting-started", GettingStartedLive
    end
    
-   scope "/docs", JidoWorkbenchWeb.Docs do
+   scope "/docs", AgentJidoWeb.Docs do
      pipe_through [:browser, :docs_layout]
      
      live "/", IndexLive

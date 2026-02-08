@@ -88,7 +88,7 @@ RUN chown nobody /app
 ENV MIX_ENV="prod"
 
 # Only copy the final release from the build stage
-COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/jido_workbench ./
+COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/agent_jido ./
 
 # install hivemind
 RUN wget https://github.com/DarthSim/hivemind/releases/download/v1.1.0/hivemind-v1.1.0-linux-amd64.gz
