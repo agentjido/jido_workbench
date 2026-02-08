@@ -4,26 +4,23 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
   """
   use AgentJidoWeb, :html
 
-  # Docs Header Component
+  alias AgentJidoWeb.Jido.Nav
+
   attr :current_path, :string, default: nil
 
   def docs_header(assigns) do
+    assigns = assign(assigns, :nav_links, Nav.docs_nav_links())
+
     ~H"""
     <nav class="flex items-center justify-between px-6 py-4 bg-card border-b border-border sticky top-0 z-50">
-      <!-- Left: Logo + Nav -->
       <div class="flex items-center gap-6">
-        <.link navigate="/" class="flex items-center gap-2.5">
-          <div class="w-7 h-7 rounded-[5px] bg-gradient-to-br from-primary to-accent-yellow flex items-center justify-center text-sm font-bold text-background">
-            J
-          </div>
-          <span class="font-bold text-base tracking-wide text-foreground">JIDO</span>
-          <span class="text-[11px] text-muted-foreground px-2 py-0.5 bg-elevated rounded">
-            Docs
-          </span>
-        </.link>
+        <Nav.logo show_version={false} />
+        <span class="text-[11px] text-muted-foreground px-2 py-0.5 bg-elevated rounded -ml-2">
+          Docs
+        </span>
 
         <div class="hidden md:flex items-center gap-5">
-          <%= for item <- ["/docs", "/examples", "/benchmarks", "/ecosystem"] do %>
+          <%= for item <- @nav_links do %>
             <.link
               navigate={item}
               class={"text-xs transition-colors #{if @current_path && String.starts_with?(@current_path, item), do: "text-primary font-semibold", else: "text-muted-foreground hover:text-foreground"}"}
@@ -33,10 +30,8 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
           <% end %>
         </div>
       </div>
-      
-    <!-- Right: Search + Ask AI -->
+
       <div class="flex items-center gap-3">
-        <!-- Search Box -->
         <div class="hidden md:flex items-center gap-2 bg-elevated border border-border rounded px-3 py-2 min-w-[200px] cursor-pointer hover:border-muted-foreground transition-colors">
           <.icon name="hero-magnifying-glass" class="h-3 w-3 text-muted-foreground" />
           <span class="text-xs text-muted-foreground flex-1">Search...</span>
@@ -44,14 +39,13 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
             ⌘K
           </kbd>
         </div>
-        
-    <!-- Ask AI Button -->
+
         <button class="hidden md:flex items-center gap-2 bg-primary/10 border border-primary/30 rounded px-3 py-2 text-xs text-primary font-medium hover:bg-primary/20 transition-colors">
           <.icon name="hero-sparkles" class="h-3 w-3" /> Ask AI
         </button>
 
         <a
-          href="https://github.com/agentjido/jido"
+          href={Nav.github_url()}
           target="_blank"
           rel="noopener noreferrer"
           class="text-xs text-muted-foreground hover:text-foreground transition-colors"
@@ -59,7 +53,7 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
           GitHub
         </a>
         <a
-          href="https://hex.pm/packages/jido"
+          href={Nav.hex_url()}
           target="_blank"
           rel="noopener noreferrer"
           class="text-xs text-muted-foreground hover:text-foreground transition-colors"
@@ -241,9 +235,9 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
         </div>
         <div class="flex flex-col gap-2">
           <%= for {label, icon, href} <- [
-            {"HexDocs", "◇", "https://hexdocs.pm/jido"},
-            {"GitHub", "◈", "https://github.com/agentjido/jido"},
-            {"Hex.pm", "⬡", "https://hex.pm/packages/jido"}
+            {"HexDocs", "◇", Nav.hexdocs_url()},
+            {"GitHub", "◈", Nav.github_url()},
+            {"Hex.pm", "⬡", Nav.hex_url()}
           ] do %>
             <a
               href={href}
