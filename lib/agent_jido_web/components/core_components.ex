@@ -13,7 +13,7 @@ defmodule AgentJidoWeb.CoreComponents do
 
   alias Phoenix.LiveView.JS
   use Gettext, backend: AgentJidoWeb.Gettext
-  import PetalComponents.Icon
+  import AgentJidoWeb.Icon
 
   @doc """
   Renders a modal.
@@ -49,7 +49,7 @@ defmodule AgentJidoWeb.CoreComponents do
   def phx_modal(assigns) do
     ~H"""
     <div id={@id} phx-mounted={@show && show_modal(@id)} phx-remove={hide_modal(@id)} class="relative z-50 hidden">
-      <div id={"#{@id}-bg"} class="fixed inset-0 transition-opacity bg-secondary-900/90 dark:bg-secondary-900/90" aria-hidden="true" />
+      <div id={"#{@id}-bg"} class="fixed inset-0 transition-opacity bg-background/80" aria-hidden="true" />
       <div
         class="fixed inset-0 overflow-y-auto"
         aria-labelledby={"#{@id}-title"}
@@ -66,7 +66,7 @@ defmodule AgentJidoWeb.CoreComponents do
               phx-window-keydown={hide_modal(@on_cancel, @id)}
               phx-key="escape"
               phx-click-away={hide_modal(@on_cancel, @id)}
-              class="relative hidden transition bg-white dark:bg-secondary-900 shadow-lg rounded-2xl p-14 shadow-secondary-700/10 ring-1 ring-secondary-700/10"
+              class="relative hidden transition bg-card shadow-lg rounded-2xl p-14 shadow-foreground/5 ring-1 ring-border"
             >
               <div class="absolute top-6 right-5">
                 <phx_button
@@ -80,10 +80,10 @@ defmodule AgentJidoWeb.CoreComponents do
               </div>
               <div id={"#{@id}-content"}>
                 <header :if={@title != []}>
-                  <h1 id={"#{@id}-title"} class="text-lg font-semibold leading-8 text-secondary-900 dark:text-secondary-100">
+                  <h1 id={"#{@id}-title"} class="text-lg font-semibold leading-8 text-foreground">
                     {render_slot(@title)}
                   </h1>
-                  <p :if={@subtitle != []} id={"#{@id}-description"} class="mt-2 text-sm leading-6 text-secondary-600 dark:text-secondary-400">
+                  <p :if={@subtitle != []} id={"#{@id}-description"} class="mt-2 text-sm leading-6 text-muted-foreground">
                     {render_slot(@subtitle)}
                   </p>
                 </header>
@@ -95,7 +95,7 @@ defmodule AgentJidoWeb.CoreComponents do
                   <.link
                     :for={cancel <- @cancel}
                     phx-click={hide_modal(@on_cancel, @id)}
-                    class="text-sm font-semibold leading-6 text-secondary-900 dark:text-secondary-100 hover:text-secondary-700 dark:hover:text-secondary-300"
+                    class="text-sm font-semibold leading-6 text-foreground hover:text-muted-foreground"
                   >
                     {render_slot(cancel)}
                   </.link>
@@ -136,11 +136,11 @@ defmodule AgentJidoWeb.CoreComponents do
       phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
       role="alert"
       class={[
-        "fixed hidden bottom-10 right-10 w-80 sm:w-96 z-50 rounded-lg p-3 shadow-md shadow-secondary-900/5 ring-1",
+        "fixed hidden bottom-10 right-10 w-80 sm:w-96 z-50 rounded-lg p-3 shadow-md shadow-foreground/5 ring-1",
         @kind == :info &&
-          "bg-success-50 dark:bg-success-900/30 text-success-800 dark:text-success-200 ring-success-500 fill-success-900",
+          "bg-accent-green/15 text-foreground ring-accent-green/30 fill-accent-green",
         @kind == :error &&
-          "bg-danger-50 dark:bg-danger-900/30 text-danger-900 dark:text-danger-200 ring-danger-500 fill-danger-900"
+          "bg-destructive/15 text-foreground ring-destructive/30 fill-destructive"
       ]}
       {@rest}
     >
@@ -211,7 +211,7 @@ defmodule AgentJidoWeb.CoreComponents do
   def simple_form(assigns) do
     ~H"""
     <.form :let={f} for={@for} as={@as} {@rest}>
-      <div class="mt-10 space-y-8 bg-white">
+      <div class="mt-10 space-y-8 bg-card">
         {render_slot(@inner_block, f)}
         <div :for={action <- @actions} class="flex items-center justify-between gap-6 mt-2">
           {render_slot(action, f)}
@@ -240,8 +240,8 @@ defmodule AgentJidoWeb.CoreComponents do
     <button
       type={@type}
       class={[
-        "phx-submit-loading:opacity-75 rounded-lg bg-primary-600 dark:bg-primary-500 hover:bg-primary-700 dark:hover:bg-primary-400 py-2 px-3",
-        "text-sm font-semibold leading-6 text-white dark:text-secondary-900 active:text-white/80",
+        "phx-submit-loading:opacity-75 rounded-lg bg-primary hover:bg-primary/90 py-2 px-3",
+        "text-sm font-semibold leading-6 text-primary-foreground active:text-primary-foreground/80",
         @class
       ]}
       {@rest}
@@ -300,7 +300,7 @@ defmodule AgentJidoWeb.CoreComponents do
 
     ~H"""
     <div>
-      <label class="flex items-center gap-4 text-sm leading-6 text-secondary-600 dark:text-secondary-400">
+      <label class="flex items-center gap-4 text-sm leading-6 text-muted-foreground">
         <input type="hidden" name={@name} value="false" />
         <input
           type="checkbox"
@@ -308,7 +308,7 @@ defmodule AgentJidoWeb.CoreComponents do
           name={@name}
           value="true"
           checked={@checked}
-          class="rounded border-secondary-300 dark:border-secondary-600 text-primary-600 dark:text-primary-500 focus:ring-primary-600 dark:focus:ring-primary-500"
+          class="rounded border-border text-primary focus:ring-primary"
           {@rest}
         />
         {@label}
@@ -325,7 +325,7 @@ defmodule AgentJidoWeb.CoreComponents do
       <select
         id={@id}
         name={@name}
-        class="block w-full px-3 py-2 mt-1 bg-white dark:bg-secondary-800 border border-secondary-300 dark:border-secondary-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400 sm:text-sm"
+        class="block w-full px-3 py-2 mt-1 bg-card border border-border rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm text-foreground"
         multiple={@multiple}
         {@rest}
       >
@@ -345,10 +345,10 @@ defmodule AgentJidoWeb.CoreComponents do
         id={@id || @name}
         name={@name}
         class={[
-          "mt-2 block min-h-[6rem] w-full rounded-lg border-secondary-300 dark:border-secondary-600 py-[7px] px-[11px]",
-          "text-secondary-900 dark:text-secondary-100 focus:border-primary-400 dark:focus:border-primary-500 focus:outline-none focus:ring-4 focus:ring-primary-500/5 dark:focus:ring-primary-500/5 sm:text-sm sm:leading-6",
-          "bg-white dark:bg-secondary-800",
-          @errors != [] && "border-danger-400 focus:border-danger-400 focus:ring-danger-400/10"
+          "mt-2 block min-h-[6rem] w-full rounded-lg border-border py-[7px] px-[11px]",
+          "text-foreground focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/5 sm:text-sm sm:leading-6",
+          "bg-card",
+          @errors != [] && "border-destructive focus:border-destructive focus:ring-destructive/10"
         ]}
         {@rest}
       ><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
@@ -367,10 +367,10 @@ defmodule AgentJidoWeb.CoreComponents do
         id={@id || @name}
         value={Phoenix.HTML.Form.normalize_value(@type, @value)}
         class={[
-          "mt-2 block w-full rounded-lg border-secondary-300 dark:border-secondary-600 py-[7px] px-[11px]",
-          "text-secondary-900 dark:text-secondary-100 focus:outline-none focus:ring-4 sm:text-sm sm:leading-6",
-          "bg-white dark:bg-secondary-800 focus:border-primary-400 dark:focus:border-primary-500 focus:ring-primary-500/5 dark:focus:ring-primary-500/5",
-          @errors != [] && "border-danger-400 focus:border-danger-400 focus:ring-danger-400/10"
+          "mt-2 block w-full rounded-lg border-border py-[7px] px-[11px]",
+          "text-foreground focus:outline-none focus:ring-4 sm:text-sm sm:leading-6",
+          "bg-card focus:border-primary focus:ring-primary/5",
+          @errors != [] && "border-destructive focus:border-destructive focus:ring-destructive/10"
         ]}
         {@rest}
       />
@@ -387,7 +387,7 @@ defmodule AgentJidoWeb.CoreComponents do
 
   def phx_label(assigns) do
     ~H"""
-    <label for={@for} class="block text-sm font-semibold leading-6 text-secondary-900 dark:text-secondary-100">
+    <label for={@for} class="block text-sm font-semibold leading-6 text-foreground">
       {render_slot(@inner_block)}
     </label>
     """
@@ -400,8 +400,8 @@ defmodule AgentJidoWeb.CoreComponents do
 
   def error(assigns) do
     ~H"""
-    <p class="flex gap-3 mt-3 text-sm leading-6 text-danger-600 dark:text-danger-400">
-      <.icon name="hero-exclamation-circle-mini" class="mt-0.5 h-5 w-5 flex-none fill-danger-500" />
+    <p class="flex gap-3 mt-3 text-sm leading-6 text-destructive">
+      <.icon name="hero-exclamation-circle-mini" class="mt-0.5 h-5 w-5 flex-none fill-destructive" />
       {render_slot(@inner_block)}
     </p>
     """
@@ -420,10 +420,10 @@ defmodule AgentJidoWeb.CoreComponents do
     ~H"""
     <header class={[@actions != [] && "flex items-center justify-between gap-6", @class]}>
       <div>
-        <h1 class="text-lg font-semibold leading-8 text-secondary-900 dark:text-secondary-100">
+        <h1 class="text-lg font-semibold leading-8 text-foreground">
           {render_slot(@inner_block)}
         </h1>
-        <p :if={@subtitle != []} class="mt-2 text-sm leading-6 text-secondary-600 dark:text-secondary-400">
+        <p :if={@subtitle != []} class="mt-2 text-sm leading-6 text-muted-foreground">
           {render_slot(@subtitle)}
         </p>
       </div>

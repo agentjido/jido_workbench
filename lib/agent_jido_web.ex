@@ -85,7 +85,7 @@ defmodule AgentJidoWeb do
       import Phoenix.HTML
       # Core UI components and translation
       import AgentJidoWeb.CoreComponents
-      use PetalComponents
+      import AgentJidoWeb.Icon
       use Gettext, backend: AgentJidoWeb.Gettext
 
       # Shortcut for generating JS commands

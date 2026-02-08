@@ -40,8 +40,6 @@ defmodule AgentJido.MixProject do
       {:heroicons, github: "tailwindlabs/heroicons", tag: "v2.1.5", app: false, compile: false, sparse: "optimized"},
       {:floki, "~> 0.35"},
       {:lazy_html, ">= 0.0.0", only: :test},
-      {:petal_components, "~> 3.0"},
-
       # HTTP / Server
       {:plug_cowboy, "~> 2.5"},
       {:plug_canonical_host, "~> 2.0"},

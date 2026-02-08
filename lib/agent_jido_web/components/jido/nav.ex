@@ -5,29 +5,26 @@ defmodule AgentJidoWeb.Jido.Nav do
   """
   use AgentJidoWeb, :html
 
+  @jido_version "v0.1.0"
+
   @marketing_nav_links [
-    {"/ecosystem", "/ecosystem"},
-    {"/partners", "/partners"},
-    {"/examples", "/examples"},
-    {"/benchmarks", "/benchmarks"},
-    {"/docs", "/docs"}
+    {"Ecosystem", "/ecosystem"},
+    {"Partners", "/partners"},
+    {"Examples", "/examples"},
+    {"Benchmarks", "/benchmarks"},
+    {"Docs", "/docs"}
   ]
 
   @docs_nav_links ["/docs", "/examples", "/benchmarks", "/ecosystem"]
 
   @footer_company_links [
-    {"About", "/about"},
     {"Blog", "/blog"},
-    {"Careers", "/careers"},
-    {"Contact", "/contact"},
     {"Partners", "/partners"}
   ]
 
   @footer_resource_links [
     {"Docs", "/docs"},
-    {"Changelog", "/changelog"},
     {"Examples", "/examples"},
-    {"Community", "/community"},
     {"Benchmarks", "/benchmarks"}
   ]
 
@@ -62,6 +59,7 @@ defmodule AgentJidoWeb.Jido.Nav do
   def hex_url, do: @hex_url
   def hexdocs_url, do: @hexdocs_url
   def discord_url, do: @discord_url
+  def jido_version, do: @jido_version
 
   @doc "Jido logo mark — gradient J block + JIDO text."
   attr :class, :string, default: ""
@@ -76,12 +74,13 @@ defmodule AgentJidoWeb.Jido.Nav do
         J
       </div>
       <span class={"font-bold tracking-wide transition-all duration-300 #{@text_size}"}>JIDO</span>
-      <span :if={@show_version} class="text-muted-foreground text-[11px] ml-1">v0.1.0</span>
+      <span :if={@show_version} class="text-muted-foreground text-[11px] ml-1">{jido_version()}</span>
     </.link>
     """
   end
 
   attr :class, :string, default: "w-4 h-4"
+
   def discord_icon(assigns) do
     ~H"""
     <svg class={@class} viewBox="0 0 24 24" fill="currentColor">
@@ -91,6 +90,7 @@ defmodule AgentJidoWeb.Jido.Nav do
   end
 
   attr :class, :string, default: "w-4 h-4"
+
   def github_icon(assigns) do
     ~H"""
     <svg class={@class} viewBox="0 0 24 24" fill="currentColor">
@@ -100,6 +100,7 @@ defmodule AgentJidoWeb.Jido.Nav do
   end
 
   attr :class, :string, default: "w-4 h-4"
+
   def x_icon(assigns) do
     ~H"""
     <svg class={@class} viewBox="0 0 24 24" fill="currentColor">
@@ -109,6 +110,7 @@ defmodule AgentJidoWeb.Jido.Nav do
   end
 
   attr :class, :string, default: "w-4 h-4"
+
   def linkedin_icon(assigns) do
     ~H"""
     <svg class={@class} viewBox="0 0 24 24" fill="currentColor">
@@ -118,6 +120,7 @@ defmodule AgentJidoWeb.Jido.Nav do
   end
 
   attr :class, :string, default: "w-4 h-4"
+
   def youtube_icon(assigns) do
     ~H"""
     <svg class={@class} viewBox="0 0 24 24" fill="currentColor">
@@ -133,12 +136,18 @@ defmodule AgentJidoWeb.Jido.Nav do
   def social_icon(assigns) do
     ~H"""
     <%= case @icon do %>
-      <% :discord -> %><.discord_icon class={@class} />
-      <% :github -> %><.github_icon class={@class} />
-      <% :x -> %><.x_icon class={@class} />
-      <% :linkedin -> %><.linkedin_icon class={@class} />
-      <% :youtube -> %><.youtube_icon class={@class} />
-      <% _ -> %><span />
+      <% :discord -> %>
+        <.discord_icon class={@class} />
+      <% :github -> %>
+        <.github_icon class={@class} />
+      <% :x -> %>
+        <.x_icon class={@class} />
+      <% :linkedin -> %>
+        <.linkedin_icon class={@class} />
+      <% :youtube -> %>
+        <.youtube_icon class={@class} />
+      <% _ -> %>
+        <span />
     <% end %>
     """
   end

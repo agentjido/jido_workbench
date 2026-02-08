@@ -56,7 +56,7 @@ defmodule AgentJidoWeb.Jido.MarketingLayouts do
 
           <%!-- Desktop Navigation --%>
           <div class="hidden md:flex items-center gap-7">
-            <%= for {href, label} <- @nav_links do %>
+            <%= for {label, href} <- @nav_links do %>
               <.link
                 navigate={href}
                 class={"text-xs transition-colors #{if @current_path == href, do: "text-primary font-semibold", else: "text-secondary-foreground hover:text-foreground"}"}
@@ -92,7 +92,7 @@ defmodule AgentJidoWeb.Jido.MarketingLayouts do
 
         <%!-- Mobile Menu --%>
         <div id="mobile-menu" class="hidden md:hidden mt-4 nav-surface p-4 space-y-3">
-          <%= for {href, label} <- @nav_links do %>
+          <%= for {label, href} <- @nav_links do %>
             <.link
               navigate={href}
               class={"block px-4 py-3 text-xs rounded transition-colors #{if @current_path == href, do: "text-primary bg-primary/10 font-semibold", else: "text-secondary-foreground hover:text-foreground hover:bg-muted"}"}
@@ -216,13 +216,9 @@ defmodule AgentJidoWeb.Jido.MarketingLayouts do
         <div class="mt-12 pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
           <div class="flex items-center gap-4 text-xs text-muted-foreground">
             <span>MIT License</span>
-            <span class="hidden md:inline">•</span>
-            <.link navigate="/privacy" class="hover:text-foreground transition-colors">Privacy Policy</.link>
-            <span class="hidden md:inline">•</span>
-            <.link navigate="/terms" class="hover:text-foreground transition-colors">Terms of Service</.link>
           </div>
           <div class="flex items-center gap-2">
-            <span class="text-xs text-muted-foreground">Jido v0.1.0</span>
+            <span class="text-xs text-muted-foreground">Jido {Nav.jido_version()}</span>
           </div>
         </div>
       </div>

@@ -58,10 +58,6 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
-config :petal_components,
-       :error_translator_function,
-       {AgentJidoWeb.CoreComponents, :translate_error}
-
 config :agent_jido, ash_domains: [AgentJido.Folio]
 
 # Git hooks and git_ops configuration for conventional commits

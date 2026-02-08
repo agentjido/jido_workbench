@@ -28,7 +28,7 @@
               </p>
             </div>
 
-            <div class="prose prose-sm dark:prose-invert max-w-none">
+            <div class="prose prose-sm max-w-none">
               {raw(@selected_document.body)}
             </div>
           </div>
@@ -339,21 +339,23 @@ sup = Jido.Supervisor.start_link()
           </div>
         <% end %>
       </div>
-      
-<!-- Footer -->
-      <footer class="border-t border-border py-6 px-8 lg:px-16 w-full">
-        <div class="flex items-center justify-between text-[11px] text-muted-foreground">
-          <span>Last updated: January 2026</span>
-          <a
-            href="https://github.com/agentjido/jido/edit/main/docs/introduction.md"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="hover:text-foreground transition-colors"
-          >
-            Edit this page →
-          </a>
-        </div>
-      </footer>
+
+      <%= if @selected_document do %>
+        <footer class="border-t border-border py-6 px-8 lg:px-16 w-full">
+          <div class="flex items-center justify-end text-[11px] text-muted-foreground">
+            <%= if @selected_document.github_url do %>
+              <a
+                href={String.replace(@selected_document.github_url, "/blob/", "/edit/")}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="hover:text-foreground transition-colors"
+              >
+                Edit this page →
+              </a>
+            <% end %>
+          </div>
+        </footer>
+      <% end %>
     </main>
     
 <!-- Right Sidebar (On This Page) -->

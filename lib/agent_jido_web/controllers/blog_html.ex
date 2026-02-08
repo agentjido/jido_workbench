@@ -1,10 +1,7 @@
 defmodule AgentJidoWeb.BlogHTML do
   use AgentJidoWeb, :html
 
-  # alias AgentJido.Blog.Post
-  # alias AgentJidoWeb.WorkbenchLayout
-
-  import AgentJidoWeb.WorkbenchLayout, only: [workbench_layout: 1]
+  import AgentJidoWeb.Jido.MarketingLayouts, only: [marketing_layout: 1]
 
   embed_templates "blog_html/*"
 

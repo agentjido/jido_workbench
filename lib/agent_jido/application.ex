@@ -14,8 +14,6 @@ defmodule AgentJido.Application do
       {Finch, name: AgentJido.Finch},
       # Start the Endpoint (http/https)
       AgentJidoWeb.Endpoint,
-      # Start the GitHub Stars Tracker
-      {AgentJido.GithubStarsTracker, []},
       # Jido
       AgentJido.Jido
     ]

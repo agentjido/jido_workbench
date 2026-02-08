@@ -1,6 +1,6 @@
 defmodule AgentJidoWeb.CatalogActionsLive do
   use AgentJidoWeb, :live_view
-  import AgentJidoWeb.WorkbenchLayout
+  import AgentJidoWeb.Jido.MarketingLayouts
 
   @impl true
   def mount(params, _session, socket) do
@@ -55,174 +55,176 @@ defmodule AgentJidoWeb.CatalogActionsLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <.workbench_layout current_page={:actions}>
-      <div class="flex bg-white dark:bg-secondary-900 text-secondary-900 dark:text-secondary-100">
-        <div class="w-96 border-r border-secondary-200 dark:border-secondary-700 flex flex-col">
-          <div class="p-4 border-b border-secondary-200 dark:border-secondary-700">
-            <h2 class="text-xl mb-4 flex items-center gap-2">
-              <.icon name="hero-bolt" class="w-6 h-6 text-primary-600 dark:text-primary-500" /> Available Actions
-            </h2>
-            <div class="relative">
-              <.icon name="hero-magnifying-glass" class="w-5 h-5 absolute left-3 top-2.5 text-secondary-400 dark:text-secondary-500" />
-              <.input
-                type="text"
-                name="search"
-                value={@search}
-                placeholder="Search actions..."
-                phx-keyup="search"
-                phx-debounce="300"
-                class="w-full bg-white dark:bg-secondary-800 rounded-md py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400"
-              />
-              <%= if @is_searching do %>
-                <div class="absolute right-3 top-2.5">
-                  <.icon name="hero-arrow-path" class="w-5 h-5 text-primary-500 animate-spin" />
-                </div>
+    <.marketing_layout current_path="/catalog/actions">
+      <div class="container max-w-[1200px] mx-auto px-6 py-8">
+        <div class="flex bg-background text-foreground min-h-[600px] border border-border rounded-lg overflow-hidden">
+          <div class="w-96 border-r border-border flex flex-col">
+            <div class="p-4 border-b border-border">
+              <h2 class="text-xl mb-4 flex items-center gap-2">
+                <.icon name="hero-bolt" class="w-6 h-6 text-primary" /> Available Actions
+              </h2>
+              <div class="relative">
+                <.icon name="hero-magnifying-glass" class="w-5 h-5 absolute left-3 top-2.5 text-muted-foreground" />
+                <input
+                  type="text"
+                  name="search"
+                  value={@search}
+                  placeholder="Search actions..."
+                  phx-keyup="search"
+                  phx-debounce="300"
+                  class="w-full bg-elevated rounded-md py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <%= if @is_searching do %>
+                  <div class="absolute right-3 top-2.5">
+                    <.icon name="hero-arrow-path" class="w-5 h-5 text-primary animate-spin" />
+                  </div>
+                <% end %>
+              </div>
+            </div>
+
+            <div class="flex-1 overflow-y-auto">
+              <%= for action <- @actions do %>
+                <.link
+                  navigate={~p"/catalog/actions/#{action.slug}"}
+                  class={"w-full p-4 text-left hover:bg-elevated flex items-center justify-between group #{if @selected_action && @selected_action.slug == action.slug, do: "bg-elevated border-l-2 border-primary", else: ""}"}
+                >
+                  <div class="flex items-center space-x-3">
+                    <div class="text-primary">
+                      <.icon name="hero-bolt" class="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div class="font-medium flex items-center gap-2 text-foreground">
+                        {action.name}
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-elevated text-muted-foreground">
+                          {action.category}
+                        </span>
+                      </div>
+                      <div class="text-sm text-muted-foreground">
+                        {action.description}
+                      </div>
+                    </div>
+                  </div>
+                  <.icon name="hero-chevron-right" class="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100" />
+                </.link>
               <% end %>
             </div>
           </div>
 
-          <div class="flex-1 overflow-y-auto">
-            <%= for action <- @actions do %>
-              <.link
-                navigate={~p"/catalog/actions/#{action.slug}"}
-                class={"w-full p-4 text-left hover:bg-secondary-100 dark:hover:bg-secondary-800 flex items-center justify-between group #{if @selected_action && @selected_action.slug == action.slug, do: "bg-secondary-100 dark:bg-secondary-800 border-l-2 border-primary-500", else: ""}"}
-              >
-                <div class="flex items-center space-x-3">
-                  <div class="text-primary-600 dark:text-primary-500">
-                    <.icon name="hero-bolt" class="w-5 h-5" />
+          <div class="flex-1 p-6">
+            <%= if @selected_action do %>
+              <div class="max-w-3xl">
+                <div class="flex items-center gap-3 mb-8">
+                  <div class="p-2 rounded-lg bg-primary/10 text-primary">
+                    <.icon name="hero-bolt" class="w-6 h-6" />
                   </div>
                   <div>
-                    <div class="font-medium flex items-center gap-2">
-                      {action.name}
-                      <span class="text-xs px-2 py-0.5 rounded-full bg-secondary-100 dark:bg-secondary-800 text-secondary-600 dark:text-secondary-400">
-                        {action.category}
-                      </span>
-                    </div>
-                    <div class="text-sm text-secondary-600 dark:text-secondary-400">
-                      {action.description}
-                    </div>
+                    <h1 class="text-2xl font-semibold text-foreground">
+                      {@selected_action.name}
+                    </h1>
+                    <p class="text-muted-foreground">
+                      {@selected_action.description}
+                    </p>
                   </div>
                 </div>
-                <.icon name="hero-chevron-right" class="w-5 h-5 text-secondary-400 dark:text-secondary-500 opacity-0 group-hover:opacity-100" />
-              </.link>
+
+                <div class="space-y-6 mb-8">
+                  <div class="flex items-center gap-2 bg-elevated px-4 py-3 rounded-lg">
+                    <div class="flex items-center gap-2 text-sm text-foreground/80 font-mono">
+                      <.icon name="hero-code-bracket" class="w-4 h-4 text-muted-foreground" />
+                      {inspect(@selected_action.module)}
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-elevated px-4 py-3 rounded-lg">
+                      <div class="text-sm font-medium text-muted-foreground">Category</div>
+                      <div class="mt-1 text-foreground">
+                        {@selected_action.category}
+                      </div>
+                    </div>
+
+                    <%= if Map.get(@selected_action, :vsn) do %>
+                      <div class="bg-elevated px-4 py-3 rounded-lg">
+                        <div class="text-sm font-medium text-muted-foreground">Version</div>
+                        <div class="mt-1 text-foreground font-mono">
+                          {inspect(@selected_action.vsn)}
+                        </div>
+                      </div>
+                    <% end %>
+                  </div>
+
+                  <%= if tags = Map.get(@selected_action, :tags) do %>
+                    <div class="bg-elevated px-4 py-3 rounded-lg">
+                      <div class="text-sm font-medium text-muted-foreground mb-2">Tags</div>
+                      <div class="flex flex-wrap gap-2">
+                        <%= for tag <- tags do %>
+                          <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-muted text-foreground/80">
+                            {tag}
+                          </span>
+                        <% end %>
+                      </div>
+                    </div>
+                  <% end %>
+
+                  <%= if Map.get(@selected_action, :compensation_enabled) do %>
+                    <div class="bg-primary/10 px-4 py-3 rounded-lg flex items-center gap-2 text-primary">
+                      <.icon name="hero-arrow-path" class="w-4 h-4" />
+                      <span class="text-sm font-medium">Compensation Enabled</span>
+                    </div>
+                  <% end %>
+                </div>
+
+                <div class="mb-8">
+                  <h3 class="text-lg font-semibold text-foreground mb-4">Parameters</h3>
+                  <div class="space-y-4">
+                    <%= for {field, schema} <- @selected_action.schema do %>
+                      <div class="bg-elevated px-4 py-3 rounded-lg">
+                        <div class="flex items-center justify-between mb-2">
+                          <div class="flex items-center gap-2">
+                            <div class="font-medium text-foreground">
+                              {field}
+                            </div>
+                            <%= if schema[:required] do %>
+                              <span class="text-xs px-1.5 py-0.5 rounded bg-destructive/10 text-destructive font-medium">Required</span>
+                            <% end %>
+                          </div>
+                          <div class="text-xs px-2 py-1 rounded-md bg-muted text-muted-foreground font-mono">
+                            {format_type(schema[:type])}
+                          </div>
+                        </div>
+                        <%= if schema[:doc] do %>
+                          <p class="text-sm text-muted-foreground mb-2">
+                            {schema[:doc]}
+                          </p>
+                        <% end %>
+                        <div class="space-y-1">
+                          <%= if schema[:default] do %>
+                            <div class="flex items-center gap-2 text-xs text-muted-foreground">
+                              <span class="font-medium">Default:</span>
+                              <code class="px-1.5 py-0.5 rounded bg-muted font-mono">{inspect(schema[:default])}</code>
+                            </div>
+                          <% end %>
+                          <%= if validation_rules = get_validation_rules(schema) do %>
+                            <div class="flex items-center gap-2 text-xs text-muted-foreground">
+                              <span class="font-medium">Validation:</span>
+                              <code class="px-1.5 py-0.5 rounded bg-muted font-mono">{validation_rules}</code>
+                            </div>
+                          <% end %>
+                        </div>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+            <% else %>
+              <div class="h-full flex items-center justify-center text-muted-foreground">
+                Select an action to get started
+              </div>
             <% end %>
           </div>
         </div>
-
-        <div class="flex-1 p-6">
-          <%= if @selected_action do %>
-            <div class="max-w-3xl">
-              <div class="flex items-center gap-3 mb-8">
-                <div class="p-2 rounded-lg bg-primary-500/10 text-primary-600 dark:text-primary-500">
-                  <.icon name="hero-bolt" class="w-6 h-6" />
-                </div>
-                <div>
-                  <h1 class="text-2xl font-semibold text-secondary-900 dark:text-secondary-100">
-                    {@selected_action.name}
-                  </h1>
-                  <p class="text-secondary-600 dark:text-secondary-400">
-                    {@selected_action.description}
-                  </p>
-                </div>
-              </div>
-
-              <div class="space-y-6 mb-8">
-                <div class="flex items-center gap-2 bg-secondary-900/5 dark:bg-secondary-800 px-4 py-3 rounded-lg">
-                  <div class="flex items-center gap-2 text-sm text-secondary-700 dark:text-secondary-300 font-mono">
-                    <.icon name="hero-code-bracket" class="w-4 h-4 text-secondary-500" />
-                    {inspect(@selected_action.module)}
-                  </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                  <div class="bg-secondary-900/5 dark:bg-secondary-800 px-4 py-3 rounded-lg">
-                    <div class="text-sm font-medium text-secondary-500 dark:text-secondary-400">Category</div>
-                    <div class="mt-1 text-secondary-900 dark:text-secondary-100">
-                      {@selected_action.category}
-                    </div>
-                  </div>
-
-                  <%= if Map.get(@selected_action, :vsn) do %>
-                    <div class="bg-secondary-900/5 dark:bg-secondary-800 px-4 py-3 rounded-lg">
-                      <div class="text-sm font-medium text-secondary-500 dark:text-secondary-400">Version</div>
-                      <div class="mt-1 text-secondary-900 dark:text-secondary-100 font-mono">
-                        {inspect(@selected_action.vsn)}
-                      </div>
-                    </div>
-                  <% end %>
-                </div>
-
-                <%= if tags = Map.get(@selected_action, :tags) do %>
-                  <div class="bg-secondary-900/5 dark:bg-secondary-800 px-4 py-3 rounded-lg">
-                    <div class="text-sm font-medium text-secondary-500 dark:text-secondary-400 mb-2">Tags</div>
-                    <div class="flex flex-wrap gap-2">
-                      <%= for tag <- tags do %>
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-secondary-900/10 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300">
-                          {tag}
-                        </span>
-                      <% end %>
-                    </div>
-                  </div>
-                <% end %>
-
-                <%= if Map.get(@selected_action, :compensation_enabled) do %>
-                  <div class="bg-primary-500/10 dark:bg-primary-900/20 px-4 py-3 rounded-lg flex items-center gap-2 text-primary-700 dark:text-primary-400">
-                    <.icon name="hero-arrow-path" class="w-4 h-4" />
-                    <span class="text-sm font-medium">Compensation Enabled</span>
-                  </div>
-                <% end %>
-              </div>
-
-              <div class="mb-8">
-                <h3 class="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-4">Parameters</h3>
-                <div class="space-y-4">
-                  <%= for {field, schema} <- @selected_action.schema do %>
-                    <div class="bg-secondary-900/5 dark:bg-secondary-800 px-4 py-3 rounded-lg">
-                      <div class="flex items-center justify-between mb-2">
-                        <div class="flex items-center gap-2">
-                          <div class="font-medium text-secondary-900 dark:text-secondary-100">
-                            {field}
-                          </div>
-                          <%= if schema[:required] do %>
-                            <span class="text-xs px-1.5 py-0.5 rounded bg-danger-500/10 text-danger-600 dark:text-danger-400 font-medium">Required</span>
-                          <% end %>
-                        </div>
-                        <div class="text-xs px-2 py-1 rounded-md bg-secondary-900/10 dark:bg-secondary-700 text-secondary-600 dark:text-secondary-400 font-mono">
-                          {format_type(schema[:type])}
-                        </div>
-                      </div>
-                      <%= if schema[:doc] do %>
-                        <p class="text-sm text-secondary-600 dark:text-secondary-400 mb-2">
-                          {schema[:doc]}
-                        </p>
-                      <% end %>
-                      <div class="space-y-1">
-                        <%= if schema[:default] do %>
-                          <div class="flex items-center gap-2 text-xs text-secondary-500 dark:text-secondary-400">
-                            <span class="font-medium">Default:</span>
-                            <code class="px-1.5 py-0.5 rounded bg-secondary-900/10 dark:bg-secondary-700 font-mono">{inspect(schema[:default])}</code>
-                          </div>
-                        <% end %>
-                        <%= if validation_rules = get_validation_rules(schema) do %>
-                          <div class="flex items-center gap-2 text-xs text-secondary-500 dark:text-secondary-400">
-                            <span class="font-medium">Validation:</span>
-                            <code class="px-1.5 py-0.5 rounded bg-secondary-900/10 dark:bg-secondary-700 font-mono">{validation_rules}</code>
-                          </div>
-                        <% end %>
-                      </div>
-                    </div>
-                  <% end %>
-                </div>
-              </div>
-            </div>
-          <% else %>
-            <div class="h-full flex items-center justify-center text-secondary-500 dark:text-secondary-400">
-              Select an action to get started
-            </div>
-          <% end %>
-        </div>
       </div>
-    </.workbench_layout>
+    </.marketing_layout>
     """
   end
 

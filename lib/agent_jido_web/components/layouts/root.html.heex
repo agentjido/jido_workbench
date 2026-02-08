@@ -10,11 +10,6 @@
     <script>
       (function() {
         var stored = localStorage.getItem('theme');
-        if (!stored && localStorage.scheme) {
-          stored = localStorage.scheme === 'dark' ? 'dark' : 'light';
-          localStorage.setItem('theme', stored);
-          localStorage.removeItem('scheme');
-        }
         if (stored === 'light') {
           document.documentElement.classList.add('light');
           document.documentElement.classList.remove('dark');

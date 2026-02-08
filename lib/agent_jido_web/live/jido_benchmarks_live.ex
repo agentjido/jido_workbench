@@ -148,8 +148,8 @@ defmodule AgentJidoWeb.JidoBenchmarksLive do
             <div class="code-header">
               <span class="text-muted-foreground text-xs">bash</span>
               <button
-                phx-hook="CopyCode"
-                id="copy-benchmark-code"
+                data-copy-button
+                data-content="git clone https://github.com/agentjido/benchmarks\ncd benchmarks\nmix deps.get\nmix run bench/single_node.exs"
                 class="bg-surface border border-border text-secondary-foreground px-3 py-1 rounded text-[10px] hover:text-foreground transition-colors"
               >
                 COPY

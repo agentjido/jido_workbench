@@ -2,8 +2,6 @@ import "phoenix_html";
 import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
 import topbar from "../vendor/topbar";
-import CopyToClipboard from "./hooks/copy_to_clipboard";
-import Highlight from "./hooks/highlight";
 import ScrollSpy from "./hooks/scroll_spy";
 import ScrollReveal from "./hooks/scroll_reveal";
 
@@ -19,8 +17,6 @@ function applyTheme(theme) {
 }
 
 let Hooks = {
-  CopyToClipboard,
-  Highlight,
   ScrollSpy,
   ScrollReveal,
 };
@@ -105,33 +101,6 @@ Hooks.ScrollShrink = {
   }
 };
 
-Hooks.CopyCode = {
-  mounted() {
-    this.el.addEventListener("click", () => {
-      let content = this.el.dataset.content;
-
-      if (!content) {
-        const codeBlock = this.el.closest(".code-block");
-        if (codeBlock) {
-          const codeElement = codeBlock.querySelector("pre code") || codeBlock.querySelector("pre");
-          if (codeElement) {
-            content = codeElement.textContent;
-          }
-        }
-      }
-
-      if (content) {
-        navigator.clipboard.writeText(content).then(() => {
-          const originalText = this.el.textContent;
-          this.el.textContent = "COPIED!";
-          setTimeout(() => {
-            this.el.textContent = originalText;
-          }, 2000);
-        });
-      }
-    });
-  }
-};
 
 let csrfToken = document
   .querySelector("meta[name='csrf-token']")

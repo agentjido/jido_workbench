@@ -1,6 +1,7 @@
 defmodule AgentJidoWeb.JidoDocsLive do
   use AgentJidoWeb, :live_view
   alias AgentJido.Documentation
+  alias AgentJido.Documentation.MenuNode
   import AgentJidoWeb.Jido.DocsComponents
 
   @impl true
@@ -11,6 +12,7 @@ defmodule AgentJidoWeb.JidoDocsLive do
   @impl true
   def handle_params(_params, uri, socket) do
     path = URI.parse(uri).path
+    socket = assign(socket, :request_path, path)
 
     case path do
       "/docs" -> handle_index(socket)
@@ -70,6 +72,7 @@ defmodule AgentJidoWeb.JidoDocsLive do
              page_title: doc.title,
              documents: documents,
              selected_document: doc,
+             toc: toc,
              document_content: %{html: doc.body, toc: toc}
            )}
       end
@@ -124,80 +127,55 @@ defmodule AgentJidoWeb.JidoDocsLive do
     {:noreply, update(socket, :sidebar_open, &(!&1))}
   end
 
-  # Sidebar navigation structure
   def sidebar_nav do
-    [
-      %{
-        title: "Getting Started",
-        default_open: true,
-        items: [
-          %{label: "Introduction", href: "/docs"},
-          %{label: "Installation", href: "/docs/installation"},
-          %{label: "Quick Start", href: "/docs/quickstart"},
-          %{label: "Core Concepts", href: "/docs/concepts"},
-          %{label: "Production Checklist", href: "/docs/production-checklist"}
-        ]
-      },
-      %{
-        title: "Packages",
-        items: [
-          %{label: "jido", href: "/docs/packages/jido", badge: "CORE"},
-          %{label: "jido_action", href: "/docs/packages/jido-action"},
-          %{label: "jido_signal", href: "/docs/packages/jido-signal"},
-          %{label: "req_llm", href: "/docs/packages/req-llm", badge: "FOUNDATION"},
-          %{label: "llmdb", href: "/docs/packages/llmdb", badge: "FOUNDATION"},
-          %{label: "jido_ai", href: "/docs/packages/jido-ai", badge: "AI"},
-          %{label: "jido_coder", href: "/docs/packages/jido-coder", badge: "APP"}
-        ]
-      },
-      %{
-        title: "Agents",
-        items: [
-          %{label: "Defining Agents", href: "/docs/agents/defining"},
-          %{label: "Agent Lifecycle", href: "/docs/agents/lifecycle"},
-          %{label: "State Management", href: "/docs/agents/state"},
-          %{label: "Supervision Trees", href: "/docs/agents/supervision"},
-          %{label: "Multi-Agent Systems", href: "/docs/agents/multi-agent"}
-        ]
-      },
-      %{
-        title: "Actions & Signals",
-        items: [
-          %{label: "Action Schemas", href: "/docs/actions/schemas"},
-          %{label: "Validation", href: "/docs/actions/validation"},
-          %{label: "Signal Pub/Sub", href: "/docs/signals/pubsub"},
-          %{label: "Inter-Agent Comms", href: "/docs/signals/communication"}
-        ]
-      },
-      %{
-        title: "AI & LLMs",
-        items: [
-          %{label: "LLM Configuration", href: "/docs/ai/llm-config"},
-          %{label: "Token Budgets", href: "/docs/ai/budgets"},
-          %{label: "Tool Calling", href: "/docs/ai/tools"},
-          %{label: "Streaming", href: "/docs/ai/streaming"},
-          %{label: "Cost Tracking", href: "/docs/ai/costs"}
-        ]
-      },
-      %{
-        title: "Production",
-        items: [
-          %{label: "Deployment", href: "/docs/production/deployment"},
-          %{label: "Observability", href: "/docs/production/observability"},
-          %{label: "Telemetry", href: "/docs/production/telemetry"},
-          %{label: "Scaling", href: "/docs/production/scaling"},
-          %{label: "Failure Handling", href: "/docs/production/failures"}
-        ]
-      },
-      %{
-        title: "Reference",
-        items: [
-          %{label: "API Reference", href: "https://hexdocs.pm/jido", external: true},
-          %{label: "CLI Commands", href: "/docs/reference/cli"},
-          %{label: "Configuration", href: "/docs/reference/config"},
-          %{label: "Benchmarks", href: "/benchmarks"}
-        ]
-      }
-    ]
+    docs_node =
+      Documentation.menu_tree()
+      |> Enum.find(fn node -> node.slug == "docs" end)
+
+    sections = build_sections_from_node(docs_node)
+
+    sections ++
+      [
+        %{
+          title: "Reference",
+          items: [
+            %{label: "API Reference", href: "https://hexdocs.pm/jido", external: true}
+          ]
+        }
+      ]
+  end
+
+  defp build_sections_from_node(nil), do: []
+
+  defp build_sections_from_node(%MenuNode{children: children} = node) do
+    parent_item =
+      if node.doc, do: [%{label: MenuNode.label(node), href: node.doc.path}], else: []
+
+    leaf_children =
+      children
+      |> Enum.filter(&(&1.doc != nil && &1.children == []))
+      |> Enum.sort_by(& &1.order)
+      |> Enum.map(fn n -> %{label: MenuNode.label(n), href: n.doc.path} end)
+
+    top_level_items = parent_item ++ leaf_children
+
+    child_sections =
+      children
+      |> Enum.filter(&(length(&1.children) > 0 && &1.doc != nil))
+      |> Enum.sort_by(& &1.order)
+      |> Enum.map(fn child ->
+        items =
+          [child | child.children]
+          |> Enum.filter(&(&1.doc != nil))
+          |> Enum.sort_by(& &1.order)
+          |> Enum.map(fn n -> %{label: MenuNode.label(n), href: n.doc.path} end)
+
+        %{title: MenuNode.label(child), items: items}
+      end)
+
+    case top_level_items do
+      [] -> child_sections
+      items -> [%{title: MenuNode.label(node), items: items} | child_sections]
+    end
   end
 end

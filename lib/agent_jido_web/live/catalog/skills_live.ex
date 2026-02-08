@@ -1,6 +1,6 @@
 defmodule AgentJidoWeb.CatalogSkillsLive do
   use AgentJidoWeb, :live_view
-  import AgentJidoWeb.WorkbenchLayout
+  import AgentJidoWeb.Jido.MarketingLayouts
 
   @impl true
   def mount(_params, _session, socket) do
@@ -20,85 +20,87 @@ defmodule AgentJidoWeb.CatalogSkillsLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <.workbench_layout current_page={:skills}>
-      <div class="flex bg-white dark:bg-secondary-900 text-secondary-900 dark:text-secondary-100">
-        <div class="w-96 border-r border-secondary-200 dark:border-secondary-700 flex flex-col">
-          <div class="p-4 border-b border-secondary-200 dark:border-secondary-700">
-            <h2 class="text-xl mb-4 flex items-center gap-2">
-              <.icon name="hero-bolt" class="w-6 h-6 text-primary-600 dark:text-primary-500" /> Available Skills
-            </h2>
-            <div class="relative">
-              <.icon name="hero-magnifying-glass" class="w-5 h-5 absolute left-3 top-2.5 text-secondary-400 dark:text-secondary-500" />
-              <.input
-                type="text"
-                name="search"
-                value={@search}
-                placeholder="Search skills..."
-                phx-change="search"
-                phx-debounce="300"
-                class="w-full bg-white dark:bg-secondary-800 rounded-md py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400"
-              />
+    <.marketing_layout current_path="/catalog/skills">
+      <div class="container max-w-[1200px] mx-auto px-6 py-8">
+        <div class="flex bg-background text-foreground min-h-[600px] border border-border rounded-lg overflow-hidden">
+          <div class="w-96 border-r border-border flex flex-col">
+            <div class="p-4 border-b border-border">
+              <h2 class="text-xl mb-4 flex items-center gap-2">
+                <.icon name="hero-academic-cap" class="w-6 h-6 text-primary" /> Available Skills
+              </h2>
+              <div class="relative">
+                <.icon name="hero-magnifying-glass" class="w-5 h-5 absolute left-3 top-2.5 text-muted-foreground" />
+                <input
+                  type="text"
+                  name="search"
+                  value={@search}
+                  placeholder="Search skills..."
+                  phx-change="search"
+                  phx-debounce="300"
+                  class="w-full bg-elevated rounded-md py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+            </div>
+
+            <div class="flex-1 overflow-y-auto">
+              <%= for skill <- @skills do %>
+                <button
+                  phx-click="select-skill"
+                  phx-value-slug={skill.slug}
+                  class={"w-full p-4 text-left hover:bg-elevated flex items-center justify-between group #{if @selected_skill && @selected_skill.slug == skill.slug, do: "bg-elevated border-l-2 border-primary", else: ""}"}
+                >
+                  <div class="flex items-center space-x-3">
+                    <div class="text-primary">
+                      <.icon name="hero-academic-cap" class="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div class="font-medium flex items-center gap-2 text-foreground">
+                        {skill.name}
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-elevated text-muted-foreground">
+                          {skill.category}
+                        </span>
+                      </div>
+                      <div class="text-sm text-muted-foreground">
+                        {skill.description}
+                      </div>
+                    </div>
+                  </div>
+                  <.icon name="hero-chevron-right" class="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100" />
+                </button>
+              <% end %>
             </div>
           </div>
 
-          <div class="flex-1 overflow-y-auto">
-            <%= for skill <- @skills do %>
-              <button
-                phx-click="select-skill"
-                phx-value-slug={skill.slug}
-                class={"w-full p-4 text-left hover:bg-secondary-100 dark:hover:bg-secondary-800 flex items-center justify-between group #{if @selected_skill && @selected_skill.slug == skill.slug, do: "bg-secondary-100 dark:bg-secondary-800 border-l-2 border-primary-500", else: ""}"}
-              >
-                <div class="flex items-center space-x-3">
-                  <div class="text-primary-600 dark:text-primary-500">
-                    <.icon name="hero-bolt" class="w-5 h-5" />
+          <div class="flex-1 p-6">
+            <%= if @selected_skill do %>
+              <div class="max-w-2xl">
+                <div class="flex items-center gap-3 mb-6">
+                  <div class="text-primary">
+                    <.icon name="hero-academic-cap" class="w-6 h-6" />
                   </div>
                   <div>
-                    <div class="font-medium flex items-center gap-2">
-                      {skill.name}
-                      <span class="text-xs px-2 py-0.5 rounded-full bg-secondary-100 dark:bg-secondary-800 text-secondary-600 dark:text-secondary-400">
-                        {skill.category}
-                      </span>
-                    </div>
-                    <div class="text-sm text-secondary-600 dark:text-secondary-400">
-                      {skill.description}
+                    <h1 class="text-2xl text-foreground font-semibold">
+                      {@selected_skill.name}
+                    </h1>
+                    <div class="text-muted-foreground text-sm">
+                      {@selected_skill.category}
                     </div>
                   </div>
                 </div>
-                <.icon name="hero-chevron-right" class="w-5 h-5 text-secondary-400 dark:text-secondary-500 opacity-0 group-hover:opacity-100" />
-              </button>
+
+                <p class="text-muted-foreground mb-8">
+                  {@selected_skill.description}
+                </p>
+              </div>
+            <% else %>
+              <div class="h-full flex items-center justify-center text-muted-foreground">
+                Select a skill to get started
+              </div>
             <% end %>
           </div>
         </div>
-
-        <div class="flex-1 p-6">
-          <%= if @selected_skill do %>
-            <div class="max-w-2xl">
-              <div class="flex items-center gap-3 mb-6">
-                <div class="text-primary-600 dark:text-primary-500">
-                  <.icon name="hero-bolt" class="w-6 h-6" />
-                </div>
-                <div>
-                  <h1 class="text-2xl text-primary-600 dark:text-primary-500">
-                    {@selected_skill.name}
-                  </h1>
-                  <div class="text-secondary-600 dark:text-secondary-400 text-sm">
-                    {@selected_skill.category}
-                  </div>
-                </div>
-              </div>
-
-              <p class="text-secondary-600 dark:text-secondary-400 mb-8">
-                {@selected_skill.description}
-              </p>
-            </div>
-          <% else %>
-            <div class="h-full flex items-center justify-center text-secondary-500 dark:text-secondary-400">
-              Select a skill to get started
-            </div>
-          <% end %>
-        </div>
       </div>
-    </.workbench_layout>
+    </.marketing_layout>
     """
   end
 

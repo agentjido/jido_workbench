@@ -1,6 +1,6 @@
 defmodule AgentJidoWeb.LivebookDemoLive do
   use AgentJidoWeb, :live_view
-  import AgentJidoWeb.WorkbenchLayout
+  import AgentJidoWeb.Jido.MarketingLayouts
   alias AgentJido.Documentation
   require Logger
 

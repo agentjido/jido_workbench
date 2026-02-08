@@ -37,8 +37,7 @@ defmodule AgentJido.CodeExamples do
       iex(2)> WeatherAgent.tool_response(pid, "What is the weather in Tokyo?")
       {:ok, "The weather in Tokyo is sunny with a temperature of 20 degrees Celsius."}
       """,
-      livebook_url:
-        "https://raw.githubusercontent.com/agentjido/agent_jido/refs/heads/main/priv/documentation/cookbook/weather-tool-response.livemd"
+      livebook_url: "https://raw.githubusercontent.com/agentjido/agent_jido/refs/heads/main/priv/documentation/cookbook/weather-tool-response.livemd"
     }
   end
 

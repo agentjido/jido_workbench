@@ -73,27 +73,35 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
     <div class="border-b border-border bg-card/50 px-6 overflow-x-auto">
       <nav class="flex items-center gap-1">
         <%= for tab <- [
-          %{label: "Get started", href: "/docs", active_paths: ["/docs", "/docs/installation", "/docs/quickstart", "/docs/concepts", "/docs/production-checklist"]},
-          %{label: "Packages", href: "/docs/packages/jido", active_paths: ["/docs/packages"]},
-          %{label: "Agents", href: "/docs/agents/defining", active_paths: ["/docs/agents"]},
-          %{label: "Actions", href: "/docs/actions/schemas", active_paths: ["/docs/actions", "/docs/signals"]},
-          %{label: "AI & LLMs", href: "/docs/ai/llm-config", active_paths: ["/docs/ai"]},
-          %{label: "Production", href: "/docs/production/deployment", active_paths: ["/docs/production"]},
-          %{label: "Reference", href: "/docs/reference/cli", active_paths: ["/docs/reference"]}
+          %{label: "Get Started", href: "/docs", active_paths: ["/docs"]},
+          %{label: "Cookbook", href: "/cookbook", active_paths: ["/cookbook"]},
+          %{label: "Reference", href: "https://hexdocs.pm/jido", active_paths: [], external: true}
         ] do %>
-          <.link
-            navigate={tab.href}
-            class={
-              "flex items-center gap-1 px-4 py-3 text-[13px] whitespace-nowrap transition-colors border-b-2 -mb-[1px] " <>
-              if Enum.any?(tab.active_paths, &String.starts_with?(@current_path || "", &1)) do
-                "text-foreground font-medium border-b-primary"
-              else
-                "text-muted-foreground border-b-transparent hover:text-foreground hover:border-b-border"
-              end
-            }
-          >
-            {tab.label}
-          </.link>
+          <%= if tab[:external] do %>
+            <a
+              href={tab.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="flex items-center gap-1 px-4 py-3 text-[13px] whitespace-nowrap transition-colors border-b-2 -mb-[1px] text-muted-foreground border-b-transparent hover:text-foreground hover:border-b-border"
+            >
+              {tab.label}
+              <.icon name="hero-arrow-top-right-on-square" class="h-3 w-3" />
+            </a>
+          <% else %>
+            <.link
+              navigate={tab.href}
+              class={
+                "flex items-center gap-1 px-4 py-3 text-[13px] whitespace-nowrap transition-colors border-b-2 -mb-[1px] " <>
+                if Enum.any?(tab.active_paths, &String.starts_with?(@current_path || "", &1)) do
+                  "text-foreground font-medium border-b-primary"
+                else
+                  "text-muted-foreground border-b-transparent hover:text-foreground hover:border-b-border"
+                end
+              }
+            >
+              {tab.label}
+            </.link>
+          <% end %>
         <% end %>
       </nav>
     </div>

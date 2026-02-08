@@ -1,13 +1,10 @@
 @import "tailwindcss";
 
-@source "../../deps/petal_components/**/*.*ex";
 @source "../js/**/*.js";
 @source "../../lib/*_web.ex";
 @source "../../lib/*_web/**/*.*ex";
 
-@import "../../deps/petal_components/assets/default.css";
 @import "./syntax.css";
-@import "./menu.css";
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
 
 @plugin "@tailwindcss/forms";
@@ -15,26 +12,10 @@
 @plugin "./tailwind_heroicons.js";
 
 /*
- * CSS Architecture — Two Systems
- *
- * NEW SYSTEM (canonical): CSS custom properties defined in :root / .light blocks.
- *   Tokens: bg-background, text-foreground, bg-card, text-muted-foreground, etc.
- *   Used by: marketing pages, docs pages, marketing_layouts.ex, docs_components.ex
- *
- * LEGACY SYSTEM (to be migrated): Petal's color scale mapped through @theme inline.
- *   Tokens: bg-primary-600, text-secondary-400, dark:bg-secondary-900, etc.
- *   Used by: workbench pages (catalog, blog, cookbook), workbench_layout.ex, core_components.ex
- *   Depends on: @custom-variant dark, @theme inline block, Petal default.css import
- *
- * Migration path:
- *   1. Migrate remaining workbench pages to CSS custom property tokens
- *   2. Remove @theme inline Petal compat shim
- *   3. Remove Petal default.css import
- *   4. Remove @custom-variant dark
- *   5. Remove menu.css
+ * CSS Architecture — Single design system using CSS custom properties.
+ * Tokens: bg-background, text-foreground, bg-card, text-muted-foreground, etc.
+ * Theme switching: .light class on <html> changes CSS variable values.
  */
-
-@custom-variant dark (&:where(.dark, .dark *));
 
 @utility phx-click-loading {
   opacity: 0.5;
@@ -46,77 +27,11 @@
 }
 
 @theme inline {
-  --color-primary-50: hsl(var(--primary));
-  --color-primary-100: hsl(var(--primary) / 0.9);
-  --color-primary-200: hsl(var(--primary) / 0.8);
-  --color-primary-300: hsl(var(--primary) / 0.7);
-  --color-primary-400: hsl(var(--primary) / 0.6);
-  --color-primary-500: hsl(var(--primary) / 0.5);
-  --color-primary-600: hsl(var(--primary));
-  --color-primary-700: hsl(var(--primary) / 0.85);
-  --color-primary-800: hsl(var(--primary) / 0.75);
-  --color-primary-900: hsl(var(--primary) / 0.65);
-  --color-primary-950: hsl(var(--primary) / 0.5);
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
 
-  --color-secondary-50: hsl(var(--secondary) / 0.5);
-  --color-secondary-100: hsl(var(--secondary) / 0.4);
-  --color-secondary-200: hsl(var(--secondary) / 0.35);
-  --color-secondary-300: hsl(var(--secondary) / 0.3);
-  --color-secondary-400: hsl(var(--secondary) / 0.25);
-  --color-secondary-500: hsl(var(--secondary) / 0.2);
-  --color-secondary-600: hsl(var(--secondary));
-  --color-secondary-700: hsl(var(--secondary) / 0.8);
-  --color-secondary-800: hsl(var(--secondary) / 0.7);
-  --color-secondary-900: hsl(var(--secondary) / 0.6);
-  --color-secondary-950: hsl(var(--secondary) / 0.5);
-
-  --color-success-50: var(--color-emerald-50);
-  --color-success-100: var(--color-emerald-100);
-  --color-success-200: var(--color-emerald-200);
-  --color-success-300: var(--color-emerald-300);
-  --color-success-400: var(--color-emerald-400);
-  --color-success-500: var(--color-emerald-500);
-  --color-success-600: var(--color-emerald-600);
-  --color-success-700: var(--color-emerald-700);
-  --color-success-800: var(--color-emerald-800);
-  --color-success-900: var(--color-emerald-900);
-  --color-success-950: var(--color-emerald-950);
-
-  --color-danger-50: var(--color-red-50);
-  --color-danger-100: var(--color-red-100);
-  --color-danger-200: var(--color-red-200);
-  --color-danger-300: var(--color-red-300);
-  --color-danger-400: var(--color-red-400);
-  --color-danger-500: var(--color-red-500);
-  --color-danger-600: var(--color-red-600);
-  --color-danger-700: var(--color-red-700);
-  --color-danger-800: var(--color-red-800);
-  --color-danger-900: var(--color-red-900);
-  --color-danger-950: var(--color-red-950);
-
-  --color-warning-50: var(--color-yellow-50);
-  --color-warning-100: var(--color-yellow-100);
-  --color-warning-200: var(--color-yellow-200);
-  --color-warning-300: var(--color-yellow-300);
-  --color-warning-400: var(--color-yellow-400);
-  --color-warning-500: var(--color-yellow-500);
-  --color-warning-600: var(--color-yellow-600);
-  --color-warning-700: var(--color-yellow-700);
-  --color-warning-800: var(--color-yellow-800);
-  --color-warning-900: var(--color-yellow-900);
-  --color-warning-950: var(--color-yellow-950);
-
-  --color-info-50: var(--color-gray-50);
-  --color-info-100: var(--color-gray-100);
-  --color-info-200: var(--color-gray-200);
-  --color-info-300: var(--color-gray-300);
-  --color-info-400: var(--color-gray-400);
-  --color-info-500: var(--color-gray-500);
-  --color-info-600: var(--color-gray-600);
-  --color-info-700: var(--color-gray-700);
-  --color-info-800: var(--color-gray-800);
-  --color-info-900: var(--color-gray-900);
-  --color-info-950: var(--color-gray-950);
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
 
   --color-border: hsl(var(--border));
   --color-border-strong: hsl(var(--border-strong));
@@ -170,24 +85,12 @@
   --radius-sm: calc(var(--radius) - 4px);
 
   --animate-fade-in: fade-in 0.5s ease-out forwards;
-  --animate-pulse-glow: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 
   --container-2xl: 1000px;
 
   @keyframes fade-in {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
-  }
-
-  @keyframes pulse-glow {
-    0%, 100% {
-      opacity: 1;
-      box-shadow: 0 0 5px var(--color-success-400), 0 0 20px var(--color-success-400);
-    }
-    50% {
-      opacity: .7;
-      box-shadow: 0 0 2px var(--color-success-400), 0 0 10px var(--color-success-400);
-    }
   }
 }
 
@@ -235,6 +138,25 @@
     --sidebar-accent-foreground: 0 0% 90%;
     --sidebar-border: 0 0% 16%;
     --sidebar-ring: 152 100% 50%;
+  }
+
+  .prose {
+    --tw-prose-body: hsl(var(--foreground));
+    --tw-prose-headings: hsl(var(--foreground));
+    --tw-prose-lead: hsl(var(--muted-foreground));
+    --tw-prose-links: hsl(var(--primary));
+    --tw-prose-bold: hsl(var(--foreground));
+    --tw-prose-counters: hsl(var(--muted-foreground));
+    --tw-prose-bullets: hsl(var(--muted-foreground));
+    --tw-prose-hr: hsl(var(--border));
+    --tw-prose-quotes: hsl(var(--foreground));
+    --tw-prose-quote-borders: hsl(var(--border));
+    --tw-prose-captions: hsl(var(--muted-foreground));
+    --tw-prose-code: hsl(var(--foreground));
+    --tw-prose-pre-code: hsl(var(--foreground));
+    --tw-prose-pre-bg: hsl(var(--code-bg));
+    --tw-prose-th-borders: hsl(var(--border));
+    --tw-prose-td-borders: hsl(var(--border));
   }
 
   .light {
@@ -393,14 +315,6 @@
     border-color: hsl(var(--primary) / 0.4);
   }
 
-  .neon-glow {
-    box-shadow: 0 0 5px var(--color-success-400), 0 0 20px var(--color-success-400);
-  }
-
-  .neon-border {
-    border: 1px solid var(--color-success-400);
-    box-shadow: 0 0 5px var(--color-success-400);
-  }
 }
 
 @layer utilities {
