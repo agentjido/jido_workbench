@@ -143,9 +143,7 @@
   --color-code-function: hsl(var(--code-function));
   --color-code-type: hsl(var(--code-type));
 
-  --font-mono: 'IBM Plex Mono', 'JetBrains Mono', 'Share Tech Mono', monospace;
-  --font-sans: 'Inter', system-ui, sans-serif;
-  --font-display: 'VT323', monospace;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
@@ -256,8 +254,7 @@
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
-    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    @apply bg-background text-foreground;
   }
 
   html {
