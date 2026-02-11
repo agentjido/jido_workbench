@@ -76,9 +76,9 @@ defmodule AgentJido.MixProject do
 
       # AI / Jido
       {:jido, "~> 2.0.0-rc.4"},
-      {:jido_ai, path: "../jido_ai", override: true},
-      {:jido_live_dashboard, path: "../jido_live_dashboard"},
-      {:jido_studio, path: "../jido_studio"},
+      {:jido_ai, github: "agentjido/jido_ai", branch: "main", override: true},
+      {:jido_live_dashboard, github: "agentjido/jido_live_dashboard", branch: "main"},
+      {:jido_studio, github: "agentjido/jido_studio", branch: "main"},
       {:req_llm, "~> 1.5"},
 
       # Image generation (OG images)
