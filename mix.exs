@@ -39,7 +39,7 @@ defmodule AgentJido.MixProject do
       {:phoenix_live_reload, "~> 1.6", only: :dev},
       {:heroicons, github: "tailwindlabs/heroicons", tag: "v2.1.5", app: false, compile: false, sparse: "optimized"},
       {:floki, "~> 0.35"},
-      {:lazy_html, ">= 0.0.0", only: :test},
+      {:lazy_html, ">= 0.0.0"},
       # HTTP / Server
       {:plug_cowboy, "~> 2.5"},
       {:plug_canonical_host, "~> 2.0"},
@@ -65,7 +65,9 @@ defmodule AgentJido.MixProject do
 
       # AI / Jido
       {:jido, "~> 2.0.0-rc.4"},
-      {:jido_ai, github: "agentjido/jido_ai", branch: "main"},
+      {:jido_ai, path: "../jido_ai", override: true},
+      {:jido_live_dashboard, path: "../jido_live_dashboard"},
+      {:jido_studio, path: "../jido_studio"},
       {:req_llm, "~> 1.5"},
 
       # Config / Env

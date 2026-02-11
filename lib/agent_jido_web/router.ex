@@ -1,5 +1,6 @@
 defmodule AgentJidoWeb.Router do
   use AgentJidoWeb, :router
+  import JidoStudio.Router
 
   # Build documentation routes at compile time
   # @menu_tree AgentJido.Documentation.menu_tree()
@@ -79,6 +80,7 @@ defmodule AgentJidoWeb.Router do
   # end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
+
   if Application.compile_env(:agent_jido, :dev_routes) do
     # If you want to use the LiveDashboard in production, you should put
     # it behind authentication and allow only admins to access it.
@@ -90,7 +92,8 @@ defmodule AgentJidoWeb.Router do
     scope "/dev" do
       pipe_through(:browser)
 
-      live_dashboard("/dashboard", metrics: AgentJidoWeb.Telemetry)
+      live_dashboard("/dashboard", metrics: AgentJidoWeb.Telemetry, additional_pages: JidoLiveDashboard.pages())
+      jido_studio("/jido", host_app_js_path: "/assets/app.js")
       forward("/mailbox", Plug.Swoosh.MailboxPreview)
     end
   end
