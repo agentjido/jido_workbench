@@ -8,6 +8,13 @@
 import Config
 
 # Configures the endpoint
+config :agent_jido,
+  ecto_repos: [AgentJido.Repo]
+
+config :agent_jido, AgentJido.Repo,
+  types: AgentJido.PostgrexTypes
+
+# Configures the endpoint
 config :agent_jido, AgentJidoWeb.Endpoint,
   url: [host: "localhost"],
   render_errors: [
@@ -57,6 +64,16 @@ config :logger, :console,
 
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
+
+# Nx backend (Apple Silicon / EMLX) - required for Arcana local embeddings
+config :nx,
+  default_backend: EMLX.Backend,
+  default_defn_options: [compiler: EMLX]
+
+# Arcana RAG
+config :arcana,
+  repo: AgentJido.Repo,
+  embedder: :local
 
 config :agent_jido, ash_domains: [AgentJido.Folio]
 

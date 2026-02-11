@@ -29,7 +29,24 @@ config :agent_jido,
   enable_analytics: env!("ENABLE_ANALYTICS", :boolean, false),
   discord_invite_link: env!("DISCORD_INVITE_LINK", :string, "https://discord.gg/dMh8CqEH8Q")
 
+if llm = System.get_env("ARCANA_LLM") do
+  config :arcana, llm: llm
+end
+
 if config_env() == :prod do
+  database_url =
+    System.get_env("DATABASE_URL") ||
+      raise """
+      environment variable DATABASE_URL is missing.
+      For example: ecto://USER:PASS@HOST/DATABASE
+      """
+
+  pool_size = String.to_integer(System.get_env("POOL_SIZE") || "10")
+
+  config :agent_jido, AgentJido.Repo,
+    url: database_url,
+    pool_size: pool_size
+
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you
   # want to use a different value for prod and you most likely don't want
@@ -48,10 +65,6 @@ if config_env() == :prod do
   config :agent_jido, AgentJidoWeb.Endpoint,
     url: [host: host, port: 443, scheme: "https"],
     http: [
-      # Enable IPv6 and bind on all interfaces.
-      # Set it to  {0, 0, 0, 0, 0, 0, 0, 1} for local network only access.
-      # See the documentation on https://hexdocs.pm/plug_cowboy/Plug.Cowboy.html
-      # for details about using IPv6 vs IPv4 and loopback vs public addresses.
       ip: {0, 0, 0, 0, 0, 0, 0, 0},
       port: port
     ],

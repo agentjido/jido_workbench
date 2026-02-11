@@ -1,6 +1,7 @@
 defmodule AgentJidoWeb.Router do
   use AgentJidoWeb, :router
   import JidoStudio.Router
+  import ArcanaWeb.Router
 
   # Build documentation routes at compile time
   # @menu_tree AgentJido.Documentation.menu_tree()
@@ -95,6 +96,8 @@ defmodule AgentJidoWeb.Router do
       live_dashboard("/dashboard", metrics: AgentJidoWeb.Telemetry, additional_pages: JidoLiveDashboard.pages())
       jido_studio("/jido", host_app_js_path: "/assets/app.js")
       forward("/mailbox", Plug.Swoosh.MailboxPreview)
+
+      arcana_dashboard "/arcana", repo: AgentJido.Repo
     end
   end
 end

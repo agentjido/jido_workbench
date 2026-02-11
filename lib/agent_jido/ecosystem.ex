@@ -1,0 +1,103 @@
+defmodule AgentJido.Ecosystem do
+  @moduledoc """
+  Static package registry for the Jido ecosystem.
+
+  Powered by NimblePublisher, this module compiles Markdown files from
+  `priv/ecosystem/` into structured `Package` structs at build time.
+  Provides indexed lookups by id, category, tier, and tag, plus
+  a computed dependency graph across ecosystem packages.
+  """
+
+  alias AgentJido.Ecosystem.Package
+
+  use NimblePublisher,
+    build: Package,
+    from: Application.app_dir(:agent_jido, "priv/ecosystem/**/*.md"),
+    as: :packages,
+    highlighters: [:makeup_elixir]
+
+  @packages Enum.sort_by(@packages, fn p -> {p.tier, p.category, p.name} end)
+
+  @public_packages Enum.filter(@packages, &(&1.visibility == :public))
+
+  @packages_by_id Map.new(@packages, &{&1.id, &1})
+
+  @packages_by_category @packages
+                        |> Enum.group_by(& &1.category)
+                        |> Map.new()
+
+  @packages_by_tier @packages
+                    |> Enum.group_by(& &1.tier)
+                    |> Map.new()
+
+  @tags @packages
+        |> Enum.flat_map(& &1.tags)
+        |> Enum.uniq()
+        |> Enum.sort()
+
+  @categories @packages
+              |> Enum.map(& &1.category)
+              |> Enum.uniq()
+              |> Enum.sort()
+
+  @reverse_deps (
+                  deps_map =
+                    Enum.reduce(@packages, %{}, fn pkg, acc ->
+                      Enum.reduce(pkg.ecosystem_deps, acc, fn dep_id, inner_acc ->
+                        Map.update(inner_acc, dep_id, [pkg.id], &[pkg.id | &1])
+                      end)
+                    end)
+
+                  Map.new(deps_map, fn {k, v} -> {k, Enum.sort(Enum.uniq(v))} end)
+                )
+
+  defmodule NotFoundError do
+    defexception [:message, plug_status: 404]
+  end
+
+  @spec all_packages() :: [Package.t()]
+  def all_packages, do: @packages
+
+  @spec public_packages() :: [Package.t()]
+  def public_packages, do: @public_packages
+
+  @spec get_package(String.t()) :: Package.t() | nil
+  def get_package(id), do: Map.get(@packages_by_id, id)
+
+  @spec get_package!(String.t()) :: Package.t()
+  def get_package!(id) do
+    Map.get(@packages_by_id, id) ||
+      raise NotFoundError, "package with id=#{id} not found"
+  end
+
+  @spec packages_by_category(atom()) :: [Package.t()]
+  def packages_by_category(category), do: Map.get(@packages_by_category, category, [])
+
+  @spec packages_by_tier(integer()) :: [Package.t()]
+  def packages_by_tier(tier), do: Map.get(@packages_by_tier, tier, [])
+
+  @spec all_categories() :: [atom()]
+  def all_categories, do: @categories
+
+  @spec all_tags() :: [atom()]
+  def all_tags, do: @tags
+
+  @spec ecosystem_deps(String.t()) :: [String.t()]
+  def ecosystem_deps(id) do
+    case get_package(id) do
+      nil -> []
+      pkg -> pkg.ecosystem_deps
+    end
+  end
+
+  @spec reverse_deps(String.t()) :: [String.t()]
+  def reverse_deps(id), do: Map.get(@reverse_deps, id, [])
+
+  @spec dependency_graph() :: %{String.t() => [String.t()]}
+  def dependency_graph do
+    Map.new(@packages, fn pkg -> {pkg.id, pkg.ecosystem_deps} end)
+  end
+
+  @spec package_count() :: non_neg_integer()
+  def package_count, do: length(@packages)
+end

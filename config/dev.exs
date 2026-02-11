@@ -54,7 +54,8 @@ config :agent_jido, AgentJidoWeb.Endpoint,
       ~r"priv/gettext/.*(po)$",
       ~r"lib/agent_jido_web/(controllers|live|components)/.*(ex|heex)$",
       ~r"priv/blog/.*(md|livemd)$",
-      ~r"priv/documentation/.*(md|livemd)$"
+      ~r"priv/documentation/.*(md|livemd)$",
+      ~r"priv/ecosystem/.*(md)$"
     ]
   ]
 
@@ -73,3 +74,14 @@ config :phoenix, :plug_init_mode, :runtime
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
+
+# Database
+config :agent_jido, AgentJido.Repo,
+  username: "postgres",
+  password: "postgres",
+  hostname: "localhost",
+  port: 5432,
+  database: "agent_jido_dev",
+  stacktrace: true,
+  show_sensitive_data_on_connection_error: true,
+  pool_size: 10

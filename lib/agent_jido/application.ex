@@ -6,15 +6,13 @@ defmodule AgentJido.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      # Start the Telemetry supervisor
+      AgentJido.Repo,
       AgentJidoWeb.Telemetry,
-      # Start the PubSub system
       {Phoenix.PubSub, name: AgentJido.PubSub},
-      # Start Finch
       {Finch, name: AgentJido.Finch},
-      # Start the Endpoint (http/https)
+      Arcana.TaskSupervisor,
+      Arcana.Embedder.Local,
       AgentJidoWeb.Endpoint,
-      # Jido
       AgentJido.Jido
     ]
 

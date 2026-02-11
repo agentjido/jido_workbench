@@ -63,12 +63,26 @@ defmodule AgentJido.MixProject do
       {:makeup_js, "~> 0.1.0"},
       {:makeup_html, "~> 0.2.0"},
 
+      # DB / Ecto (required by Arcana)
+      {:ecto_sql, "~> 3.12"},
+      {:postgrex, "~> 0.19"},
+      {:pgvector, "~> 0.3"},
+
+      # RAG
+      {:arcana, "~> 1.3.3"},
+
+      # Nx backend (Apple Silicon)
+      {:emlx, "~> 0.2"},
+
       # AI / Jido
       {:jido, "~> 2.0.0-rc.4"},
       {:jido_ai, path: "../jido_ai", override: true},
       {:jido_live_dashboard, path: "../jido_live_dashboard"},
       {:jido_studio, path: "../jido_studio"},
       {:req_llm, "~> 1.5"},
+
+      # Schema validation
+      {:zoi, "~> 0.17"},
 
       # Config / Env
       {:dotenvy, "~> 1.0"},
@@ -91,7 +105,10 @@ defmodule AgentJido.MixProject do
   # See the documentation for `Mix` for more info on aliases.
   defp aliases do
     [
-      setup: ["deps.get", "assets.setup", "assets.build"],
+      setup: ["deps.get", "ecto.setup", "assets.setup", "assets.build"],
+      "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
+      "ecto.reset": ["ecto.drop", "ecto.setup"],
+      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
       "assets.build": ["tailwind default", "esbuild default"],
       "assets.deploy": ["tailwind default --minify", "esbuild default --minify", "phx.digest"],
