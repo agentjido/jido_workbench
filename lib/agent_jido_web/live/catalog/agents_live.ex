@@ -9,6 +9,7 @@ defmodule AgentJidoWeb.CatalogAgentsLive do
     {:ok,
      assign(socket,
        page_title: "Agents Dashboard",
+       og_image: "https://agentjido.xyz/og/catalog.png",
        agents: agents,
        selected_agent: nil,
        result: nil,

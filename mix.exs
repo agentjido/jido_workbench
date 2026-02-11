@@ -81,6 +81,9 @@ defmodule AgentJido.MixProject do
       {:jido_studio, path: "../jido_studio"},
       {:req_llm, "~> 1.5"},
 
+      # Image generation (OG images)
+      {:image, "~> 0.54"},
+
       # Schema validation
       {:zoi, "~> 0.17"},
 

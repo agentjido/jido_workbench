@@ -9,6 +9,7 @@ defmodule AgentJidoWeb.CatalogSkillsLive do
     {:ok,
      assign(socket,
        page_title: "Skills Dashboard",
+       og_image: "https://agentjido.xyz/og/catalog.png",
        skills: skills,
        selected_skill: nil,
        result: nil,

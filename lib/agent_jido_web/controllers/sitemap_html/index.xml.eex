@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc><%= AgentJidoWeb.Endpoint.url() %>/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc><%= AgentJidoWeb.Endpoint.url() %>/getting-started</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc><%= AgentJidoWeb.Endpoint.url() %>/ecosystem</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc><%= AgentJidoWeb.Endpoint.url() %>/examples</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc><%= AgentJidoWeb.Endpoint.url() %>/benchmarks</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc><%= AgentJidoWeb.Endpoint.url() %>/partners</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc><%= AgentJidoWeb.Endpoint.url() %>/blog</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <%= for post <- @blog_posts, !post.seo.noindex do %>
+  <url>
+    <loc><%= AgentJidoWeb.Endpoint.url() %>/blog/<%= post.id %></loc>
+    <lastmod><%= Date.to_iso8601(post.date) %></lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <% end %>
+  <url>
+    <loc><%= AgentJidoWeb.Endpoint.url() %>/docs</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <%= for doc <- @documents, !doc.seo.noindex do %>
+  <url>
+    <loc><%= AgentJidoWeb.Endpoint.url() %><%= doc.path %></loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <% end %>
+  <url>
+    <loc><%= AgentJidoWeb.Endpoint.url() %>/catalog</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc><%= AgentJidoWeb.Endpoint.url() %>/catalog/actions</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc><%= AgentJidoWeb.Endpoint.url() %>/catalog/agents</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc><%= AgentJidoWeb.Endpoint.url() %>/catalog/sensors</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc><%= AgentJidoWeb.Endpoint.url() %>/catalog/skills</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+</urlset>

@@ -42,6 +42,7 @@ defmodule AgentJidoWeb.CatalogActionsLive do
     {:ok,
      assign(socket,
        page_title: "Actions Dashboard",
+       og_image: "https://agentjido.xyz/og/catalog.png",
        actions: filtered_actions,
        all_actions: actions,
        selected_action: selected_action,

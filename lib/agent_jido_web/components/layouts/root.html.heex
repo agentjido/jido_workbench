@@ -37,6 +37,12 @@
     <% end %>
 
     <SEO.juice conn={@conn} config={AgentJidoWeb.SEO.config()} page_title={assigns[:page_title]} />
+
+    <meta property="og:image" content={assigns[:og_image] || "https://agentjido.xyz/og/default.png"} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={assigns[:og_image] || "https://agentjido.xyz/og/default.png"} />
   </head>
   <body class="antialiased font-mono">
     {@inner_content}

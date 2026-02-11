@@ -9,6 +9,7 @@ defmodule AgentJidoWeb.CatalogSensorsLive do
     {:ok,
      assign(socket,
        page_title: "Sensors Dashboard",
+       og_image: "https://agentjido.xyz/og/catalog.png",
        sensors: sensors,
        selected_sensor: nil,
        result: nil,

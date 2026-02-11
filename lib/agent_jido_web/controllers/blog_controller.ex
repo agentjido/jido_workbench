@@ -4,17 +4,29 @@ defmodule AgentJidoWeb.BlogController do
   alias AgentJido.Blog
 
   def index(conn, _params) do
-    render(conn, :index, posts: Blog.all_posts(), tags: Blog.all_tags())
+    render(conn, :index,
+      posts: Blog.all_posts(),
+      tags: Blog.all_tags(),
+      og_image: "https://agentjido.xyz/og/blog.png"
+    )
   end
 
   def show(conn, %{"slug" => slug}) do
     post = Blog.get_post_by_id!(slug)
-    render(conn, :show, post: post)
+    render(conn, :show,
+      post: post,
+      og_image: "https://agentjido.xyz/og/blog/#{slug}"
+    )
   end
 
   def tag(conn, %{"tag" => tag}) do
     posts = Blog.get_posts_by_tag!(tag)
-    render(conn, :tag, posts: posts, tag: tag, tags: Blog.all_tags())
+    render(conn, :tag,
+      posts: posts,
+      tag: tag,
+      tags: Blog.all_tags(),
+      og_image: "https://agentjido.xyz/og/blog.png"
+    )
   end
 
   def search(conn, %{"q" => query}) do

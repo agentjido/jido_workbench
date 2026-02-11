@@ -1,12 +1,20 @@
 defmodule AgentJidoWeb.JidoEcosystemLive do
   use AgentJidoWeb, :live_view
 
+  alias AgentJido.LandingContent
+
   import AgentJidoWeb.Jido.MarketingLayouts
   import AgentJidoWeb.Jido.MarketingCards
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, selected_layer: :all)}
+    {:ok,
+     assign(socket,
+       selected_layer: :all,
+       og_image: "https://agentjido.xyz/og/ecosystem.png",
+       package_count: LandingContent.package_count(),
+       layer_count: LandingContent.layer_count()
+     )}
   end
 
   @impl true
@@ -40,11 +48,11 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
           <%!-- Quick Stats --%>
           <div class="flex gap-6 mb-8">
             <div class="flex items-baseline gap-2">
-              <span class="text-primary text-2xl font-bold">7</span>
+              <span class="text-primary text-2xl font-bold">{@package_count}</span>
               <span class="text-muted-foreground text-xs">packages</span>
             </div>
             <div class="flex items-baseline gap-2">
-              <span class="text-primary text-2xl font-bold">4</span>
+              <span class="text-primary text-2xl font-bold">{@layer_count}</span>
               <span class="text-muted-foreground text-xs">layers</span>
             </div>
             <div class="flex items-baseline gap-2">
@@ -121,7 +129,7 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
 
           <%!-- Package Grid --%>
           <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <%= for pkg <- filtered_packages(@selected_layer) do %>
+            <%= for pkg <- LandingContent.packages_by_layer(@selected_layer) do %>
               <.package_card
                 name={pkg.name}
                 desc={pkg.desc}
@@ -187,65 +195,4 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
     """)
   end
 
-  defp filtered_packages(:all), do: packages()
-  defp filtered_packages(layer), do: Enum.filter(packages(), &(&1.layer == layer))
-
-  defp packages do
-    [
-      %{
-        name: "llmdb",
-        desc: "Model registry and metadata. Token limits, pricing, capabilities for OpenAI, Anthropic, Google, and custom providers.",
-        layer: :foundation,
-        links: %{"hex" => "https://hex.pm/packages/llmdb", "docs" => "/docs/packages/llmdb", "github" => "https://github.com/agentjido/llmdb"}
-      },
-      %{
-        name: "req_llm",
-        desc: "HTTP client for LLM APIs. Built on Req with automatic retries, rate limiting, streaming, and function calling.",
-        layer: :foundation,
-        links: %{"hex" => "https://hex.pm/packages/req_llm", "docs" => "/docs/packages/req-llm", "github" => "https://github.com/agentjido/req_llm"}
-      },
-      %{
-        name: "jido",
-        desc: "BEAM-native bot framework. OTP supervision, isolated processes, message-passing. Run 10k+ agents per node.",
-        layer: :core,
-        links: %{"hex" => "https://hex.pm/packages/jido", "docs" => "/docs/packages/jido", "github" => "https://github.com/agentjido/jido"}
-      },
-      %{
-        name: "jido_action",
-        desc: "Schema-based action validation. Required fields, defaults, type constraints. Composable action primitives.",
-        layer: :core,
-        links: %{
-          "hex" => "https://hex.pm/packages/jido_action",
-          "docs" => "/docs/packages/jido-action",
-          "github" => "https://github.com/agentjido/jido"
-        }
-      },
-      %{
-        name: "jido_signal",
-        desc: "Pub/sub signaling between agents. Decoupled coordination via BEAM message-passing. No external broker.",
-        layer: :core,
-        links: %{
-          "hex" => "https://hex.pm/packages/jido_signal",
-          "docs" => "/docs/packages/jido-signal",
-          "github" => "https://github.com/agentjido/jido"
-        }
-      },
-      %{
-        name: "jido_ai",
-        desc: "LLM-powered agents with token/cost tracking, tool calling, and streaming. Integrates jido + req_llm + llmdb.",
-        layer: :ai,
-        links: %{"hex" => "https://hex.pm/packages/jido_ai", "docs" => "/docs/packages/jido-ai", "github" => "https://github.com/agentjido/jido_ai"}
-      },
-      %{
-        name: "jido_coder",
-        desc: "AI coding agent with file operations, git integration, code analysis, and test execution workflows.",
-        layer: :app,
-        links: %{
-          "hex" => "https://hex.pm/packages/jido_coder",
-          "docs" => "/docs/packages/jido-coder",
-          "github" => "https://github.com/agentjido/jido_coder"
-        }
-      }
-    ]
-  end
 end

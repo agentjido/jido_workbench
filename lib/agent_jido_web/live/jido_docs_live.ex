@@ -6,7 +6,7 @@ defmodule AgentJidoWeb.JidoDocsLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, page_title: "Documentation", sidebar_open: true)}
+    {:ok, assign(socket, page_title: "Documentation", sidebar_open: true, og_image: "https://agentjido.xyz/og/docs.png")}
   end
 
   @impl true

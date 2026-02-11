@@ -6,7 +6,8 @@ defmodule AgentJidoWeb.CatalogLive do
   def mount(_params, _session, socket) do
     {:ok,
      assign(socket,
-       page_title: "Jido Discovery Catalog"
+       page_title: "Jido Discovery Catalog",
+       og_image: "https://agentjido.xyz/og/catalog.png"
      )}
   end
 

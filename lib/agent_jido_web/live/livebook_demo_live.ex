@@ -6,7 +6,7 @@ defmodule AgentJidoWeb.LivebookDemoLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, page_title: "Loading...", documents: [], selected_category: nil)}
+    {:ok, assign(socket, page_title: "Loading...", documents: [], selected_category: nil, og_image: "https://agentjido.xyz/og/cookbook.png")}
   end
 
   @impl true

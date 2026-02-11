@@ -18,7 +18,7 @@ defmodule AgentJidoWeb.SEO do
         # site_id: "27704724",
         creator: "@mikehostetler",
         # creator_id: "27704724",
-        card: :summary
+        card: :summary_large_image
       )
 
   # Or arity 0 is also supported, which can be great if you're using

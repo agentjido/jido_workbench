@@ -12,6 +12,7 @@ defmodule AgentJido.Application do
       {Finch, name: AgentJido.Finch},
       Arcana.TaskSupervisor,
       Arcana.Embedder.Local,
+      AgentJido.OGImage,
       AgentJidoWeb.Endpoint,
       AgentJido.Jido
     ]

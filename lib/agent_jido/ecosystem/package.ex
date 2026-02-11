@@ -16,11 +16,9 @@ defmodule AgentJido.Ecosystem.Package do
               title: Zoi.string(description: "Human-readable display name"),
               version: Zoi.string(description: "Current version") |> Zoi.default("0.0.0"),
               tagline: Zoi.string(description: "One-line description") |> Zoi.default(""),
-              description:
-                Zoi.string(description: "Longer description paragraph") |> Zoi.optional(),
+              description: Zoi.string(description: "Longer description paragraph") |> Zoi.optional(),
               license: Zoi.string(description: "SPDX license identifier") |> Zoi.default("Apache-2.0"),
-              visibility:
-                Zoi.atom(description: "Public or private package") |> Zoi.default(:public),
+              visibility: Zoi.atom(description: "Public or private package") |> Zoi.default(:public),
               category:
                 Zoi.atom(description: "Package category (core, ai, tools, runtime, integrations)")
                 |> Zoi.default(:tools),
@@ -31,15 +29,13 @@ defmodule AgentJido.Ecosystem.Package do
               hex_url: Zoi.string(description: "Hex.pm package URL") |> Zoi.optional(),
               hexdocs_url: Zoi.string(description: "HexDocs URL") |> Zoi.optional(),
               github_url: Zoi.string(description: "GitHub repository URL") |> Zoi.optional(),
-              github_org:
-                Zoi.string(description: "GitHub organization") |> Zoi.default("agentjido"),
+              github_org: Zoi.string(description: "GitHub organization") |> Zoi.default("agentjido"),
               github_repo: Zoi.string(description: "GitHub repository name") |> Zoi.optional(),
               elixir: Zoi.string(description: "Required Elixir version") |> Zoi.optional(),
               ecosystem_deps:
                 Zoi.any(description: "List of ecosystem package id strings this depends on")
                 |> Zoi.default([]),
-              key_features:
-                Zoi.any(description: "List of feature highlight strings") |> Zoi.default([]),
+              key_features: Zoi.any(description: "List of feature highlight strings") |> Zoi.default([]),
               body: Zoi.string(description: "Rendered HTML body") |> Zoi.default(""),
               path: Zoi.string(description: "Source file path") |> Zoi.default("")
             },

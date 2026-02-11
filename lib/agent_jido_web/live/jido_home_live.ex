@@ -6,7 +6,7 @@ defmodule AgentJidoWeb.JidoHomeLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, install_tab: "full")}
+    {:ok, assign(socket, install_tab: "full", og_image: "https://agentjido.xyz/og/home.png")}
   end
 
   @impl true

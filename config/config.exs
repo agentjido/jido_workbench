@@ -11,8 +11,7 @@ import Config
 config :agent_jido,
   ecto_repos: [AgentJido.Repo]
 
-config :agent_jido, AgentJido.Repo,
-  types: AgentJido.PostgrexTypes
+config :agent_jido, AgentJido.Repo, types: AgentJido.PostgrexTypes
 
 # Configures the endpoint
 config :agent_jido, AgentJidoWeb.Endpoint,

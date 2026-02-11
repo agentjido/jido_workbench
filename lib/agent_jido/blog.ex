@@ -7,14 +7,12 @@ defmodule AgentJido.Blog do
     as: :posts,
     highlighters: [:makeup_elixir, :makeup_js, :makeup_html]
 
-  # The @posts variable is first defined by NimblePublisher.
-  # Let's further modify it by sorting all posts by descending date.
   @posts Enum.sort_by(@posts, & &1.date, {:desc, Date})
 
-  # Let's also get all tags
   @tags @posts |> Enum.flat_map(& &1.tags) |> Enum.uniq() |> Enum.sort()
 
-  # And finally export them
+  @posts_by_id Map.new(@posts, fn post -> {post.id, post} end)
+
   def all_posts, do: @posts
   def all_tags, do: @tags
 
@@ -23,7 +21,7 @@ defmodule AgentJido.Blog do
   end
 
   def get_post_by_id!(id) do
-    Enum.find(all_posts(), &(&1.id == id)) ||
+    Map.get(@posts_by_id, id) ||
       raise NotFoundError, "post with id=#{id} not found"
   end
 

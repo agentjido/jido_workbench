@@ -5,7 +5,7 @@ defmodule AgentJidoWeb.JidoExamplesLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, socket}
+    {:ok, assign(socket, og_image: "https://agentjido.xyz/og/examples.png")}
   end
 
   @impl true

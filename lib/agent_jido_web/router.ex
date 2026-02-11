@@ -56,11 +56,25 @@ defmodule AgentJidoWeb.Router do
     live "/partners", JidoPartnersLive, :index
     get("/discord", PageController, :discord)
 
+    get "/og/default.png", OGImageController, :default
+    get "/og/home.png", OGImageController, :home
+    get "/og/ecosystem.png", OGImageController, :ecosystem
+    get "/og/getting-started.png", OGImageController, :getting_started
+    get "/og/examples.png", OGImageController, :examples
+    get "/og/benchmarks.png", OGImageController, :benchmarks
+    get "/og/partners.png", OGImageController, :partners
+    get "/og/docs.png", OGImageController, :docs
+    get "/og/cookbook.png", OGImageController, :cookbook
+    get "/og/catalog.png", OGImageController, :catalog
+    get "/og/blog.png", OGImageController, :blog
+    get "/og/blog/:slug", OGImageController, :blog_post
+
     get("/blog", BlogController, :index)
     get("/blog/tags/:tag", BlogController, :tag)
     get("/blog/search", BlogController, :search)
     get("/blog/:slug", BlogController, :show)
     get("/feed", BlogController, :feed)
+    get("/sitemap.xml", SitemapController, :index)
 
     for {path, live_view, action, metadata} <- @doc_routes do
       live path, live_view, action, metadata: metadata
@@ -97,7 +111,7 @@ defmodule AgentJidoWeb.Router do
       jido_studio("/jido", host_app_js_path: "/assets/app.js")
       forward("/mailbox", Plug.Swoosh.MailboxPreview)
 
-      arcana_dashboard "/arcana", repo: AgentJido.Repo
+      arcana_dashboard("/arcana", repo: AgentJido.Repo)
     end
   end
 end
