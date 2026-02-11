@@ -50,6 +50,7 @@ defmodule AgentJidoWeb.Router do
 
     live "/", JidoHomeLive, :index
     live "/ecosystem", JidoEcosystemLive, :index
+    live "/ecosystem/:id", JidoEcosystemPackageLive, :show
     live "/getting-started", JidoGettingStartedLive, :index
     live "/examples", JidoExamplesLive, :index
     live "/benchmarks", JidoBenchmarksLive, :index
@@ -65,7 +66,6 @@ defmodule AgentJidoWeb.Router do
     get "/og/partners.png", OGImageController, :partners
     get "/og/docs.png", OGImageController, :docs
     get "/og/cookbook.png", OGImageController, :cookbook
-    get "/og/catalog.png", OGImageController, :catalog
     get "/og/blog.png", OGImageController, :blog
     get "/og/blog/:slug", OGImageController, :blog_post
 
@@ -79,14 +79,6 @@ defmodule AgentJidoWeb.Router do
     for {path, live_view, action, metadata} <- @doc_routes do
       live path, live_view, action, metadata: metadata
     end
-
-    # Jido Catalog
-    live("/catalog", CatalogLive, :index)
-    live("/catalog/actions", CatalogActionsLive, :index)
-    live("/catalog/actions/:slug", CatalogActionsLive, :show)
-    live("/catalog/agents", CatalogAgentsLive, :index)
-    live("/catalog/sensors", CatalogSensorsLive, :index)
-    live("/catalog/skills", CatalogSkillsLive, :index)
   end
 
   # Other scopes may use custom stacks.

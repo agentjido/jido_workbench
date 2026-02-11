@@ -14,6 +14,21 @@ The agentjido.com site publishes documentation, livebooks, blog posts, and ecosy
 - **Signal-driven pipeline** — agents communicate through typed signals, enabling loose coupling and observable pipelines
 - **Idempotent and safe** — no destructive actions; GitHub issue filing deduplicates; crawling is local/ethical only
 
+## Ecosystem Landing Metadata
+
+Package pages at `/ecosystem/:id` support optional high-level landing metadata in `priv/ecosystem/*.md`.
+
+- `landing_summary`: one short "what this package gives you" paragraph
+- `landing_cliff_notes`: concise bullets (recommended max: 6)
+- `landing_important_packages`: list of `%{id, reason}` links (recommended max: 4)
+- `landing_major_components`: list of `%{name, summary, docs_url, github_url}` (recommended max: 8)
+- `landing_module_map`: curated module fit map
+  - `title`
+  - `rows`: `%{label, nodes: [%{id, label, note}]}`
+  - `edges`: `%{from, to, label}`
+
+Keep these sections high-level and ecosystem-oriented. Deep implementation details should stay in the body markdown below the landing sections.
+
 ---
 
 ## Signal Contracts

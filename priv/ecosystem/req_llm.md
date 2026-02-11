@@ -3,6 +3,7 @@
   title: "ReqLLM",
   version: "1.5.1",
   tagline: "Composable Elixir library for LLM interactions built on Req",
+  graph_label: "LLM client",
   license: "Apache-2.0",
   visibility: :public,
   category: :ai,
@@ -14,7 +15,7 @@
   github_org: "agentjido",
   github_repo: "req_llm",
   elixir: "~> 1.17",
-  ecosystem_deps: [],
+  ecosystem_deps: ["llm_db"],
   key_features: [
     "Unified multi-provider API across Anthropic, OpenAI, Google, Groq, xAI, and more",
     "Two-layer architecture — high-level Vercel AI SDK-style functions and low-level Req plugin API",

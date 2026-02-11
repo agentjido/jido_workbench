@@ -157,7 +157,7 @@ defmodule AgentJido.DocumentationTest do
 
   describe "breadcrumbs/1" do
     test "returns path segments for a document" do
-      doc = %Document{path: "/cookbook/chat-response", title: "Test", category: :test}
+      doc = %Document{id: "test-doc", path: "/cookbook/chat-response", title: "Test", category: :test}
       crumbs = Documentation.breadcrumbs(doc)
 
       assert crumbs == ["cookbook", "chat-response"]

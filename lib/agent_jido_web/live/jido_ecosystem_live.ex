@@ -1,6 +1,8 @@
 defmodule AgentJidoWeb.JidoEcosystemLive do
   use AgentJidoWeb, :live_view
 
+  alias AgentJido.Ecosystem
+  alias AgentJido.Ecosystem.GraphAscii
   alias AgentJido.LandingContent
 
   import AgentJidoWeb.Jido.MarketingLayouts
@@ -8,12 +10,21 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
 
   @impl true
   def mount(_params, _session, socket) do
+    ecosystem_packages = Ecosystem.public_packages()
+    package_cards = LandingContent.packages_from(ecosystem_packages)
+    graph_model = GraphAscii.build_model(ecosystem_packages)
+    graph_name_by_id = Map.new(graph_model.nodes, &{&1.id, &1.name})
+
     {:ok,
      assign(socket,
        selected_layer: :all,
+       packages: package_cards,
+       graph_layers: graph_model.layers,
+       graph_name_by_id: graph_name_by_id,
        og_image: "https://agentjido.xyz/og/ecosystem.png",
-       package_count: LandingContent.package_count(),
-       layer_count: LandingContent.layer_count()
+       package_count: length(package_cards),
+       layer_count: count_layers(package_cards),
+       edge_count: length(graph_model.edges)
      )}
   end
 
@@ -56,8 +67,8 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
               <span class="text-muted-foreground text-xs">layers</span>
             </div>
             <div class="flex items-baseline gap-2">
-              <span class="text-primary text-2xl font-bold">0</span>
-              <span class="text-muted-foreground text-xs">forced deps</span>
+              <span class="text-primary text-2xl font-bold">{@edge_count}</span>
+              <span class="text-muted-foreground text-xs">dependency edges</span>
             </div>
           </div>
         </section>
@@ -76,10 +87,57 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
                 <span class="w-2.5 h-2.5 rounded-full bg-accent-yellow"></span>
                 <span class="w-2.5 h-2.5 rounded-full bg-primary"></span>
               </div>
-              <span class="text-[10px] text-muted-foreground">dependency_graph.txt</span>
+              <span class="text-[10px] text-muted-foreground">dependency_graph.html</span>
             </div>
-            <div class="p-6 overflow-x-auto">
-              <pre class="text-[11px] leading-relaxed whitespace-pre"><%= dependency_graph_ascii() %></pre>
+            <div class="p-6">
+              <div class="ecosystem-layered-graph" id="ecosystem-layered-graph">
+                <div :if={@graph_layers == []} class="text-xs text-muted-foreground">
+                  No public package relationships found.
+                </div>
+                <%= for {layer, layer_index} <- Enum.with_index(@graph_layers) do %>
+                  <section class="ecosystem-graph-layer">
+                    <div class="ecosystem-layer-header">
+                      <span class={"ecosystem-layer-title #{node_text_class(layer.id)}"}>
+                        {layer.label}
+                      </span>
+                      <span class="ecosystem-layer-summary">
+                        {layer.summary}
+                      </span>
+                    </div>
+                    <%= for row <- layer.rows do %>
+                      <div
+                        class="ecosystem-depth-grid ecosystem-layer-row"
+                        style={"--ecosystem-cols: #{max(length(row), 1)}"}
+                      >
+                        <%= for node <- row do %>
+                          <article class={"ecosystem-graph-node ecosystem-node-#{node.layer}"}>
+                            <.link
+                              navigate={"/ecosystem/#{node.id}"}
+                              class={"ecosystem-node-name #{node_text_class(node.layer)}"}
+                            >
+                              {node.name}
+                            </.link>
+                            <p class="ecosystem-node-desc">{node.short_desc}</p>
+                            <div class="ecosystem-node-dependencies">
+                              <span class="ecosystem-node-meta-label">depends on</span>
+                              <%= if node.deps == [] do %>
+                                <span class="ecosystem-node-chip ecosystem-node-chip-muted">none</span>
+                              <% else %>
+                                <%= for dep_id <- node.deps do %>
+                                  <.link navigate={"/ecosystem/#{dep_id}"} class="ecosystem-node-chip">
+                                    {Map.get(@graph_name_by_id, dep_id, dep_id)}
+                                  </.link>
+                                <% end %>
+                              <% end %>
+                            </div>
+                          </article>
+                        <% end %>
+                      </div>
+                    <% end %>
+                  </section>
+                  <div :if={layer_index < length(@graph_layers) - 1} class="ecosystem-layer-divider"></div>
+                <% end %>
+              </div>
             </div>
           </div>
         </section>
@@ -129,11 +187,12 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
 
           <%!-- Package Grid --%>
           <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <%= for pkg <- LandingContent.packages_by_layer(@selected_layer) do %>
+            <%= for pkg <- displayed_packages(@packages, @selected_layer) do %>
               <.package_card
                 name={pkg.name}
                 desc={pkg.desc}
                 layer={pkg.layer}
+                path={pkg.path}
                 links={pkg.links}
               />
             <% end %>
@@ -168,31 +227,19 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
     """
   end
 
-  defp dependency_graph_ascii do
-    Phoenix.HTML.raw("""
-                              ┌─────────────────┐
-                              │ <span class="text-accent-red">jido_coder</span>    │  ◀── AI coding workflows
-                              │ <span class="text-muted-foreground">file ops, git</span>  │
-                              └────────┬────────┘
-                                       │
-                              ┌────────▼────────┐
-                              │    <span class="text-accent-yellow">jido_ai</span>     │  ◀── LLM-powered agents
-                              │ <span class="text-muted-foreground">token tracking</span> │
-                              └────────┬────────┘
-                     ┌─────────────────┼─────────────────┐
-                     │                 │                 │
-              ┌──────▼──────┐   ┌──────▼──────┐   ┌──────▼──────┐
-              │    <span class="text-accent-green">jido</span>    │   │<span class="text-accent-green">jido_action</span> │   │<span class="text-accent-green">jido_signal</span> │
-              │ <span class="text-muted-foreground">bot core</span>   │   │ <span class="text-muted-foreground">validation</span> │   │ <span class="text-muted-foreground">pub/sub</span>    │
-              └──────┬──────┘   └─────────────┘   └─────────────┘
-                     │
-        ┌────────────┴────────────┐
-        │                         │
-    ┌──────▼──────┐          ┌───────▼──────┐
-    │  <span class="text-accent-cyan">req_llm</span>   │          │    <span class="text-accent-cyan">llmdb</span>    │
-    │ <span class="text-muted-foreground">HTTP client</span>│          │ <span class="text-muted-foreground">model registry</span>│
-    └─────────────┘          └──────────────┘
-    """)
+  defp displayed_packages(packages, :all), do: packages
+  defp displayed_packages(packages, layer), do: Enum.filter(packages, &(&1.layer == layer))
+
+  defp count_layers(packages) do
+    packages
+    |> Enum.map(& &1.layer)
+    |> Enum.uniq()
+    |> length()
   end
 
+  defp node_text_class(:foundation), do: "text-accent-cyan"
+  defp node_text_class(:core), do: "text-accent-green"
+  defp node_text_class(:ai), do: "text-accent-yellow"
+  defp node_text_class(:app), do: "text-accent-red"
+  defp node_text_class(_), do: "text-primary"
 end

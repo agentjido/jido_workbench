@@ -269,6 +269,175 @@
     border-color: hsl(var(--code-border));
   }
 
+  .ecosystem-layered-graph {
+    @apply flex flex-col gap-4;
+  }
+
+  .ecosystem-graph-layer {
+    @apply flex flex-col gap-3;
+  }
+
+  .ecosystem-layer-header {
+    @apply flex flex-col sm:flex-row sm:items-end sm:justify-between gap-1.5;
+  }
+
+  .ecosystem-layer-title {
+    @apply text-[10px] font-mono uppercase tracking-[0.18em];
+  }
+
+  .ecosystem-layer-summary {
+    @apply text-[10px] text-muted-foreground;
+  }
+
+  .ecosystem-layer-row {
+    @apply mt-1;
+  }
+
+  .ecosystem-depth-grid {
+    @apply grid gap-3;
+    grid-template-columns: repeat(var(--ecosystem-cols), minmax(11rem, 1fr));
+  }
+
+  .ecosystem-graph-node {
+    @apply rounded-md border bg-card/70 p-3 min-h-[112px] flex flex-col gap-2;
+  }
+
+  .ecosystem-node-foundation {
+    border-color: hsl(var(--accent-cyan) / 0.45);
+  }
+
+  .ecosystem-node-core {
+    border-color: hsl(var(--accent-green) / 0.45);
+  }
+
+  .ecosystem-node-ai {
+    border-color: hsl(var(--accent-yellow) / 0.45);
+  }
+
+  .ecosystem-node-app {
+    border-color: hsl(var(--accent-red) / 0.45);
+  }
+
+  .ecosystem-node-name {
+    @apply text-xs font-bold tracking-wide hover:underline;
+  }
+
+  .ecosystem-node-desc {
+    @apply text-[11px] leading-relaxed text-muted-foreground;
+  }
+
+  .ecosystem-node-dependencies {
+    @apply flex flex-wrap items-center gap-1.5 mt-auto;
+  }
+
+  .ecosystem-node-meta-label {
+    @apply text-[9px] uppercase tracking-widest text-muted-foreground mr-1;
+  }
+
+  .ecosystem-node-chip {
+    @apply text-[10px] px-2 py-0.5 rounded border border-border text-foreground hover:text-primary hover:border-primary/40 transition-colors;
+    background: hsl(var(--surface));
+  }
+
+  .ecosystem-node-chip-muted {
+    @apply text-muted-foreground border-border/60 hover:text-muted-foreground hover:border-border/60;
+  }
+
+  .ecosystem-layer-divider {
+    @apply h-px my-0.5;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      hsl(var(--border)) 15%,
+      hsl(var(--border)) 85%,
+      transparent 100%
+    );
+  }
+
+  .ecosystem-package-hero {
+    @apply rounded-lg border border-border bg-card/70 p-6;
+  }
+
+  .ecosystem-cliff-notes-grid {
+    @apply grid gap-3 md:grid-cols-2;
+  }
+
+  .ecosystem-cliff-note {
+    @apply text-xs leading-relaxed rounded-md border border-border bg-card p-4;
+  }
+
+  .ecosystem-important-packages-grid {
+    @apply grid gap-3 md:grid-cols-2;
+  }
+
+  .ecosystem-important-package-card {
+    @apply rounded-md border border-border bg-card p-4;
+  }
+
+  .ecosystem-major-components-grid {
+    @apply grid gap-3 md:grid-cols-2;
+  }
+
+  .ecosystem-major-component-card {
+    @apply rounded-md border border-border bg-card p-4;
+  }
+
+  .ecosystem-module-map {
+    @apply rounded-md border border-border bg-card p-4;
+  }
+
+  .ecosystem-module-row {
+    @apply mb-4 last:mb-0;
+  }
+
+  .ecosystem-module-row-label {
+    @apply text-[10px] uppercase tracking-wider text-muted-foreground mb-2;
+  }
+
+  .ecosystem-module-row-nodes {
+    @apply grid gap-2;
+    grid-template-columns: repeat(var(--module-cols), minmax(10rem, 1fr));
+  }
+
+  .ecosystem-module-node {
+    @apply rounded-md border border-border bg-surface p-3;
+  }
+
+  .ecosystem-module-edge {
+    @apply text-[10px] px-2 py-1 rounded border border-border bg-surface text-foreground;
+  }
+
+  .ecosystem-package-details {
+    @apply rounded-lg border border-border bg-card/50 p-6;
+  }
+
+  @media (max-width: 1024px) {
+    .ecosystem-depth-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ecosystem-module-row-nodes {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 640px) {
+    .ecosystem-depth-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .ecosystem-graph-node {
+      min-height: 0;
+    }
+
+    .ecosystem-cliff-notes-grid,
+    .ecosystem-major-components-grid,
+    .ecosystem-important-packages-grid,
+    .ecosystem-module-row-nodes {
+      grid-template-columns: 1fr;
+    }
+  }
+
   .metric-card {
     @apply text-center py-5 px-4;
     background: hsl(var(--surface));

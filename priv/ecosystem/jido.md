@@ -15,6 +15,33 @@
   github_repo: "jido",
   elixir: "~> 1.17",
   ecosystem_deps: ["jido_action", "jido_signal"],
+  landing_major_components: [
+    %{
+      name: "Jido.Agent",
+      summary: "Defines the core immutable agent contract and cmd/2 lifecycle.",
+      docs_url: "https://hexdocs.pm/jido/Jido.Agent.html"
+    },
+    %{
+      name: "Jido.AgentServer",
+      summary: "OTP runtime wrapper for production execution, routing, and supervision.",
+      docs_url: "https://hexdocs.pm/jido/Jido.AgentServer.html"
+    },
+    %{
+      name: "Jido.Plan",
+      summary: "DAG planning primitives for dependency-aware multi-step execution.",
+      docs_url: "https://hexdocs.pm/jido/Jido.Plan.html"
+    },
+    %{
+      name: "Jido.Plugin",
+      summary: "Composable extension mechanism for capabilities, hooks, and state.",
+      docs_url: "https://hexdocs.pm/jido/Jido.Plugin.html"
+    },
+    %{
+      name: "Jido.Agent.Directive",
+      summary: "Typed effect contracts emitted by cmd/2 and executed by runtimes.",
+      docs_url: "https://hexdocs.pm/jido/Jido.Agent.Directive.html"
+    }
+  ],
   key_features: [
     "Pure functional agent architecture — agents are immutable data structures",
     "Elm/Redux-inspired cmd/2 contract — actions in, updated agent + directives out",

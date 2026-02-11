@@ -16,7 +16,21 @@ defmodule AgentJido.Ecosystem.Package do
               title: Zoi.string(description: "Human-readable display name"),
               version: Zoi.string(description: "Current version") |> Zoi.default("0.0.0"),
               tagline: Zoi.string(description: "One-line description") |> Zoi.default(""),
+              graph_label: Zoi.string(description: "Short graph label for ecosystem ASCII map") |> Zoi.optional(),
               description: Zoi.string(description: "Longer description paragraph") |> Zoi.optional(),
+              landing_summary: Zoi.string(description: "High-level landing summary blurb") |> Zoi.optional(),
+              landing_cliff_notes:
+                Zoi.any(description: "List of short cliff-note bullets for landing pages")
+                |> Zoi.default([]),
+              landing_important_packages:
+                Zoi.any(description: "Important ecosystem package links and reasons")
+                |> Zoi.default([]),
+              landing_major_components:
+                Zoi.any(description: "Major components with explicit documentation links")
+                |> Zoi.default([]),
+              landing_module_map:
+                Zoi.any(description: "Curated high-level module map metadata")
+                |> Zoi.default(%{}),
               license: Zoi.string(description: "SPDX license identifier") |> Zoi.default("Apache-2.0"),
               visibility: Zoi.atom(description: "Public or private package") |> Zoi.default(:public),
               category:

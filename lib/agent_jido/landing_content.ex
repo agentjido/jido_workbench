@@ -6,22 +6,18 @@ defmodule AgentJido.LandingContent do
   """
 
   alias AgentJido.Ecosystem
+  alias AgentJido.Ecosystem.Layering
 
-  @category_to_layer %{
-    core: :core,
-    ai: :ai,
-    tools: :app,
-    runtime: :app,
-    integrations: :app
-  }
+  def packages, do: packages_from(Ecosystem.public_packages())
 
-  def packages do
-    Ecosystem.public_packages()
-    |> Enum.map(fn pkg ->
+  def packages_from(ecosystem_packages) when is_list(ecosystem_packages) do
+    Enum.map(ecosystem_packages, fn pkg ->
       %{
+        id: pkg.id,
         name: pkg.name,
         desc: pkg.tagline,
-        layer: Map.get(@category_to_layer, pkg.category, :core),
+        layer: Layering.layer_for(pkg),
+        path: "/ecosystem/#{pkg.id}",
         links: build_links(pkg)
       }
     end)
@@ -30,7 +26,10 @@ defmodule AgentJido.LandingContent do
   def packages_by_layer(:all), do: packages()
   def packages_by_layer(layer), do: Enum.filter(packages(), &(&1.layer == layer))
 
-  def package_count, do: Ecosystem.package_count()
+  def package_count do
+    Ecosystem.public_packages()
+    |> length()
+  end
 
   def layer_count do
     packages()

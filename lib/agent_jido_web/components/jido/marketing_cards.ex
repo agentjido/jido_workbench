@@ -7,17 +7,29 @@ defmodule AgentJidoWeb.Jido.MarketingCards do
   attr :name, :string, required: true
   attr :desc, :string, required: true
   attr :layer, :atom, values: [:core, :ai, :foundation, :app], required: true
+  attr :path, :string, default: nil
   attr :links, :map, default: %{}
 
   def package_card(assigns) do
     ~H"""
     <div class={"package-card-#{@layer} hover:-translate-y-0.5 cursor-pointer transition-transform duration-200"}>
       <div class="flex justify-between items-start mb-3">
-        <span class="text-sm font-bold text-foreground">{@name}</span>
+        <%= if @path do %>
+          <.link navigate={@path} class="text-sm font-bold text-foreground hover:text-primary transition-colors">
+            {@name}
+          </.link>
+        <% else %>
+          <span class="text-sm font-bold text-foreground">{@name}</span>
+        <% end %>
         <.layer_badge layer={@layer} />
       </div>
       <p class="text-xs text-muted-foreground leading-relaxed mb-4">{@desc}</p>
       <div class="flex gap-2 flex-wrap">
+        <%= if @path do %>
+          <.link navigate={@path} class="text-[10px] px-2 py-1 rounded bg-primary/10 text-primary hover:bg-primary/15 transition-colors">
+            details
+          </.link>
+        <% end %>
         <%= for {label, href} <- @links do %>
           <a href={href} target="_blank" class="text-[10px] px-2 py-1 rounded bg-elevated text-muted-foreground hover:text-primary transition-colors">
             {label}

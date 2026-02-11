@@ -3,6 +3,7 @@
   title: "Jido AI",
   version: "2.0.0",
   tagline: "LLM orchestration, reasoning strategies, and accuracy improvement for Jido agents",
+  graph_label: "agent intelligence",
   license: "Apache-2.0",
   visibility: :public,
   category: :ai,
@@ -14,7 +15,56 @@
   github_org: "agentjido",
   github_repo: "jido_ai",
   elixir: "~> 1.17",
-  ecosystem_deps: ["jido", "jido_browser"],
+  ecosystem_deps: ["jido", "jido_browser", "req_llm"],
+  landing_summary: "Jido AI turns raw LLM calls into structured agent intelligence with strategy-driven reasoning, tool use, and accuracy controls.",
+  landing_cliff_notes: [
+    "Start with a single ask/await workflow, then scale to orchestrated multi-agent reasoning.",
+    "Reasoning strategies (ReAct, CoT, ToT, GoT, TRM, Adaptive) let you tune cost vs quality.",
+    "Accuracy pipeline layers verification, reflection, and self-consistency on top of model outputs.",
+    "Integrates directly with jido runtime, req_llm providers, and jido_browser tool execution.",
+    "Designed for production reliability with async tracking, model aliases, and signal-driven orchestration."
+  ],
+  landing_important_packages: [
+    %{id: "jido", reason: "Agent runtime, lifecycle, directives, and orchestration primitives."},
+    %{id: "req_llm", reason: "Provider abstraction and transport for model requests."},
+    %{id: "jido_browser", reason: "High-value agent tools for browser automation workflows."},
+    %{id: "jido_action", reason: "Typed action/tool contract that powers composable capabilities."}
+  ],
+  landing_module_map: %{
+    title: "HOW MODULES FIT TOGETHER",
+    rows: [
+      %{
+        label: "Interface",
+        nodes: [
+          %{id: "jido_ai", label: "Ask/Await API", note: "Entry point for intelligent task execution"},
+          %{id: "jido", label: "Agent Runtime", note: "Hosts agents, directives, and execution loops"}
+        ]
+      },
+      %{
+        label: "Reasoning Core",
+        nodes: [
+          %{id: "jido_ai", label: "Strategies", note: "ReAct, CoT, ToT, GoT, TRM, Adaptive"},
+          %{id: "jido_ai", label: "Accuracy Pipeline", note: "Verify, reflect, and improve responses"}
+        ]
+      },
+      %{
+        label: "Model + Tools",
+        nodes: [
+          %{id: "req_llm", label: "ReqLLM", note: "Provider adapters and model invocation"},
+          %{id: "jido_browser", label: "Tool Execution", note: "Browser actions for grounded workflows"},
+          %{id: "jido_action", label: "Action Contract", note: "Composable typed capabilities"}
+        ]
+      }
+    ],
+    edges: [
+      %{from: "Ask/Await API", to: "Strategies", label: "select strategy"},
+      %{from: "Strategies", to: "Accuracy Pipeline", label: "produce and score candidates"},
+      %{from: "Strategies", to: "ReqLLM", label: "call models"},
+      %{from: "Strategies", to: "Tool Execution", label: "invoke tools"},
+      %{from: "Tool Execution", to: "Action Contract", label: "typed actions"},
+      %{from: "Ask/Await API", to: "Agent Runtime", label: "run inside agents"}
+    ]
+  },
   key_features: [
     "Six reasoning strategies — ReAct, Chain-of-Thought, Tree-of-Thoughts, Graph-of-Thoughts, TRM, and Adaptive",
     "Multi-stage accuracy pipeline with configurable presets",
