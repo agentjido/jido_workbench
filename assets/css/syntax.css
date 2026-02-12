@@ -1,12 +1,16 @@
-/* Base styles for the code container */
-.makeup {
+/* Base styles for the code container
+   Makeup outputs <pre class="highlight"><code>…</code></pre>
+   We target both .makeup (legacy) and .highlight for compatibility. */
+.makeup,
+.highlight {
   border-radius: theme('borderRadius.lg');
   overflow-x: auto;
   font-family: var(--font-mono);
   line-height: 1.5;
 }
 
-.makeup .unselectable {
+.makeup .unselectable,
+.highlight .unselectable {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;
@@ -16,33 +20,62 @@
 }
 
 /* Light mode */
-.makeup {
+.makeup,
+.highlight {
   color: #333;
 }
 
 /* Light mode tokens */
-.makeup .bp, .makeup .nb, .makeup .nn, .makeup .kt { color: #0550ae; } /* built-ins, namespaces, types */
-.makeup .k, .makeup .kc, .makeup .kd, .makeup .kn, .makeup .kp, .makeup .kr, .makeup .ow { color: #0033cc; } /* keywords */
-.makeup .s, .makeup .sa, .makeup .sb, .makeup .sc, .makeup .sd, .makeup .s1, .makeup .s2, .makeup .dl, .makeup .si { color: #aa5500; } /* strings */
-.makeup .ss, .makeup .sx { color: #aa5500; } /* symbols and other strings */
-.makeup .na, .makeup .nt { color: #1e70af; } /* attributes and tags */
-.makeup .nc, .makeup .nf { color: #008800; } /* classes and functions */
-.makeup .nv, .makeup .vi, .makeup .vc, .makeup .vg, .makeup .vm { color: #aa0000; } /* variables */
-.makeup .m, .makeup .mi, .makeup .mf, .makeup .mh, .makeup .mo, .makeup .mb, .makeup .il { color: #009999; } /* numbers */
-.makeup .c, .makeup .c1, .makeup .ch, .makeup .cm, .makeup .cs { color: #777777; font-style: italic; } /* comments */
-.makeup .cp, .makeup .cpf { color: #4c8317; } /* preprocessor */
-.makeup .o { color: #555555; } /* operators */
-.makeup .err { color: #d32f2f; } /* errors - removed background */
+.makeup .bp, .makeup .nb, .makeup .nn, .makeup .kt,
+.highlight .bp, .highlight .nb, .highlight .nn, .highlight .kt { color: #0550ae; } /* built-ins, namespaces, types */
+
+.makeup .k, .makeup .kc, .makeup .kd, .makeup .kn, .makeup .kp, .makeup .kr, .makeup .ow,
+.highlight .k, .highlight .kc, .highlight .kd, .highlight .kn, .highlight .kp, .highlight .kr, .highlight .ow { color: #0033cc; } /* keywords */
+
+.makeup .s, .makeup .sa, .makeup .sb, .makeup .sc, .makeup .sd, .makeup .s1, .makeup .s2, .makeup .dl, .makeup .si,
+.highlight .s, .highlight .sa, .highlight .sb, .highlight .sc, .highlight .sd, .highlight .s1, .highlight .s2, .highlight .dl, .highlight .si { color: #aa5500; } /* strings */
+
+.makeup .ss, .makeup .sx,
+.highlight .ss, .highlight .sx { color: #aa5500; } /* symbols and other strings */
+
+.makeup .na, .makeup .nt,
+.highlight .na, .highlight .nt { color: #1e70af; } /* attributes and tags */
+
+.makeup .nc, .makeup .nf,
+.highlight .nc, .highlight .nf { color: #008800; } /* classes and functions */
+
+.makeup .nv, .makeup .vi, .makeup .vc, .makeup .vg, .makeup .vm,
+.highlight .nv, .highlight .vi, .highlight .vc, .highlight .vg, .highlight .vm { color: #aa0000; } /* variables */
+
+.makeup .m, .makeup .mi, .makeup .mf, .makeup .mh, .makeup .mo, .makeup .mb, .makeup .il,
+.highlight .m, .highlight .mi, .highlight .mf, .highlight .mh, .highlight .mo, .highlight .mb, .highlight .il { color: #009999; } /* numbers */
+
+.makeup .c, .makeup .c1, .makeup .ch, .makeup .cm, .makeup .cs,
+.highlight .c, .highlight .c1, .highlight .ch, .highlight .cm, .highlight .cs { color: #777777; font-style: italic; } /* comments */
+
+.makeup .cp, .makeup .cpf,
+.highlight .cp, .highlight .cpf { color: #4c8317; } /* preprocessor */
+
+.makeup .o,
+.highlight .o { color: #555555; } /* operators */
+
+.makeup .err,
+.highlight .err { color: #d32f2f; } /* errors - removed background */
 
 /* Dark mode overrides */
-:root[class~="dark"] .makeup {
+:root[class~="dark"] .makeup,
+:root[class~="dark"] .highlight {
   color: #d4d4d4;
 }
 
 :root[class~="dark"] .makeup .bp, 
 :root[class~="dark"] .makeup .nb, 
 :root[class~="dark"] .makeup .nn, 
-:root[class~="dark"] .makeup .kt { color: #4ec9b0; }
+:root[class~="dark"] .makeup .kt,
+:root[class~="dark"] .highlight .bp, 
+:root[class~="dark"] .highlight .nb, 
+:root[class~="dark"] .highlight .nn, 
+:root[class~="dark"] .highlight .kt { color: #4ec9b0; }
 
 :root[class~="dark"] .makeup .k, 
 :root[class~="dark"] .makeup .kc, 
@@ -50,7 +83,14 @@
 :root[class~="dark"] .makeup .kn, 
 :root[class~="dark"] .makeup .kp, 
 :root[class~="dark"] .makeup .kr, 
-:root[class~="dark"] .makeup .ow { color: #569cd6; }
+:root[class~="dark"] .makeup .ow,
+:root[class~="dark"] .highlight .k, 
+:root[class~="dark"] .highlight .kc, 
+:root[class~="dark"] .highlight .kd, 
+:root[class~="dark"] .highlight .kn, 
+:root[class~="dark"] .highlight .kp, 
+:root[class~="dark"] .highlight .kr, 
+:root[class~="dark"] .highlight .ow { color: #569cd6; }
 
 :root[class~="dark"] .makeup .s, 
 :root[class~="dark"] .makeup .sa, 
@@ -62,19 +102,39 @@
 :root[class~="dark"] .makeup .dl, 
 :root[class~="dark"] .makeup .si, 
 :root[class~="dark"] .makeup .ss, 
-:root[class~="dark"] .makeup .sx { color: #ce9178; }
+:root[class~="dark"] .makeup .sx,
+:root[class~="dark"] .highlight .s, 
+:root[class~="dark"] .highlight .sa, 
+:root[class~="dark"] .highlight .sb, 
+:root[class~="dark"] .highlight .sc, 
+:root[class~="dark"] .highlight .sd, 
+:root[class~="dark"] .highlight .s1, 
+:root[class~="dark"] .highlight .s2, 
+:root[class~="dark"] .highlight .dl, 
+:root[class~="dark"] .highlight .si, 
+:root[class~="dark"] .highlight .ss, 
+:root[class~="dark"] .highlight .sx { color: #ce9178; }
 
 :root[class~="dark"] .makeup .na, 
-:root[class~="dark"] .makeup .nt { color: #9cdcfe; }
+:root[class~="dark"] .makeup .nt,
+:root[class~="dark"] .highlight .na, 
+:root[class~="dark"] .highlight .nt { color: #9cdcfe; }
 
 :root[class~="dark"] .makeup .nc, 
-:root[class~="dark"] .makeup .nf { color: #4ec9b0; }
+:root[class~="dark"] .makeup .nf,
+:root[class~="dark"] .highlight .nc, 
+:root[class~="dark"] .highlight .nf { color: #4ec9b0; }
 
 :root[class~="dark"] .makeup .nv, 
 :root[class~="dark"] .makeup .vi, 
 :root[class~="dark"] .makeup .vc, 
 :root[class~="dark"] .makeup .vg, 
-:root[class~="dark"] .makeup .vm { color: #9cdcfe; }
+:root[class~="dark"] .makeup .vm,
+:root[class~="dark"] .highlight .nv, 
+:root[class~="dark"] .highlight .vi, 
+:root[class~="dark"] .highlight .vc, 
+:root[class~="dark"] .highlight .vg, 
+:root[class~="dark"] .highlight .vm { color: #9cdcfe; }
 
 :root[class~="dark"] .makeup .m, 
 :root[class~="dark"] .makeup .mi, 
@@ -82,20 +142,36 @@
 :root[class~="dark"] .makeup .mh, 
 :root[class~="dark"] .makeup .mo, 
 :root[class~="dark"] .makeup .mb, 
-:root[class~="dark"] .makeup .il { color: #b5cea8; }
+:root[class~="dark"] .makeup .il,
+:root[class~="dark"] .highlight .m, 
+:root[class~="dark"] .highlight .mi, 
+:root[class~="dark"] .highlight .mf, 
+:root[class~="dark"] .highlight .mh, 
+:root[class~="dark"] .highlight .mo, 
+:root[class~="dark"] .highlight .mb, 
+:root[class~="dark"] .highlight .il { color: #b5cea8; }
 
 :root[class~="dark"] .makeup .c, 
 :root[class~="dark"] .makeup .c1, 
 :root[class~="dark"] .makeup .ch, 
 :root[class~="dark"] .makeup .cm, 
-:root[class~="dark"] .makeup .cs { color: #6a9955; font-style: italic; }
+:root[class~="dark"] .makeup .cs,
+:root[class~="dark"] .highlight .c, 
+:root[class~="dark"] .highlight .c1, 
+:root[class~="dark"] .highlight .ch, 
+:root[class~="dark"] .highlight .cm, 
+:root[class~="dark"] .highlight .cs { color: #6a9955; font-style: italic; }
 
 :root[class~="dark"] .makeup .cp, 
-:root[class~="dark"] .makeup .cpf { color: #6a9955; }
+:root[class~="dark"] .makeup .cpf,
+:root[class~="dark"] .highlight .cp, 
+:root[class~="dark"] .highlight .cpf { color: #6a9955; }
 
-:root[class~="dark"] .makeup .o { color: #d4d4d4; }
+:root[class~="dark"] .makeup .o,
+:root[class~="dark"] .highlight .o { color: #d4d4d4; }
 
-:root[class~="dark"] .makeup .err { color: #f44336; }
+:root[class~="dark"] .makeup .err,
+:root[class~="dark"] .highlight .err { color: #f44336; }
 
 /* Improve spacing and display */
 .prose pre {
@@ -103,17 +179,21 @@
   background-color: transparent;
 }
 
-.makeup pre {
+.makeup pre,
+.highlight pre {
   padding: 1em;
   margin: 0;
 }
 
 /* Remove text decoration to improve readability */
-.makeup .nc, .makeup .nn {
+.makeup .nc, .makeup .nn,
+.highlight .nc, .highlight .nn {
   text-decoration: none;
 }
 
 :root[class~="dark"] .makeup .nc, 
-:root[class~="dark"] .makeup .nn {
+:root[class~="dark"] .makeup .nn,
+:root[class~="dark"] .highlight .nc, 
+:root[class~="dark"] .highlight .nn {
   text-decoration: none;
 }

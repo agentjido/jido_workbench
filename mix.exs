@@ -54,7 +54,6 @@ defmodule AgentJido.MixProject do
       # Telemetry / i18n / Serialization
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"},
-      {:gettext, "~> 0.20"},
       {:jason, "~> 1.2"},
 
       # Content / Markdown
@@ -75,11 +74,19 @@ defmodule AgentJido.MixProject do
       {:emlx, "~> 0.2"},
 
       # AI / Jido
-      {:jido, "~> 2.0.0-rc.4"},
+      {:jido, github: "agentjido/jido", branch: "main", override: true},
+      {:jido_action, github: "agentjido/jido_action", branch: "main", override: true},
+      {:jido_signal, github: "agentjido/jido_signal", branch: "main", override: true},
       {:jido_ai, github: "agentjido/jido_ai", branch: "main", override: true},
+      {:jido_runic, github: "agentjido/jido_runic", branch: "main"},
       {:jido_live_dashboard, github: "agentjido/jido_live_dashboard", branch: "main"},
+      {:libgraph, github: "zblanco/libgraph", branch: "zw/multigraph-indexes", override: true},
       {:jido_studio, github: "agentjido/jido_studio", branch: "main"},
-      {:req_llm, "~> 1.5"},
+      {:jido_messaging, github: "agentjido/jido_messaging", branch: "main"},
+      {:req_llm, github: "agentjido/req_llm", branch: "main", override: true},
+      {:llm_db, github: "agentjido/llm_db", branch: "main", override: true},
+      {:timex, "~> 3.7", override: true},
+      {:gettext, "~> 0.26", override: true},
 
       # Image generation (OG images)
       {:image, "~> 0.54"},

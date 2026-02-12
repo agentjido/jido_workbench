@@ -1,11 +1,27 @@
 defmodule AgentJidoWeb.JidoExamplesLive do
+  @moduledoc """
+  Examples index page, driven by NimblePublisher content from priv/examples/.
+  """
   use AgentJidoWeb, :live_view
 
   import AgentJidoWeb.Jido.MarketingLayouts
 
+  alias AgentJido.Examples
+
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, og_image: "https://agentjido.xyz/og/examples.png")}
+    examples = Examples.all_examples()
+    categories = Examples.all_categories()
+
+    {:ok,
+     assign(socket,
+       og_image: "https://agentjido.xyz/og/examples.png",
+       examples: examples,
+       categories: categories,
+       core_examples: Examples.examples_by_category(:core),
+       ai_examples: Examples.examples_by_category(:ai),
+       production_examples: Examples.examples_by_category(:production)
+     )}
   end
 
   @impl true
@@ -24,42 +40,50 @@ defmodule AgentJidoWeb.JidoExamplesLive do
             Learn by <span class="text-primary">building</span>
           </h1>
           <p class="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Complete examples from simple agents to production-ready AI applications.
+            Interactive examples with real, running code. Each example includes source code, explanation, and a live demo you can play with.
           </p>
         </section>
 
-        <%!-- Getting Started Examples --%>
-        <section class="mb-16">
+        <%!-- Core Examples --%>
+        <section :if={@core_examples != []} class="mb-16">
           <div class="flex justify-between items-center mb-6">
             <span class="text-sm font-bold tracking-wider">GETTING STARTED</span>
+            <span class="text-[10px] px-2 py-1 rounded bg-accent-cyan/10 border border-accent-cyan/30 text-accent-cyan font-semibold">
+              CORE
+            </span>
           </div>
           <div class="grid md:grid-cols-2 gap-4">
-            <%= for example <- getting_started_examples() do %>
+            <%= for example <- @core_examples do %>
               <.example_card example={example} />
             <% end %>
           </div>
         </section>
 
         <%!-- AI Examples --%>
-        <section class="mb-16">
+        <section :if={@ai_examples != []} class="mb-16">
           <div class="flex justify-between items-center mb-6">
             <span class="text-sm font-bold tracking-wider">AI-POWERED AGENTS</span>
-            <span class="badge-ai">AI</span>
+            <span class="text-[10px] px-2 py-1 rounded bg-accent-yellow/10 border border-accent-yellow/30 text-accent-yellow font-semibold">
+              AI
+            </span>
           </div>
           <div class="grid md:grid-cols-2 gap-4">
-            <%= for example <- ai_examples() do %>
+            <%= for example <- @ai_examples do %>
               <.example_card example={example} />
             <% end %>
           </div>
         </section>
 
         <%!-- Production Examples --%>
-        <section class="mb-16">
+        <section :if={@production_examples != []} class="mb-16">
           <div class="flex justify-between items-center mb-6">
             <span class="text-sm font-bold tracking-wider">PRODUCTION PATTERNS</span>
+            <span class="text-[10px] px-2 py-1 rounded bg-primary/10 border border-primary/30 text-primary font-semibold">
+              PRODUCTION
+            </span>
           </div>
           <div class="grid md:grid-cols-2 gap-4">
-            <%= for example <- production_examples() do %>
+            <%= for example <- @production_examples do %>
               <.example_card example={example} />
             <% end %>
           </div>
@@ -90,133 +114,32 @@ defmodule AgentJidoWeb.JidoExamplesLive do
 
   defp example_card(assigns) do
     ~H"""
-    <div class="feature-card">
+    <.link navigate={~p"/examples/#{@example.slug}"} class="feature-card group block">
       <div class="flex justify-between items-start mb-3">
         <span class="text-lg">{@example.emoji}</span>
-        <span class={"badge-#{@example.layer}"}>{String.upcase(to_string(@example.layer))}</span>
+        <div class="flex gap-2">
+          <span class={"text-[10px] px-2 py-0.5 rounded font-semibold uppercase #{difficulty_badge(@example.difficulty)}"}>
+            {@example.difficulty}
+          </span>
+        </div>
       </div>
-      <h3 class="font-bold text-[15px] mb-2">{@example.title}</h3>
-      <p class="text-muted-foreground text-xs leading-relaxed mb-4">{@example.desc}</p>
-      <div class="flex gap-2">
-        <a href={@example.livebook_url} class="text-[10px] px-2 py-1 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
-          Livebook
-        </a>
-        <a href={@example.github_url} class="text-[10px] px-2 py-1 rounded bg-elevated text-muted-foreground hover:text-foreground transition-colors">
-          GitHub
-        </a>
+      <h3 class="font-bold text-[15px] mb-2 group-hover:text-primary transition-colors">
+        {@example.title}
+      </h3>
+      <p class="text-muted-foreground text-xs leading-relaxed mb-4">{@example.description}</p>
+      <div class="flex gap-2 flex-wrap">
+        <%= for tag <- @example.tags do %>
+          <span class="text-[10px] px-2 py-0.5 rounded bg-elevated text-muted-foreground">
+            {tag}
+          </span>
+        <% end %>
       </div>
-    </div>
+    </.link>
     """
   end
 
-  defp getting_started_examples do
-    [
-      %{
-        emoji: "👋",
-        title: "Hello Agent",
-        desc: "Your first Jido agent in 5 lines. Covers basic setup and message passing.",
-        layer: :core,
-        livebook_url: "#",
-        github_url: "#"
-      },
-      %{
-        emoji: "🔄",
-        title: "State Machines",
-        desc: "Build agents with state transitions. Finite state machine patterns.",
-        layer: :core,
-        livebook_url: "#",
-        github_url: "#"
-      },
-      %{
-        emoji: "📡",
-        title: "Signal & Respond",
-        desc: "Pub/sub patterns between agents. Event-driven coordination.",
-        layer: :core,
-        livebook_url: "#",
-        github_url: "#"
-      },
-      %{
-        emoji: "⚡",
-        title: "Action Pipelines",
-        desc: "Compose actions into workflows. Validation and error handling.",
-        layer: :core,
-        livebook_url: "#",
-        github_url: "#"
-      }
-    ]
-  end
-
-  defp ai_examples do
-    [
-      %{
-        emoji: "💬",
-        title: "Chat Agent",
-        desc: "Multi-turn conversations with memory. Token budget management.",
-        layer: :ai,
-        livebook_url: "#",
-        github_url: "#"
-      },
-      %{
-        emoji: "🔧",
-        title: "Tool Calling",
-        desc: "Agents that call tools and functions. Structured outputs.",
-        layer: :ai,
-        livebook_url: "#",
-        github_url: "#"
-      },
-      %{
-        emoji: "📊",
-        title: "Research Agent",
-        desc: "Web search, summarization, report generation. Real-world workflow.",
-        layer: :ai,
-        livebook_url: "#",
-        github_url: "#"
-      },
-      %{
-        emoji: "🤖",
-        title: "Multi-Agent",
-        desc: "Orchestrate multiple AI agents. Delegation and coordination.",
-        layer: :ai,
-        livebook_url: "#",
-        github_url: "#"
-      }
-    ]
-  end
-
-  defp production_examples do
-    [
-      %{
-        emoji: "📈",
-        title: "Supervision Trees",
-        desc: "Production supervision strategies. Restart policies and isolation.",
-        layer: :core,
-        livebook_url: "#",
-        github_url: "#"
-      },
-      %{
-        emoji: "📊",
-        title: "Telemetry & Metrics",
-        desc: "Observability patterns. Grafana dashboards and alerting.",
-        layer: :core,
-        livebook_url: "#",
-        github_url: "#"
-      },
-      %{
-        emoji: "🔒",
-        title: "Rate Limiting",
-        desc: "LLM API rate limiting and cost control. Budget enforcement.",
-        layer: :ai,
-        livebook_url: "#",
-        github_url: "#"
-      },
-      %{
-        emoji: "🌐",
-        title: "Distributed Agents",
-        desc: "Multi-node agent deployment. Failover and redistribution.",
-        layer: :core,
-        livebook_url: "#",
-        github_url: "#"
-      }
-    ]
-  end
+  defp difficulty_badge(:beginner), do: "bg-green-500/10 text-green-400"
+  defp difficulty_badge(:intermediate), do: "bg-amber-500/10 text-amber-400"
+  defp difficulty_badge(:advanced), do: "bg-red-500/10 text-red-400"
+  defp difficulty_badge(_), do: "bg-elevated text-muted-foreground"
 end

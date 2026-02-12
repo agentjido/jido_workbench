@@ -53,6 +53,7 @@ defmodule AgentJidoWeb.Router do
     live "/ecosystem/:id", JidoEcosystemPackageLive, :show
     live "/getting-started", JidoGettingStartedLive, :index
     live "/examples", JidoExamplesLive, :index
+    live "/examples/:slug", JidoExampleLive, :show
     live "/benchmarks", JidoBenchmarksLive, :index
     live "/partners", JidoPartnersLive, :index
     get("/discord", PageController, :discord)
