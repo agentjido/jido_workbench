@@ -17,7 +17,12 @@ defmodule AgentJido.Application do
         [
           AgentJido.OGImage,
           AgentJidoWeb.Endpoint,
-          AgentJido.Jido
+          AgentJido.Jido,
+          {Jido.AgentServer,
+           id: AgentJido.ContentOps.OrchestratorServer,
+           agent: AgentJido.ContentOps.OrchestratorAgent,
+           jido: AgentJido.Jido,
+           name: AgentJido.ContentOps.OrchestratorServer}
         ]
 
     opts = [strategy: :one_for_one, name: AgentJido.Supervisor]

@@ -30,6 +30,8 @@ defmodule AgentJidoWeb.Router do
     live "/getting-started", JidoGettingStartedLive, :index
     live "/examples", JidoExamplesLive, :index
     live "/examples/:slug", JidoExampleLive, :show
+    live "/contentops", ContentOpsLive, :index
+    live "/contentops/github", ContentOpsGithubLive, :index
     live "/features", JidoFeaturesLive, :index
     live "/partners", JidoFeaturesLive, :index
     get("/discord", PageController, :discord)

@@ -36,6 +36,12 @@ config :agent_jido, AgentJido.Jido,
   max_tasks: 1000,
   agent_pools: []
 
+config :agent_jido, AgentJidoWeb.ContentOpsGithubLive,
+  owner: "agentjido",
+  repo: "agentjido_xyz",
+  cache_ttl_minutes: 15,
+  contentops_timeout_ms: 60_000
+
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.15.5",
