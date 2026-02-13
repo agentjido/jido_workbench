@@ -29,6 +29,31 @@ config :agent_jido,
   enable_analytics: env!("ENABLE_ANALYTICS", :boolean, false),
   discord_invite_link: env!("DISCORD_INVITE_LINK", :string, "https://discord.gg/dMh8CqEH8Q")
 
+contentops_chat_enabled =
+  case Application.get_env(:agent_jido, AgentJido.ContentOps.Chat, []) do
+    cfg when is_map(cfg) -> Map.get(cfg, :enabled, false)
+    cfg when is_list(cfg) -> Keyword.get(cfg, :enabled, false)
+    _other -> false
+  end
+
+if contentops_chat_enabled do
+  telegram_token =
+    env!("TELEGRAM_BOT_TOKEN", :string, nil) ||
+      raise "AgentJido.ContentOps.Chat enabled=true requires TELEGRAM_BOT_TOKEN."
+
+  discord_token =
+    env!("DISCORD_BOT_TOKEN", :string, nil) ||
+      raise "AgentJido.ContentOps.Chat enabled=true requires DISCORD_BOT_TOKEN."
+
+  config :telegex,
+    token: telegram_token,
+    caller_adapter: {Finch, []}
+
+  config :nostrum,
+    token: discord_token,
+    gateway_intents: [:guilds, :guild_messages, :message_content, :direct_messages]
+end
+
 if llm = System.get_env("ARCANA_LLM") do
   config :arcana, llm: llm
 end

@@ -1,0 +1,270 @@
+defmodule AgentJido.ContentOps.Chat.Router do
+  @moduledoc """
+  Command and ReAct router for inbound Telegram/Discord messages.
+  """
+
+  require Logger
+
+  alias AgentJido.ContentOps.Chat.{
+    Actions,
+    Authorizer,
+    Config,
+    OpsAgent,
+    OpsService,
+    SessionManager
+  }
+
+  @doc "Main callback used by channel handlers."
+  @spec handle_message(JidoMessaging.Message.t(), map()) :: {:reply, String.t()} | :noreply
+  def handle_message(message, context) do
+    text = extract_text(message) |> String.trim()
+
+    if text == "" do
+      :noreply
+    else
+      cfg = Config.load!()
+
+      cond do
+        command_message?(text, cfg.command_prefix) ->
+          handle_command_message(text, message, context, cfg)
+
+        addressed?(text, cfg.bot_name) ->
+          handle_ops_message(strip_addressing(text, cfg.bot_name), message, context, cfg)
+
+        true ->
+          :noreply
+      end
+    end
+  end
+
+  @doc "Parses a command from message text."
+  @spec parse_command(String.t(), String.t()) ::
+          {:ok,
+           :help
+           | :status
+           | :recent_runs
+           | :coverage
+           | {:run, atom()}
+           | {:issue, String.t()}
+           | {:note, String.t()}
+           | {:ask, String.t()}}
+          | {:error, :unknown}
+  def parse_command(text, prefix) when is_binary(text) and is_binary(prefix) do
+    if command_message?(text, prefix) do
+      args =
+        text
+        |> String.trim()
+        |> String.trim_leading(prefix)
+        |> String.trim()
+        |> String.split(~r/\s+/, trim: true)
+
+      case args do
+        [] -> {:ok, :help}
+        ["help"] -> {:ok, :help}
+        ["status"] -> {:ok, :status}
+        ["recent-runs"] -> {:ok, :recent_runs}
+        ["coverage"] -> {:ok, :coverage}
+        ["issue" | rest] when rest != [] -> {:ok, {:issue, Enum.join(rest, " ")}}
+        ["note" | rest] when rest != [] -> {:ok, {:note, Enum.join(rest, " ")}}
+        ["ask" | rest] when rest != [] -> {:ok, {:ask, Enum.join(rest, " ")}}
+        ["run", mode] -> parse_mode(mode)
+        _other -> {:error, :unknown}
+      end
+    else
+      {:error, :unknown}
+    end
+  end
+
+  defp parse_mode("hourly"), do: {:ok, {:run, :hourly}}
+  defp parse_mode("nightly"), do: {:ok, {:run, :nightly}}
+  defp parse_mode("weekly"), do: {:ok, {:run, :weekly}}
+  defp parse_mode("monthly"), do: {:ok, {:run, :monthly}}
+  defp parse_mode(_other), do: {:error, :unknown}
+
+  defp handle_command_message(text, message, context, cfg) do
+    case parse_command(text, cfg.command_prefix) do
+      {:ok, :help} ->
+        {:reply, help_text(cfg.command_prefix)}
+
+      {:ok, :status} ->
+        {:reply, status_text()}
+
+      {:ok, :recent_runs} ->
+        {:reply, recent_runs_text()}
+
+      {:ok, :coverage} ->
+        {:reply, coverage_text()}
+
+      {:ok, {:run, mode}} ->
+        run_command(mode, context)
+
+      {:ok, {:issue, request}} ->
+        prompt = "Create a GitHub issue for this project using this request:\n\n#{request}"
+        handle_ops_message(prompt, message, context, cfg)
+
+      {:ok, {:note, request}} ->
+        prompt = "Add a documentation note. If a page reference is ambiguous, ask for clarification.\n\n#{request}"
+        handle_ops_message(prompt, message, context, cfg)
+
+      {:ok, {:ask, prompt}} ->
+        handle_ops_message(prompt, message, context, cfg)
+
+      {:error, :unknown} ->
+        {:reply, "Unknown command. Try #{cfg.command_prefix} help"}
+    end
+  end
+
+  defp handle_ops_message(prompt, message, context, cfg) do
+    tool_context = build_tool_context(message, context, cfg)
+
+    with {:ok, qa_pid} <- SessionManager.ensure_session(message.room_id),
+         {:ok, answer} <- qa_fun().(qa_pid, prompt, tool_context: tool_context) do
+      {:reply, answer}
+    else
+      {:error, reason} ->
+        Logger.warning("[ContentOps.Chat.Router] OpsAgent failed: #{inspect(reason)}")
+        {:reply, "I couldn't answer that right now. Try again in a moment."}
+    end
+  end
+
+  defp run_command(mode, context) do
+    actor = Authorizer.actor_from_context(context)
+
+    case ops_service().run(mode, actor) do
+      {:ok, result} ->
+        {:reply, result.message}
+
+      {:error, :unauthorized} ->
+        {:reply, "You are not authorized to run ContentOps operations from chat."}
+
+      {:error, :mutations_disabled} ->
+        {:reply, "Chat mutation tools are disabled in this environment."}
+
+      {:error, reason} ->
+        {:reply, "Failed to start ContentOps run: #{inspect(reason)}"}
+    end
+  end
+
+  defp status_text do
+    case Actions.GetStatus.run(%{}, %{}) do
+      {:ok, %{summary: summary}} ->
+        [
+          "status: #{summary.status}",
+          "total_runs: #{summary.total_runs}",
+          "last_run_mode: #{summary.last_run_mode || "n/a"}",
+          "last_run_at: #{format_time(summary.last_run_at)}"
+        ]
+        |> Enum.join("\n")
+
+      {:ok, %{result: result}} ->
+        result
+
+      _other ->
+        "status unavailable"
+    end
+  end
+
+  defp recent_runs_text do
+    case Actions.GetRecentRuns.run(%{limit: 5}, %{}) do
+      {:ok, %{result: result}} ->
+        result
+
+      _other ->
+        "recent-runs unavailable"
+    end
+  end
+
+  defp coverage_text do
+    case Actions.GetCoverage.run(%{}, %{}) do
+      {:ok, %{result: result}} -> result
+      _other -> "coverage unavailable"
+    end
+  end
+
+  defp help_text(prefix) do
+    """
+    ContentOps commands:
+    - #{prefix} help
+    - #{prefix} status
+    - #{prefix} run <hourly|nightly|weekly|monthly>
+    - #{prefix} recent-runs
+    - #{prefix} coverage
+    - #{prefix} issue <freeform>
+    - #{prefix} note <freeform>
+    - #{prefix} ask <freeform>
+    """
+    |> String.trim()
+  end
+
+  defp command_message?(text, prefix) do
+    String.starts_with?(String.trim(text), prefix)
+  end
+
+  defp addressed?(text, bot_name) do
+    down = String.downcase(text)
+    bot_down = String.downcase(bot_name)
+
+    String.contains?(down, "@" <> bot_down) or
+      String.starts_with?(down, bot_down <> ":") or
+      String.starts_with?(down, bot_down <> ",") or
+      String.starts_with?(down, bot_down <> " ")
+  end
+
+  defp strip_addressing(text, bot_name) do
+    text
+    |> String.replace(~r/@#{Regex.escape(bot_name)}/i, "")
+    |> String.replace(~r/^#{Regex.escape(bot_name)}[:,]?\s*/i, "")
+    |> String.trim()
+  end
+
+  defp extract_text(%{content: content}) when is_list(content) do
+    content
+    |> Enum.find_value("", fn
+      %{text: text} when is_binary(text) -> text
+      %{"text" => text} when is_binary(text) -> text
+      %JidoMessaging.Content.Text{text: text} -> text
+      _ -> nil
+    end)
+  end
+
+  defp extract_text(_), do: ""
+
+  defp format_time(nil), do: "n/a"
+  defp format_time(%DateTime{} = dt), do: DateTime.to_iso8601(dt)
+  defp format_time(other), do: to_string(other)
+
+  defp qa_fun do
+    config = Application.get_env(:agent_jido, __MODULE__, [])
+
+    case Keyword.get(config, :qa_fun) do
+      fun when is_function(fun, 3) ->
+        fun
+
+      fun when is_function(fun, 2) ->
+        fn pid, prompt, _opts -> fun.(pid, prompt) end
+
+      _other ->
+        fn pid, prompt, opts -> OpsAgent.chat(pid, prompt, opts) end
+    end
+  end
+
+  defp ops_service do
+    config = Application.get_env(:agent_jido, __MODULE__, [])
+    Keyword.get(config, :ops_service, OpsService)
+  end
+
+  defp build_tool_context(message, context, cfg) do
+    actor = Authorizer.actor_from_context(context)
+    source_channel = actor.channel
+    source_message_id = to_string(message[:external_id] || message[:id] || "")
+
+    %{
+      actor: actor,
+      room_id: message[:room_id],
+      source_channel: source_channel,
+      source_message_id: source_message_id,
+      github_owner: cfg.github_owner,
+      github_repo: cfg.github_repo
+    }
+  end
+end

@@ -23,7 +23,8 @@ defmodule AgentJido.Application do
            agent: AgentJido.ContentOps.OrchestratorAgent,
            jido: AgentJido.Jido,
            name: AgentJido.ContentOps.OrchestratorServer}
-        ]
+        ] ++
+        contentops_chat_children()
 
     opts = [strategy: :one_for_one, name: AgentJido.Supervisor]
     Supervisor.start_link(children, opts)
@@ -39,6 +40,23 @@ defmodule AgentJido.Application do
     case Arcana.embedder() do
       {Arcana.Embedder.Local, opts} -> [{Arcana.Embedder.Local, opts}]
       _other -> []
+    end
+  end
+
+  defp contentops_chat_children do
+    chat_config = Application.get_env(:agent_jido, AgentJido.ContentOps.Chat, [])
+
+    enabled =
+      case chat_config do
+        cfg when is_map(cfg) -> Map.get(cfg, :enabled, false)
+        cfg when is_list(cfg) -> Keyword.get(cfg, :enabled, false)
+        _other -> false
+      end
+
+    if enabled do
+      [AgentJido.ContentOps.Chat.Supervisor]
+    else
+      []
     end
   end
 end

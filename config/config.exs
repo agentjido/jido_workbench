@@ -42,6 +42,28 @@ config :agent_jido, AgentJidoWeb.ContentOpsGithubLive,
   cache_ttl_minutes: 15,
   contentops_timeout_ms: 60_000
 
+contentops_chat_bindings = [
+  %{
+    room_id: "contentops:lobby",
+    room_name: "ContentOps Lobby",
+    telegram_chat_id: "645038810",
+    discord_channel_id: "1468796189997662487"
+  }
+]
+
+config :agent_jido, AgentJido.ContentOps.Chat,
+  enabled: config_env() == :dev,
+  bindings: contentops_chat_bindings,
+  allowed_telegram_user_ids: ["645038810"],
+  allowed_discord_user_ids: ["281856954903691264", "1235534042062131258"],
+  bot_name: "AgentJido",
+  command_prefix: "/ops",
+  github_owner: "agentjido",
+  github_repo: "agentjido_xyz",
+  github_labels_base: ["contentops", "chatops"],
+  github_labels_docs_note: ["docs-note"],
+  mutation_tools_enabled: config_env() == :dev
+
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.15.5",
