@@ -24,9 +24,11 @@
     "ecosystem/package-selection-by-use-case",
     "features/composable-ecosystem",
     "build/quickstarts-by-persona",
-    "reference/architecture-decision-guides"
+    "docs/architecture-decision-guides"
   ],
   ecosystem_packages: ["jido", "jido_action", "jido_signal", "jido_ai", "req_llm", "llm_db", "agent_jido"],
+  destination_route: "/ecosystem/package-matrix",
+  destination_collection: :ecosystem,
   tags: [:ecosystem, :reference, :packages, :adoption]
 }
 ---

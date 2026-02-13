@@ -18,11 +18,13 @@
   related: [
     "build/first-agent",
     "docs/key-concepts",
-    "reference/configuration",
+    "docs/configuration",
     "training/agent-fundamentals",
     "build/quickstarts-by-persona"
   ],
   ecosystem_packages: ["jido", "jido_ai", "agent_jido"],
+  destination_route: "/build/installation",
+  destination_collection: :pages,
   tags: [:build, :setup, :getting_started]
 }
 ---

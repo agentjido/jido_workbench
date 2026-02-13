@@ -15,8 +15,10 @@
   status: :published,
   priority: :high,
   prerequisites: ["features/directives-and-scheduling"],
-  related: ["training/liveview-integration", "build/counter-agent", "operate/testing-agents-and-actions"],
+  related: ["training/liveview-integration", "build/counter-agent", "docs/testing-agents-and-actions"],
   ecosystem_packages: ["agent_jido", "jido"],
+  destination_route: "/features/liveview-integration-patterns",
+  destination_collection: :pages,
   tags: [:features, :liveview, :integration]
 }
 ---

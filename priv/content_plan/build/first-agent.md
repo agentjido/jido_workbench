@@ -22,6 +22,8 @@
     "docs/actions"
   ],
   ecosystem_packages: ["jido", "jido_action"],
+  destination_route: "/build/first-agent",
+  destination_collection: :pages,
   tags: [:build, :agents, :tutorial]
 }
 ---

@@ -11,17 +11,19 @@
   ],
   repos: ["agent_jido"],
   source_modules: ["AgentJido.ContentPlan"],
-  source_files: ["marketing/persona-journeys.md", "marketing/content-governance.md", "priv/content_plan/operate/**/*.md"],
+  source_files: ["marketing/persona-journeys.md", "marketing/content-governance.md", "priv/content_plan/docs/**/*.md"],
   status: :outline,
   priority: :high,
-  prerequisites: ["operate/production-readiness-checklist", "ecosystem/incremental-adoption-paths"],
+  prerequisites: ["docs/production-readiness-checklist", "features/incremental-adoption"],
   related: [
     "community/case-studies",
     "training/manager-roadmap",
-    "operate/incident-playbooks",
-    "reference/content-governance-and-drift-detection"
+    "docs/incident-playbooks",
+    "docs/content-governance-and-drift-detection"
   ],
   ecosystem_packages: ["agent_jido", "jido"],
+  destination_route: "/community/adoption-playbooks",
+  destination_collection: :pages,
   tags: [:community, :adoption, :operations, :governance]
 }
 ---

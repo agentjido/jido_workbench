@@ -15,8 +15,10 @@
   status: :outline,
   priority: :high,
   prerequisites: ["docs/agents", "docs/actions"],
-  related: ["docs/signals", "operate/agent-server", "training/directives-scheduling"],
+  related: ["docs/signals", "docs/agent-server", "training/directives-scheduling"],
   ecosystem_packages: ["jido"],
+  destination_route: "/docs/directives",
+  destination_collection: :pages,
   tags: [:docs, :core, :directives, :effects]
 }
 ---

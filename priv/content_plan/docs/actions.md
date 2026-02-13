@@ -17,6 +17,8 @@
   prerequisites: ["docs/key-concepts"],
   related: ["docs/agents", "docs/directives", "training/actions-validation", "build/tool-use"],
   ecosystem_packages: ["jido_action", "jido"],
+  destination_route: "/docs/actions",
+  destination_collection: :pages,
   tags: [:docs, :core, :actions]
 }
 ---

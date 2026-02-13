@@ -22,10 +22,12 @@
   related: [
     "build/mixed-stack-integration",
     "build/product-feature-blueprints",
-    "reference/architecture-decision-guides",
-    "operate/production-readiness-checklist"
+    "docs/architecture-decision-guides",
+    "docs/production-readiness-checklist"
   ],
   ecosystem_packages: ["jido", "jido_signal", "jido_action", "agent_jido"],
+  destination_route: "/build/reference-architectures",
+  destination_collection: :pages,
   tags: [:build, :architecture, :blueprints]
 }
 ---

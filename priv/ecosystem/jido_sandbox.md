@@ -13,6 +13,16 @@
   github_url: "https://github.com/agentjido/jido_sandbox",
   github_org: "agentjido",
   github_repo: "jido_sandbox",
+  maturity: :experimental,
+  hex_status: "unreleased",
+  api_stability: "unstable — expect breaking changes",
+  stub: false,
+  support: :best_effort,
+  limitations: [
+    "Not published to Hex — available only via GitHub dependency",
+    "Lua runtime has restricted stdlib — no os, io, package, or debug modules",
+    "VFS is in-memory only with no disk persistence"
+  ],
   ecosystem_deps: [],
   key_features: [
     "Pure in-memory virtual filesystem with no real filesystem access",

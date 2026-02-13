@@ -2,7 +2,7 @@ defmodule AgentJidoWeb.SitemapControllerTest do
   use AgentJidoWeb.ConnCase, async: true
 
   alias AgentJido.Ecosystem
-  alias AgentJido.Training
+  alias AgentJido.Pages
 
   test "includes ecosystem package pages", %{conn: conn} do
     conn = get(conn, "/sitemap.xml")
@@ -17,16 +17,15 @@ defmodule AgentJidoWeb.SitemapControllerTest do
     end
   end
 
-  test "includes training URLs and excludes benchmarks", %{conn: conn} do
+  test "includes page URLs from the Pages system", %{conn: conn} do
     body =
       conn
       |> get("/sitemap.xml")
       |> response(200)
 
-    assert body =~ "/training"
-
-    for module <- Training.all_modules() do
-      assert body =~ "/training/#{module.slug}"
+    # Training pages should be included
+    for page <- Pages.pages_by_category(:training) do
+      assert body =~ Pages.route_for(page)
     end
 
     assert body =~ "/features"

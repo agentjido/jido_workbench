@@ -15,6 +15,16 @@
   github_org: "agentjido",
   github_repo: "jido_ai",
   elixir: "~> 1.17",
+  maturity: :beta,
+  hex_status: "0.5.2",
+  api_stability: "unstable — major rewrite in progress for 2.0, expect breaking changes",
+  stub: false,
+  support: :maintained,
+  limitations: [
+    "Published Hex version (0.5.2) is significantly behind the current GitHub main branch",
+    "Reasoning strategies are implemented but not all have production-grade test coverage",
+    "Accuracy pipeline presets are experimental and may change"
+  ],
   ecosystem_deps: ["jido", "jido_browser", "req_llm"],
   landing_summary: "Jido AI turns raw LLM calls into structured agent intelligence with strategy-driven reasoning, tool use, and accuracy controls.",
   landing_cliff_notes: [

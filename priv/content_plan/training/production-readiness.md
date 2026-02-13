@@ -16,14 +16,16 @@
   priority: :critical,
   prerequisites: ["training/liveview-integration"],
   related: [
-    "features/supervision-and-fault-isolation",
-    "features/production-telemetry",
-    "operate/retries-backpressure-and-failure-recovery",
-    "operate/troubleshooting-and-debugging-playbook",
-    "operate/production-readiness-checklist",
-    "reference/telemetry-and-observability"
+    "features/reliability-by-architecture",
+    "features/operations-observability",
+    "docs/retries-backpressure-and-failure-recovery",
+    "docs/troubleshooting-and-debugging-playbook",
+    "docs/production-readiness-checklist",
+    "docs/telemetry-and-observability"
   ],
   ecosystem_packages: ["jido", "agent_jido"],
+  destination_route: "/training/production-readiness",
+  destination_collection: :training,
   tags: [:training, :production, :telemetry, :supervision]
 }
 ---

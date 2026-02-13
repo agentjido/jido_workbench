@@ -11,6 +11,17 @@
   github_url: "https://github.com/agentjido/jido_flame",
   github_org: "agentjido",
   github_repo: "jido_flame",
+  maturity: :experimental,
+  hex_status: "unreleased",
+  api_stability: "unstable — expect breaking changes",
+  stub: false,
+  support: :best_effort,
+  limitations: [
+    "Not published to Hex — available only via GitHub dependency",
+    "Private repository — not publicly accessible",
+    "Requires Fly.io infrastructure for production use",
+    "FLAME library integration is tightly version-coupled"
+  ],
   ecosystem_deps: ["jido", "jido_signal"],
   key_features: [
     "Elastic agent spawning on Fly.io with automatic idle shutdown",

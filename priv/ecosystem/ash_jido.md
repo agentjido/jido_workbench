@@ -13,6 +13,16 @@
   github_url: "https://github.com/agentjido/ash_jido",
   github_org: "agentjido",
   github_repo: "ash_jido",
+  maturity: :experimental,
+  hex_status: "unreleased",
+  api_stability: "unstable — expect breaking changes",
+  stub: false,
+  support: :best_effort,
+  limitations: [
+    "Not published to Hex — available only via GitHub dependency",
+    "Tied to specific Ash Framework and Jido versions",
+    "Does not auto-discover Ash domains — requires explicit DSL configuration"
+  ],
   ecosystem_deps: ["jido", "jido_action"],
   key_features: [
     "Zero-boilerplate Ash-to-Jido bridging via a declarative jido DSL block",

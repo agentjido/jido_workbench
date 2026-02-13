@@ -15,8 +15,10 @@
   status: :published,
   priority: :medium,
   prerequisites: ["features/beam-native-agent-model"],
-  related: ["ecosystem/package-matrix", "ecosystem/incremental-adoption-paths", "training/agent-fundamentals"],
+  related: ["ecosystem/package-matrix", "features/incremental-adoption", "training/agent-fundamentals"],
   ecosystem_packages: ["jido", "jido_action", "jido_signal", "jido_ai", "req_llm", "agent_jido"],
+  destination_route: "/features/composable-ecosystem",
+  destination_collection: :pages,
   tags: [:features, :ecosystem, :architecture]
 }
 ---

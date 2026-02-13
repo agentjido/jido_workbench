@@ -17,6 +17,8 @@
   prerequisites: ["build/quickstarts-by-persona"],
   related: ["training/agent-fundamentals", "training/manager-roadmap", "community/adoption-playbooks"],
   ecosystem_packages: ["agent_jido"],
+  destination_route: "/community/learning-paths",
+  destination_collection: :pages,
   tags: [:community, :learning, :enablement]
 }
 ---

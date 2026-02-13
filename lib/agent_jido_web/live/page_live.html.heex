@@ -1,0 +1,484 @@
+<%= case @layout_type do %>
+  <% :docs_shell -> %>
+    <%!-- Docs layout (sidebar + TOC) --%>
+    <div class="min-h-screen bg-background flex flex-col">
+      <.docs_header current_path={@request_path} />
+      <.docs_secondary_nav current_path={@request_path} />
+
+      <div class="flex flex-1">
+        <.docs_sidebar
+          nav={sidebar_nav()}
+          current_path={@request_path}
+          open={@sidebar_open}
+        />
+
+        <main class="flex-1 min-w-0 flex flex-col items-center">
+          <div class="flex-1 max-w-[900px] px-8 lg:px-16 py-12 w-full">
+            <%= if @selected_document do %>
+              <div class="space-y-8">
+                <div class="space-y-4">
+                  <h1 class="text-3xl font-bold tracking-tight text-foreground">
+                    {@selected_document.title}
+                  </h1>
+                  <p class="text-[15px] text-muted-foreground leading-relaxed">
+                    {@selected_document.description}
+                  </p>
+                </div>
+                <div class="prose prose-sm max-w-none">
+                  {raw(@selected_document.body)}
+                </div>
+              </div>
+            <% else %>
+              <%!-- Docs Index --%>
+              <div class="space-y-12">
+                <section class="mb-12">
+                  <h1 class="text-3xl font-bold mb-4 tracking-tight">
+                    Jido Documentation
+                  </h1>
+                  <p class="text-[15px] text-muted-foreground leading-relaxed mb-6 max-w-[640px]">
+                    Jido is a BEAM-native ecosystem for building production-grade autonomous agents.
+                    Run <span class="text-primary">10,000+ supervised agents</span>
+                    on a single node with OTP supervision, isolated processes, and native concurrency.
+                  </p>
+                  <div class="rounded-md p-5 mb-8 bg-primary/[0.08] border border-primary/20">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                      <div>
+                        <div class="text-xs font-semibold text-primary mb-1">
+                          ✨ Get started in one command
+                        </div>
+                        <div class="text-[13px] text-muted-foreground">
+                          Add Jido to your existing Elixir app or create a new project
+                        </div>
+                      </div>
+                      <div class="px-4 py-2.5 rounded bg-code-bg border border-border font-mono text-[13px]">
+                        <span class="text-muted-foreground">$ </span>
+                        <span class="text-accent-cyan">mix</span>
+                        <span class="text-foreground"> deps.get jido</span>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <section id="get-started" class="mb-12">
+                  <h2 class="text-lg font-bold mb-5 flex items-center gap-2">
+                    <span class="text-primary">#</span> Get Started
+                  </h2>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <.numbered_card
+                      number="1"
+                      title="Learn the Basics"
+                      description="Install Jido, create your first agent, and understand OTP supervision patterns."
+                      href="/docs/installation"
+                    />
+                    <.numbered_card
+                      number="2"
+                      title="Choose Your Stack"
+                      description="Pick the packages you need: core bots, AI agents, or the full coding agent stack."
+                      href="/ecosystem"
+                    />
+                    <.numbered_card
+                      number="3"
+                      title="Build Agent Workflows"
+                      description="Learn actions, signals, and inter-agent communication patterns."
+                      href="/docs/quickstart"
+                    />
+                    <.numbered_card
+                      number="4"
+                      title="Deploy to Production"
+                      description="Scaling, observability, failure handling, and production checklist."
+                      href="/docs/production-checklist"
+                    />
+                  </div>
+                </section>
+
+                <section id="package-ecosystem" class="mb-12">
+                  <h2 class="text-lg font-bold mb-5 flex items-center gap-2">
+                    <span class="text-accent-yellow">#</span> Package Ecosystem
+                  </h2>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <.icon_card
+                      icon="◈"
+                      title="jido"
+                      description="BEAM-native bot framework with OTP supervision. Run thousands of agents per node."
+                      color="green"
+                      href="/docs/packages/jido"
+                    />
+                    <.icon_card
+                      icon="⚡"
+                      title="jido_ai"
+                      description="LLM-powered agents with token budgets, tool calling, and streaming support."
+                      color="yellow"
+                      href="/docs/packages/jido-ai"
+                    />
+                    <.icon_card
+                      icon="⟳"
+                      title="req_llm"
+                      description="HTTP client for LLM APIs. Retries, rate limiting, and multi-provider support."
+                      color="cyan"
+                      href="/docs/packages/req-llm"
+                    />
+                    <.icon_card
+                      icon="⚙"
+                      title="jido_coder"
+                      description="AI coding agent with file operations, git integration, and test execution."
+                      color="red"
+                      href="/docs/packages/jido-coder"
+                    />
+                  </div>
+                </section>
+
+                <section id="quickstarts" class="mb-12">
+                  <div class="flex items-center justify-between mb-5">
+                    <h2 class="text-lg font-bold flex items-center gap-2">
+                      <span class="text-accent-cyan">#</span> Quickstarts
+                    </h2>
+                    <span class="text-[11px] text-muted-foreground">by use case</span>
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <.icon_card icon="🤖" title="Chat Bot" description="Simple conversational agent" color="green" href="/examples" />
+                    <.icon_card icon="🔬" title="Research Agent" description="Multi-step LLM workflows" color="yellow" href="/examples" />
+                    <.icon_card icon="💻" title="Code Assistant" description="File analysis & generation" color="red" href="/examples" />
+                    <.icon_card icon="📊" title="Data Pipeline" description="Streaming log processor" color="cyan" href="/examples" />
+                    <.icon_card icon="🔄" title="Workflow Engine" description="Long-lived orchestrator" color="yellow" href="/examples" />
+                    <.icon_card icon="🌐" title="Multi-Node" description="Distributed agent cluster" color="green" href="/examples" />
+                  </div>
+                </section>
+
+                <section id="explore-docs" class="mb-12">
+                  <h2 class="text-lg font-bold mb-5 flex items-center gap-2">
+                    <span class="text-accent-red">#</span> Explore the Docs
+                  </h2>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <.icon_card
+                      icon="⚙"
+                      title="Agents"
+                      description="Define agents, manage state, handle lifecycle and supervision."
+                      color="green"
+                      href="/docs/agents/defining"
+                    />
+                    <.icon_card
+                      icon="⟡"
+                      title="Actions"
+                      description="Schema-based validation, composable operations, constraints."
+                      color="yellow"
+                      href="/docs/actions/schemas"
+                    />
+                    <.icon_card
+                      icon="⫸"
+                      title="Signals"
+                      description="Pub/sub patterns for decoupled inter-agent communication."
+                      color="cyan"
+                      href="/docs/signals/pubsub"
+                    />
+                    <.icon_card
+                      icon="◇"
+                      title="LLM Integration"
+                      description="Configure providers, manage tokens, handle streaming."
+                      color="red"
+                      href="/docs/ai/llm-config"
+                    />
+                    <.icon_card
+                      icon="◎"
+                      title="Observability"
+                      description="Telemetry, metrics, tracing, and debugging agents."
+                      color="green"
+                      href="/docs/production/observability"
+                    />
+                    <.icon_card
+                      icon="⊕"
+                      title="Training"
+                      description="Structured modules to level up practical Jido skills."
+                      color="yellow"
+                      href="/training"
+                    />
+                  </div>
+                </section>
+
+                <section id="quick-example" class="mb-12">
+                  <h2 class="text-lg font-bold mb-5 flex items-center gap-2">
+                    <span class="text-primary">#</span> Quick Example
+                  </h2>
+                  <div class="rounded-lg border border-border overflow-hidden">
+                    <div class="bg-code-bg border-b border-border px-4 py-2 flex items-center justify-between">
+                      <span class="text-xs text-muted-foreground">lib/my_app/weather_agent.ex</span>
+                    </div>
+                    <pre class="p-4 text-[13px] leading-relaxed overflow-x-auto bg-code-bg"><code class="text-foreground"><span class="text-code-keyword">defmodule</span> <span class="text-code-type">WeatherAgent</span> <span class="text-code-keyword">do</span>
+  <span class="text-code-keyword">use</span> Jido.Agent
+
+  <span class="text-code-keyword">def</span> <span class="text-code-function">init</span>(args) <span class="text-code-keyword">do</span>
+    <span class="text-code-comment"># Returns :ok with initial state</span>
+    <span class="text-code-keyword">:ok</span>
+  <span class="text-code-keyword">end</span>
+
+  <span class="text-code-keyword">def</span> <span class="text-code-function">handle_action</span>(:check, state) <span class="text-code-keyword">do</span>
+    temp = WeatherAPI.get_temp(state.location)
+    <span class="text-code-keyword">:ok</span>
+  <span class="text-code-keyword">end</span>
+<span class="text-code-keyword">end</span>
+
+<span class="text-code-comment"># Start 5,000 supervised agents in a single node</span>
+sup = Jido.Supervisor.start_link()
+
+<span class="text-code-keyword">for</span> city &lt;- cities <span class="text-code-keyword">do</span>
+  Jido.start_agent(sup, WeatherAgent, location: city)
+<span class="text-code-keyword">end</span></code></pre>
+                  </div>
+                  <div class="grid grid-cols-3 gap-px mt-4 bg-border rounded-md overflow-hidden">
+                    <div class="bg-card p-4 text-center">
+                      <div class="text-lg font-bold text-primary">5,000</div>
+                      <div class="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">
+                        agents started
+                      </div>
+                    </div>
+                    <div class="bg-card p-4 text-center">
+                      <div class="text-lg font-bold text-accent-yellow">~100MB</div>
+                      <div class="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">
+                        memory usage
+                      </div>
+                    </div>
+                    <div class="bg-card p-4 text-center">
+                      <div class="text-lg font-bold text-accent-cyan">&lt;50ms</div>
+                      <div class="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">
+                        startup time
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <section id="community" class="mb-12">
+                  <h2 class="text-lg font-bold mb-5 flex items-center gap-2">
+                    <span class="text-accent-cyan">#</span> Join the Community
+                  </h2>
+                  <div class="rounded-md p-6 bg-accent-cyan/[0.08] border border-accent-cyan/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div>
+                      <div class="text-sm font-semibold text-foreground mb-1">
+                        Questions? Need help debugging production issues?
+                      </div>
+                      <div class="text-[13px] text-muted-foreground">
+                        Reach out on ElixirForum, GitHub Discussions, or Discord.
+                      </div>
+                    </div>
+                    <div class="flex gap-3">
+                      <a
+                        href="https://discord.gg/agentjido"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="px-5 py-2.5 rounded text-xs font-semibold bg-accent-cyan text-background hover:opacity-90 transition-opacity"
+                      >
+                        Join Discord
+                      </a>
+                      <a
+                        href="https://github.com/agentjido/jido/issues"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="px-5 py-2.5 rounded text-xs font-medium border border-accent-cyan text-accent-cyan hover:bg-accent-cyan/10 transition-colors"
+                      >
+                        GitHub Issues
+                      </a>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            <% end %>
+          </div>
+
+          <%= if @selected_document do %>
+            <footer class="border-t border-border py-6 px-8 lg:px-16 w-full">
+              <div class="flex items-center justify-end text-[11px] text-muted-foreground">
+                <%= if @selected_document.github_url do %>
+                  <a
+                    href={String.replace(@selected_document.github_url, "/blob/", "/edit/")}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="hover:text-foreground transition-colors"
+                  >
+                    Edit this page →
+                  </a>
+                <% end %>
+              </div>
+            </footer>
+          <% end %>
+        </main>
+
+        <%= if @toc && @toc != [] do %>
+          <.docs_right_sidebar toc={@toc} />
+        <% end %>
+      </div>
+    </div>
+  <% :training_index -> %>
+    <%!-- Training index --%>
+    <.marketing_layout current_path="/training">
+      <div class="container max-w-[1000px] mx-auto px-6 py-12">
+        <section class="text-center mb-16">
+          <div class="inline-block px-4 py-2 rounded mb-5 bg-primary/10 border border-primary/30">
+            <span class="text-primary text-[11px] font-semibold tracking-widest uppercase">
+              TRAINING TRACK
+            </span>
+          </div>
+          <h1 class="text-4xl font-bold mb-4">
+            Practical Jido training for <span class="text-primary">Elixir engineers</span>
+          </h1>
+          <p class="text-lg text-muted-foreground max-w-3xl mx-auto">
+            Move from fundamentals to production patterns through hands-on modules, each with a concrete exercise and validation checklist.
+          </p>
+        </section>
+
+        <%= for {track, modules} <- @track_groups do %>
+          <section class="mb-16">
+            <div class="flex justify-between items-center mb-6">
+              <span class="text-sm font-bold tracking-wider uppercase">
+                {AgentJidoWeb.PageLive.track_label(track)}
+              </span>
+              <span class="text-[10px] px-2 py-1 rounded bg-accent-cyan/10 border border-accent-cyan/30 text-accent-cyan font-semibold">
+                {length(modules)} module{if length(modules) == 1, do: "", else: "s"}
+              </span>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4">
+              <%= for mod <- modules do %>
+                <.link navigate={"/training/#{mod.id}"} class="feature-card group block">
+                  <div class="flex justify-between items-start mb-3 gap-2">
+                    <span class={"text-[10px] px-2 py-0.5 rounded font-semibold uppercase #{AgentJidoWeb.PageLive.difficulty_badge(mod.difficulty)}"}>
+                      {mod.difficulty}
+                    </span>
+                    <span class="text-[10px] px-2 py-0.5 rounded bg-elevated text-muted-foreground">
+                      {mod.duration_minutes} min
+                    </span>
+                  </div>
+
+                  <h3 class="font-bold text-[15px] mb-2 group-hover:text-primary transition-colors">
+                    {mod.title}
+                  </h3>
+                  <p class="text-muted-foreground text-xs leading-relaxed mb-4">
+                    {mod.description}
+                  </p>
+
+                  <div class="flex gap-2 flex-wrap mb-4">
+                    <span class="text-[10px] px-2 py-0.5 rounded bg-primary/10 text-primary">
+                      {length(mod.prerequisites)} prerequisite{if length(mod.prerequisites) == 1, do: "", else: "s"}
+                    </span>
+                    <%= for tag <- mod.tags do %>
+                      <span class="text-[10px] px-2 py-0.5 rounded bg-elevated text-muted-foreground">
+                        {tag}
+                      </span>
+                    <% end %>
+                  </div>
+
+                  <span class="text-xs font-semibold text-primary">OPEN MODULE →</span>
+                </.link>
+              <% end %>
+            </div>
+          </section>
+        <% end %>
+      </div>
+    </.marketing_layout>
+  <% :training_shell -> %>
+    <%!-- Training module detail --%>
+    <.marketing_layout current_path="/training">
+      <div class="container max-w-[1000px] mx-auto px-6 py-12">
+        <div class="mb-8">
+          <.link navigate="/training" class="text-xs text-muted-foreground hover:text-primary transition-colors">
+            ← back to training
+          </.link>
+        </div>
+
+        <section class="mb-10">
+          <div class="flex flex-wrap items-center gap-3 mb-3">
+            <span class="text-[10px] px-2 py-1 rounded bg-primary/10 border border-primary/30 text-primary font-semibold uppercase tracking-wider">
+              {AgentJidoWeb.PageLive.track_label(@page.track)}
+            </span>
+            <span class={"text-[10px] px-2 py-1 rounded font-semibold uppercase tracking-wider #{AgentJidoWeb.PageLive.difficulty_class(@page.difficulty)}"}>
+              {@page.difficulty}
+            </span>
+            <span class="text-[10px] px-2 py-1 rounded bg-elevated border border-border text-muted-foreground">
+              {@page.duration_minutes} min
+            </span>
+          </div>
+
+          <h1 class="text-3xl font-bold tracking-tight mb-3">{@page.title}</h1>
+          <p class="text-sm text-secondary-foreground leading-relaxed max-w-[820px]">
+            {@page.description}
+          </p>
+
+          <div :if={@page.learning_outcomes != []} class="mt-5">
+            <h2 class="text-xs font-bold tracking-wider mb-2">LEARNING OUTCOMES</h2>
+            <ul class="space-y-1">
+              <%= for outcome <- @page.learning_outcomes do %>
+                <li class="text-xs text-muted-foreground">• {outcome}</li>
+              <% end %>
+            </ul>
+          </div>
+        </section>
+
+        <section class="mb-12">
+          <article class="prose prose-invert max-w-none text-sm leading-relaxed">
+            {Phoenix.HTML.raw(@page.body)}
+          </article>
+        </section>
+
+        <section class="grid md:grid-cols-2 gap-4">
+          <%= if assigns[:previous_module] do %>
+            <.link
+              navigate={"/training/#{@previous_module.id}"}
+              class="feature-card block"
+            >
+              <div class="text-[10px] text-muted-foreground uppercase mb-1">Previous Module</div>
+              <div class="text-sm font-semibold text-foreground">{@previous_module.title}</div>
+            </.link>
+          <% end %>
+
+          <%= if assigns[:next_module] do %>
+            <.link
+              navigate={"/training/#{@next_module.id}"}
+              class="feature-card block md:text-right"
+            >
+              <div class="text-[10px] text-muted-foreground uppercase mb-1">Next Module</div>
+              <div class="text-sm font-semibold text-foreground">{@next_module.title}</div>
+            </.link>
+          <% end %>
+        </section>
+      </div>
+    </.marketing_layout>
+  <% :marketing_shell -> %>
+    <%!-- Marketing/generic layout --%>
+    <.marketing_layout current_path={@request_path}>
+      <div class="container max-w-[1000px] mx-auto px-6 py-12">
+        <%= if @page do %>
+          <div class="mb-8">
+            <.link
+              navigate={"/#{@category}"}
+              class="text-xs text-muted-foreground hover:text-primary transition-colors"
+            >
+              ← back to {Phoenix.Naming.humanize(@category)}
+            </.link>
+          </div>
+
+          <div class="space-y-8">
+            <div class="space-y-4">
+              <h1 class="text-3xl font-bold tracking-tight text-foreground">{@page.title}</h1>
+              <p :if={@page.description} class="text-lg text-muted-foreground">
+                {@page.description}
+              </p>
+            </div>
+            <article class="prose prose-invert max-w-none text-sm leading-relaxed">
+              {Phoenix.HTML.raw(@page.body)}
+            </article>
+          </div>
+        <% else %>
+          <h1 class="text-3xl font-bold mb-8">{Phoenix.Naming.humanize(@category)}</h1>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <%= for pg <- assigns[:pages] || [] do %>
+              <.link navigate={AgentJido.Pages.route_for(pg)} class="feature-card group block">
+                <h3 class="font-bold text-[15px] mb-2 group-hover:text-primary transition-colors">
+                  {pg.title}
+                </h3>
+                <p :if={pg.description} class="text-muted-foreground text-xs leading-relaxed">
+                  {pg.description}
+                </p>
+              </.link>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </.marketing_layout>
+<% end %>

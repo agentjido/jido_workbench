@@ -11,6 +11,16 @@
   github_url: "https://github.com/agentjido/jido_code",
   github_org: "agentjido",
   github_repo: "jido_code",
+  maturity: :experimental,
+  hex_status: "unreleased",
+  api_stability: "unstable — expect breaking changes",
+  stub: false,
+  support: :best_effort,
+  limitations: [
+    "Not published to Hex — available only via GitHub dependency",
+    "Terminal UI depends on TermUI which may have platform-specific issues",
+    "Knowledge graph foundation is early-stage"
+  ],
   ecosystem_deps: ["jido", "jido_ai"],
   key_features: [
     "Terminal-native AI assistant with Elm Architecture TUI and streaming responses",

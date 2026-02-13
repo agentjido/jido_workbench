@@ -12,6 +12,17 @@
   github_org: "agentjido",
   github_repo: "agent_jido",
   elixir: "~> 1.17",
+  maturity: :experimental,
+  hex_status: "unreleased",
+  api_stability: "not yet defined",
+  stub: false,
+  support: :best_effort,
+  limitations: [
+    "Reference application — not a library, not installable as a dependency",
+    "Private repository — not publicly accessible",
+    "Requires extensive environment setup (PostgreSQL, API keys, etc.)",
+    "Demos depend on external AI services with associated costs"
+  ],
   ecosystem_deps: ["jido", "jido_action", "jido_signal", "jido_ai", "ash_jido", "req_llm"],
   key_features: [
     "Parallel sandbox execution engine (Forge) with pluggable runners and concurrency control",

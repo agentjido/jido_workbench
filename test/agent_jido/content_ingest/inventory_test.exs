@@ -4,15 +4,15 @@ defmodule AgentJido.ContentIngest.InventoryTest do
   alias AgentJido.Blog
   alias AgentJido.ContentIngest.Inventory
   alias AgentJido.ContentIngest.Source
-  alias AgentJido.Documentation
   alias AgentJido.Ecosystem
+  alias AgentJido.Pages
 
   describe "build/1" do
     test "returns all managed sources with unique ids" do
       sources = Inventory.build()
 
       expected_count =
-        length(Documentation.all_documents()) +
+        length(Pages.all_pages()) +
           length(Blog.all_posts()) +
           length(Ecosystem.all_packages())
 
@@ -39,7 +39,7 @@ defmodule AgentJido.ContentIngest.InventoryTest do
     test "supports docs-only scope" do
       sources = Inventory.build(only: [:docs])
 
-      assert length(sources) == length(Documentation.all_documents())
+      assert length(sources) == length(Pages.all_pages())
 
       assert Enum.all?(sources, fn source ->
                String.starts_with?(source.source_id, "docs:") and source.collection == "site_docs"

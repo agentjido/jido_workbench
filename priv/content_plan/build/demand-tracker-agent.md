@@ -31,10 +31,12 @@
   related: [
     "docs/directives",
     "docs/signals",
-    "operate/long-running-agent-workflows",
-    "operate/production-readiness-checklist"
+    "docs/long-running-agent-workflows",
+    "docs/production-readiness-checklist"
   ],
   ecosystem_packages: ["jido", "agent_jido"],
+  destination_route: "/build/demand-tracker-agent",
+  destination_collection: :pages,
   tags: [:build, :examples, :directives, :scheduling, :liveview, :reliability]
 }
 ---

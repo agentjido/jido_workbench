@@ -17,6 +17,8 @@
   prerequisites: ["build/first-agent"],
   related: ["training/actions-validation", "docs/key-concepts", "features/beam-native-agent-model", "build/counter-agent"],
   ecosystem_packages: ["jido", "agent_jido"],
+  destination_route: "/training/agent-fundamentals",
+  destination_collection: :training,
   tags: [:training, :agents, :foundation, :beam]
 }
 ---

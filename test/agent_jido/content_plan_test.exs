@@ -15,12 +15,12 @@ defmodule AgentJido.ContentPlanTest do
   @feature_entries [
     "features/beam-native-agent-model",
     "features/schema-validated-actions",
-    "features/signal-routing-and-coordination",
+    "features/multi-agent-coordination",
     "features/directives-and-scheduling",
     "features/liveview-integration-patterns",
     "features/composable-ecosystem",
-    "features/supervision-and-fault-isolation",
-    "features/production-telemetry"
+    "features/reliability-by-architecture",
+    "features/operations-observability"
   ]
 
   test "content plan includes training and features sections" do

@@ -3,34 +3,10 @@ defmodule AgentJidoWeb.Router do
   import JidoStudio.Router
   import ArcanaWeb.Router
 
-  # Build documentation routes at compile time
-  # @menu_tree AgentJido.Documentation.menu_tree()
-
-  @doc_routes [
-                {"/docs", JidoDocsLive, :index, %{}},
-                {"/cookbook", LivebookDemoLive, :index, %{tag: :cookbook}}
-              ] ++
-                ((for doc <- AgentJido.Documentation.all_documents() do
-                    path_without_category =
-                      case String.trim_leading(doc.path, "/") |> String.split("/", parts: 2) do
-                        [_category, rest] -> rest
-                        _ -> nil
-                      end
-
-                    if path_without_category do
-                      case doc.category do
-                        :docs ->
-                          {"/docs/#{path_without_category}", JidoDocsLive, :show, %{}}
-
-                        :cookbook ->
-                          {"/cookbook/#{path_without_category}", LivebookDemoLive, :show, %{tag: :cookbook}}
-
-                        _ ->
-                          nil
-                      end
-                    end
-                  end)
-                 |> Enum.reject(&is_nil/1))
+  # Build page routes at compile time from the unified Pages system
+  @page_routes (for page <- AgentJido.Pages.all_pages() do
+                  AgentJido.Pages.route_for(page)
+                end)
 
   pipeline :browser do
     plug(:accepts, ["html"])
@@ -56,9 +32,18 @@ defmodule AgentJidoWeb.Router do
     live "/examples/:slug", JidoExampleLive, :show
     live "/features", JidoFeaturesLive, :index
     live "/partners", JidoFeaturesLive, :index
-    live "/training", JidoTrainingLive, :index
-    live "/training/:slug", JidoTrainingModuleLive, :show
     get("/discord", PageController, :discord)
+
+    # Pages system — index routes
+    live "/docs", PageLive, :index
+    live "/training", PageLive, :index
+    live "/build", PageLive, :index
+    live "/community", PageLive, :index
+
+    # Pages system — compile-time show routes
+    for route_path <- @page_routes do
+      live route_path, PageLive, :show
+    end
 
     get "/og/default.png", OGImageController, :default
     get "/og/home.png", OGImageController, :home
@@ -69,7 +54,6 @@ defmodule AgentJidoWeb.Router do
     get "/og/partners.png", OGImageController, :features
     get "/og/training.png", OGImageController, :training
     get "/og/docs.png", OGImageController, :docs
-    get "/og/cookbook.png", OGImageController, :cookbook
     get "/og/blog.png", OGImageController, :blog
     get "/og/blog/:slug", OGImageController, :blog_post
 
@@ -79,25 +63,9 @@ defmodule AgentJidoWeb.Router do
     get("/blog/:slug", BlogController, :show)
     get("/feed", BlogController, :feed)
     get("/sitemap.xml", SitemapController, :index)
-
-    for {path, live_view, action, metadata} <- @doc_routes do
-      live path, live_view, action, metadata: metadata
-    end
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", AgentJidoWeb do
-  #   pipe_through :api
-  # end
-
-  # Enable LiveDashboard and Swoosh mailbox preview in development
-
   if Application.compile_env(:agent_jido, :dev_routes) do
-    # If you want to use the LiveDashboard in production, you should put
-    # it behind authentication and allow only admins to access it.
-    # If your application does not have an admins-only section yet,
-    # you can use Plug.BasicAuth to set up some basic authentication
-    # as long as you are also using SSL (which you should anyway).
     import Phoenix.LiveDashboard.Router
 
     scope "/dev" do

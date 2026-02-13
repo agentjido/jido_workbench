@@ -19,9 +19,11 @@
     "build/tool-use",
     "build/multi-agent-workflows",
     "build/product-feature-blueprints",
-    "reference/configuration"
+    "docs/configuration"
   ],
   ecosystem_packages: ["jido", "jido_ai", "req_llm", "agent_jido"],
+  destination_route: "/build/ai-chat-agent",
+  destination_collection: :pages,
   tags: [:build, :ai, :chat, :llm]
 }
 ---

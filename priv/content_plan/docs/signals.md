@@ -15,8 +15,10 @@
   status: :draft,
   priority: :high,
   prerequisites: ["docs/key-concepts"],
-  related: ["docs/actions", "operate/agent-server", "training/signals-routing", "build/multi-agent-workflows"],
+  related: ["docs/actions", "docs/agent-server", "training/signals-routing", "build/multi-agent-workflows"],
   ecosystem_packages: ["jido_signal", "jido"],
+  destination_route: "/docs/signals",
+  destination_collection: :pages,
   tags: [:docs, :core, :signals, :coordination]
 }
 ---

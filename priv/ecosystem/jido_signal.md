@@ -14,6 +14,15 @@
   github_org: "agentjido",
   github_repo: "jido_signal",
   elixir: "~> 1.17",
+  maturity: :beta,
+  hex_status: "2.0.0-rc.4",
+  api_stability: "unstable — 2.0 RC, expect breaking changes before stable release",
+  stub: false,
+  support: :maintained,
+  limitations: [
+    "2.0 is in release candidate phase — API may change before final release",
+    "Journal persistence backends are pluggable but no production adapters ship by default"
+  ],
   ecosystem_deps: [],
   key_features: [
     "CloudEvents v1.0.2 compliant message envelope",

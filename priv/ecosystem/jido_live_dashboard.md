@@ -13,6 +13,16 @@
   github_org: "agentjido",
   github_repo: "jido_live_dashboard",
   elixir: "~> 1.17",
+  maturity: :experimental,
+  hex_status: "unreleased",
+  api_stability: "unstable — expect breaking changes",
+  stub: false,
+  support: :best_effort,
+  limitations: [
+    "Not published to Hex — available only via GitHub dependency",
+    "Dashboard pages are functional but UI polish is ongoing",
+    "Trace buffer is in-memory only with no persistence"
+  ],
   ecosystem_deps: ["jido"],
   key_features: [
     "Zero-config integration — one function call adds all monitoring pages",

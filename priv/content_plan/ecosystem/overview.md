@@ -18,7 +18,7 @@
   ],
   status: :outline,
   priority: :high,
-  prerequisites: ["why/overview"],
+  prerequisites: ["features/overview"],
   related: [
     "ecosystem/package-matrix",
     "ecosystem/package-selection-by-use-case",
@@ -26,6 +26,8 @@
     "build/reference-architectures"
   ],
   ecosystem_packages: ["jido", "jido_action", "jido_signal", "jido_ai", "req_llm", "agent_jido"],
+  destination_route: "/ecosystem/overview",
+  destination_collection: :ecosystem,
   tags: [:ecosystem, :overview, :architecture]
 }
 ---

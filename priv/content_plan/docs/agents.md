@@ -15,8 +15,10 @@
   status: :draft,
   priority: :high,
   prerequisites: ["docs/key-concepts"],
-  related: ["docs/actions", "docs/directives", "docs/plugins", "operate/agent-server", "operate/testing-agents-and-actions"],
+  related: ["docs/actions", "docs/directives", "docs/plugins", "docs/agent-server", "docs/testing-agents-and-actions"],
   ecosystem_packages: ["jido"],
+  destination_route: "/docs/agents",
+  destination_collection: :pages,
   tags: [:docs, :core, :agents]
 }
 ---

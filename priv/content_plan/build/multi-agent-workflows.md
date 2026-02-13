@@ -16,11 +16,13 @@
   priority: :high,
   prerequisites: ["docs/agents", "docs/signals", "docs/directives", "build/ai-chat-agent"],
   related: [
-    "operate/agent-server",
-    "operate/long-running-agent-workflows",
+    "docs/agent-server",
+    "docs/long-running-agent-workflows",
     "build/reference-architectures"
   ],
   ecosystem_packages: ["jido", "jido_signal", "agent_jido"],
+  destination_route: "/build/multi-agent-workflows",
+  destination_collection: :pages,
   tags: [:build, :multi_agent, :coordination, :advanced]
 }
 ---

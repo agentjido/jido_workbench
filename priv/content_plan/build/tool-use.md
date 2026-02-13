@@ -17,10 +17,12 @@
   prerequisites: ["build/ai-chat-agent", "docs/actions"],
   related: [
     "build/multi-agent-workflows",
-    "operate/testing-agents-and-actions",
-    "reference/configuration"
+    "docs/testing-agents-and-actions",
+    "docs/configuration"
   ],
   ecosystem_packages: ["jido", "jido_ai", "jido_action"],
+  destination_route: "/build/tool-use",
+  destination_collection: :pages,
   tags: [:build, :ai, :tools, :function_calling]
 }
 ---

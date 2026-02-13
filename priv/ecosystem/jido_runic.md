@@ -13,6 +13,16 @@
   github_url: "https://github.com/agentjido/jido_runic",
   github_org: "agentjido",
   github_repo: "jido_runic",
+  maturity: :experimental,
+  hex_status: "unreleased",
+  api_stability: "unstable — expect breaking changes",
+  stub: false,
+  support: :best_effort,
+  limitations: [
+    "Not published to Hex — available only via GitHub dependency",
+    "Requires the Runic library as a foundation",
+    "Limited production usage and test coverage"
+  ],
   ecosystem_deps: ["jido", "jido_ai"],
   key_features: [
     "Action-as-Node composition — wrap any Jido Action as a Runic DAG node",

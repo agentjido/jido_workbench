@@ -16,13 +16,15 @@
   priority: :high,
   prerequisites: [],
   related: [
-    "docs/getting-started-hub",
-    "docs/core-concepts-hub",
-    "docs/guides-hub",
-    "docs/reference-hub",
+    "docs/getting-started",
+    "docs/core-concepts",
+    "docs/guides",
+    "docs/reference",
     "build/quickstarts-by-persona"
   ],
   ecosystem_packages: ["agent_jido"],
+  destination_route: "/docs/overview",
+  destination_collection: :pages,
   tags: [:docs, :navigation, :self_serve]
 }
 ---

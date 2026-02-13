@@ -14,6 +14,15 @@
   github_org: "agentjido",
   github_repo: "jido_action",
   elixir: "~> 1.17",
+  maturity: :beta,
+  hex_status: "2.0.0-rc.4",
+  api_stability: "unstable — 2.0 RC, expect breaking changes before stable release",
+  stub: false,
+  support: :maintained,
+  limitations: [
+    "2.0 is in release candidate phase — API may change before final release",
+    "Hex published version (1.0.0) is outdated; current development is on GitHub main branch"
+  ],
   ecosystem_deps: [],
   key_features: [
     "Structured action definition with compile-time validation and rich metadata",

@@ -17,6 +17,8 @@
   prerequisites: ["training/signals-routing"],
   related: ["training/liveview-integration", "features/directives-and-scheduling", "docs/directives", "build/demand-tracker-agent"],
   ecosystem_packages: ["jido", "agent_jido"],
+  destination_route: "/training/directives-scheduling",
+  destination_collection: :training,
   tags: [:training, :directives, :scheduling, :time]
 }
 ---

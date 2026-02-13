@@ -37,6 +37,8 @@
     "build/product-feature-blueprints"
   ],
   ecosystem_packages: ["jido", "jido_action", "jido_signal", "agent_jido"],
+  destination_route: "/build/counter-agent",
+  destination_collection: :pages,
   tags: [:build, :examples, :agents, :actions, :signals, :liveview]
 }
 ---

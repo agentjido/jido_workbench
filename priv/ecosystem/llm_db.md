@@ -15,6 +15,15 @@
   github_org: "agentjido",
   github_repo: "llm_db",
   elixir: "~> 1.17",
+  maturity: :stable,
+  hex_status: "2026.2.5",
+  api_stability: "stable",
+  stub: false,
+  support: :maintained,
+  limitations: [
+    "Model metadata is a point-in-time snapshot — new models require a package release",
+    "Pricing data may lag behind provider changes"
+  ],
   ecosystem_deps: [],
   key_features: [
     "O(1) lock-free queries via :persistent_term",

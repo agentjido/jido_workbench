@@ -11,6 +11,17 @@
   github_url: "https://github.com/epic-creative/jido_messaging",
   github_org: "epic-creative",
   github_repo: "jido_messaging",
+  maturity: :experimental,
+  hex_status: "unreleased",
+  api_stability: "unstable — expect breaking changes",
+  stub: false,
+  support: :best_effort,
+  limitations: [
+    "Not published to Hex — available only via GitHub dependency",
+    "Private repository (epic-creative org, not agentjido)",
+    "Channel adapters (Telegram, Discord, Slack, WhatsApp) vary in completeness",
+    "No production persistence backend ships by default"
+  ],
   ecosystem_deps: ["jido", "jido_signal", "jido_ai"],
   key_features: [
     "Channel-agnostic messaging — write once, deploy to Telegram, Discord, Slack, WhatsApp",

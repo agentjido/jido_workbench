@@ -15,6 +15,15 @@
   github_org: "agentjido",
   github_repo: "req_llm",
   elixir: "~> 1.17",
+  maturity: :stable,
+  hex_status: "1.5.1",
+  api_stability: "stable",
+  stub: false,
+  support: :maintained,
+  limitations: [
+    "Provider coverage varies — some providers have more complete implementations than others",
+    "Streaming implementation depends on SSE and may not work with all proxy configurations"
+  ],
   ecosystem_deps: ["llm_db"],
   key_features: [
     "Unified multi-provider API across Anthropic, OpenAI, Google, Groq, xAI, and more",

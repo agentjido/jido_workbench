@@ -28,18 +28,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc><%= AgentJidoWeb.Endpoint.url() %>/training</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <%= for module <- @training_modules do %>
-  <url>
-    <loc><%= AgentJidoWeb.Endpoint.url() %>/training/<%= module.slug %></loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <% end %>
-  <url>
     <loc><%= AgentJidoWeb.Endpoint.url() %>/features</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
@@ -57,14 +45,9 @@
     <priority>0.6</priority>
   </url>
   <% end %>
+  <%= for page <- @pages, !Map.get(page.seo || %{}, :noindex, false) do %>
   <url>
-    <loc><%= AgentJidoWeb.Endpoint.url() %>/docs</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <%= for doc <- @documents, !Map.get(doc.seo || %{}, :noindex, false) do %>
-  <url>
-    <loc><%= AgentJidoWeb.Endpoint.url() %><%= doc.path %></loc>
+    <loc><%= AgentJidoWeb.Endpoint.url() %><%= AgentJido.Pages.route_for(page) %></loc>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>

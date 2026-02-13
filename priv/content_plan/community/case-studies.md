@@ -14,9 +14,11 @@
   source_files: ["marketing/positioning.md", "marketing/content-outline.md"],
   status: :planned,
   priority: :medium,
-  prerequisites: ["why/overview"],
-  related: ["community/adoption-playbooks", "why/jido-vs-framework-first-stacks", "build/reference-architectures"],
+  prerequisites: ["features/overview"],
+  related: ["community/adoption-playbooks", "features/jido-vs-framework-first-stacks", "build/reference-architectures"],
   ecosystem_packages: ["jido", "agent_jido"],
+  destination_route: "/community/case-studies",
+  destination_collection: :pages,
   tags: [:community, :case_studies, :proof]
 }
 ---

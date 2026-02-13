@@ -18,14 +18,16 @@
   ],
   status: :outline,
   priority: :critical,
-  prerequisites: ["why/overview", "ecosystem/package-matrix"],
+  prerequisites: ["features/overview", "ecosystem/package-matrix"],
   related: [
     "build/installation",
     "build/first-agent",
     "training/agent-fundamentals",
-    "operate/production-readiness-checklist"
+    "docs/production-readiness-checklist"
   ],
   ecosystem_packages: ["agent_jido"],
+  destination_route: "/build/quickstarts-by-persona",
+  destination_collection: :pages,
   tags: [:build, :persona, :quickstart, :journeys]
 }
 ---

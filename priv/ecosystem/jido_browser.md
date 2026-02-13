@@ -14,6 +14,16 @@
   github_org: "agentjido",
   github_repo: "jido_browser",
   elixir: "~> 1.17",
+  maturity: :beta,
+  hex_status: "0.8.1",
+  api_stability: "unstable — pre-1.0, expect breaking changes",
+  stub: false,
+  support: :maintained,
+  limitations: [
+    "Pre-1.0 — API may change between minor versions",
+    "Requires Chrome (Vibium adapter) or Firefox + Selenium (Web adapter) installed",
+    "WebDriver BiDi support is adapter-dependent"
+  ],
   ecosystem_deps: ["jido", "jido_action"],
   key_features: [
     "Adapter pattern with Vibium (Chrome/WebDriver BiDi) and Web (Firefox/Selenium) backends",

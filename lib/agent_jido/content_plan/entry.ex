@@ -60,6 +60,14 @@ defmodule AgentJido.ContentPlan.Entry do
                 Zoi.any(description: "List of priv/ecosystem/ package ids this links to")
                 |> Zoi.default([]),
 
+              # Destination mapping
+              destination_route:
+                Zoi.string(description: "Target URL path where this content publishes, e.g. /features/reliability-by-architecture")
+                |> Zoi.optional(),
+              destination_collection:
+                Zoi.atom(description: "Target priv/ content collection, e.g. :pages, :documentation, :training")
+                |> Zoi.optional(),
+
               # Tags
               tags: Zoi.any(description: "List of tag atoms for filtering") |> Zoi.default([]),
 

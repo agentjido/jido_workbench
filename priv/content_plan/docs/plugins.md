@@ -15,8 +15,10 @@
   status: :outline,
   priority: :medium,
   prerequisites: ["docs/agents", "docs/actions"],
-  related: ["operate/agent-server", "build/reference-architectures", "ecosystem/package-selection-by-use-case"],
+  related: ["docs/agent-server", "build/reference-architectures", "ecosystem/package-selection-by-use-case"],
   ecosystem_packages: ["jido"],
+  destination_route: "/docs/plugins",
+  destination_collection: :pages,
   tags: [:docs, :plugins, :extensibility]
 }
 ---

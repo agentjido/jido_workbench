@@ -15,8 +15,10 @@
   status: :published,
   priority: :high,
   prerequisites: ["training/directives-scheduling"],
-  related: ["training/production-readiness", "features/liveview-integration-patterns", "build/counter-agent", "operate/testing-agents-and-actions"],
+  related: ["training/production-readiness", "features/liveview-integration-patterns", "build/counter-agent", "docs/testing-agents-and-actions"],
   ecosystem_packages: ["agent_jido", "jido"],
+  destination_route: "/training/liveview-integration",
+  destination_collection: :training,
   tags: [:training, :liveview, :integration, :ui]
 }
 ---

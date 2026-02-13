@@ -14,9 +14,11 @@
   source_files: ["marketing/persona-journeys.md", "marketing/content-governance.md", "priv/content_plan/**/*.md"],
   status: :outline,
   priority: :high,
-  prerequisites: ["training/agent-fundamentals", "operate/production-readiness-checklist"],
-  related: ["why/executive-brief", "community/adoption-playbooks", "operate/security-and-governance"],
+  prerequisites: ["training/agent-fundamentals", "docs/production-readiness-checklist"],
+  related: ["features/executive-brief", "community/adoption-playbooks", "docs/security-and-governance"],
   ecosystem_packages: ["agent_jido"],
+  destination_route: "/training/manager-roadmap",
+  destination_collection: :training,
   tags: [:training, :management, :adoption, :roadmap]
 }
 ---

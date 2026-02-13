@@ -50,6 +50,22 @@ defmodule AgentJido.Ecosystem.Package do
                 Zoi.any(description: "List of ecosystem package id strings this depends on")
                 |> Zoi.default([]),
               key_features: Zoi.any(description: "List of feature highlight strings") |> Zoi.default([]),
+              maturity:
+                Zoi.atom(description: "Maturity tier (stable, beta, experimental, planned)")
+                |> Zoi.default(:experimental),
+              hex_status:
+                Zoi.string(description: "Hex.pm publication status (published version or unreleased)")
+                |> Zoi.default("unreleased"),
+              api_stability:
+                Zoi.string(description: "API stability expectations")
+                |> Zoi.default("not yet defined"),
+              limitations:
+                Zoi.any(description: "Known limitations or non-goals")
+                |> Zoi.default([]),
+              stub: Zoi.boolean(description: "Whether this is a stub vs real usable code") |> Zoi.default(false),
+              support:
+                Zoi.atom(description: "Support expectations (best_effort, community, maintained)")
+                |> Zoi.default(:best_effort),
               body: Zoi.string(description: "Rendered HTML body") |> Zoi.default(""),
               path: Zoi.string(description: "Source file path") |> Zoi.default("")
             },

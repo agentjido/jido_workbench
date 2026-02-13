@@ -14,9 +14,11 @@
   source_files: ["lib/agent_jido_web/live/jido_features_live.ex", "priv/training/agent-fundamentals.md", "marketing/positioning.md"],
   status: :published,
   priority: :high,
-  prerequisites: ["why/overview"],
+  prerequisites: ["features/overview"],
   related: ["training/agent-fundamentals", "docs/key-concepts", "build/first-agent"],
   ecosystem_packages: ["jido", "agent_jido"],
+  destination_route: "/features/beam-native-agent-model",
+  destination_collection: :pages,
   tags: [:features, :runtime, :beam, :agents]
 }
 ---

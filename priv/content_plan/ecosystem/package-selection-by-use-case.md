@@ -23,9 +23,11 @@
   related: [
     "build/product-feature-blueprints",
     "build/mixed-stack-integration",
-    "operate/production-readiness-checklist"
+    "docs/production-readiness-checklist"
   ],
   ecosystem_packages: ["jido", "jido_action", "jido_signal", "jido_ai", "req_llm", "agent_jido"],
+  destination_route: "/ecosystem/package-selection-by-use-case",
+  destination_collection: :ecosystem,
   tags: [:ecosystem, :decision, :use_case]
 }
 ---

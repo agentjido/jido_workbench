@@ -14,9 +14,11 @@
   source_files: ["lib/agent_jido_web/live/jido_features_live.ex", "priv/training/directives-scheduling.md", "lib/jido/agent/directive.ex"],
   status: :published,
   priority: :high,
-  prerequisites: ["features/signal-routing-and-coordination"],
+  prerequisites: ["features/multi-agent-coordination"],
   related: ["training/directives-scheduling", "docs/directives", "build/demand-tracker-agent"],
   ecosystem_packages: ["jido", "agent_jido"],
+  destination_route: "/features/directives-and-scheduling",
+  destination_collection: :pages,
   tags: [:features, :directives, :schedule]
 }
 ---

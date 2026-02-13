@@ -15,8 +15,10 @@
   status: :published,
   priority: :high,
   prerequisites: ["training/actions-validation"],
-  related: ["training/directives-scheduling", "features/signal-routing-and-coordination", "docs/signals", "build/multi-agent-workflows"],
+  related: ["training/directives-scheduling", "features/multi-agent-coordination", "docs/signals", "build/multi-agent-workflows"],
   ecosystem_packages: ["jido_signal", "jido", "agent_jido"],
+  destination_route: "/training/signals-routing",
+  destination_collection: :training,
   tags: [:training, :signals, :routing, :coordination]
 }
 ---

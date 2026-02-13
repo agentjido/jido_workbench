@@ -13,6 +13,16 @@
   github_url: "https://github.com/agentjido/jido_claude",
   github_org: "agentjido",
   github_repo: "jido_claude",
+  maturity: :experimental,
+  hex_status: "unreleased",
+  api_stability: "unstable — expect breaking changes",
+  stub: false,
+  support: :best_effort,
+  limitations: [
+    "Not published to Hex — available only via GitHub dependency",
+    "Requires Claude Code CLI installed and authenticated",
+    "Tightly coupled to Anthropic's Claude Code SDK which may change"
+  ],
   ecosystem_deps: ["jido"],
   key_features: [
     "Two-agent architecture — parent orchestrator with child session agents",

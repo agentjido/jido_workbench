@@ -13,6 +13,16 @@
   github_url: "https://github.com/agentjido/jido_behaviortree",
   github_org: "agentjido",
   github_repo: "jido_behaviortree",
+  maturity: :experimental,
+  hex_status: "unreleased",
+  api_stability: "unstable — expect breaking changes",
+  stub: false,
+  support: :best_effort,
+  limitations: [
+    "Not published to Hex — available only via GitHub dependency",
+    "Version listed as 1.0.0 but not published; treat as pre-release",
+    "Limited production usage"
+  ],
   ecosystem_deps: ["jido"],
   key_features: [
     "Complete behavior tree execution engine with tick-based traversal and stateful node execution",

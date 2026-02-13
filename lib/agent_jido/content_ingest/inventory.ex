@@ -5,8 +5,8 @@ defmodule AgentJido.ContentIngest.Inventory do
 
   alias AgentJido.Blog
   alias AgentJido.ContentIngest.Source
-  alias AgentJido.Documentation
   alias AgentJido.Ecosystem
+  alias AgentJido.Pages
 
   @managed_by "agent_jido.content_ingest.local/v1"
 
@@ -63,7 +63,7 @@ defmodule AgentJido.ContentIngest.Inventory do
   defp build_docs do
     {collection, description} = @doc_collections.docs
 
-    for doc <- Documentation.all_documents() do
+    for doc <- Pages.all_pages() do
       body_text = html_to_text(doc.body)
 
       metadata =

@@ -17,6 +17,8 @@
   prerequisites: ["training/agent-fundamentals"],
   related: ["training/signals-routing", "features/schema-validated-actions", "docs/actions", "build/tool-use"],
   ecosystem_packages: ["jido", "agent_jido"],
+  destination_route: "/training/actions-validation",
+  destination_collection: :training,
   tags: [:training, :actions, :validation]
 }
 ---

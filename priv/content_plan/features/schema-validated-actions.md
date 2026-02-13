@@ -17,6 +17,8 @@
   prerequisites: ["features/beam-native-agent-model"],
   related: ["training/actions-validation", "docs/actions", "build/tool-use"],
   ecosystem_packages: ["jido_action", "jido", "agent_jido"],
+  destination_route: "/features/schema-validated-actions",
+  destination_collection: :pages,
   tags: [:features, :validation, :actions]
 }
 ---

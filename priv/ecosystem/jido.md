@@ -14,6 +14,16 @@
   github_org: "agentjido",
   github_repo: "jido",
   elixir: "~> 1.17",
+  maturity: :beta,
+  hex_status: "2.0.0-rc.4",
+  api_stability: "unstable — 2.0 RC, expect breaking changes before stable release",
+  stub: false,
+  support: :maintained,
+  limitations: [
+    "2.0 is in release candidate phase — API may change before final release",
+    "Persistence adapters are limited (hibernate/thaw only, no built-in DB adapter)",
+    "Distributed multi-node agent coordination requires manual setup"
+  ],
   ecosystem_deps: ["jido_action", "jido_signal"],
   landing_major_components: [
     %{

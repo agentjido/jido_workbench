@@ -34,14 +34,6 @@ defmodule AgentJidoWeb.OGImageController do
     serve_image(conn, OGImage.get_image(:docs))
   end
 
-  def cookbook(conn, _params) do
-    serve_image(conn, OGImage.get_image(:cookbook))
-  end
-
-  def catalog(conn, _params) do
-    serve_image(conn, OGImage.get_image(:catalog))
-  end
-
   def blog(conn, _params) do
     serve_image(conn, OGImage.get_image(:blog))
   end

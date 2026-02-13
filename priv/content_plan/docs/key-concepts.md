@@ -15,7 +15,7 @@
   source_files: ["lib/jido/agent.ex", "lib/jido/action.ex", "lib/jido/signal.ex", "lib/jido/agent/directive.ex"],
   status: :draft,
   priority: :high,
-  prerequisites: ["docs/getting-started-hub", "build/first-agent"],
+  prerequisites: ["docs/getting-started", "build/first-agent"],
   related: [
     "docs/agents",
     "docs/actions",
@@ -24,6 +24,8 @@
     "ecosystem/package-matrix"
   ],
   ecosystem_packages: ["jido", "jido_action", "jido_signal"],
+  destination_route: "/docs/key-concepts",
+  destination_collection: :pages,
   tags: [:docs, :concepts, :foundation]
 }
 ---

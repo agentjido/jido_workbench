@@ -18,13 +18,15 @@
   ],
   status: :outline,
   priority: :high,
-  prerequisites: ["why/beam-for-ai-builders", "build/installation"],
+  prerequisites: ["features/beam-for-ai-builders", "build/installation"],
   related: [
     "build/reference-architectures",
-    "operate/mixed-stack-runbooks",
-    "reference/migrations-and-upgrade-paths"
+    "docs/mixed-stack-runbooks",
+    "docs/migrations-and-upgrade-paths"
   ],
   ecosystem_packages: ["jido", "jido_signal", "agent_jido"],
+  destination_route: "/build/mixed-stack-integration",
+  destination_collection: :pages,
   tags: [:build, :mixed_stack, :integration, :adoption]
 }
 ---

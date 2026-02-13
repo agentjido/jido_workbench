@@ -22,10 +22,12 @@
   related: [
     "build/ai-chat-agent",
     "build/multi-agent-workflows",
-    "operate/production-readiness-checklist",
+    "docs/production-readiness-checklist",
     "training/production-readiness"
   ],
   ecosystem_packages: ["jido", "jido_action", "jido_signal", "jido_ai", "agent_jido"],
+  destination_route: "/build/product-feature-blueprints",
+  destination_collection: :pages,
   tags: [:build, :blueprints, :product, :delivery]
 }
 ---
