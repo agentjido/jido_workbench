@@ -58,10 +58,10 @@ defmodule AgentJidoWeb.JidoHomeLive do
           EXPLORE ECOSYSTEM →
         </.link>
         <.link
-          navigate="/benchmarks"
+          navigate="/training"
           class="border-2 border-accent-yellow text-accent-yellow hover:bg-accent-yellow/10 text-[13px] font-semibold px-6 py-5 rounded transition-colors"
         >
-          VIEW BENCHMARKS
+          START TRAINING
         </.link>
       </div>
     </section>

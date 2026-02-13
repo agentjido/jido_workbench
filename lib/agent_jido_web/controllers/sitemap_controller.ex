@@ -4,6 +4,7 @@ defmodule AgentJidoWeb.SitemapController do
   alias AgentJido.Blog
   alias AgentJido.Documentation
   alias AgentJido.Ecosystem
+  alias AgentJido.Training
 
   def index(conn, _params) do
     conn
@@ -11,7 +12,8 @@ defmodule AgentJidoWeb.SitemapController do
     |> render(:index,
       blog_posts: Blog.all_posts(),
       documents: Documentation.all_documents(),
-      ecosystem_packages: Ecosystem.public_packages()
+      ecosystem_packages: Ecosystem.public_packages(),
+      training_modules: Training.all_modules()
     )
   end
 end

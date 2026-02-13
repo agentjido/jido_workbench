@@ -54,8 +54,10 @@ defmodule AgentJidoWeb.Router do
     live "/getting-started", JidoGettingStartedLive, :index
     live "/examples", JidoExamplesLive, :index
     live "/examples/:slug", JidoExampleLive, :show
-    live "/benchmarks", JidoBenchmarksLive, :index
-    live "/partners", JidoPartnersLive, :index
+    live "/features", JidoFeaturesLive, :index
+    live "/partners", JidoFeaturesLive, :index
+    live "/training", JidoTrainingLive, :index
+    live "/training/:slug", JidoTrainingModuleLive, :show
     get("/discord", PageController, :discord)
 
     get "/og/default.png", OGImageController, :default
@@ -63,8 +65,9 @@ defmodule AgentJidoWeb.Router do
     get "/og/ecosystem.png", OGImageController, :ecosystem
     get "/og/getting-started.png", OGImageController, :getting_started
     get "/og/examples.png", OGImageController, :examples
-    get "/og/benchmarks.png", OGImageController, :benchmarks
-    get "/og/partners.png", OGImageController, :partners
+    get "/og/features.png", OGImageController, :features
+    get "/og/partners.png", OGImageController, :features
+    get "/og/training.png", OGImageController, :training
     get "/og/docs.png", OGImageController, :docs
     get "/og/cookbook.png", OGImageController, :cookbook
     get "/og/blog.png", OGImageController, :blog

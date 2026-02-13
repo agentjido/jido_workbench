@@ -22,12 +22,12 @@ defmodule AgentJidoWeb.OGImageController do
     serve_image(conn, OGImage.get_image(:examples))
   end
 
-  def benchmarks(conn, _params) do
-    serve_image(conn, OGImage.get_image(:benchmarks))
+  def features(conn, _params) do
+    serve_image(conn, OGImage.get_image(:features))
   end
 
-  def partners(conn, _params) do
-    serve_image(conn, OGImage.get_image(:partners))
+  def training(conn, _params) do
+    serve_image(conn, OGImage.get_image(:training))
   end
 
   def docs(conn, _params) do

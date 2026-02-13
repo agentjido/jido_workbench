@@ -9,23 +9,23 @@ defmodule AgentJidoWeb.Jido.Nav do
 
   @marketing_nav_links [
     {"Ecosystem", "/ecosystem"},
-    {"Partners", "/partners"},
+    {"Features", "/features"},
     {"Examples", "/examples"},
-    {"Benchmarks", "/benchmarks"},
+    {"Training", "/training"},
     {"Docs", "/docs"}
   ]
 
-  @docs_nav_links ["/docs", "/examples", "/benchmarks", "/ecosystem"]
+  @docs_nav_links ["/docs", "/examples", "/training", "/ecosystem"]
 
   @footer_company_links [
     {"Blog", "/blog"},
-    {"Partners", "/partners"}
+    {"Features", "/features"}
   ]
 
   @footer_resource_links [
     {"Docs", "/docs"},
     {"Examples", "/examples"},
-    {"Benchmarks", "/benchmarks"}
+    {"Training", "/training"}
   ]
 
   @footer_package_links [

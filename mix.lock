@@ -55,7 +55,7 @@
   "jido_action": {:git, "https://github.com/agentjido/jido_action.git", "b321522cbb965cbb05e98a199c2f04c2bc9543e0", [branch: "main"]},
   "jido_ai": {:git, "https://github.com/agentjido/jido_ai.git", "2e42e09621f5532933acc15443eb5051932a6b15", [branch: "main"]},
   "jido_browser": {:git, "https://github.com/agentjido/jido_browser.git", "5578dafceed1c3f5a31ab22d81e65302085ea196", [branch: "main"]},
-  "jido_live_dashboard": {:git, "https://github.com/agentjido/jido_live_dashboard.git", "b6de3f83b95a46fd4abd816ce014ab9cb87af08f", [branch: "main"]},
+  "jido_live_dashboard": {:git, "https://github.com/agentjido/jido_live_dashboard.git", "d9ab6637bedd45723fa4177d6be6c182f619be1f", [branch: "main"]},
   "jido_messaging": {:git, "https://github.com/agentjido/jido_messaging.git", "96e62c7c7573ca0e1b13a94d9609454a86fde49a", [branch: "main"]},
   "jido_runic": {:git, "https://github.com/agentjido/jido_runic.git", "f4cf76764adec07d656be1b6c2ea6b3408fe1410", [branch: "main"]},
   "jido_signal": {:git, "https://github.com/agentjido/jido_signal.git", "4be2190c8ee2c3737b368a1e036d6fe48c04f1cd", [branch: "main"]},

@@ -64,7 +64,7 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
-# Nx backend (Apple Silicon / EMLX) - required for Arcana local embeddings
+# Nx backend (Apple Silicon / EMLX) - used for local Nx/Bumblebee workloads
 config :nx,
   default_backend: EMLX.Backend,
   default_defn_options: [compiler: EMLX]
@@ -72,7 +72,7 @@ config :nx,
 # Arcana RAG
 config :arcana,
   repo: AgentJido.Repo,
-  embedder: :local
+  embedder: :openai
 
 config :agent_jido, ash_domains: [AgentJido.Folio]
 

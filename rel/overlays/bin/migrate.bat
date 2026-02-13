@@ -1,0 +1,1 @@
+call "%~dp0\agent_jido" eval AgentJido.Release.migrate

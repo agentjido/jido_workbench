@@ -40,12 +40,16 @@ defmodule AgentJido.OGImage do
     get_cached_or_generate("examples", fn -> generate_examples_image() end)
   end
 
-  def get_image(:benchmarks) do
-    get_cached_or_generate("benchmarks", fn -> generate_benchmarks_image() end)
+  def get_image(:features) do
+    get_cached_or_generate("features", fn -> generate_features_image() end)
+  end
+
+  def get_image(:training) do
+    get_cached_or_generate("training", fn -> generate_training_image() end)
   end
 
   def get_image(:partners) do
-    get_cached_or_generate("partners", fn -> generate_partners_image() end)
+    get_image(:features)
   end
 
   def get_image(:docs) do
@@ -211,19 +215,19 @@ defmodule AgentJido.OGImage do
     )
   end
 
-  defp generate_benchmarks_image do
+  defp generate_training_image do
     generate_page_image(
-      "Benchmarks & Proof",
-      "Performance metrics and real-world validation",
-      "agentjido.xyz/benchmarks"
+      "Training",
+      "Module-based curriculum for Elixir engineers",
+      "agentjido.xyz/training"
     )
   end
 
-  defp generate_partners_image do
+  defp generate_features_image do
     generate_page_image(
-      "Partner Program",
-      "Build with Jido",
-      "agentjido.xyz/partners"
+      "Features",
+      "BEAM-native capabilities for autonomous agents",
+      "agentjido.xyz/features"
     )
   end
 

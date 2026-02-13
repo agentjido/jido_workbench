@@ -1,36 +1,37 @@
 %{
   title: "Configuration Reference",
-  order: 1,
-  purpose: "All configuration options across the Jido ecosystem in one place",
+  order: 10,
+  purpose: "Centralize runtime and compile-time configuration across Jido ecosystem packages",
   audience: :intermediate,
   content_type: :reference,
   learning_outcomes: [
-    "Configure Jido core settings",
-    "Configure JidoAI LLM providers",
-    "Set up telemetry and observability",
-    "Understand environment-specific config patterns"
+    "Configure Jido core and AI provider settings",
+    "Separate runtime secrets from compile-time settings",
+    "Apply environment-specific configuration safely"
   ],
-  repos: ["jido", "jido_ai"],
+  repos: ["jido", "jido_ai", "agent_jido"],
   source_modules: [],
   source_files: ["config/config.exs", "config/runtime.exs"],
-  status: :planned,
-  priority: :medium,
-  prerequisites: ["installation"],
-  related: [],
-  ecosystem_packages: ["jido", "jido_ai"],
-  tags: [:reference, :configuration]
+  status: :draft,
+  priority: :critical,
+  prerequisites: ["build/installation"],
+  related: [
+    "reference/data-storage-and-pgvector",
+    "reference/telemetry-and-observability",
+    "reference/migrations-and-upgrade-paths",
+    "operate/persistence-memory-and-vector-search",
+    "operate/security-and-governance"
+  ],
+  ecosystem_packages: ["jido", "jido_ai", "req_llm", "agent_jido"],
+  tags: [:reference, :configuration, :runtime]
 }
 ---
 ## Content Brief
 
-Unified configuration reference:
-
-- Jido core config options
-- JidoAI provider configuration (Anthropic, OpenAI, etc.)
-- ReqLLM client configuration
-- Telemetry configuration
-- Runtime vs compile-time config patterns
+Unified reference for configuration keys, provider setup, and environment-specific patterns.
 
 ### Validation Criteria
-- All config keys must exist in source Application.get_env calls
-- Provider names must match available adapters
+
+- All config keys correspond to real `Application.get_env` or runtime usage
+- Provider names and options match supported adapters
+- Includes explicit local/staging/production guidance

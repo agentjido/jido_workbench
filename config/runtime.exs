@@ -33,6 +33,22 @@ if llm = System.get_env("ARCANA_LLM") do
   config :arcana, llm: llm
 end
 
+if arcana_embedder = System.get_env("ARCANA_EMBEDDER") do
+  case String.downcase(arcana_embedder) do
+    "openai" ->
+      config :arcana, embedder: :openai
+
+    "local" ->
+      config :arcana, embedder: :local
+
+    other ->
+      raise """
+      environment variable ARCANA_EMBEDDER has invalid value: #{inspect(other)}.
+      Supported values: "openai", "local"
+      """
+  end
+end
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||
@@ -42,10 +58,12 @@ if config_env() == :prod do
       """
 
   pool_size = String.to_integer(System.get_env("POOL_SIZE") || "10")
+  socket_options = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
 
   config :agent_jido, AgentJido.Repo,
     url: database_url,
-    pool_size: pool_size
+    pool_size: pool_size,
+    socket_options: socket_options
 
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you
@@ -69,6 +87,21 @@ if config_env() == :prod do
       port: port
     ],
     secret_key_base: secret_key_base
+
+  arcana_embedder = Application.get_env(:arcana, :embedder, :openai)
+
+  openai_embedder? =
+    case arcana_embedder do
+      :openai -> true
+      {:openai, _opts} -> true
+      _other -> false
+    end
+
+  if openai_embedder? and is_nil(System.get_env("OPENAI_API_KEY")) do
+    raise """
+    environment variable OPENAI_API_KEY is required when Arcana embedder is :openai.
+    """
+  end
 
   # ## SSL Support
   #

@@ -1,0 +1,71 @@
+#!/bin/sh
+set -eu
+
+cd -P -- "$(dirname -- "$0")"
+
+MAX_ATTEMPTS="${MIGRATE_MAX_ATTEMPTS:-12}"
+RETRY_SECONDS="${MIGRATE_RETRY_SECONDS:-5}"
+
+database_host_from_url() {
+  db_url="${DATABASE_URL:-}"
+
+  if [ -z "$db_url" ]; then
+    return 0
+  fi
+
+  without_scheme=$(printf "%s" "$db_url" | sed -E 's,^[^:]+://,,')
+
+  case "$without_scheme" in
+    *@*) host_and_rest="${without_scheme#*@}" ;;
+    *) host_and_rest="$without_scheme" ;;
+  esac
+
+  host_port="${host_and_rest%%/*}"
+  host="${host_port%%:*}"
+
+  printf "%s" "$host"
+}
+
+wait_for_database_dns() {
+  host="$(database_host_from_url)"
+
+  if [ -z "$host" ]; then
+    echo "DATABASE_URL host not detected; skipping DNS wait"
+    return 0
+  fi
+
+  i=1
+  while [ "$i" -le "$MAX_ATTEMPTS" ]; do
+    if getent hosts "$host" >/dev/null 2>&1; then
+      echo "Database host resolved: $host"
+      return 0
+    fi
+
+    echo "Waiting for database DNS ($host) [attempt $i/$MAX_ATTEMPTS]"
+    sleep "$RETRY_SECONDS"
+    i=$((i + 1))
+  done
+
+  echo "Database host did not resolve after $MAX_ATTEMPTS attempts: $host"
+  return 1
+}
+
+wait_for_database_dns
+
+attempt=1
+while [ "$attempt" -le "$MAX_ATTEMPTS" ]; do
+  if ./agent_jido eval AgentJido.Release.migrate; then
+    exit 0
+  fi
+
+  status=$?
+
+  if [ "$attempt" -eq "$MAX_ATTEMPTS" ]; then
+    echo "Migration failed after $MAX_ATTEMPTS attempts"
+    exit "$status"
+  fi
+
+  echo "Migration failed (exit $status) [attempt $attempt/$MAX_ATTEMPTS], retrying in $RETRY_SECONDS seconds..."
+  sleep "$RETRY_SECONDS"
+  attempt=$((attempt + 1))
+done

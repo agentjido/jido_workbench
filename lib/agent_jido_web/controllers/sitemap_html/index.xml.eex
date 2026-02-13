@@ -28,12 +28,19 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc><%= AgentJidoWeb.Endpoint.url() %>/benchmarks</loc>
+    <loc><%= AgentJidoWeb.Endpoint.url() %>/training</loc>
     <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.7</priority>
   </url>
+  <%= for module <- @training_modules do %>
   <url>
-    <loc><%= AgentJidoWeb.Endpoint.url() %>/partners</loc>
+    <loc><%= AgentJidoWeb.Endpoint.url() %>/training/<%= module.slug %></loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <% end %>
+  <url>
+    <loc><%= AgentJidoWeb.Endpoint.url() %>/features</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
