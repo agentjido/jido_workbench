@@ -74,3 +74,30 @@ Added LiveView auth matrix + link presence assertions for `/dashboard`.
 4) blockers/assumptions
 - Blocker: sandbox denies TCP sockets, affecting Mix PubSub and Postgres connections.
 - Assumption: keeping existing “already authenticated user -> `/users/settings`” behavior is intentional and should remain unchanged while adding admin-aware default redirects for fresh sign-ins.
+1) changed files
+- `test/agent_jido_web/controllers/dev_routes_auth_test.exs`: updated legacy dashboard auth matrix from `/dev/dashboard` to `/dashboard`; added `/dev/jido` auth/admin regression coverage.
+- `test/agent_jido_web/live/admin_dashboard_live_test.exs`: changed to `async: false` to make authenticated admin LiveView access deterministic in sandboxed DB tests.
+- `specs/admin_bootstrap_runbook.md`: added single-admin bootstrap runbook with `ADMIN_EMAIL` seed path, `mix accounts.promote_admin <email>`, and production verification checklist.
+
+2) tests/commands executed
+- `mix test test/agent_jido_web/controllers/dev_routes_auth_test.exs test/agent_jido_web/live/admin_dashboard_live_test.exs test/agent_jido_web/controllers/user_session_controller_test.exs test/agent_jido_web/live/content_ops_live_test.exs test/agent_jido_web/live/content_ops_github_live_test.exs test/agent_jido_web/live/user_live/registration_disabled_test.exs`  
+  Result: `37 tests, 0 failures`.
+- `mix test --warnings-as-errors test/agent_jido_web/controllers/dev_routes_auth_test.exs test/agent_jido_web/live/admin_dashboard_live_test.exs test/agent_jido_web/controllers/user_session_controller_test.exs test/agent_jido_web/live/content_ops_live_test.exs test/agent_jido_web/live/content_ops_github_live_test.exs test/agent_jido_web/live/user_live/registration_disabled_test.exs`  
+  Result: `37 tests, 0 failures`.
+- `mix test test/agent_jido_web/live/user_live/login_test.exs test/agent_jido_web/live/user_live/registration_disabled_test.exs`  
+  Result: `8 tests, 0 failures`.
+- Manual runbook sanity checks:
+  - `rg -n "ADMIN_EMAIL|promote_admin|promote_user_to_admin|dev_routes" priv/repo/seeds.exs lib/mix/tasks/accounts.promote_admin.ex lib/agent_jido_web/router.ex config/dev.exs config/test.exs config/config.exs`
+- `mix precommit` (direct) failed in this sandbox with Mix TCP pubsub `:eperm`.
+- Executed precommit alias via no-socket runner:
+  - `MIX_OS_CONCURRENCY_LOCK=0 elixir /tmp/run_precommit_no_socket.exs && echo PRECOMMIT_OK`
+  - Result: `PRECOMMIT_OK`.
+
+3) acceptance criteria coverage
+- Regression tests now cover control-plane auth matrix/redirect behavior for `/dashboard`, `/dev/jido`, `/arcana`, plus existing `/dev/contentops*` and login redirect behavior (admin default to `/dashboard`, return-to precedence).
+- Runbook added with concrete bootstrap + validation steps in `specs/admin_bootstrap_runbook.md`.
+- Registration-disabled behavior remains intact and is still covered (`/users/register` returns `404`).
+
+4) blockers/assumptions
+- Blocker: direct `mix precommit` cannot run in this environment due Mix’s loopback TCP pubsub restriction (`:eperm`).
+- Assumption: admin success for `/dev/jido` is valid as either `200` or `302` because upstream studio route may render directly or redirect internally.

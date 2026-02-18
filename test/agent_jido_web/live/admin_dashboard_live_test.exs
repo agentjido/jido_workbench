@@ -1,5 +1,5 @@
 defmodule AgentJidoWeb.AdminDashboardLiveTest do
-  use AgentJidoWeb.ConnCase, async: true
+  use AgentJidoWeb.ConnCase, async: false
 
   import AgentJido.AccountsFixtures
   import Phoenix.LiveViewTest
