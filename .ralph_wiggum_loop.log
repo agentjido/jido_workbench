@@ -101,3 +101,33 @@ Added LiveView auth matrix + link presence assertions for `/dashboard`.
 4) blockers/assumptions
 - Blocker: direct `mix precommit` cannot run in this environment due Mix’s loopback TCP pubsub restriction (`:eperm`).
 - Assumption: admin success for `/dev/jido` is valid as either `200` or `302` because upstream studio route may render directly or redirect internally.
+1) changed files
+- `lib/agent_jido/search.ex`
+- `test/agent_jido/search_test.exs`
+
+2) tests/commands executed
+- `mix format` (failed in sandbox due `Mix.Sync.PubSub` TCP socket restriction: `:eperm`)
+- `elixir -e '... Mix.Task.run("deps.loadpaths", ["--no-compile"]); Mix.Task.run("format", []) ...'` (passed; uses runtime `Mix.Sync.PubSub` no-op shim)
+- `MIX_OS_CONCURRENCY_LOCK=0 elixir -e '... Mix.env(:test); ... Mix.Tasks.Test.run(["--no-start","--no-compile","test/agent_jido/search_test.exs"]) ...'` (passed: 5 tests, 0 failures)
+- `MIX_OS_CONCURRENCY_LOCK=0 elixir -e '... Mix.Task.run("loadconfig", []); Mix.Task.run("precommit", []) ...'` (passed)
+
+3) acceptance criteria coverage
+- Search context returns normalized cross-collection results:
+  - Added `AgentJido.Search.query/2` defaulting to collections `site_docs`, `site_blog`, `site_ecosystem`, mode `:hybrid`.
+  - Added normalized result model `AgentJido.Search.Result` with `title`, `snippet`, `url`, `source_type`, optional `score` (`nil` when missing).
+- Result shape is stable and UI-independent:
+  - Context returns typed `Result` structs.
+  - Unit test validates exact normalized shape and values across docs/blog/ecosystem rows.
+- Deterministic Arcana failure fallback:
+  - Backend `{:error, _}` and raised exceptions both return `{:ok, []}`.
+  - Covered by unit tests.
+- Required unit test cases included:
+  - Empty query handling
+  - Populated results
+  - No results
+  - Backend error fallback
+
+4) blockers/assumptions
+- Blocker: direct `mix` tasks requiring socket/DB access are restricted in this sandbox (`:eperm` on loopback TCP).  
+  - Worked around by running Mix tasks through an `elixir` wrapper that stubs `Mix.Sync.PubSub`, disables OS concurrency lock, and runs test task without app start.
+- Assumption: `source_type` normalization maps to `:docs | :blog | :ecosystem`, including `"documentation" -> :docs`.
