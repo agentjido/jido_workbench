@@ -9,13 +9,20 @@ defmodule AgentJido.Accounts.UserNotifier do
     email =
       new()
       |> to(recipient)
-      |> from({"AgentJido", "contact@example.com"})
+      |> from(mailer_from())
       |> subject(subject)
       |> text_body(body)
 
     with {:ok, _metadata} <- Mailer.deliver(email) do
       {:ok, email}
     end
+  end
+
+  defp mailer_from do
+    {
+      Application.get_env(:agent_jido, :mailer_from_name, "AgentJido"),
+      Application.get_env(:agent_jido, :mailer_from_email, "mike@agentjido.xyz")
+    }
   end
 
   @doc """

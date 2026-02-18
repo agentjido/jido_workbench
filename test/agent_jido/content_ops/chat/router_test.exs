@@ -91,6 +91,18 @@ defmodule AgentJido.ContentOps.Chat.RouterTest do
     assert_receive {:ran_mode, :weekly, %{channel: :telegram, external_user_id: "111"}}, 1_000
   end
 
+  test "addressed command can trigger /ops run" do
+    message = %{room_id: "r1", content: [%JidoMessaging.Content.Text{text: "@ContentOps /ops run weekly"}]}
+
+    context = %{
+      channel: JidoMessaging.Channels.Telegram,
+      participant: %{external_ids: %{telegram: "111"}}
+    }
+
+    assert {:reply, "Started ContentOps weekly run."} = Router.handle_message(message, context)
+    assert_receive {:ran_mode, :weekly, %{channel: :telegram, external_user_id: "111"}}, 1_000
+  end
+
   test "run command forwards actor context to ops service" do
     message = %{room_id: "r1", content: [%JidoMessaging.Content.Text{text: "/ops run weekly"}]}
 

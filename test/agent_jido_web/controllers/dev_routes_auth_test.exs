@@ -34,4 +34,16 @@ defmodule AgentJidoWeb.DevRoutesAuthTest do
       assert redirected_to(conn) == "/dev/dashboard/home"
     end
   end
+
+  describe "GET /dev/mailbox" do
+    test "allows unauthenticated users in dev routes", %{conn: conn} do
+      conn = get(conn, ~p"/dev/mailbox")
+
+      assert conn.status in [200, 302]
+
+      if conn.status == 302 do
+        assert redirected_to(conn) =~ "/dev/mailbox"
+      end
+    end
+  end
 end

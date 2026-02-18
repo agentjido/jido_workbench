@@ -27,7 +27,9 @@ config :agent_jido,
   canonical_host: env!("CANONICAL_HOST", :string, nil),
   # Set to true/false to control Plausible analytics loading, only in production
   enable_analytics: env!("ENABLE_ANALYTICS", :boolean, false),
-  discord_invite_link: env!("DISCORD_INVITE_LINK", :string, "https://discord.gg/dMh8CqEH8Q")
+  discord_invite_link: env!("DISCORD_INVITE_LINK", :string, "https://discord.gg/dMh8CqEH8Q"),
+  mailer_from_name: env!("MAILER_FROM_NAME", :string, "AgentJido"),
+  mailer_from_email: env!("MAILER_FROM_EMAIL", :string, "mike@agentjido.xyz")
 
 # Agent runtime
 jido_config =
@@ -247,6 +249,16 @@ if config_env() == :prod do
     ],
     secret_key_base: secret_key_base
 
+  brevo_api_key =
+    env!("BREVO_API_KEY", :string, nil) ||
+      raise """
+      environment variable BREVO_API_KEY is missing.
+      """
+
+  config :agent_jido, AgentJido.Mailer,
+    adapter: Swoosh.Adapters.Brevo,
+    api_key: brevo_api_key
+
   arcana_embedder = Application.get_env(:arcana, :embedder, :openai)
 
   openai_embedder? =
@@ -293,22 +305,4 @@ if config_env() == :prod do
   #       force_ssl: [hsts: true]
   #
   # Check `Plug.SSL` for all available options in `force_ssl`.
-
-  # ## Configuring the mailer
-  #
-  # In production you need to configure the mailer to use a different adapter.
-  # Also, you may need to configure the Swoosh API client of your choice if you
-  # are not using SMTP. Here is an example of the configuration:
-  #
-  #     config :agent_jido, AgentJido.Mailer,
-  #       adapter: Swoosh.Adapters.Mailgun,
-  #       api_key: System.get_env("MAILGUN_API_KEY"),
-  #       domain: System.get_env("MAILGUN_DOMAIN")
-  #
-  # For this example you need include a HTTP client required by Swoosh API client.
-  # Swoosh supports Hackney and Finch out of the box:
-  #
-  #     config :swoosh, :api_client, Swoosh.ApiClient.Hackney
-  #
-  # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
 end

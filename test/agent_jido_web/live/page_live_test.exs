@@ -5,6 +5,20 @@ defmodule AgentJidoWeb.PageLiveTest do
 
   alias AgentJido.Pages
 
+  describe "home auth navigation" do
+    test "does not render login link on the home page", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/")
+
+      refute html =~ ~s(href="/users/log-in")
+    end
+
+    test "renders login link on non-home public pages", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/docs")
+
+      assert html =~ ~s(href="/users/log-in")
+    end
+  end
+
   describe "docs" do
     test "renders docs index page", %{conn: conn} do
       {:ok, _view, html} = live(conn, "/docs")

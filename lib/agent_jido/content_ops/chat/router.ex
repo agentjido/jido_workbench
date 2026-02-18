@@ -24,12 +24,12 @@ defmodule AgentJido.ContentOps.Chat.Router do
     else
       cfg = Config.load!()
 
-      cond do
-        command_message?(text, cfg.command_prefix) ->
-          handle_command_message(text, message, context, cfg)
-
-        true ->
+      case routeable_command_text(text, cfg) do
+        nil ->
           :noreply
+
+        command_text ->
+          handle_command_message(command_text, message, context, cfg)
       end
     end
   end
@@ -203,22 +203,46 @@ defmodule AgentJido.ContentOps.Chat.Router do
     String.starts_with?(String.trim(text), prefix)
   end
 
-  defp addressed?(text, bot_name) do
-    down = String.downcase(text)
-    bot_down = String.downcase(bot_name)
+  defp routeable_command_text(text, cfg) do
+    cond do
+      command_message?(text, cfg.command_prefix) ->
+        text
 
-    String.contains?(down, "@" <> bot_down) or
-      String.starts_with?(down, bot_down <> ":") or
-      String.starts_with?(down, bot_down <> ",") or
-      String.starts_with?(down, bot_down <> " ")
+      addressed?(text, cfg.bot_name) ->
+        stripped = strip_addressing(text, cfg.bot_name)
+
+        if command_message?(stripped, cfg.command_prefix) do
+          stripped
+        else
+          nil
+        end
+
+      true ->
+        nil
+    end
   end
 
-  defp strip_addressing(text, bot_name) do
+  defp addressed?(text, bot_name) when is_binary(text) and is_binary(bot_name) do
+    down = String.downcase(text)
+    bot_down = bot_name |> String.trim() |> String.downcase()
+
+    bot_down != "" and
+      (String.contains?(down, "@" <> bot_down) or
+         String.starts_with?(down, bot_down <> ":") or
+         String.starts_with?(down, bot_down <> ",") or
+         String.starts_with?(down, bot_down <> " "))
+  end
+
+  defp addressed?(_text, _bot_name), do: false
+
+  defp strip_addressing(text, bot_name) when is_binary(text) and is_binary(bot_name) do
     text
     |> String.replace(~r/@#{Regex.escape(bot_name)}/i, "")
     |> String.replace(~r/^#{Regex.escape(bot_name)}[:,]?\s*/i, "")
     |> String.trim()
   end
+
+  defp strip_addressing(text, _bot_name), do: text
 
   defp extract_text(%{content: content}) when is_list(content) do
     content
