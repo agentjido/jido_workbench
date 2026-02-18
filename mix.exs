@@ -83,7 +83,7 @@ defmodule AgentJido.MixProject do
       {:jido_runic, github: "agentjido/jido_runic", branch: "main"},
       {:jido_live_dashboard, github: "agentjido/jido_live_dashboard", branch: "main"},
       {:libgraph, github: "zblanco/libgraph", branch: "zw/multigraph-indexes", override: true},
-      {:jido_studio, path: "../jido_studio"},
+      {:jido_studio, github: "agentjido/jido_studio", branch: "main"},
       {:jido_messaging, github: "agentjido/jido_messaging", branch: "main"},
       {:req_llm, github: "agentjido/req_llm", branch: "main", override: true},
       {:llm_db, github: "agentjido/llm_db", branch: "main", override: true},
