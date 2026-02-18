@@ -14,3 +14,29 @@ Notes:
 
 - I did not commit or push.
 - Full `mix test` is still blocked in this sandbox due DB socket restrictions (`tcp connect localhost:5432 ... :eperm`), but the requested `precommit` command now exists and passes.
+1) changed files
+- `lib/agent_jido_web/router.ex:105`  
+Added `/dashboard` inside an admin-protected scope with pipeline `[:browser, :require_authenticated_user, :require_admin_user]`, and inside `live_session :admin_control_plane` with `on_mount: @admin_on_mount` so both plug and LiveView auth/admin checks are enforced.
+- `lib/agent_jido_web/live/admin_dashboard_live.ex:1`  
+Added `AgentJidoWeb.AdminDashboardLive` with clear “Admin Control Plane” context and link entry points to:
+  - `/arcana` (Arcana dashboard)
+  - `/dev/jido` (Jido Studio)
+  - `/dev/contentops` (ContentOps dashboard)
+  - `/dev/contentops/github` (ContentOps GitHub dashboard)
+- `test/agent_jido_web/live/admin_dashboard_live_test.exs:1`  
+Added LiveView auth matrix + link presence assertions for `/dashboard`.
+
+2) tests/commands executed
+- `elixir /tmp/mix_no_pubsub.exs format lib/agent_jido_web/router.ex lib/agent_jido_web/live/admin_dashboard_live.ex test/agent_jido_web/live/admin_dashboard_live_test.exs` (pass)
+- `MIX_OS_CONCURRENCY_LOCK=0 elixir /tmp/mix_no_pubsub.exs precommit` (pass)
+- `MIX_OS_CONCURRENCY_LOCK=0 elixir /tmp/mix_no_pubsub.exs test test/agent_jido_web/live/admin_dashboard_live_test.exs` (fails in this sandbox: DB TCP connect to `localhost:5432` denied with `:eperm`)
+
+3) acceptance criteria coverage
+- `/dashboard` renders for authenticated admins: covered by `renders admin control-plane links for authenticated admins`.
+- `/dashboard` blocked for unauthenticated users: covered by `redirects unauthenticated users to log in`.
+- `/dashboard` blocked for authenticated non-admin users: covered by `blocks authenticated non-admin users`.
+- Required admin links are visible and point to expected routes: covered via `has_element?` href assertions for Arcana, Jido Studio, and ContentOps dashboards.
+
+4) blockers/assumptions
+- Blocker: sandbox disallows local TCP sockets, so direct Mix PubSub/DB-backed test execution is restricted; used a temporary `/tmp/mix_no_pubsub.exs` shim to run `precommit`.
+- Assumption: “ContentOps dashboards” means both `/dev/contentops` and `/dev/contentops/github` entry points.

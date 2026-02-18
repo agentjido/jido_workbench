@@ -102,6 +102,15 @@ defmodule AgentJidoWeb.Router do
     get("/arcana/*path", AgentJidoWeb.PageController, :arcana_redirect)
   end
 
+  scope "/", AgentJidoWeb do
+    pipe_through([:browser, :require_authenticated_user, :require_admin_user])
+
+    live_session :admin_control_plane,
+      on_mount: @admin_on_mount do
+      live "/dashboard", AdminDashboardLive, :index
+    end
+  end
+
   scope "/" do
     pipe_through([:browser, :require_authenticated_user, :require_admin_user])
     get("/assets/js/app.js", AgentJidoWeb.PageController, :arcana_legacy_app_js)
