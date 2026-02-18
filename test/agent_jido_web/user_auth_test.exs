@@ -64,6 +64,18 @@ defmodule AgentJidoWeb.UserAuthTest do
       assert redirected_to(conn) == "/hello"
     end
 
+    test "redirects admin users to the dashboard by default", %{conn: conn} do
+      admin_user = admin_user_fixture()
+      conn = UserAuth.log_in_user(conn, admin_user)
+      assert redirected_to(conn) == ~p"/dashboard"
+    end
+
+    test "keeps configured return-to path precedence for admin users", %{conn: conn} do
+      admin_user = admin_user_fixture()
+      conn = conn |> put_session(:user_return_to, "/hello") |> UserAuth.log_in_user(admin_user)
+      assert redirected_to(conn) == "/hello"
+    end
+
     test "writes a cookie if remember_me is configured", %{conn: conn, user: user} do
       conn = conn |> fetch_cookies() |> UserAuth.log_in_user(user, %{"remember_me" => "true"})
       assert get_session(conn, :user_token) == conn.cookies[@remember_me_cookie]

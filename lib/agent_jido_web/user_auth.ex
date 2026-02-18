@@ -34,10 +34,11 @@ defmodule AgentJidoWeb.UserAuth do
   """
   def log_in_user(conn, user, params \\ %{}) do
     user_return_to = get_session(conn, :user_return_to)
+    redirect_to = user_return_to || default_post_login_path(conn, user)
 
     conn
     |> create_or_extend_session(user, params)
-    |> redirect(to: user_return_to || signed_in_path(conn))
+    |> redirect(to: redirect_to)
   end
 
   @doc """
@@ -281,6 +282,17 @@ defmodule AgentJidoWeb.UserAuth do
   end
 
   def signed_in_path(_), do: ~p"/"
+
+  defp default_post_login_path(
+         %Plug.Conn{assigns: %{current_scope: %Scope{user: %Accounts.User{}}}} = conn,
+         _user
+       ) do
+    signed_in_path(conn)
+  end
+
+  defp default_post_login_path(conn, user) do
+    if Accounts.admin?(user), do: ~p"/dashboard", else: signed_in_path(conn)
+  end
 
   @doc """
   Plug for routes that require the user to be authenticated.

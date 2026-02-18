@@ -40,3 +40,37 @@ Added LiveView auth matrix + link presence assertions for `/dashboard`.
 4) blockers/assumptions
 - Blocker: sandbox disallows local TCP sockets, so direct Mix PubSub/DB-backed test execution is restricted; used a temporary `/tmp/mix_no_pubsub.exs` shim to run `precommit`.
 - Assumption: “ContentOps dashboards” means both `/dev/contentops` and `/dev/contentops/github` entry points.
+1) changed files
+- `lib/agent_jido_web/user_auth.ex:35`  
+  - Updated `log_in_user/3` to compute a role-aware default redirect.
+  - Added `default_post_login_path/2`:
+    - preserves existing already-authenticated behavior (`/users/settings`)
+    - sends admins to `/dashboard` when no `user_return_to`
+    - keeps non-admin default behavior unchanged.
+- `test/agent_jido_web/controllers/user_session_controller_test.exs:64`  
+  - Added controller tests for:
+    - admin password login default redirect to `/dashboard`
+    - admin password `user_return_to` precedence
+    - admin magic-link default redirect to `/dashboard`
+    - magic-link `user_return_to` precedence (non-admin + admin).
+- `test/agent_jido_web/user_auth_test.exs:67`  
+  - Added auth-layer tests for:
+    - admin default post-login redirect to `/dashboard`
+    - `user_return_to` precedence for admins.
+
+2) tests/commands executed
+- `mix precommit`  
+  - Failed in sandbox with Mix PubSub TCP socket permission error (`:eperm`).
+- `MIX_OS_CONCURRENCY_LOCK=0 MIX_EXS=.mix_no_pubsub.exs mix precommit`  
+  - Passed (temporary runtime helper used to no-op Mix PubSub due sandbox TCP restrictions; helper file removed afterward).
+- `MIX_OS_CONCURRENCY_LOCK=0 MIX_EXS=.mix_no_pubsub.exs mix test test/agent_jido_web/controllers/user_session_controller_test.exs test/agent_jido_web/user_auth_test.exs`  
+  - Failed: DB connect blocked in sandbox (`localhost:5432`, `:eperm`).
+
+3) acceptance criteria coverage
+- Admin login lands on `/dashboard` when no return path is set: covered in `user_auth.ex` + controller tests for password and magic-link.
+- Non-admin login retains existing destination: existing non-admin redirect assertions remain (`/`), behavior unchanged.
+- Existing return-to behavior unchanged for both roles: covered by existing non-admin return-to test and new admin/non-admin return-to tests (password + magic-link), plus auth-layer return-to test.
+
+4) blockers/assumptions
+- Blocker: sandbox denies TCP sockets, affecting Mix PubSub and Postgres connections.
+- Assumption: keeping existing “already authenticated user -> `/users/settings`” behavior is intentional and should remain unchanged while adding admin-aware default redirects for fresh sign-ins.

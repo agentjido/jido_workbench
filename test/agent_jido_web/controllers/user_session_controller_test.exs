@@ -61,6 +61,31 @@ defmodule AgentJidoWeb.UserSessionControllerTest do
       assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "Welcome back!"
     end
 
+    test "redirects admin users to the dashboard by default", %{conn: conn} do
+      admin_user = admin_user_fixture() |> set_password()
+
+      conn =
+        post(conn, ~p"/users/log-in", %{
+          "user" => %{"email" => admin_user.email, "password" => valid_user_password()}
+        })
+
+      assert get_session(conn, :user_token)
+      assert redirected_to(conn) == ~p"/dashboard"
+    end
+
+    test "keeps return-to precedence for admin users", %{conn: conn} do
+      admin_user = admin_user_fixture() |> set_password()
+
+      conn =
+        conn
+        |> init_test_session(user_return_to: "/foo/bar")
+        |> post(~p"/users/log-in", %{
+          "user" => %{"email" => admin_user.email, "password" => valid_user_password()}
+        })
+
+      assert redirected_to(conn) == "/foo/bar"
+    end
+
     test "redirects to login page with invalid credentials", %{conn: conn, user: user} do
       conn =
         post(conn, ~p"/users/log-in?mode=password", %{
@@ -114,6 +139,46 @@ defmodule AgentJidoWeb.UserSessionControllerTest do
       assert response =~ user.email
       assert response =~ ~p"/users/settings"
       assert response =~ ~p"/users/log-out"
+    end
+
+    test "redirects admin users to the dashboard by default", %{conn: conn} do
+      admin_user = admin_user_fixture()
+      {token, _hashed_token} = generate_user_magic_link_token(admin_user)
+
+      conn =
+        post(conn, ~p"/users/log-in", %{
+          "user" => %{"token" => token}
+        })
+
+      assert get_session(conn, :user_token)
+      assert redirected_to(conn) == ~p"/dashboard"
+    end
+
+    test "keeps return-to precedence for magic-link logins", %{conn: conn, user: user} do
+      {token, _hashed_token} = generate_user_magic_link_token(user)
+
+      conn =
+        conn
+        |> init_test_session(user_return_to: "/foo/bar")
+        |> post(~p"/users/log-in", %{
+          "user" => %{"token" => token}
+        })
+
+      assert redirected_to(conn) == "/foo/bar"
+    end
+
+    test "keeps return-to precedence for admin magic-link logins", %{conn: conn} do
+      admin_user = admin_user_fixture()
+      {token, _hashed_token} = generate_user_magic_link_token(admin_user)
+
+      conn =
+        conn
+        |> init_test_session(user_return_to: "/foo/bar")
+        |> post(~p"/users/log-in", %{
+          "user" => %{"token" => token}
+        })
+
+      assert redirected_to(conn) == "/foo/bar"
     end
 
     test "redirects to login page when magic link is invalid", %{conn: conn} do
