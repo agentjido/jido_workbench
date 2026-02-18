@@ -203,6 +203,28 @@ defmodule AgentJido.PagesTest do
     end
   end
 
+  describe "docs IA stubs" do
+    test "required docs IA pages exist and are routable" do
+      required_paths = [
+        "/docs/core-concepts",
+        "/docs/guides",
+        "/docs/reference",
+        "/docs/architecture",
+        "/docs/production-readiness-checklist",
+        "/docs/security-and-governance",
+        "/docs/incident-playbooks"
+      ]
+
+      Enum.each(required_paths, fn path ->
+        page = Pages.get_page_by_path(path)
+
+        assert page != nil
+        assert page.category == :docs
+        assert Pages.route_for(page) == path
+      end)
+    end
+  end
+
   describe "training pages" do
     test "training pages have track and difficulty" do
       training = Pages.pages_by_category(:training)

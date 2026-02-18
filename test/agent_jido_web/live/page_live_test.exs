@@ -34,6 +34,26 @@ defmodule AgentJidoWeb.PageLiveTest do
 
       assert html =~ page.title
     end
+
+    test "smoke routes for required docs IA stubs", %{conn: conn} do
+      required_paths = [
+        "/docs/core-concepts",
+        "/docs/guides",
+        "/docs/reference",
+        "/docs/architecture",
+        "/docs/production-readiness-checklist",
+        "/docs/security-and-governance",
+        "/docs/incident-playbooks"
+      ]
+
+      Enum.each(required_paths, fn path ->
+        page = Pages.get_page_by_path(path)
+        assert page != nil
+
+        {:ok, _view, html} = live(conn, path)
+        assert html =~ page.title
+      end)
+    end
   end
 
   describe "training" do

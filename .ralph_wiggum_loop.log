@@ -383,3 +383,28 @@ Implemented in `lib/agent_jido_web/live/chat_ops_live.ex:19` and asserted in `te
 4) blockers/assumptions
 - Blocker: `mix precommit` cannot be completed in this environment because Mix PubSub requires opening a local TCP socket and sandbox policy returns `:eperm`.
 - Assumption: existing downstream story files already had valid ST-CONT-001 references; no content-wave implementation changes were made (only ST-CONT-001 governance/test work).
+1) changed files
+- `priv/pages/docs/core-concepts.md`
+- `priv/pages/docs/guides.md`
+- `priv/pages/docs/reference.md`
+- `priv/pages/docs/architecture.md`
+- `priv/pages/docs/production-readiness-checklist.md`
+- `priv/pages/docs/security-and-governance.md`
+- `priv/pages/docs/incident-playbooks.md`
+- `test/agent_jido/pages_test.exs`
+- `test/agent_jido_web/live/page_live_test.exs`
+
+2) tests/commands executed
+- `mix test test/agent_jido/pages_test.exs test/agent_jido_web/live/page_live_test.exs` (pass, 38 tests)
+- `MIX_OS_CONCURRENCY_LOCK=0 elixir -r /tmp/mix_pubsub_noop.exs -S mix precommit` (pass)
+- `mix test test/agent_jido/pages_test.exs test/agent_jido_web/live/page_live_test.exs` (pass, 38 tests)
+
+3) acceptance criteria coverage
+- All missing docs IA entries were added as valid docs pages under `priv/pages/docs/` with frontmatter.
+- Pages are part of the existing Pages pipeline (no new pipeline/router system added).
+- Compile/load coverage: added `docs IA stubs` test in `test/agent_jido/pages_test.exs` asserting each required path exists, loads, is `:docs`, and routes correctly.
+- Route smoke coverage: added `smoke routes for required docs IA stubs` test in `test/agent_jido_web/live/page_live_test.exs` asserting each new docs path resolves and renders.
+
+4) blockers/assumptions
+- Blocker encountered: direct `mix precommit` fails in this sandbox due loopback TCP restrictions in Mix pubsub/lock (`:eperm`).
+- Workaround used: run precommit via `elixir -S mix precommit` with a temporary no-op `Mix.PubSub` preload and `MIX_OS_CONCURRENCY_LOCK=0`; command completed successfully without repo code changes outside the story.
