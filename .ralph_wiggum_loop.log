@@ -269,3 +269,24 @@ Implemented in `lib/agent_jido_web/live/chat_ops_live.ex:19` and asserted in `te
 4) blockers/assumptions
 - Blocker: this environment denies local TCP sockets (`:eperm`), which prevents normal `mix precommit`/`mix test` execution paths that start Mix PubSub (and DB TCP access).
 - Assumption: isolated LiveView tests for `ST-CHOPS-002` are acceptable since auth/routing coverage from `ST-CHOPS-001` remains in existing route/auth tests.
+1) changed files
+- `lib/agent_jido/content_ops/chat/message_timeline.ex`
+- `lib/agent_jido_web/live/chat_ops_live.ex`
+- `test/agent_jido_web/live/chat_ops_live_test.exs`
+
+2) tests/commands executed
+- `elixir -pa /tmp/mix_patch -S mix format` (pass)
+- `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 elixir -pa /tmp/mix_patch -e 'Mix.start(); Mix.Project.in_project(:agent_jido, File.cwd!(), fn _ -> Mix.Task.run("loadpaths"); Mix.Task.run("compile", ["--no-deps-check", "--no-validate-compile-env"]); Mix.Tasks.Test.run(["--no-start", "test/agent_jido_web/live/chat_ops_live_test.exs"]); end)'` (pass, 6 tests, 0 failures)
+- `MIX_OS_CONCURRENCY_LOCK=0 elixir -pa /tmp/mix_patch -S mix precommit` (pass)
+
+3) acceptance criteria coverage
+- Admin can inspect recent messages in console: implemented a real message timeline panel in `ChatOpsLive` backed by a new messaging service (`MessageTimeline`) that reads recent messages from existing messaging runtime/services.
+- Timeline metadata rows: each row renders timestamp, room id, actor/username, channel/source label, and text snippet.
+- Stable empty and populated states: added LiveView tests for empty timeline and populated timeline rendering.
+- Metadata formatting assertions: tests verify formatted UTC timestamps and channel labels (`Telegram`/`Discord`) plus row content fields.
+- High-volume truncation: timeline capped to latest 50 messages with explicit UI note; added test that validates truncation behavior.
+
+4) blockers/assumptions
+- Sandbox blocks TCP sockets, which prevented plain `mix` execution paths (`Mix.Sync.PubSub`) and DB-backed `mix test` alias flow.
+- Workaround used: a runtime-only shim module loaded from `/tmp/mix_patch` to bypass Mix socket pubsub for command execution, and direct `Mix.Tasks.Test.run` for the targeted LiveView test file.
+- No other stories were implemented (action/run timeline and guardrail indicators remain placeholder-only).

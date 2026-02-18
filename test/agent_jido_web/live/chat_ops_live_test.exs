@@ -48,6 +48,58 @@ defmodule AgentJidoWeb.ChatOpsLiveTest do
     def fetch_room_inventory, do: {:ok, []}
   end
 
+  defmodule EmptyMessageTimelineStub do
+    @moduledoc false
+
+    def fetch_recent_messages(_opts), do: {:ok, []}
+  end
+
+  defmodule PopulatedMessageTimelineStub do
+    @moduledoc false
+
+    def fetch_recent_messages(_opts) do
+      {:ok,
+       [
+         %{
+           id: "msg-2",
+           timestamp: ~U[2026-02-18 14:24:00Z],
+           room_id: "contentops:lobby",
+           actor: "alice",
+           channel: :telegram,
+           snippet: "Need status on weekly run."
+         },
+         %{
+           id: "msg-1",
+           timestamp: "2026-02-18T14:22:10Z",
+           room_id: "contentops:triage",
+           actor: "octocat",
+           channel: "discord",
+           snippet: "Please review issue #123."
+         }
+       ]}
+    end
+  end
+
+  defmodule HighVolumeMessageTimelineStub do
+    @moduledoc false
+
+    def fetch_recent_messages(_opts) do
+      base = ~U[2026-02-18 00:00:00Z]
+
+      {:ok,
+       Enum.map(60..1//-1, fn idx ->
+         %{
+           id: "bulk-#{idx}",
+           timestamp: DateTime.add(base, idx, :second),
+           room_id: "contentops:bulk",
+           actor: "loadtest",
+           channel: "telegram",
+           snippet: "bulk-#{String.pad_leading(Integer.to_string(idx), 3, "0")}"
+         }
+       end)}
+    end
+  end
+
   defmodule NotifyingInventoryStub do
     @moduledoc false
 
@@ -59,6 +111,19 @@ defmodule AgentJidoWeb.ChatOpsLiveTest do
   end
 
   setup_all do
+    Application.put_env(:agent_jido, AgentJidoWeb.Endpoint,
+      url: [host: "localhost"],
+      http: [ip: {127, 0, 0, 1}, port: 4002],
+      secret_key_base: String.duplicate("a", 64),
+      render_errors: [
+        formats: [html: AgentJidoWeb.ErrorHTML, json: AgentJidoWeb.ErrorJSON],
+        layout: false
+      ],
+      pubsub_server: AgentJido.PubSub,
+      live_view: [signing_salt: "chatops_test_salt"],
+      server: false
+    )
+
     for app <- [:telemetry, :plug, :plug_crypto, :phoenix_pubsub] do
       {:ok, _started} = Application.ensure_all_started(app)
     end
@@ -98,7 +163,8 @@ defmodule AgentJidoWeb.ChatOpsLiveTest do
     assert html =~ "Room With Partial Binding"
     assert html =~ "instance:"
     assert html =~ ">—</span>"
-    assert html =~ "Messages"
+    assert html =~ "Recent Messages"
+    assert html =~ ~s(id="chatops-message-timeline-empty")
     assert html =~ "Action/Run Timeline"
     assert html =~ "Guardrails"
   end
@@ -130,5 +196,54 @@ defmodule AgentJidoWeb.ChatOpsLiveTest do
     |> render_click()
 
     assert_receive :inventory_fetch_called, 500
+  end
+
+  test "renders empty-state message timeline when no recent messages are available", %{conn: conn} do
+    session = %{
+      "chatops_inventory_provider" => EmptyInventoryStub,
+      "chatops_message_provider" => EmptyMessageTimelineStub
+    }
+
+    {:ok, _view, html} = live_isolated(conn, AgentJidoWeb.ChatOpsLive, session: session)
+
+    assert html =~ ~s(id="chatops-message-timeline-empty")
+    assert html =~ "No recent messages are available."
+    assert html =~ "showing latest 50 messages"
+  end
+
+  test "renders populated message timeline with metadata formatting", %{conn: conn} do
+    session = %{
+      "chatops_inventory_provider" => EmptyInventoryStub,
+      "chatops_message_provider" => PopulatedMessageTimelineStub
+    }
+
+    {:ok, _view, html} = live_isolated(conn, AgentJidoWeb.ChatOpsLive, session: session)
+
+    assert html =~ ~s(id="chatops-message-timeline-list")
+    assert html =~ "2026-02-18 14:24:00 UTC"
+    assert html =~ "2026-02-18 14:22:10 UTC"
+    assert html =~ "contentops:lobby"
+    assert html =~ "contentops:triage"
+    assert html =~ "alice"
+    assert html =~ "octocat"
+    assert html =~ "Telegram"
+    assert html =~ "Discord"
+    assert html =~ "Need status on weekly run."
+    assert html =~ "Please review issue #123."
+  end
+
+  test "truncates high-volume message timeline to latest 50 entries", %{conn: conn} do
+    session = %{
+      "chatops_inventory_provider" => EmptyInventoryStub,
+      "chatops_message_provider" => HighVolumeMessageTimelineStub
+    }
+
+    {:ok, _view, html} = live_isolated(conn, AgentJidoWeb.ChatOpsLive, session: session)
+
+    assert html =~ "showing latest 50 messages"
+    assert html =~ "bulk-060"
+    assert html =~ "bulk-011"
+    refute html =~ "bulk-010"
+    assert length(Regex.scan(~r/id="chatops-message-row-\d+"/, html)) == 50
   end
 end
