@@ -110,6 +110,58 @@ defmodule AgentJidoWeb.ChatOpsLiveTest do
     end
   end
 
+  defmodule EmptyActionTimelineStub do
+    @moduledoc false
+
+    def fetch_action_timeline(_opts), do: {:ok, []}
+  end
+
+  defmodule PopulatedActionTimelineStub do
+    @moduledoc false
+
+    def fetch_action_timeline(_opts) do
+      {:ok,
+       [
+         %{
+           id: "action-2",
+           timestamp: ~U[2026-02-18 14:29:00Z],
+           type: :action,
+           label: "Run weekly command",
+           outcome: :blocked,
+           authz_status: :unauthorized,
+           mutation_enabled: true,
+           actor: %{channel: :telegram, external_user_id: "999"},
+           details: "You are not authorized to run ContentOps operations from chat."
+         },
+         %{
+           id: "run-1",
+           timestamp: ~U[2026-02-18 14:27:10Z],
+           type: :run,
+           label: "ContentOps weekly run completed",
+           outcome: :succeeded,
+           authz_status: :authorized,
+           mutation_enabled: true,
+           actor: %{channel: :telegram, external_user_id: "111"},
+           details: "run_id run_123 · changes 2 · delivered 2"
+         }
+       ]}
+    end
+  end
+
+  defmodule GuardrailIndicatorStub do
+    @moduledoc false
+
+    def fetch_guardrails do
+      {:ok,
+       %{
+         mutation_enabled: false,
+         latest_authz_status: :unauthorized,
+         authz_counts: %{authorized: 1, unauthorized: 2, mutations_disabled: 1, unknown: 0},
+         blocked_actions: 3
+       }}
+    end
+  end
+
   setup_all do
     Application.put_env(:agent_jido, AgentJidoWeb.Endpoint,
       url: [host: "localhost"],
@@ -245,5 +297,47 @@ defmodule AgentJidoWeb.ChatOpsLiveTest do
     assert html =~ "bulk-011"
     refute html =~ "bulk-010"
     assert length(Regex.scan(~r/id="chatops-message-row-\d+"/, html)) == 50
+  end
+
+  test "renders successful and blocked action/run timeline entries", %{conn: conn} do
+    session = %{
+      "chatops_inventory_provider" => EmptyInventoryStub,
+      "chatops_message_provider" => EmptyMessageTimelineStub,
+      "chatops_action_timeline_provider" => PopulatedActionTimelineStub,
+      "chatops_guardrail_provider" => GuardrailIndicatorStub
+    }
+
+    {:ok, _view, html} = live_isolated(conn, AgentJidoWeb.ChatOpsLive, session: session)
+
+    assert html =~ ~s(id="chatops-action-timeline-list")
+    assert html =~ ~s(id="chatops-action-row-0")
+    assert html =~ "Run weekly command"
+    assert html =~ "ContentOps weekly run completed"
+    assert html =~ "Blocked"
+    assert html =~ "Unauthorized"
+    assert html =~ "Succeeded"
+    assert html =~ "border-red-500/50"
+    assert html =~ "border-emerald-500/40"
+  end
+
+  test "renders guardrail indicators for mutation state and authz outcomes", %{conn: conn} do
+    session = %{
+      "chatops_inventory_provider" => EmptyInventoryStub,
+      "chatops_message_provider" => EmptyMessageTimelineStub,
+      "chatops_action_timeline_provider" => EmptyActionTimelineStub,
+      "chatops_guardrail_provider" => GuardrailIndicatorStub
+    }
+
+    {:ok, _view, html} = live_isolated(conn, AgentJidoWeb.ChatOpsLive, session: session)
+
+    assert html =~ ~s(id="chatops-guardrail-mutation-state")
+    assert html =~ "Disabled"
+    assert html =~ ~s(id="chatops-guardrail-authz-status")
+    assert html =~ "Unauthorized"
+    assert html =~ ~s(id="chatops-guardrail-count-authorized")
+    assert html =~ ~s(id="chatops-guardrail-count-unauthorized")
+    assert html =~ ~s(id="chatops-guardrail-count-mutations-disabled")
+    assert html =~ ~s(id="chatops-guardrail-count-blocked-actions")
+    assert html =~ ~r/id="chatops-guardrail-count-blocked-actions"[^>]*>\s*3\s*<\/p>/
   end
 end

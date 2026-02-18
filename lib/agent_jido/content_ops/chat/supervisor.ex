@@ -8,6 +8,7 @@ defmodule AgentJido.ContentOps.Chat.Supervisor do
   require Logger
 
   alias AgentJido.ContentOps.Chat.{
+    ActionStore,
     Config,
     BindingBootstrapper,
     Bridge,
@@ -38,6 +39,7 @@ defmodule AgentJido.ContentOps.Chat.Supervisor do
     children =
       [
         Messaging,
+        ActionStore,
         RunStore,
         SessionManager,
         {BindingBootstrapper,

@@ -6,6 +6,7 @@ defmodule AgentJido.ContentOps.Chat.Router do
   require Logger
 
   alias AgentJido.ContentOps.Chat.{
+    ActionStore,
     Actions,
     Authorizer,
     Config,
@@ -100,7 +101,9 @@ defmodule AgentJido.ContentOps.Chat.Router do
         handle_ops_message(prompt, message, context, cfg)
 
       {:ok, {:note, request}} ->
-        prompt = "Add a documentation note. If a page reference is ambiguous, ask for clarification.\n\n#{request}"
+        prompt =
+          "Add a documentation note. If a page reference is ambiguous, ask for clarification.\n\n#{request}"
+
         handle_ops_message(prompt, message, context, cfg)
 
       {:ok, {:ask, prompt}} ->
@@ -126,25 +129,96 @@ defmodule AgentJido.ContentOps.Chat.Router do
 
   defp run_command(mode, context) do
     actor = Authorizer.actor_from_context(context)
+    mutation_enabled = mutation_tools_enabled?()
 
     case ops_service().run(mode, actor) do
       {:ok, result} ->
+        record_run_command_event(
+          mode,
+          actor,
+          :accepted,
+          :authorized,
+          mutation_enabled,
+          nil,
+          result.message
+        )
+
         {:reply, result.message}
 
       {:error, :unauthorized} ->
-        {:reply, "You are not authorized to run ContentOps operations from chat."}
+        message = "You are not authorized to run ContentOps operations from chat."
+
+        record_run_command_event(
+          mode,
+          actor,
+          :blocked,
+          :unauthorized,
+          mutation_enabled,
+          :unauthorized,
+          message
+        )
+
+        {:reply, message}
 
       {:error, :mutations_disabled} ->
-        {:reply, "Chat mutation tools are disabled in this environment."}
+        message = "Chat mutation tools are disabled in this environment."
+
+        record_run_command_event(
+          mode,
+          actor,
+          :blocked,
+          :mutations_disabled,
+          false,
+          :mutations_disabled,
+          message
+        )
+
+        {:reply, message}
 
       {:error, :already_running} ->
-        {:reply, "ContentOps is already running. Wait for the current run to finish."}
+        message = "ContentOps is already running. Wait for the current run to finish."
+
+        record_run_command_event(
+          mode,
+          actor,
+          :blocked,
+          :authorized,
+          mutation_enabled,
+          :already_running,
+          message
+        )
+
+        {:reply, message}
 
       {:error, :orchestrator_unavailable} ->
-        {:reply, "ContentOps orchestrator is unavailable right now."}
+        message = "ContentOps orchestrator is unavailable right now."
+
+        record_run_command_event(
+          mode,
+          actor,
+          :failed,
+          :authorized,
+          mutation_enabled,
+          :orchestrator_unavailable,
+          message
+        )
+
+        {:reply, message}
 
       {:error, reason} ->
-        {:reply, "Failed to start ContentOps run: #{inspect(reason)}"}
+        message = "Failed to start ContentOps run: #{inspect(reason)}"
+
+        record_run_command_event(
+          mode,
+          actor,
+          :failed,
+          :authorized,
+          mutation_enabled,
+          reason,
+          message
+        )
+
+        {:reply, message}
     end
   end
 
@@ -278,6 +352,45 @@ defmodule AgentJido.ContentOps.Chat.Router do
   defp ops_service do
     config = Application.get_env(:agent_jido, __MODULE__, [])
     Keyword.get(config, :ops_service, OpsService)
+  end
+
+  defp mutation_tools_enabled? do
+    Config.load!().mutation_tools_enabled == true
+  rescue
+    _error ->
+      false
+  end
+
+  defp record_run_command_event(
+         mode,
+         actor,
+         outcome,
+         authz_status,
+         mutation_enabled,
+         reason,
+         message
+       ) do
+    event = %{
+      action: :run,
+      mode: mode,
+      outcome: outcome,
+      authz_status: authz_status,
+      mutation_enabled: mutation_enabled,
+      reason: reason,
+      message: message,
+      label: "Run #{mode} command",
+      actor: actor,
+      source: :router,
+      timestamp: DateTime.utc_now()
+    }
+
+    ActionStore.record(event)
+  rescue
+    _error ->
+      :ok
+  catch
+    :exit, _reason ->
+      :ok
   end
 
   defp build_tool_context(message, context, cfg) do

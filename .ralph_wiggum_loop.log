@@ -290,3 +290,34 @@ Implemented in `lib/agent_jido_web/live/chat_ops_live.ex:19` and asserted in `te
 - Sandbox blocks TCP sockets, which prevented plain `mix` execution paths (`Mix.Sync.PubSub`) and DB-backed `mix test` alias flow.
 - Workaround used: a runtime-only shim module loaded from `/tmp/mix_patch` to bypass Mix socket pubsub for command execution, and direct `Mix.Tasks.Test.run` for the targeted LiveView test file.
 - No other stories were implemented (action/run timeline and guardrail indicators remain placeholder-only).
+1) changed files
+- `lib/agent_jido/content_ops/chat/action_store.ex`
+- `lib/agent_jido/content_ops/chat/action_timeline.ex`
+- `lib/agent_jido/content_ops/chat/guardrails.ex`
+- `lib/agent_jido/content_ops/chat/router.ex`
+- `lib/agent_jido/content_ops/chat/supervisor.ex`
+- `lib/agent_jido_web/live/chat_ops_live.ex`
+- `test/agent_jido_web/live/chat_ops_live_test.exs`
+
+2) tests/commands executed
+- `elixir -pa /tmp/mix_override -S mix format lib/agent_jido/content_ops/chat/action_store.ex lib/agent_jido/content_ops/chat/action_timeline.ex lib/agent_jido/content_ops/chat/guardrails.ex lib/agent_jido/content_ops/chat/router.ex lib/agent_jido/content_ops/chat/supervisor.ex lib/agent_jido_web/live/chat_ops_live.ex test/agent_jido_web/live/chat_ops_live_test.exs`
+- `MIX_ENV=test elixir -pa /tmp/mix_override -S mix run --no-start -e 'Mix.Task.clear(); Mix.Tasks.Test.run(["test/agent_jido_web/live/chat_ops_live_test.exs", "--no-start"])'` (8 tests, 0 failures)
+- `elixir -pa /tmp/mix_override -S mix precommit` (passing)
+
+3) acceptance criteria coverage
+- Admin can see runs/actions triggered by chat commands:
+  - Added router-side action event recording for `/ops run` outcomes into `ActionStore` in `lib/agent_jido/content_ops/chat/router.ex`.
+  - Added merged timeline provider (`ActionStore` + `RunStore`) in `lib/agent_jido/content_ops/chat/action_timeline.ex`.
+  - Rendered Action/Run timeline panel in `lib/agent_jido_web/live/chat_ops_live.ex` (`chatops-action-timeline-panel`).
+- Unauthorized/blocked actions clearly visible/labeled:
+  - Timeline rows now render explicit outcome/authz labels and blocked styling in `lib/agent_jido_web/live/chat_ops_live.ex`.
+  - Covered by test `renders successful and blocked action/run timeline entries` in `test/agent_jido_web/live/chat_ops_live_test.exs:302`.
+- Mutation-enabled state clearly surfaced:
+  - Added guardrail summary provider in `lib/agent_jido/content_ops/chat/guardrails.ex`.
+  - Added Guardrails panel with mutation-enabled indicator and authz counters in `lib/agent_jido_web/live/chat_ops_live.ex` (`chatops-guardrails-panel`).
+  - Covered by test `renders guardrail indicators for mutation state and authz outcomes` in `test/agent_jido_web/live/chat_ops_live_test.exs:323`.
+
+4) blockers/assumptions
+- No functional blockers.
+- Assumption: in-memory `ActionStore` is acceptable for this story (persistent migration is explicitly out of scope).
+- Assumption: router metadata coverage for this story is focused on `/ops run` command outcomes.
