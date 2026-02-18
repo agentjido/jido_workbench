@@ -7,6 +7,19 @@
 # General application configuration
 import Config
 
+config :agent_jido, :scopes,
+  user: [
+    default: true,
+    module: AgentJido.Accounts.Scope,
+    assign_key: :current_scope,
+    access_path: [:user, :id],
+    schema_key: :user_id,
+    schema_type: :binary_id,
+    schema_table: :users,
+    test_data_fixture: AgentJido.AccountsFixtures,
+    test_setup_helper: :register_and_log_in_user
+  ]
+
 # Configures the endpoint
 config :agent_jido,
   ecto_repos: [AgentJido.Repo]
@@ -33,6 +46,7 @@ config :agent_jido, AgentJidoWeb.Endpoint,
 config :agent_jido, AgentJido.Mailer, adapter: Swoosh.Adapters.Local
 
 config :agent_jido, AgentJido.Jido,
+  enabled: true,
   max_tasks: 1000,
   agent_pools: []
 

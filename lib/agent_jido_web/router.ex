@@ -1,5 +1,7 @@
 defmodule AgentJidoWeb.Router do
   use AgentJidoWeb, :router
+
+  import AgentJidoWeb.UserAuth
   import JidoStudio.Router
   import ArcanaWeb.Router
 
@@ -15,6 +17,7 @@ defmodule AgentJidoWeb.Router do
     plug(:put_root_layout, {AgentJidoWeb.Layouts, :root})
     plug(:protect_from_forgery)
     plug(:put_secure_browser_headers)
+    plug(:fetch_current_scope_for_user)
   end
 
   pipeline :api do
@@ -70,9 +73,17 @@ defmodule AgentJidoWeb.Router do
   import Phoenix.LiveDashboard.Router
 
   scope "/dev" do
-    pipe_through(:browser)
-    live "/contentops", ContentOpsLive, :index
-    live "/contentops/github", ContentOpsGithubLive, :index
+    pipe_through([:browser, :require_authenticated_user, :require_admin_user])
+
+    live_session :require_admin_user,
+      on_mount: [
+        {AgentJidoWeb.UserAuth, :require_authenticated},
+        {AgentJidoWeb.UserAuth, :require_admin}
+      ] do
+      live "/contentops", AgentJidoWeb.ContentOpsLive, :index
+      live "/contentops/github", AgentJidoWeb.ContentOpsGithubLive, :index
+    end
+
     live_dashboard("/dashboard", metrics: AgentJidoWeb.Telemetry, additional_pages: JidoLiveDashboard.pages())
     jido_studio("/jido", host_app_js_path: "/assets/app.js")
     forward("/mailbox", Plug.Swoosh.MailboxPreview)
@@ -82,10 +93,37 @@ defmodule AgentJidoWeb.Router do
   end
 
   scope "/" do
-    pipe_through(:browser)
+    pipe_through([:browser, :require_authenticated_user, :require_admin_user])
     get("/assets/js/app.js", AgentJidoWeb.PageController, :arcana_legacy_app_js)
     arcana_dashboard("/arcana", repo: AgentJido.Repo)
   end
 
   # end
+
+  ## Authentication routes
+
+  scope "/", AgentJidoWeb do
+    pipe_through [:browser, :require_authenticated_user]
+
+    live_session :require_authenticated_user,
+      on_mount: [{AgentJidoWeb.UserAuth, :require_authenticated}] do
+      live "/users/settings", UserLive.Settings, :edit
+      live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
+    end
+
+    post "/users/update-password", UserSessionController, :update_password
+  end
+
+  scope "/", AgentJidoWeb do
+    pipe_through [:browser]
+
+    live_session :current_user,
+      on_mount: [{AgentJidoWeb.UserAuth, :mount_current_scope}] do
+      live "/users/log-in", UserLive.Login, :new
+      live "/users/log-in/:token", UserLive.Confirmation, :new
+    end
+
+    post "/users/log-in", UserSessionController, :create
+    delete "/users/log-out", UserSessionController, :delete
+  end
 end

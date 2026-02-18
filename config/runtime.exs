@@ -29,6 +29,20 @@ config :agent_jido,
   enable_analytics: env!("ENABLE_ANALYTICS", :boolean, false),
   discord_invite_link: env!("DISCORD_INVITE_LINK", :string, "https://discord.gg/dMh8CqEH8Q")
 
+# Agent runtime
+jido_config =
+  case Application.get_env(:agent_jido, AgentJido.Jido, []) do
+    cfg when is_map(cfg) -> Map.to_list(cfg)
+    cfg when is_list(cfg) -> cfg
+    _other -> []
+  end
+
+jido_enabled =
+  env!("AGENTJIDO_RUNTIME_ENABLED", :boolean, Keyword.get(jido_config, :enabled, true))
+
+config :agent_jido, AgentJido.Jido, Keyword.put(jido_config, :enabled, jido_enabled)
+
+# ContentOps chat
 contentops_chat_config =
   case Application.get_env(:agent_jido, AgentJido.ContentOps.Chat, []) do
     cfg when is_map(cfg) -> Map.to_list(cfg)
@@ -36,19 +50,11 @@ contentops_chat_config =
     _other -> []
   end
 
-contentops_chat_enabled_in_config = Keyword.get(contentops_chat_config, :enabled, false)
-argv = System.argv()
-chat_allowed_for_task? = Enum.any?(argv, &(&1 == "phx.server")) or System.get_env("PHX_SERVER") in ~w(true 1)
-
 contentops_chat_enabled =
-  env!("CONTENTOPS_CHAT_ENABLED", :boolean, contentops_chat_enabled_in_config) and
-    chat_allowed_for_task?
+  env!("CONTENTOPS_CHAT_ENABLED", :boolean, Keyword.get(contentops_chat_config, :enabled, false))
 
-if contentops_chat_enabled != contentops_chat_enabled_in_config do
-  config :agent_jido,
-         AgentJido.ContentOps.Chat,
-         Keyword.put(contentops_chat_config, :enabled, contentops_chat_enabled)
-end
+contentops_chat_config = Keyword.put(contentops_chat_config, :enabled, contentops_chat_enabled)
+config :agent_jido, AgentJido.ContentOps.Chat, contentops_chat_config
 
 if contentops_chat_enabled do
   telegram_token =
@@ -66,6 +72,27 @@ if contentops_chat_enabled do
   config :nostrum,
     token: discord_token,
     gateway_intents: [:guilds, :guild_messages, :message_content, :direct_messages]
+
+  # Override bindings from env if both platform IDs are provided
+  telegram_chat_id = env!("TELEGRAM_CHAT_ID", :string, nil)
+  discord_channel_id = env!("DISCORD_CHANNEL_ID", :string, nil)
+
+  if telegram_chat_id && discord_channel_id do
+    room_id = env!("CONTENTOPS_ROOM_ID", :string, "contentops:lobby")
+    room_name = env!("CONTENTOPS_ROOM_NAME", :string, "ContentOps Lobby")
+
+    env_bindings = [
+      %{
+        room_id: room_id,
+        room_name: room_name,
+        telegram_chat_id: telegram_chat_id,
+        discord_channel_id: discord_channel_id
+      }
+    ]
+
+    updated_cfg = Keyword.put(contentops_chat_config, :bindings, env_bindings)
+    config :agent_jido, AgentJido.ContentOps.Chat, updated_cfg
+  end
 end
 
 if env!("CONTENTOPS_GITHUB_MUTATIONS", :boolean, false) do

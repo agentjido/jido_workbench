@@ -5,7 +5,7 @@ defmodule AgentJido.ContentOps.Chat.SessionManager do
 
   use GenServer
 
-  alias AgentJido.ContentOps.Chat.OpsAgent
+  alias AgentJido.ContentOps.Chat.{ChatAgent, OpsAgent}
 
   @type state :: %{
           sessions: %{String.t() => {pid(), reference()}},
@@ -22,7 +22,13 @@ defmodule AgentJido.ContentOps.Chat.SessionManager do
   @doc "Ensures there is an active Ops session for a room."
   @spec ensure_session(String.t()) :: {:ok, pid()} | {:error, term()}
   def ensure_session(room_id) when is_binary(room_id) do
-    GenServer.call(__MODULE__, {:ensure_session, room_id})
+    GenServer.call(__MODULE__, {:ensure_session, room_id, OpsAgent})
+  end
+
+  @doc "Ensures there is an active Chat session for a room."
+  @spec ensure_chat_session(String.t()) :: {:ok, pid()} | {:error, term()}
+  def ensure_chat_session(room_id) when is_binary(room_id) do
+    GenServer.call(__MODULE__, {:ensure_session, room_id, ChatAgent})
   end
 
   @doc "Returns the session pid for a room if present."
@@ -48,17 +54,19 @@ defmodule AgentJido.ContentOps.Chat.SessionManager do
   end
 
   @impl true
-  def handle_call({:ensure_session, room_id}, _from, state) do
-    case Map.get(state.sessions, room_id) do
+  def handle_call({:ensure_session, room_id, agent_module}, _from, state) do
+    session_key = {agent_module, room_id}
+
+    case Map.get(state.sessions, session_key) do
       {pid, _ref} when is_pid(pid) ->
         if Process.alive?(pid) do
           {:reply, {:ok, pid}, state}
         else
-          start_and_reply(state, room_id)
+          start_and_reply(state, session_key, agent_module, room_id)
         end
 
       _other ->
-        start_and_reply(state, room_id)
+        start_and_reply(state, session_key, agent_module, room_id)
     end
   end
 
@@ -115,15 +123,16 @@ defmodule AgentJido.ContentOps.Chat.SessionManager do
     :ok
   end
 
-  defp start_room_agent(jido, room_id) do
-    agent_id = "contentops_chat_ops:" <> room_id
+  defp start_room_agent(jido, agent_module, room_id) do
+    prefix = agent_module |> Module.split() |> List.last() |> Macro.underscore()
+    agent_id = "contentops_chat_#{prefix}:" <> room_id
 
     case Jido.whereis(jido, agent_id) do
       pid when is_pid(pid) ->
         {:ok, pid}
 
       nil ->
-        case Jido.start_agent(jido, OpsAgent, id: agent_id) do
+        case Jido.start_agent(jido, agent_module, id: agent_id) do
           {:ok, pid} -> {:ok, pid}
           {:error, {:already_started, pid}} -> {:ok, pid}
           {:error, reason} -> {:error, reason}
@@ -131,11 +140,11 @@ defmodule AgentJido.ContentOps.Chat.SessionManager do
     end
   end
 
-  defp start_and_reply(state, room_id) do
-    case start_room_agent(state.jido, room_id) do
+  defp start_and_reply(state, session_key, agent_module, room_id) do
+    case start_room_agent(state.jido, agent_module, room_id) do
       {:ok, pid} ->
         ref = Process.monitor(pid)
-        sessions = Map.put(state.sessions, room_id, {pid, ref})
+        sessions = Map.put(state.sessions, session_key, {pid, ref})
         {:reply, {:ok, pid}, %{state | sessions: sessions}}
 
       {:error, reason} ->

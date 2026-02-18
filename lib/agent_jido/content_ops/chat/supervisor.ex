@@ -11,6 +11,7 @@ defmodule AgentJido.ContentOps.Chat.Supervisor do
     Config,
     BindingBootstrapper,
     Bridge,
+    ChatAgentRunner,
     DiscordHandler,
     RunNotifier,
     RunStore,
@@ -32,6 +33,8 @@ defmodule AgentJido.ContentOps.Chat.Supervisor do
     cfg = Config.load!()
     discord_available? = ensure_discord_runtime()
 
+    room_ids = Enum.map(cfg.bindings, & &1.room_id)
+
     children =
       [
         Messaging,
@@ -43,9 +46,11 @@ defmodule AgentJido.ContentOps.Chat.Supervisor do
          telegram_instance_id: to_string(TelegramHandler),
          discord_instance_id: to_string(DiscordHandler)},
         {Bridge, instance_module: Messaging},
-        {RunNotifier, room_ids: Enum.map(cfg.bindings, & &1.room_id)},
+        {RunNotifier, room_ids: room_ids},
         TelegramHandler
-      ] ++ maybe_discord_child(discord_available?)
+      ] ++
+        maybe_discord_child(discord_available?) ++
+        chat_agent_children(room_ids)
 
     Supervisor.init(children, strategy: :one_for_one)
   end
@@ -64,4 +69,18 @@ defmodule AgentJido.ContentOps.Chat.Supervisor do
 
   defp maybe_discord_child(true), do: [DiscordHandler]
   defp maybe_discord_child(false), do: []
+
+  defp chat_agent_children(room_ids) do
+    runner_children = [
+      {ChatAgentRunner, jido_name: AgentJido.Jido}
+    ]
+
+    agent_runner_children =
+      Enum.map(room_ids, fn room_id ->
+        {JidoMessaging.AgentRunner,
+         room_id: room_id, agent_id: "chat_agent", agent_config: ChatAgentRunner.agent_config(), instance_module: Messaging}
+      end)
+
+    runner_children ++ agent_runner_children
+  end
 end

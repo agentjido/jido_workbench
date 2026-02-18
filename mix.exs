@@ -31,6 +31,7 @@ defmodule AgentJido.MixProject do
 
   defp deps do
     [
+      {:bcrypt_elixir, "~> 3.0"},
       # Phoenix / Web
       {:phoenix, "~> 1.8.3"},
       {:phoenix_html, "~> 4.1"},

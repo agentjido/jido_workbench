@@ -28,9 +28,6 @@ defmodule AgentJido.ContentOps.Chat.Router do
         command_message?(text, cfg.command_prefix) ->
           handle_command_message(text, message, context, cfg)
 
-        addressed?(text, cfg.bot_name) ->
-          handle_ops_message(strip_addressing(text, cfg.bot_name), message, context, cfg)
-
         true ->
           :noreply
       end
