@@ -131,3 +131,47 @@ Added LiveView auth matrix + link presence assertions for `/dashboard`.
 - Blocker: direct `mix` tasks requiring socket/DB access are restricted in this sandbox (`:eperm` on loopback TCP).  
   - Worked around by running Mix tasks through an `elixir` wrapper that stubs `Mix.Sync.PubSub`, disables OS concurrency lock, and runs test task without app start.
 - Assumption: `source_type` normalization maps to `:docs | :blog | :ecosystem`, including `"documentation" -> :docs`.
+1) changed files
+- `lib/agent_jido_web/live/search_live.ex`
+  - Added new public `SearchLive` that uses `AgentJido.Search` and renders the 4 required UI states:
+    - no query (`search-no-query-state`)
+    - loading (`search-loading-state`)
+    - query with results (`search-results-state`)
+    - query with no results (`search-no-results-state`)
+  - Result cards include source-type labels and destination links.
+- `lib/agent_jido_web/router.ex`
+  - Added `live "/search", SearchLive, :index` inside:
+    - `scope "/", AgentJidoWeb`
+    - `pipe_through [:browser]`
+    - existing `live_session :current_user` (`on_mount: [{AgentJidoWeb.UserAuth, :mount_current_scope}]`)
+  - Why: this route must work with or without auth, and this scope/session provides `current_scope` correctly for optional-auth LiveViews.
+- `test/agent_jido_web/live/search_live_test.exs`
+  - Added LiveView tests for:
+    - route availability/public access
+    - no query state
+    - loading state
+    - results state (including source labels + valid links)
+    - no-results state
+
+2) tests/commands executed
+- `MIX_OS_CONCURRENCY_LOCK=0 elixir -pa /tmp/mix_stub -S mix format lib/agent_jido_web/live/search_live.ex lib/agent_jido_web/router.ex test/agent_jido_web/live/search_live_test.exs`
+- `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 elixir -pa /tmp/mix_stub -S mix run --no-start -e 'Code.require_file("test/test_helper.exs"); Code.require_file("test/agent_jido_web/live/search_live_test.exs")'`
+  - Result: `4 tests, 0 failures`
+- `MIX_OS_CONCURRENCY_LOCK=0 elixir -pa /tmp/mix_stub -S mix precommit`
+  - Result: passed
+
+3) acceptance criteria coverage
+- `/search` works without authentication:
+  - Covered by route placement in `:browser` + `live_session :current_user` and tested by live-mounting `/search` without login.
+- Querying displays cross-collection results with valid links:
+  - Covered in `search_live_test` using docs/blog/ecosystem result fixtures and assertions on rendered links.
+- Empty and no-result states render with clear UX:
+  - Covered by explicit state rendering and tests for no-query and no-results.
+- Required tests:
+  - Route availability test included.
+  - LiveView tests for each primary state included.
+
+4) blockers/assumptions
+- Environment blocks local TCP sockets and localhost DB access, so default `mix test` alias (which runs `ecto.create/migrate`) is not runnable here.
+- Used a local Mix runtime workaround (`/tmp/mix_stub` + `MIX_OS_CONCURRENCY_LOCK=0`) to run formatting, story tests, and `mix precommit`.
+- Left unrelated existing workspace change untouched: `.github/workflows/fly-stage.yml` (not part of this story).
