@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# Database migrations and Arcana indexing are executed in Fly release_command:
-# /app/bin/agent_jido eval AgentJido.Release.migrate_and_ingest
+# Database migrations are executed in Fly release_command:
+# /app/bin/agent_jido eval AgentJido.Release.migrate
 
 /app/bin/hivemind /app/Procfile

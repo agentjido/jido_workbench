@@ -13,7 +13,7 @@ size = 'shared-cpu-2x'
 
 [deploy]
 strategy = "bluegreen"
-release_command = "/app/bin/agent_jido eval AgentJido.Release.migrate_and_ingest"
+release_command = "/app/bin/agent_jido eval AgentJido.Release.migrate"
 
 [build]
 
