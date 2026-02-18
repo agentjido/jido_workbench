@@ -108,6 +108,7 @@ defmodule AgentJidoWeb.Router do
     live_session :admin_control_plane,
       on_mount: @admin_on_mount do
       live "/dashboard", AdminDashboardLive, :index
+      live "/dashboard/chatops", ChatOpsLive, :index
     end
   end
 

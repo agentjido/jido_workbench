@@ -211,3 +211,36 @@ Added LiveView auth matrix + link presence assertions for `/dashboard`.
 4) blockers/assumptions
 - Sandbox blocks TCP sockets (affected Mix PubSub/locks and DB access). I used a local runtime Mix patch plus `MIX_OS_CONCURRENCY_LOCK=0` to run formatting, focused tests, and `precommit` successfully in this environment.
 - Assumed “site navigation/header” should include both marketing and docs header entry points for `/search`.
+1) changed files
+- `lib/agent_jido_web/router.ex:105`  
+Added `live "/dashboard/chatops", ChatOpsLive, :index` inside:
+`scope "/", AgentJidoWeb` + `pipe_through([:browser, :require_authenticated_user, :require_admin_user])` + existing `live_session :admin_control_plane`.  
+Reason: this is the authenticated admin scope/session, so `/dashboard/chatops` inherits both plug-level and LiveView on-mount admin gating.
+- `lib/agent_jido_web/live/chat_ops_live.ex:1`  
+New `AgentJidoWeb.ChatOpsLive` shell LiveView with scaffold sections: Room List, Messages, Action/Run Timeline, Guardrails.
+- `test/agent_jido_web/controllers/dev_routes_auth_test.exs:38`  
+Added router/auth matrix tests for `GET /dashboard/chatops` (unauth redirected, non-admin blocked, admin allowed).
+- `test/agent_jido_web/live/chat_ops_live_test.exs:1`  
+Added LiveView render sanity test for ChatOps shell scaffolding.
+
+2) tests/commands executed
+- `mix format`  
+Failed in sandbox due Mix PubSub TCP socket restriction (`:eperm`).
+- `MIX_OS_CONCURRENCY_LOCK=0 elixir -pa /tmp/mix_stub -S mix format`  
+Passed.
+- `MIX_OS_CONCURRENCY_LOCK=0 elixir -pa /tmp/mix_stub -S mix test test/agent_jido_web/controllers/dev_routes_auth_test.exs test/agent_jido_web/live/chat_ops_live_test.exs`  
+Failed: sandbox blocks TCP DB connection to Postgres (`localhost:5432`, `:eperm`).
+- `MIX_OS_CONCURRENCY_LOCK=0 elixir -pa /tmp/mix_stub -S mix precommit`  
+Passed.
+
+3) acceptance criteria coverage
+- Admin users can access `/dashboard/chatops`.  
+Covered by `test/agent_jido_web/controllers/dev_routes_auth_test.exs:58`.
+- Unauthenticated and non-admin users are blocked.  
+Covered by `test/agent_jido_web/controllers/dev_routes_auth_test.exs:39` and `test/agent_jido_web/controllers/dev_routes_auth_test.exs:46`.
+- ChatOps shell loads with expected section scaffolding.  
+Implemented in `lib/agent_jido_web/live/chat_ops_live.ex:19` and asserted in `test/agent_jido_web/live/chat_ops_live_test.exs:12`.
+
+4) blockers/assumptions
+- Blocker: this sandbox disallows TCP sockets, so DB-backed `mix test` execution could not complete (`Postgrex` connect `:eperm`).
+- Assumption: in a normal dev/CI environment with reachable Postgres, the added tests will run as written.
