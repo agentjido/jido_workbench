@@ -353,3 +353,33 @@ Implemented in `lib/agent_jido_web/live/chat_ops_live.ex:19` and asserted in `te
   - a local Mix pubsub shim via `elixir -pa /tmp/mix_shim/ebin -S mix ...`
   - `MIX_OS_CONCURRENCY_LOCK=0`
   - `Mix.Tasks.Test.run(..., ["--no-start", ...])` for targeted test execution without DB startup.
+1) changed files
+- `specs/content-governance.md`: updated `Last updated` date and added canonical ST-CONT-001 sections:
+  - `## 11) Canonical Content Publish Definition of Done (ST-CONT-001)`
+  - `### Minimum checks before changing draft flag`
+  - `## 12) Freshness Checklist and Release Cadence (ST-CONT-001)`
+  - downstream hard-gate reference notes
+- `specs/README.md`: added discoverability pointer to ST-CONT-001 DoD/freshness sections under content governance index entry.
+- `test/agent_jido/specs/content_governance_contract_test.exs` (new): docs contract tests for DoD, draft gate checks, freshness cadence, and downstream story references.
+
+2) tests/commands executed
+- `mix test test/agent_jido/specs/content_governance_contract_test.exs`  
+  - Passed: `4 tests, 0 failures`.
+- `mix precommit`  
+  - Failed repeatedly (15 attempts): Mix PubSub cannot open TCP socket in this sandbox (`Mix.Sync.PubSub.subscribe/1`, `:eperm`).
+- `mix format` / `mix format --check-formatted`  
+  - Same PubSub socket blocker (`:eperm`).
+
+3) acceptance criteria coverage
+- DoD and freshness checklist are documented and discoverable:
+  - Canonical DoD and freshness cadence are now in `specs/content-governance.md` (§11-§12).
+  - Discoverability added in `specs/README.md`.
+- Story cards for later content waves can reference this as a hard gate:
+  - Governance doc now explicitly defines ST-CONT-001 as a hard gate for ST-CONT-002..008.
+  - Test verifies downstream Epic 4 story files still reference ST-CONT-001 dependency/gate language.
+- Test case (“Documentation review against existing specs governance files”):
+  - Implemented via `test/agent_jido/specs/content_governance_contract_test.exs`.
+
+4) blockers/assumptions
+- Blocker: `mix precommit` cannot be completed in this environment because Mix PubSub requires opening a local TCP socket and sandbox policy returns `:eperm`.
+- Assumption: existing downstream story files already had valid ST-CONT-001 references; no content-wave implementation changes were made (only ST-CONT-001 governance/test work).

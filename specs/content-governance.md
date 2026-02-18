@@ -1,7 +1,7 @@
 # Content Governance Strategy
 
 Version: 2.0  
-Last updated: 2026-02-12  
+Last updated: 2026-02-18  
 Scope: Keep site content accurate as the Jido ecosystem evolves.
 
 ## 1) Problem Statement
@@ -130,3 +130,45 @@ Use this manual checklist for every page before publishing. This is the minimum 
 - **Training pages:** Learning outcomes are stated. Code is runnable in sequence. Links to prerequisite and next training module.
 - **Docs pages:** API references match current module signatures. Configuration keys are valid.
 - **Community pages:** Claims about adoption or usage are attributed. Case studies have explicit permission.
+
+## 11) Canonical Content Publish Definition of Done (ST-CONT-001)
+
+This section is the hard gate for changing content pages from draft to published state across Epic 4 story waves.
+
+### Required Definition of Done checks
+
+1. **Proof alignment requirement.** Claims that describe reliability, performance, adoption, production readiness, or governance must link to concrete proof assets (`specs/proof.md`, runnable examples, docs reference pages, or validated package metadata).
+2. **Placeholder prohibition.** Published pages cannot include placeholder text such as "TODO", "TBD", "Content coming soon", "Coming soon", "lorem ipsum", or equivalent draft markers.
+3. **Route/content sync requirement.** Frontmatter `path`, internal links, and CTA destinations must match currently routable paths in `lib/agent_jido_web/router.ex` and shipped content under `priv/`.
+4. **Draft-flag removal gate criteria.** `draft: false` is allowed only when all minimum checks below pass and are documented in the release review note.
+
+### Minimum checks before changing `draft: true` to `draft: false`
+
+1. Verify no placeholder markers remain in title, body, metadata, or CTA blocks.
+2. Verify all internal links and CTAs resolve to existing routes or published content paths.
+3. Verify claims are proof-backed and point to current evidence (or rewrite to remove unsupported claims).
+4. Verify code examples and configuration snippets still match current APIs/module signatures.
+5. Verify section template expectations are met (`specs/templates/*`) for page type.
+6. Record reviewer sign-off and date in the content release note/checklist for the page.
+
+## 12) Freshness Checklist and Release Cadence (ST-CONT-001)
+
+### Freshness checklist (required each release window)
+
+1. Revalidate proof links and claims against current `specs/proof.md`, package metadata, and public routes.
+2. Re-run placeholder scan for edited pages and linked dependency pages.
+3. Re-check route/content parity for any changed slugs, nav labels, and CTA targets.
+4. Reconfirm code/config snippets against current source signatures and package versions.
+5. Confirm each page has an explicit owner and last-reviewed date in the release log.
+6. Keep stale pages in draft (or move back to draft) until checks pass.
+
+### Release cadence process
+
+1. **Weekly freshness triage (Monday):** Review pages changed in the prior week and create fix tickets for drift findings.
+2. **Biweekly publish window (Wednesday):** Apply the DoD checks above, then approve `draft: false` transitions for eligible pages.
+3. **Monthly full sweep (first business week):** Sample every top-nav section for route parity, proof coverage, and stale claims; feed findings into next sprint.
+
+### Required references for downstream stories
+
+- Story cards ST-CONT-002 through ST-CONT-008 must treat this section as a hard gate before any draft-flag removal.
+- When those story cards reference "Apply ST-CONT-001 DoD," they refer specifically to §11 and §12 of this document.
