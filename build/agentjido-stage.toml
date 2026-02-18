@@ -12,8 +12,7 @@ swap_size_mb = 256
 size = 'shared-cpu-2x'
 
 [deploy]
-strategy = "bluegreen"
-release_command = "/app/bin/agent_jido eval AgentJido.Release.migrate"
+strategy = "immediate"
 
 [build]
 

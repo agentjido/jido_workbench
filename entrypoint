@@ -1,7 +1,6 @@
 #!/bin/bash
 set -e
 
-# Database migrations are executed in Fly release_command:
-# /app/bin/agent_jido eval AgentJido.Release.migrate
+/app/bin/agent_jido eval "AgentJido.Release.migrate()"
 
 /app/bin/hivemind /app/Procfile

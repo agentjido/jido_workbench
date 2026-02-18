@@ -14,8 +14,7 @@ size = 'shared-cpu-2x'
 [build]
 
 [deploy]
-strategy = "bluegreen"
-release_command = "/app/bin/agent_jido eval AgentJido.Release.migrate"
+strategy = "immediate"
 
 [processes]
 app = "/app/bin/entrypoint"
