@@ -23,8 +23,8 @@ defmodule Mix.Tasks.Agentjido.Signal do
       mix agentjido.signal run --mode weekly
       mix agentjido.signal run --mode monthly
 
-      # Send a raw signal to the orchestrator
-      mix agentjido.signal contentops.tick --data '{"mode":"weekly"}'
+      # Send a raw run request signal to the orchestrator
+      mix agentjido.signal contentops.run.requested --data '{"mode":"weekly"}'
 
       # Send a signal to a specific agent
       mix agentjido.signal some.signal.type --agent contentops --data '{"key":"value"}'
@@ -58,7 +58,9 @@ defmodule Mix.Tasks.Agentjido.Signal do
 
   @impl Mix.Task
   def run(args) do
+    bootstrap_runtime!()
     Mix.Task.run("app.start")
+    ensure_orchestrator_running!()
 
     {opts, argv, _invalid} = OptionParser.parse(args, strict: @switches)
 
@@ -66,6 +68,86 @@ defmodule Mix.Tasks.Agentjido.Signal do
       ["run" | _] -> handle_run(opts)
       [signal_type | _] -> handle_signal(signal_type, opts)
       [] -> handle_run(opts)
+    end
+  end
+
+  defp bootstrap_runtime! do
+    System.put_env("AGENTJIDO_RUNTIME_ENABLED", "true")
+  end
+
+  defp ensure_orchestrator_running! do
+    case Jido.AgentServer.status(AgentJido.ContentOps.OrchestratorServer) do
+      {:ok, _status} ->
+        :ok
+
+      {:error, :not_found} ->
+        ensure_runtime_processes!()
+
+      {:error, reason} ->
+        Mix.raise("""
+        ContentOps orchestrator is not available after startup (#{inspect(reason)}).
+        Ensure dependencies are started and runtime initialization is healthy.
+        """)
+    end
+  end
+
+  defp ensure_runtime_processes! do
+    ensure_jido_running!()
+    ensure_orchestrator_process!()
+
+    case Jido.AgentServer.status(AgentJido.ContentOps.OrchestratorServer) do
+      {:ok, _status} ->
+        :ok
+
+      {:error, reason} ->
+        Mix.raise("""
+        ContentOps orchestrator failed to start (#{inspect(reason)}).
+        Ensure runtime dependencies are healthy and retry.
+        """)
+    end
+  end
+
+  defp ensure_jido_running! do
+    registry_name = AgentJido.Jido.Registry
+
+    case Process.whereis(registry_name) do
+      pid when is_pid(pid) ->
+        :ok
+
+      nil ->
+        case AgentJido.Jido.start_link([]) do
+          {:ok, _pid} ->
+            :ok
+
+          {:error, {:already_started, _pid}} ->
+            if Process.whereis(registry_name) do
+              :ok
+            else
+              Mix.raise("AgentJido.Jido started without registry; restart runtime and retry.")
+            end
+
+          {:error, reason} ->
+            Mix.raise("Failed to start AgentJido.Jido: #{inspect(reason)}")
+        end
+    end
+  end
+
+  defp ensure_orchestrator_process! do
+    case Process.whereis(AgentJido.ContentOps.OrchestratorServer) do
+      pid when is_pid(pid) ->
+        :ok
+
+      nil ->
+        case Jido.AgentServer.start_link(
+               id: AgentJido.ContentOps.OrchestratorServer,
+               agent: AgentJido.ContentOps.OrchestratorAgent,
+               jido: AgentJido.Jido,
+               name: AgentJido.ContentOps.OrchestratorServer
+             ) do
+          {:ok, _pid} -> :ok
+          {:error, {:already_started, _pid}} -> :ok
+          {:error, reason} -> Mix.raise("Failed to start orchestrator server: #{inspect(reason)}")
+        end
     end
   end
 

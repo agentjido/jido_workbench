@@ -41,6 +41,7 @@ defmodule AgentJido.MixProject do
       {:floki, "~> 0.35"},
       {:lazy_html, ">= 0.0.0"},
       # HTTP / Server
+      {:plug, "~> 1.14"},
       {:plug_cowboy, "~> 2.5"},
       {:plug_canonical_host, "~> 2.0"},
       {:phoenix_seo, "~> 0.1.11"},
@@ -69,19 +70,20 @@ defmodule AgentJido.MixProject do
 
       # RAG
       {:arcana, "~> 1.3.3"},
+      {:leidenfold, "~> 0.3"},
 
       # Nx backend (Apple Silicon)
       {:emlx, "~> 0.2"},
 
       # AI / Jido
-      {:jido, github: "agentjido/jido", branch: "main", override: true},
+      {:jido, path: "../jido", override: true},
       {:jido_action, github: "agentjido/jido_action", branch: "main", override: true},
       {:jido_signal, github: "agentjido/jido_signal", branch: "main", override: true},
       {:jido_ai, github: "agentjido/jido_ai", branch: "main", override: true},
       {:jido_runic, github: "agentjido/jido_runic", branch: "main"},
       {:jido_live_dashboard, github: "agentjido/jido_live_dashboard", branch: "main"},
       {:libgraph, github: "zblanco/libgraph", branch: "zw/multigraph-indexes", override: true},
-      {:jido_studio, github: "agentjido/jido_studio", branch: "main"},
+      {:jido_studio, path: "../jido_studio"},
       {:jido_messaging, github: "agentjido/jido_messaging", branch: "main"},
       {:req_llm, github: "agentjido/req_llm", branch: "main", override: true},
       {:llm_db, github: "agentjido/llm_db", branch: "main", override: true},
@@ -122,6 +124,11 @@ defmodule AgentJido.MixProject do
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
       "assets.build": ["tailwind default", "esbuild default"],
       "assets.deploy": ["tailwind default --minify", "esbuild default --minify", "phx.digest"],
+      "arcana.refresh": [
+        "content.ingest.local --graph-concurrency 1",
+        "arcana.graph.detect_communities --quiet",
+        "arcana.graph.summarize_communities --concurrency 1"
+      ],
       s: ["agentjido.signal"],
       q: ["quality"],
       quality: [

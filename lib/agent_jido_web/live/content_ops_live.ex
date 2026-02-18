@@ -67,7 +67,7 @@ defmodule AgentJidoWeb.ContentOpsLive do
           </p>
         </div>
         <div class="flex items-center gap-3">
-          <.link navigate="/contentops/github" class="text-sm text-primary hover:text-primary/80 transition-colors">
+          <.link navigate="/dev/contentops/github" class="text-sm text-primary hover:text-primary/80 transition-colors">
             GitHub Issues &amp; PRs →
           </.link>
           <div :if={@running} class="flex items-center gap-2 text-sm text-amber-400">
@@ -290,7 +290,7 @@ defmodule AgentJidoWeb.ContentOpsLive do
       </div>
 
       <div :if={@runs == []} class="text-center py-8 text-muted-foreground text-sm">
-        No runs yet. Trigger a run above or use <code class="bg-elevated px-1.5 py-0.5 rounded text-xs">mix contentops.signal</code>
+        No runs yet. Trigger a run above or use <code class="bg-elevated px-1.5 py-0.5 rounded text-xs">mix agentjido.signal</code>
       </div>
 
       <div :if={@runs != []} class="space-y-3">

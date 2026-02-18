@@ -29,4 +29,8 @@ config :agent_jido, AgentJido.Repo,
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: 10
 
-config :arcana, embedder: AgentJido.ArcanaTestEmbedder
+config :arcana,
+  embedder: AgentJido.ArcanaTestEmbedder,
+  graph: [enabled: false]
+
+config :agent_jido, :dev_routes, true

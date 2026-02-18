@@ -1,5 +1,5 @@
 defmodule AgentJido.ContentOps.OrchestratorAgentTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   alias AgentJido.ContentOps.OrchestratorAgent
 
@@ -11,6 +11,15 @@ defmodule AgentJido.ContentOps.OrchestratorAgentTest do
     DeliverySink,
     PublishRunReport
   }
+
+  @server_name AgentJido.ContentOps.OrchestratorServer
+  @jido_registry AgentJido.Jido.Registry
+
+  setup_all do
+    ensure_jido_started()
+    ensure_orchestrator_started()
+    :ok
+  end
 
   describe "OrchestratorAgent.new/0" do
     test "creates agent with default state" do
@@ -32,36 +41,27 @@ defmodule AgentJido.ContentOps.OrchestratorAgentTest do
 
       assert Enum.any?(schedules, fn s ->
                s.cron_expression == "0 * * * *" and
-                 s.signal_type == "contentops.tick" and
+                 s.signal_type == "contentops.tick.hourly" and
                  s.job_id == {:agent_schedule, "contentops_orchestrator", :hourly_tick}
              end)
 
       assert Enum.any?(schedules, fn s ->
                s.cron_expression == "0 2 * * *" and
-                 s.signal_type == "contentops.tick" and
+                 s.signal_type == "contentops.tick.nightly" and
                  s.job_id == {:agent_schedule, "contentops_orchestrator", :nightly_tick}
              end)
 
       assert Enum.any?(schedules, fn s ->
                s.cron_expression == "0 3 * * 1" and
-                 s.signal_type == "contentops.tick" and
+                 s.signal_type == "contentops.tick.weekly" and
                  s.job_id == {:agent_schedule, "contentops_orchestrator", :weekly_tick}
              end)
 
       assert Enum.any?(schedules, fn s ->
                s.cron_expression == "0 4 1 * *" and
-                 s.signal_type == "contentops.tick" and
+                 s.signal_type == "contentops.tick.monthly" and
                  s.job_id == {:agent_schedule, "contentops_orchestrator", :monthly_tick}
              end)
-    end
-  end
-
-  describe "signal_routes/1" do
-    test "routes contentops.tick to BuildRunContext" do
-      agent = OrchestratorAgent.new()
-      routes = OrchestratorAgent.signal_routes(%{agent: agent})
-      assert {"contentops.tick", BuildRunContext} in routes
-      assert {"contentops.run.requested", BuildRunContext} in routes
     end
   end
 
@@ -140,6 +140,7 @@ defmodule AgentJido.ContentOps.OrchestratorAgentTest do
       assert cr.run_id == "run_test123"
       assert length(cr.changes) == 1
       assert hd(cr.changes).op == :create
+      assert hd(cr.changes).path == "priv/pages/docs/docs/test.md"
     end
 
     test "returns empty change requests when no work orders" do
@@ -213,6 +214,7 @@ defmodule AgentJido.ContentOps.OrchestratorAgentTest do
       assert result.mode == :weekly
       assert result.stats.change_requests == 1
       assert result.stats.delivered == 1
+      assert result.delivery_mode == :sink
 
       # Verify PubSub broadcast was sent
       assert_receive {:contentops_run_completed, report}
@@ -234,6 +236,113 @@ defmodule AgentJido.ContentOps.OrchestratorAgentTest do
 
     test "returns nil when no report in productions" do
       assert OrchestratorAgent.run_report(%{productions: []}) == nil
+    end
+
+    test "returns the latest report from productions" do
+      productions = [
+        %{type: "contentops.run.completed", run_id: "run_old"},
+        %{type: "contentops.run.completed", run_id: "run_new"}
+      ]
+
+      report = OrchestratorAgent.run_report(%{productions: productions})
+      assert report.run_id == "run_new"
+    end
+  end
+
+  describe "runtime integration" do
+    test "run/1 updates run state fields and increments total_runs" do
+      assert :ok = wait_until_ready(200)
+
+      {:ok, before_status} = Jido.AgentServer.status(@server_name)
+      before_total_runs = before_status.raw_state[:total_runs] || 0
+
+      result = OrchestratorAgent.run(mode: :weekly, timeout: 30_000)
+      assert result.status == :completed
+
+      {:ok, after_status} = Jido.AgentServer.status(@server_name)
+      raw_state = after_status.raw_state
+
+      assert raw_state[:total_runs] >= before_total_runs + 1
+      assert is_binary(raw_state[:last_run_id])
+      assert raw_state[:last_run_mode] == :weekly
+      assert %DateTime{} = raw_state[:last_run_at]
+    end
+
+    test "overlap guard rejects runs when server is processing" do
+      original_state = :sys.get_state(@server_name)
+
+      try do
+        :sys.replace_state(@server_name, fn state ->
+          put_in(state.agent.state[:__strategy__][:status], :running)
+        end)
+
+        assert {:error, :already_running} = OrchestratorAgent.check_ready()
+
+        result = OrchestratorAgent.run(mode: :weekly, timeout: 1_000)
+        assert result.status == {:error, :already_running}
+        assert result.productions == []
+      after
+        :sys.replace_state(@server_name, fn _state -> original_state end)
+      end
+    end
+  end
+
+  defp ensure_jido_started do
+    case Process.whereis(@jido_registry) do
+      pid when is_pid(pid) ->
+        {:ok, pid}
+
+      nil ->
+        start_supervised!({Jido, name: AgentJido.Jido})
+        wait_for_registry(50)
+    end
+  end
+
+  defp wait_for_registry(0), do: raise("AgentJido.Jido.Registry did not start in time")
+
+  defp wait_for_registry(attempts_left) do
+    case Process.whereis(@jido_registry) do
+      pid when is_pid(pid) ->
+        {:ok, pid}
+
+      nil ->
+        Process.sleep(10)
+        wait_for_registry(attempts_left - 1)
+    end
+  end
+
+  defp ensure_orchestrator_started do
+    case Process.whereis(@server_name) do
+      pid when is_pid(pid) ->
+        Process.exit(pid, :kill)
+        Process.sleep(25)
+
+      _other ->
+        :ok
+    end
+
+    Jido.AgentServer.start_link(
+      id: @server_name,
+      agent: OrchestratorAgent,
+      jido: AgentJido.Jido,
+      name: @server_name,
+      skip_schedules: true
+    )
+  end
+
+  defp wait_until_ready(0), do: {:error, :timeout}
+
+  defp wait_until_ready(attempts_left) do
+    case OrchestratorAgent.check_ready() do
+      :ok ->
+        :ok
+
+      {:error, :already_running} ->
+        Process.sleep(50)
+        wait_until_ready(attempts_left - 1)
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 end

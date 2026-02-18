@@ -30,8 +30,7 @@ defmodule AgentJidoWeb.Router do
     live "/getting-started", JidoGettingStartedLive, :index
     live "/examples", JidoExamplesLive, :index
     live "/examples/:slug", JidoExampleLive, :show
-    live "/contentops", ContentOpsLive, :index
-    live "/contentops/github", ContentOpsGithubLive, :index
+
     live "/features", JidoFeaturesLive, :index
     live "/partners", JidoFeaturesLive, :index
     get("/discord", PageController, :discord)
@@ -67,17 +66,26 @@ defmodule AgentJidoWeb.Router do
     get("/sitemap.xml", SitemapController, :index)
   end
 
-  if Application.compile_env(:agent_jido, :dev_routes) do
-    import Phoenix.LiveDashboard.Router
+  # if Application.compile_env(:agent_jido, :dev_routes) do
+  import Phoenix.LiveDashboard.Router
 
-    scope "/dev" do
-      pipe_through(:browser)
+  scope "/dev" do
+    pipe_through(:browser)
+    live "/contentops", ContentOpsLive, :index
+    live "/contentops/github", ContentOpsGithubLive, :index
+    live_dashboard("/dashboard", metrics: AgentJidoWeb.Telemetry, additional_pages: JidoLiveDashboard.pages())
+    jido_studio("/jido", host_app_js_path: "/assets/app.js")
+    forward("/mailbox", Plug.Swoosh.MailboxPreview)
 
-      live_dashboard("/dashboard", metrics: AgentJidoWeb.Telemetry, additional_pages: JidoLiveDashboard.pages())
-      jido_studio("/jido", host_app_js_path: "/assets/app.js")
-      forward("/mailbox", Plug.Swoosh.MailboxPreview)
-
-      arcana_dashboard("/arcana", repo: AgentJido.Repo)
-    end
+    get("/arcana", AgentJidoWeb.PageController, :arcana_redirect)
+    get("/arcana/*path", AgentJidoWeb.PageController, :arcana_redirect)
   end
+
+  scope "/" do
+    pipe_through(:browser)
+    get("/assets/js/app.js", AgentJidoWeb.PageController, :arcana_legacy_app_js)
+    arcana_dashboard("/arcana", repo: AgentJido.Repo)
+  end
+
+  # end
 end

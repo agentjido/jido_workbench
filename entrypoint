@@ -1,9 +1,7 @@
 #!/bin/bash
 set -e
 
-# No Ecto, No Migration
-if [ "$PRIMARY_REGION" == "$FLY_REGION" ]; then
-  /app/bin/migrate
-fi
+# Database migrations and Arcana indexing are executed in Fly release_command:
+# /app/bin/agent_jido eval AgentJido.Release.migrate_and_ingest
 
 /app/bin/hivemind /app/Procfile

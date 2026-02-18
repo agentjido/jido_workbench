@@ -7,6 +7,8 @@ defmodule Mix.Tasks.Content.Ingest.Local do
       mix content.ingest.local
       mix content.ingest.local --dry-run
       mix content.ingest.local --only docs,blog
+      mix content.ingest.local --no-graph
+      mix content.ingest.local --graph-concurrency 1
   """
   use Mix.Task
 
@@ -15,7 +17,7 @@ defmodule Mix.Tasks.Content.Ingest.Local do
 
   @shortdoc "Ingest local documentation/blog/ecosystem content into Arcana"
 
-  @switches [dry_run: :boolean, only: :string]
+  @switches [dry_run: :boolean, only: :string, graph: :boolean, graph_concurrency: :integer]
 
   @impl Mix.Task
   def run(args) do
@@ -25,13 +27,24 @@ defmodule Mix.Tasks.Content.Ingest.Local do
 
     only = parse_only(opts[:only])
     dry_run = Keyword.get(opts, :dry_run, false)
+    graph = Keyword.get(opts, :graph)
+    graph_concurrency = Keyword.get(opts, :graph_concurrency)
 
-    summary =
-      ContentIngest.sync(
+    if not is_nil(graph_concurrency) and (not is_integer(graph_concurrency) or graph_concurrency <= 0) do
+      Mix.raise("--graph-concurrency must be a positive integer")
+    end
+
+    sync_opts =
+      [
         repo: AgentJido.Repo,
         dry_run: dry_run,
         only: only
-      )
+      ]
+      |> maybe_put_graph(graph)
+      |> maybe_put_graph_concurrency(graph_concurrency)
+
+    summary =
+      ContentIngest.sync(sync_opts)
 
     print_summary(summary)
 
@@ -69,6 +82,8 @@ defmodule Mix.Tasks.Content.Ingest.Local do
   defp print_summary(summary) do
     Mix.shell().info("Arcana local ingestion summary")
     Mix.shell().info("mode: #{summary.mode}")
+    Mix.shell().info("graph: #{summary.graph}")
+    Mix.shell().info("graph_concurrency: #{summary.graph_concurrency}")
     Mix.shell().info("collections: #{Enum.join(summary.collections, ", ")}")
     Mix.shell().info("sources: #{summary.total_sources}")
     Mix.shell().info("inserted: #{summary.inserted}")
@@ -82,4 +97,12 @@ defmodule Mix.Tasks.Content.Ingest.Local do
       Mix.shell().error("  - #{source_id}: #{inspect(reason)}")
     end)
   end
+
+  defp maybe_put_graph(opts, value) when is_boolean(value), do: Keyword.put(opts, :graph, value)
+  defp maybe_put_graph(opts, _value), do: opts
+
+  defp maybe_put_graph_concurrency(opts, value) when is_integer(value),
+    do: Keyword.put(opts, :graph_concurrency, value)
+
+  defp maybe_put_graph_concurrency(opts, _value), do: opts
 end

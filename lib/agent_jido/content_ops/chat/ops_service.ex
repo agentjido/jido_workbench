@@ -25,25 +25,32 @@ defmodule AgentJido.ContentOps.Chat.OpsService do
   def run(mode, actor_context) when mode in [:hourly, :nightly, :weekly, :monthly] do
     log_mutation(:info, :mutation_attempted, %{action: :run, mode: mode})
 
-    with :ok <- authorize(actor_context) do
-      _ =
-        Task.start(fn ->
-          _ = run_fun().(mode)
-        end)
-
+    with :ok <- authorize(actor_context),
+         :ok <- ensure_orchestrator_ready(),
+         {:ok, _pid} <- start_run_task(mode) do
       emit_metric([:contentops, :chatops, :mutation, :total], %{action: :run, mode: mode})
       log_mutation(:info, :mutation_succeeded, %{action: :run, mode: mode})
 
-      {:ok,
-       %{
-         action: :run_started,
-         mode: mode,
-         message: "Started ContentOps #{mode} run."
-       }}
+      {:ok, %{action: :run_started, mode: mode, message: "Started ContentOps #{mode} run."}}
     else
-      {:error, reason} ->
+      {:error, reason} when reason in [:unauthorized, :mutations_disabled] ->
         emit_metric([:contentops, :chatops, :mutation, :denied], %{action: :run, reason: reason})
         log_mutation(:warning, :mutation_denied, %{action: :run, mode: mode, reason: reason})
+        {:error, reason}
+
+      {:error, :already_running} ->
+        emit_metric([:contentops, :chatops, :mutation, :denied], %{action: :run, reason: :already_running})
+        log_mutation(:info, :mutation_denied, %{action: :run, mode: mode, reason: :already_running})
+        {:error, :already_running}
+
+      {:error, :orchestrator_unavailable} ->
+        emit_metric([:contentops, :chatops, :orchestrator, :error], %{action: :run, reason: :unavailable})
+        log_mutation(:warning, :mutation_failed, %{action: :run, mode: mode, reason: :orchestrator_unavailable})
+        {:error, :orchestrator_unavailable}
+
+      {:error, reason} ->
+        emit_metric([:contentops, :chatops, :orchestrator, :error], %{action: :run, reason: reason})
+        log_mutation(:warning, :mutation_failed, %{action: :run, mode: mode, reason: reason})
         {:error, reason}
     end
   end
@@ -355,6 +362,30 @@ defmodule AgentJido.ContentOps.Chat.OpsService do
   defp run_fun do
     Application.get_env(:agent_jido, __MODULE__, [])
     |> Keyword.get(:run_fun, fn mode -> OrchestratorAgent.run(mode: mode, timeout: 30_000) end)
+  end
+
+  defp task_supervisor do
+    Application.get_env(:agent_jido, __MODULE__, [])
+    |> Keyword.get(:task_supervisor, AgentJido.ContentOps.TaskSupervisor)
+  end
+
+  defp start_run_task(mode) do
+    Task.Supervisor.start_child(task_supervisor(), fn ->
+      _ = run_fun().(mode)
+    end)
+  end
+
+  defp ensure_orchestrator_ready do
+    case orchestrator_ready_fun().() do
+      :ok -> :ok
+      {:error, :already_running} -> {:error, :already_running}
+      {:error, _reason} -> {:error, :orchestrator_unavailable}
+    end
+  end
+
+  defp orchestrator_ready_fun do
+    Application.get_env(:agent_jido, __MODULE__, [])
+    |> Keyword.get(:orchestrator_ready_fun, fn -> OrchestratorAgent.check_ready() end)
   end
 
   defp emit_metric(event_name, metadata) do

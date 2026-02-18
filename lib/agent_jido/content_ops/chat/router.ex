@@ -140,6 +140,12 @@ defmodule AgentJido.ContentOps.Chat.Router do
       {:error, :mutations_disabled} ->
         {:reply, "Chat mutation tools are disabled in this environment."}
 
+      {:error, :already_running} ->
+        {:reply, "ContentOps is already running. Wait for the current run to finish."}
+
+      {:error, :orchestrator_unavailable} ->
+        {:reply, "ContentOps orchestrator is unavailable right now."}
+
       {:error, reason} ->
         {:reply, "Failed to start ContentOps run: #{inspect(reason)}"}
     end

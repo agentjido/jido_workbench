@@ -38,7 +38,7 @@ defmodule AgentJido.ContentOps.Actions.CollectChangeRequests do
       changes: [
         %{
           op: :create,
-          path: "priv/documentation/docs/#{work_order.slug}.md",
+          path: "priv/pages/docs/#{work_order.slug}.md",
           content: stub_content(work_order),
           rationale: "Spike: synthetic content for #{work_order.kind} work order #{work_order.id}"
         }

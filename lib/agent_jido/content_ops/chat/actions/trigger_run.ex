@@ -30,6 +30,12 @@ defmodule AgentJido.ContentOps.Chat.Actions.TriggerRun do
       {:error, :mutations_disabled} ->
         {:ok, %{result: "Chat mutation tools are disabled in this environment.", error: :mutations_disabled}}
 
+      {:error, :already_running} ->
+        {:ok, %{result: "ContentOps is already running. Wait for the current run to finish.", error: :already_running}}
+
+      {:error, :orchestrator_unavailable} ->
+        {:ok, %{result: "ContentOps orchestrator is unavailable right now.", error: :orchestrator_unavailable}}
+
       {:error, reason} ->
         {:ok, %{result: "Failed to start run: #{inspect(reason)}", error: inspect(reason)}}
     end

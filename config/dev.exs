@@ -23,6 +23,7 @@ config :phoenix_live_view,
   debug_heex_annotations: true,
   debug_attributes: true
 
+config :agent_jido, :agent_runtime_enabled, true
 # ## SSL Support
 #
 # In order to use HTTPS in development, a self-signed

@@ -38,6 +38,9 @@ defmodule AgentJido.ContentOps.Chat.OpsServiceTest do
   end
 
   setup do
+    task_supervisor = AgentJido.ContentOps.Chat.OpsServiceTest.TaskSupervisor
+    start_supervised!({Task.Supervisor, name: task_supervisor})
+
     original_chat_cfg = Application.get_env(:agent_jido, AgentJido.ContentOps.Chat)
     original_service_cfg = Application.get_env(:agent_jido, OpsService)
     original_gh_stub = Application.get_env(:agent_jido, GithubClientStub)
@@ -60,6 +63,8 @@ defmodule AgentJido.ContentOps.Chat.OpsServiceTest do
       github_client: GithubClientStub,
       resolver: ResolverStub,
       retriever: RetrieverStub,
+      task_supervisor: task_supervisor,
+      orchestrator_ready_fun: fn -> :ok end,
       run_fun: fn mode ->
         send(self(), {:run_called, mode})
         %{status: :completed}
@@ -99,6 +104,22 @@ defmodule AgentJido.ContentOps.Chat.OpsServiceTest do
   test "run/2 denies non-allowlisted actor" do
     actor = %{channel: :telegram, external_user_id: "999"}
     assert {:error, :unauthorized} = OpsService.run(:weekly, actor)
+  end
+
+  test "run/2 returns already_running when orchestrator is busy" do
+    cfg = Application.get_env(:agent_jido, OpsService, [])
+    Application.put_env(:agent_jido, OpsService, Keyword.put(cfg, :orchestrator_ready_fun, fn -> {:error, :already_running} end))
+
+    actor = %{channel: :telegram, external_user_id: "111"}
+    assert {:error, :already_running} = OpsService.run(:weekly, actor)
+  end
+
+  test "run/2 returns orchestrator_unavailable when readiness check fails" do
+    cfg = Application.get_env(:agent_jido, OpsService, [])
+    Application.put_env(:agent_jido, OpsService, Keyword.put(cfg, :orchestrator_ready_fun, fn -> {:error, :not_found} end))
+
+    actor = %{channel: :telegram, external_user_id: "111"}
+    assert {:error, :orchestrator_unavailable} = OpsService.run(:weekly, actor)
   end
 
   test "create_issue/2 creates issue with base and subtype labels" do

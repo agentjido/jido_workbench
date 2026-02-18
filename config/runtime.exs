@@ -29,12 +29,26 @@ config :agent_jido,
   enable_analytics: env!("ENABLE_ANALYTICS", :boolean, false),
   discord_invite_link: env!("DISCORD_INVITE_LINK", :string, "https://discord.gg/dMh8CqEH8Q")
 
-contentops_chat_enabled =
+contentops_chat_config =
   case Application.get_env(:agent_jido, AgentJido.ContentOps.Chat, []) do
-    cfg when is_map(cfg) -> Map.get(cfg, :enabled, false)
-    cfg when is_list(cfg) -> Keyword.get(cfg, :enabled, false)
-    _other -> false
+    cfg when is_map(cfg) -> Map.to_list(cfg)
+    cfg when is_list(cfg) -> cfg
+    _other -> []
   end
+
+contentops_chat_enabled_in_config = Keyword.get(contentops_chat_config, :enabled, false)
+argv = System.argv()
+chat_allowed_for_task? = Enum.any?(argv, &(&1 == "phx.server")) or System.get_env("PHX_SERVER") in ~w(true 1)
+
+contentops_chat_enabled =
+  env!("CONTENTOPS_CHAT_ENABLED", :boolean, contentops_chat_enabled_in_config) and
+    chat_allowed_for_task?
+
+if contentops_chat_enabled != contentops_chat_enabled_in_config do
+  config :agent_jido,
+         AgentJido.ContentOps.Chat,
+         Keyword.put(contentops_chat_config, :enabled, contentops_chat_enabled)
+end
 
 if contentops_chat_enabled do
   telegram_token =
@@ -54,25 +68,118 @@ if contentops_chat_enabled do
     gateway_intents: [:guilds, :guild_messages, :message_content, :direct_messages]
 end
 
-if llm = System.get_env("ARCANA_LLM") do
-  config :arcana, llm: llm
+if env!("CONTENTOPS_GITHUB_MUTATIONS", :boolean, false) do
+  github_live_cfg =
+    case Application.get_env(:agent_jido, AgentJidoWeb.ContentOpsGithubLive, []) do
+      cfg when is_map(cfg) -> Map.to_list(cfg)
+      cfg when is_list(cfg) -> cfg
+      _other -> []
+    end
+
+  config :agent_jido,
+         AgentJidoWeb.ContentOpsGithubLive,
+         Keyword.put(github_live_cfg, :github_mutations_enabled, true)
 end
 
-if arcana_embedder = System.get_env("ARCANA_EMBEDDER") do
+openai_api_key = env!("OPENAI_API_KEY", :string, nil)
+
+arcana_llm =
+  env!("ARCANA_LLM", :string, nil) ||
+    if(config_env() == :dev and openai_api_key, do: "openai:gpt-4o-mini")
+
+if arcana_llm do
+  config :arcana, llm: arcana_llm
+end
+
+if is_binary(arcana_llm) and String.starts_with?(arcana_llm, "openai:") and is_nil(openai_api_key) do
+  raise """
+  ARCANA_LLM is configured to use OpenAI (#{inspect(arcana_llm)}) but OPENAI_API_KEY is missing.
+  """
+end
+
+if arcana_embedder = env!("ARCANA_EMBEDDER", :string, nil) do
   case String.downcase(arcana_embedder) do
     "openai" ->
       config :arcana, embedder: :openai
 
     "local" ->
-      config :arcana, embedder: :local
+      raise """
+      ARCANA_EMBEDDER=local is disabled for this project.
+      Arcana must use remote embeddings (e.g. OpenAI) to avoid Nx/EXLA runtime dependencies.
+      """
 
     other ->
       raise """
       environment variable ARCANA_EMBEDDER has invalid value: #{inspect(other)}.
-      Supported values: "openai", "local"
+      Supported values: "openai"
       """
   end
 end
+
+arcana_embedder = Application.get_env(:arcana, :embedder, :openai)
+
+local_arcana_embedder? =
+  case arcana_embedder do
+    :local -> true
+    {:local, _opts} -> true
+    Arcana.Embedder.Local -> true
+    {Arcana.Embedder.Local, _opts} -> true
+    _other -> false
+  end
+
+if local_arcana_embedder? do
+  raise """
+  Arcana local embedders are disabled in this project.
+  Configure Arcana with :openai (or a remote custom embedder), not :local.
+  """
+end
+
+graph_resolution =
+  case env!("ARCANA_GRAPH_RESOLUTION", :string, nil) do
+    nil ->
+      1.0
+
+    value ->
+      case Float.parse(value) do
+        {resolution, ""} ->
+          resolution
+
+        _other ->
+          raise """
+          environment variable ARCANA_GRAPH_RESOLUTION has invalid value: #{inspect(value)}.
+          Expected a float value, e.g. "1.0".
+          """
+      end
+  end
+
+graph_enabled_requested = env!("ARCANA_GRAPH_ENABLED", :boolean, config_env() == :dev)
+graph_enabled = graph_enabled_requested and not is_nil(arcana_llm)
+
+if graph_enabled_requested and is_nil(arcana_llm) do
+  IO.warn("""
+  ARCANA_GRAPH_ENABLED is true but ARCANA_LLM is not configured.
+  Graph extraction has been disabled to avoid local Nx/EXLA extractors.
+  """)
+end
+
+graph_config = [
+  enabled: graph_enabled,
+  community_levels: env!("ARCANA_GRAPH_COMMUNITY_LEVELS", :integer, if(config_env() == :prod, do: 3, else: 5)),
+  resolution: graph_resolution
+]
+
+graph_config =
+  if graph_config[:enabled] do
+    graph_config
+    |> Keyword.put(:extractor, Arcana.Graph.GraphExtractor.LLM)
+    |> Keyword.put(:entity_extractor, Arcana.Graph.EntityExtractor.LLM)
+    |> Keyword.put(:relationship_extractor, Arcana.Graph.RelationshipExtractor.LLM)
+    |> Keyword.put_new(:community_summarizer, Arcana.Graph.CommunitySummarizer.LLM)
+  else
+    graph_config
+  end
+
+config :arcana, graph: graph_config
 
 if config_env() == :prod do
   database_url =
@@ -122,7 +229,7 @@ if config_env() == :prod do
       _other -> false
     end
 
-  if openai_embedder? and is_nil(System.get_env("OPENAI_API_KEY")) do
+  if openai_embedder? and is_nil(openai_api_key) do
     raise """
     environment variable OPENAI_API_KEY is required when Arcana embedder is :openai.
     """

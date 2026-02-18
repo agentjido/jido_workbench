@@ -35,7 +35,8 @@ defmodule AgentJidoWeb.ContentOpsGithubLive do
       owner: "agentjido",
       repo: "agentjido_xyz",
       cache_ttl_minutes: 15,
-      contentops_timeout_ms: 60_000
+      contentops_timeout_ms: 60_000,
+      github_mutations_enabled: false
     }
 
     app_config = Application.get_env(:agent_jido, __MODULE__, [])
@@ -58,6 +59,7 @@ defmodule AgentJidoWeb.ContentOpsGithubLive do
       socket
       |> assign(:owner, owner)
       |> assign(:repo, repo)
+      |> assign(:github_mutations_enabled, config(:github_mutations_enabled) == true)
       |> assign(:token, token)
       |> assign(:issues, nil)
       |> assign(:prs, nil)
@@ -91,7 +93,7 @@ defmodule AgentJidoWeb.ContentOpsGithubLive do
     <div class="container max-w-5xl mx-auto px-6 py-12 space-y-6">
       <%!-- Nav strip --%>
       <div class="flex items-center gap-3 text-sm">
-        <.link navigate="/contentops" class="text-primary hover:text-primary/80 transition-colors">
+        <.link navigate="/dev/contentops" class="text-primary hover:text-primary/80 transition-colors">
           ← Dashboard
         </.link>
       </div>
@@ -181,7 +183,8 @@ defmodule AgentJidoWeb.ContentOpsGithubLive do
             phx-click="solve_issue"
             phx-value-number={issue["number"]}
             phx-value-title={issue["title"]}
-            class="shrink-0 text-xs px-3 py-1.5 rounded-md border border-border bg-card text-foreground hover:bg-elevated transition-colors"
+            disabled={not @github_mutations_enabled}
+            class="shrink-0 text-xs px-3 py-1.5 rounded-md border border-border bg-card text-foreground hover:bg-elevated transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             🤖 Solve with ContentOps
           </button>
@@ -232,7 +235,8 @@ defmodule AgentJidoWeb.ContentOpsGithubLive do
             phx-click="merge_pr"
             phx-value-number={pr["number"]}
             phx-value-title={pr["title"]}
-            class="shrink-0 text-xs px-3 py-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
+            disabled={not @github_mutations_enabled}
+            class="shrink-0 text-xs px-3 py-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Merge to main
           </button>
@@ -281,39 +285,47 @@ defmodule AgentJidoWeb.ContentOpsGithubLive do
   end
 
   def handle_event("merge_pr", %{"number" => number_str, "title" => title}, socket) do
-    number = String.to_integer(number_str)
-    token = socket.assigns.token
-    owner = socket.assigns.owner
-    repo = socket.assigns.repo
+    if not socket.assigns.github_mutations_enabled do
+      {:noreply, put_flash(socket, :error, "GitHub mutations are disabled for this environment.")}
+    else
+      number = String.to_integer(number_str)
+      token = socket.assigns.token
+      owner = socket.assigns.owner
+      repo = socket.assigns.repo
 
-    task =
-      Task.async(fn ->
-        client = Tentacat.Client.new(%{access_token: token})
-        Tentacat.Pulls.merge(client, owner, repo, number, %{})
-      end)
+      task =
+        Task.async(fn ->
+          client = Tentacat.Client.new(%{access_token: token})
+          Tentacat.Pulls.merge(client, owner, repo, number, %{})
+        end)
 
-    socket =
-      socket
-      |> assign(:merge_task_ref, {task.ref, number, title})
-      |> put_flash(:info, "Merging PR ##{number}…")
+      socket =
+        socket
+        |> assign(:merge_task_ref, {task.ref, number, title})
+        |> put_flash(:info, "Merging PR ##{number}…")
 
-    {:noreply, socket}
+      {:noreply, socket}
+    end
   end
 
   def handle_event("solve_issue", %{"number" => number_str, "title" => title}, socket) do
-    timeout = config(:contentops_timeout_ms)
+    if not socket.assigns.github_mutations_enabled do
+      {:noreply, put_flash(socket, :error, "GitHub mutations are disabled for this environment.")}
+    else
+      timeout = config(:contentops_timeout_ms)
 
-    task =
-      Task.async(fn ->
-        OrchestratorAgent.run(mode: :weekly, timeout: timeout)
-      end)
+      task =
+        Task.async(fn ->
+          OrchestratorAgent.run(mode: :weekly, timeout: timeout)
+        end)
 
-    socket =
-      socket
-      |> assign(:solve_task_ref, {task.ref, String.to_integer(number_str), title})
-      |> put_flash(:info, "🤖 ContentOps triggered for issue ##{number_str}: #{title}")
+      socket =
+        socket
+        |> assign(:solve_task_ref, {task.ref, String.to_integer(number_str), title})
+        |> put_flash(:info, "🤖 ContentOps triggered for issue ##{number_str}: #{title}")
 
-    {:noreply, socket}
+      {:noreply, socket}
+    end
   end
 
   # ── Info handlers ──────────────────────────────────────────────────

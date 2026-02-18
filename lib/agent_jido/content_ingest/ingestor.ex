@@ -17,6 +17,8 @@ defmodule AgentJido.ContentIngest.Ingestor do
 
     * `:repo` - Ecto repo (defaults to Arcana `:repo` config)
     * `:dry_run` - If true, computes actions without writing
+    * `:graph` - Toggle Arcana graph extraction (default: auto from config + LLM availability)
+    * `:graph_concurrency` - Arcana graph extraction concurrency (default: `:agent_jido, :arcana_graph_ingest_concurrency`)
     * `:only` - Scope list from `Inventory.valid_scopes/0`
     * `:sources` - Explicit source list (for tests)
     * `:managed_collections` - Explicit collection names to reconcile stale docs
@@ -27,6 +29,8 @@ defmodule AgentJido.ContentIngest.Ingestor do
   def sync(opts \\ []) do
     repo = require_repo!(opts)
     dry_run = Keyword.get(opts, :dry_run, false)
+    graph = resolve_graph_option(opts)
+    graph_concurrency = resolve_graph_concurrency(opts)
     sources = Keyword.get(opts, :sources, Inventory.build(only: Keyword.get(opts, :only)))
 
     validate_sources!(sources)
@@ -50,10 +54,14 @@ defmodule AgentJido.ContentIngest.Ingestor do
       |> MapSet.new()
 
     summary =
-      Enum.reduce(sources, base_summary(sources, collection_names, dry_run), fn source, acc ->
-        docs = Map.get(existing_by_source, source.source_id, [])
-        sync_source(repo, source, docs, acc)
-      end)
+      Enum.reduce(
+        sources,
+        base_summary(sources, collection_names, dry_run, graph, graph_concurrency),
+        fn source, acc ->
+          docs = Map.get(existing_by_source, source.source_id, [])
+          sync_source(repo, source, docs, acc)
+        end
+      )
 
     stale_docs = Enum.reject(existing_docs, &MapSet.member?(source_ids, &1.source_id))
     stale_ids = Enum.map(stale_docs, & &1.id)
@@ -99,7 +107,13 @@ defmodule AgentJido.ContentIngest.Ingestor do
   end
 
   defp insert_source(repo, source, summary) do
-    case maybe_ingest_source(repo, source, summary.dry_run) do
+    case maybe_ingest_source(
+           repo,
+           source,
+           summary.dry_run,
+           summary.graph,
+           summary.graph_concurrency
+         ) do
       :ok ->
         Map.update!(summary, :inserted, &(&1 + 1))
 
@@ -109,7 +123,13 @@ defmodule AgentJido.ContentIngest.Ingestor do
   end
 
   defp update_source(repo, source, docs, summary) do
-    case maybe_ingest_source(repo, source, summary.dry_run) do
+    case maybe_ingest_source(
+           repo,
+           source,
+           summary.dry_run,
+           summary.graph,
+           summary.graph_concurrency
+         ) do
       :ok ->
         old_ids = Enum.map(docs, & &1.id)
         maybe_delete_documents(repo, old_ids, summary.dry_run)
@@ -127,16 +147,23 @@ defmodule AgentJido.ContentIngest.Ingestor do
     Map.update!(summary, :failed, &[{source_id, reason} | &1])
   end
 
-  defp maybe_ingest_source(_repo, _source, true), do: :ok
+  defp maybe_ingest_source(_repo, _source, true, _graph, _graph_concurrency), do: :ok
 
-  defp maybe_ingest_source(repo, source, false) do
+  defp maybe_ingest_source(repo, source, false, graph, graph_concurrency) do
     options = [
       repo: repo,
       source_id: source.source_id,
       metadata: source.metadata,
       collection: %{name: source.collection, description: source.collection_description},
-      graph: false
+      graph: graph
     ]
+
+    options =
+      if graph do
+        Keyword.put(options, :concurrency, graph_concurrency)
+      else
+        options
+      end
 
     case Arcana.ingest(source.text, options) do
       {:ok, _document} -> :ok
@@ -179,10 +206,12 @@ defmodule AgentJido.ContentIngest.Ingestor do
     repo.all(query)
   end
 
-  defp base_summary(sources, collection_names, dry_run) do
+  defp base_summary(sources, collection_names, dry_run, graph, graph_concurrency) do
     %{
       mode: if(dry_run, do: :dry_run, else: :apply),
       dry_run: dry_run,
+      graph: graph,
+      graph_concurrency: graph_concurrency,
       total_sources: length(sources),
       collections: collection_names,
       inserted: 0,
@@ -191,6 +220,56 @@ defmodule AgentJido.ContentIngest.Ingestor do
       deleted: 0,
       failed: []
     }
+  end
+
+  defp resolve_graph_option(opts) do
+    llm_configured? = not is_nil(Application.get_env(:arcana, :llm))
+
+    case Keyword.fetch(opts, :graph) do
+      {:ok, value} when is_boolean(value) ->
+        if value and not llm_configured? do
+          raise ArgumentError,
+                "graph: true requires Arcana LLM configuration (set ARCANA_LLM/OPENAI_API_KEY) or pass graph: false"
+        end
+
+        value
+
+      {:ok, other} ->
+        raise ArgumentError, "invalid graph option: #{inspect(other)} (expected boolean)"
+
+      :error ->
+        graph_enabled_in_config?() and llm_configured?
+    end
+  end
+
+  defp graph_enabled_in_config? do
+    case Application.get_env(:arcana, :graph, []) do
+      cfg when is_map(cfg) -> Map.get(cfg, :enabled, false)
+      cfg when is_list(cfg) -> Keyword.get(cfg, :enabled, false)
+      _other -> false
+    end
+  end
+
+  defp resolve_graph_concurrency(opts) do
+    default =
+      Application.get_env(:agent_jido, :arcana_graph_ingest_concurrency, 1)
+      |> normalize_graph_concurrency!()
+
+    case Keyword.get(opts, :graph_concurrency, default) do
+      value when is_integer(value) and value > 0 ->
+        value
+
+      other ->
+        raise ArgumentError,
+              "invalid graph_concurrency option: #{inspect(other)} (expected positive integer)"
+    end
+  end
+
+  defp normalize_graph_concurrency!(value) when is_integer(value) and value > 0, do: value
+
+  defp normalize_graph_concurrency!(other) do
+    raise ArgumentError,
+          "invalid :agent_jido, :arcana_graph_ingest_concurrency value #{inspect(other)} (expected positive integer)"
   end
 
   defp metadata_value(metadata, key) when is_map(metadata) do

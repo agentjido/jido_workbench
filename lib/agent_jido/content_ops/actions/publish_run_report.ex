@@ -26,6 +26,7 @@ defmodule AgentJido.ContentOps.Actions.PublishRunReport do
         change_requests: params.change_request_count,
         delivered: params.delivered_count
       },
+      delivery_mode: :sink,
       started_at: params.started_at,
       completed_at: DateTime.utc_now()
     }

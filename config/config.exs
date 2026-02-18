@@ -40,7 +40,8 @@ config :agent_jido, AgentJidoWeb.ContentOpsGithubLive,
   owner: "agentjido",
   repo: "agentjido_xyz",
   cache_ttl_minutes: 15,
-  contentops_timeout_ms: 60_000
+  contentops_timeout_ms: 60_000,
+  github_mutations_enabled: false
 
 contentops_chat_bindings = [
   %{
@@ -102,6 +103,8 @@ config :arcana,
   repo: AgentJido.Repo,
   embedder: :openai
 
+config :agent_jido, arcana_graph_ingest_concurrency: 1
+
 config :agent_jido, ash_domains: [AgentJido.Folio]
 
 # Git hooks and git_ops configuration for conventional commits
@@ -136,6 +139,7 @@ if config_env() == :dev do
     ]
 end
 
+config :jido, jido_instance: AgentJido.Jido
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

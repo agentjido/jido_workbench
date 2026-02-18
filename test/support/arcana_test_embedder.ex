@@ -2,7 +2,7 @@ defmodule AgentJido.ArcanaTestEmbedder do
   @moduledoc false
   @behaviour Arcana.Embedder
 
-  @dimensions 384
+  @dimensions 1536
 
   @impl true
   def embed(text, _opts) when is_binary(text) do
