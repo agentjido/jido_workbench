@@ -2,6 +2,7 @@ defmodule AgentJidoWeb.Router do
   use AgentJidoWeb, :router
 
   import AgentJidoWeb.UserAuth
+  import Phoenix.LiveDashboard.Router
   import JidoStudio.Router
   import ArcanaWeb.Router
 
@@ -9,6 +10,10 @@ defmodule AgentJidoWeb.Router do
   @page_routes (for page <- AgentJido.Pages.all_pages() do
                   AgentJido.Pages.route_for(page)
                 end)
+  @admin_on_mount [
+    {AgentJidoWeb.UserAuth, :require_authenticated},
+    {AgentJidoWeb.UserAuth, :require_admin}
+  ]
 
   pipeline :browser do
     plug(:accepts, ["html"])
@@ -70,37 +75,37 @@ defmodule AgentJidoWeb.Router do
   end
 
   if Application.compile_env(:agent_jido, :dev_routes) do
-    import Phoenix.LiveDashboard.Router
-
     scope "/dev" do
       pipe_through([:browser])
       forward("/mailbox", Plug.Swoosh.MailboxPreview)
     end
+  end
 
-    scope "/dev" do
-      pipe_through([:browser, :require_authenticated_user, :require_admin_user])
+  scope "/dev" do
+    pipe_through([:browser, :require_authenticated_user, :require_admin_user])
 
-      live_session :require_admin_user,
-        on_mount: [
-          {AgentJidoWeb.UserAuth, :require_authenticated},
-          {AgentJidoWeb.UserAuth, :require_admin}
-        ] do
-        live "/contentops", AgentJidoWeb.ContentOpsLive, :index
-        live "/contentops/github", AgentJidoWeb.ContentOpsGithubLive, :index
-      end
-
-      live_dashboard("/dashboard", metrics: AgentJidoWeb.Telemetry, additional_pages: JidoLiveDashboard.pages())
-      jido_studio("/jido", host_app_js_path: "/assets/app.js")
-
-      get("/arcana", AgentJidoWeb.PageController, :arcana_redirect)
-      get("/arcana/*path", AgentJidoWeb.PageController, :arcana_redirect)
+    live_session :require_admin_user,
+      on_mount: @admin_on_mount do
+      live "/contentops", AgentJidoWeb.ContentOpsLive, :index
+      live "/contentops/github", AgentJidoWeb.ContentOpsGithubLive, :index
     end
 
-    scope "/" do
-      pipe_through([:browser, :require_authenticated_user, :require_admin_user])
-      get("/assets/js/app.js", AgentJidoWeb.PageController, :arcana_legacy_app_js)
-      arcana_dashboard("/arcana", repo: AgentJido.Repo)
-    end
+    live_dashboard("/dashboard",
+      metrics: AgentJidoWeb.Telemetry,
+      additional_pages: JidoLiveDashboard.pages(),
+      on_mount: @admin_on_mount
+    )
+
+    jido_studio("/jido", host_app_js_path: "/assets/app.js", on_mount: @admin_on_mount)
+
+    get("/arcana", AgentJidoWeb.PageController, :arcana_redirect)
+    get("/arcana/*path", AgentJidoWeb.PageController, :arcana_redirect)
+  end
+
+  scope "/" do
+    pipe_through([:browser, :require_authenticated_user, :require_admin_user])
+    get("/assets/js/app.js", AgentJidoWeb.PageController, :arcana_legacy_app_js)
+    arcana_dashboard("/arcana", repo: AgentJido.Repo, on_mount: @admin_on_mount)
   end
 
   ## Authentication routes

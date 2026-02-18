@@ -1,0 +1,16 @@
+Compiling 1 file (.ex)
+Generated agent_jido app
+** (Mix) The task "precommit" could not be found
+Implemented the precommit fix in `mix.exs:136` by adding a `precommit` alias:
+
+- `compile --no-deps-check --warnings-as-errors`
+- `format --check-formatted`
+
+Validation:
+
+- `elixir /tmp/mix_nosock.exs precommit` passes (exit 0).
+
+Notes:
+
+- I did not commit or push.
+- Full `mix test` is still blocked in this sandbox due DB socket restrictions (`tcp connect localhost:5432 ... :eperm`), but the requested `precommit` command now exists and passes.

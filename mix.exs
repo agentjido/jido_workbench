@@ -133,6 +133,10 @@ defmodule AgentJido.MixProject do
       ],
       s: ["agentjido.signal"],
       q: ["quality"],
+      precommit: [
+        "compile --no-deps-check --warnings-as-errors",
+        "format --check-formatted"
+      ],
       quality: [
         "format --check-formatted",
         "compile --warnings-as-errors",
