@@ -175,3 +175,39 @@ Added LiveView auth matrix + link presence assertions for `/dashboard`.
 - Environment blocks local TCP sockets and localhost DB access, so default `mix test` alias (which runs `ecto.create/migrate`) is not runnable here.
 - Used a local Mix runtime workaround (`/tmp/mix_stub` + `MIX_OS_CONCURRENCY_LOCK=0`) to run formatting, story tests, and `mix precommit`.
 - Left unrelated existing workspace change untouched: `.github/workflows/fly-stage.yml` (not part of this story).
+1) changed files
+- `lib/agent_jido/search.ex`
+- `lib/agent_jido_web/live/search_live.ex`
+- `lib/agent_jido_web/components/jido/nav.ex`
+- `lib/agent_jido_web/components/jido/docs_components.ex`
+- `test/agent_jido/search_test.exs`
+- `test/agent_jido_web/live/search_live_test.exs`
+
+2) tests/commands executed
+- Formatted updated files:
+  - `elixir -e 'Code.compiler_options(ignore_module_conflict: true); Code.compile_file("/tmp/mix_pubsub_patch.ex"); Mix.CLI.main(["format", ...])'`
+- Ran focused tests (pass):
+  - `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 elixir -e '... Mix.Task.run("loadconfig", []); Mix.Task.run("loadpaths", ["--no-archives-check","--no-listeners"]); Mix.Task.run("compile", ["--no-validate-compile-env"]); Mix.Tasks.Test.run(["--no-start","--no-compile","test/agent_jido/search_test.exs","test/agent_jido_web/live/search_live_test.exs"])'`
+  - Result: `16 tests, 0 failures`
+- Ran precommit (pass):
+  - `MIX_OS_CONCURRENCY_LOCK=0 elixir -e 'Code.compiler_options(ignore_module_conflict: true); Code.compile_file("/tmp/mix_pubsub_patch.ex"); Mix.CLI.main(["precommit"])'`
+
+3) acceptance criteria coverage
+- Search telemetry emits for success/failure with latency:
+  - Added `:telemetry.execute/3` events in `SearchLive`:
+    - `[:agent_jido, :search, :query, :issued]`
+    - `[:agent_jido, :search, :query, :success]`
+    - `[:agent_jido, :search, :query, :failure]`
+  - Added telemetry assertions in `test/agent_jido_web/live/search_live_test.exs`.
+- Graceful fallback UI on Arcana/backend failure:
+  - Added `:error` state and `#search-error-state` message in `lib/agent_jido_web/live/search_live.ex`.
+  - Added failure-path rendering test in `test/agent_jido_web/live/search_live_test.exs`.
+  - Extended `AgentJido.Search` with `query_with_status/2` so backend fallback can be surfaced while preserving existing `query/2` behavior.
+- `/search` discoverable via primary navigation:
+  - Added nav entry to shared marketing/docs nav links in `lib/agent_jido_web/components/jido/nav.ex`.
+  - Made docs header search chip navigate to `/search` in `lib/agent_jido_web/components/jido/docs_components.ex`.
+  - Added nav discoverability assertions in `test/agent_jido_web/live/search_live_test.exs`.
+
+4) blockers/assumptions
+- Sandbox blocks TCP sockets (affected Mix PubSub/locks and DB access). I used a local runtime Mix patch plus `MIX_OS_CONCURRENCY_LOCK=0` to run formatting, focused tests, and `precommit` successfully in this environment.
+- Assumed “site navigation/header” should include both marketing and docs header entry points for `/search`.

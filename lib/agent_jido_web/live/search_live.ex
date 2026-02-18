@@ -6,6 +6,10 @@ defmodule AgentJidoWeb.SearchLive do
 
   alias AgentJido.Search
 
+  @telemetry_issued_event [:agent_jido, :search, :query, :issued]
+  @telemetry_success_event [:agent_jido, :search, :query, :success]
+  @telemetry_failure_event [:agent_jido, :search, :query, :failure]
+
   @impl true
   def mount(_params, session, socket) do
     {:ok,
@@ -101,6 +105,14 @@ defmodule AgentJidoWeb.SearchLive do
         >
           No results found for "<span class="font-semibold text-foreground">{@query}</span>".
         </section>
+
+        <section
+          :if={@status == :error}
+          id="search-error-state"
+          class="mt-6 rounded-2xl border border-amber-400/40 bg-amber-100/30 p-6 text-sm text-foreground"
+        >
+          Search is temporarily unavailable right now. Please try again in a moment.
+        </section>
       </div>
     </div>
     """
@@ -114,31 +126,50 @@ defmodule AgentJidoWeb.SearchLive do
       {:noreply, assign(socket, query: "", results: [], status: :no_query, search_ref: nil)}
     else
       search_ref = System.unique_integer([:monotonic, :positive])
-      send(self(), {:run_search, search_ref, query})
+      started_at = System.monotonic_time()
+      emit_query_issued(query)
+      send(self(), {:run_search, search_ref, query, started_at})
 
       {:noreply, assign(socket, query: query, results: [], status: :loading, search_ref: search_ref)}
     end
   end
 
   @impl true
-  def handle_info({:run_search, search_ref, query}, socket) do
-    results = run_query(socket.assigns.search_module, query, socket.assigns.search_opts)
+  def handle_info({:run_search, search_ref, query, started_at}, socket) do
+    {outcome, results} = run_query(socket.assigns.search_module, query, socket.assigns.search_opts)
+    latency_ms = query_latency_ms(started_at)
+    emit_query_outcome(outcome, query, results, latency_ms)
 
     if socket.assigns.search_ref == search_ref do
-      status = if results == [], do: :no_results, else: :results
-      {:noreply, assign(socket, status: status, results: results)}
+      case outcome do
+        :success ->
+          status = if results == [], do: :no_results, else: :results
+          {:noreply, assign(socket, status: status, results: results)}
+
+        :failure ->
+          {:noreply, assign(socket, status: :error, results: [])}
+      end
     else
       {:noreply, socket}
     end
   end
 
   defp run_query(search_module, query, opts) do
-    case search_module.query(query, opts) do
-      {:ok, results} when is_list(results) -> results
-      _ -> []
+    response =
+      if function_exported?(search_module, :query_with_status, 2) do
+        search_module.query_with_status(query, opts)
+      else
+        search_module.query(query, opts)
+      end
+
+    case response do
+      {:ok, results, :success} when is_list(results) -> {:success, results}
+      {:ok, _results, :fallback} -> {:failure, []}
+      {:ok, results} when is_list(results) -> {:success, results}
+      _ -> {:failure, []}
     end
   rescue
-    _ -> []
+    _ -> {:failure, []}
   end
 
   defp resolve_search_module(session) do
@@ -157,6 +188,40 @@ defmodule AgentJidoWeb.SearchLive do
 
   defp normalize_query(query) when is_binary(query), do: String.trim(query)
   defp normalize_query(_query), do: ""
+
+  defp query_latency_ms(started_at) when is_integer(started_at) do
+    System.monotonic_time()
+    |> Kernel.-(started_at)
+    |> System.convert_time_unit(:native, :millisecond)
+  end
+
+  defp query_latency_ms(_started_at), do: 0
+
+  defp emit_query_issued(query) do
+    :telemetry.execute(@telemetry_issued_event, %{count: 1}, %{query_length: String.length(query)})
+  rescue
+    _ -> :ok
+  end
+
+  defp emit_query_outcome(:success, query, results, latency_ms) do
+    :telemetry.execute(
+      @telemetry_success_event,
+      %{count: 1, latency_ms: latency_ms},
+      %{query_length: String.length(query), results_count: length(results)}
+    )
+  rescue
+    _ -> :ok
+  end
+
+  defp emit_query_outcome(:failure, query, _results, latency_ms) do
+    :telemetry.execute(
+      @telemetry_failure_event,
+      %{count: 1, latency_ms: latency_ms},
+      %{query_length: String.length(query)}
+    )
+  rescue
+    _ -> :ok
+  end
 
   defp source_type_label(:docs), do: "Docs"
   defp source_type_label(:blog), do: "Blog"

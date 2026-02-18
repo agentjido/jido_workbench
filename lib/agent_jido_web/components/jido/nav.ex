@@ -12,10 +12,11 @@ defmodule AgentJidoWeb.Jido.Nav do
     {"Features", "/features"},
     {"Examples", "/examples"},
     {"Training", "/training"},
-    {"Docs", "/docs"}
+    {"Docs", "/docs"},
+    {"Search", "/search"}
   ]
 
-  @docs_nav_links ["/docs", "/examples", "/training", "/ecosystem"]
+  @docs_nav_links ["/docs", "/examples", "/training", "/ecosystem", "/search"]
 
   @footer_company_links [
     {"Blog", "/blog"},
@@ -62,10 +63,10 @@ defmodule AgentJidoWeb.Jido.Nav do
   def jido_version, do: @jido_version
 
   @doc "Jido logo mark — gradient J block + JIDO text."
-  attr :class, :string, default: ""
-  attr :logo_size, :string, default: "w-7 h-7 text-sm"
-  attr :text_size, :string, default: "text-base"
-  attr :show_version, :boolean, default: true
+  attr(:class, :string, default: "")
+  attr(:logo_size, :string, default: "w-7 h-7 text-sm")
+  attr(:text_size, :string, default: "text-base")
+  attr(:show_version, :boolean, default: true)
 
   def logo(assigns) do
     ~H"""
@@ -79,7 +80,7 @@ defmodule AgentJidoWeb.Jido.Nav do
     """
   end
 
-  attr :class, :string, default: "w-4 h-4"
+  attr(:class, :string, default: "w-4 h-4")
 
   def discord_icon(assigns) do
     ~H"""
@@ -89,7 +90,7 @@ defmodule AgentJidoWeb.Jido.Nav do
     """
   end
 
-  attr :class, :string, default: "w-4 h-4"
+  attr(:class, :string, default: "w-4 h-4")
 
   def github_icon(assigns) do
     ~H"""
@@ -99,7 +100,7 @@ defmodule AgentJidoWeb.Jido.Nav do
     """
   end
 
-  attr :class, :string, default: "w-4 h-4"
+  attr(:class, :string, default: "w-4 h-4")
 
   def x_icon(assigns) do
     ~H"""
@@ -109,7 +110,7 @@ defmodule AgentJidoWeb.Jido.Nav do
     """
   end
 
-  attr :class, :string, default: "w-4 h-4"
+  attr(:class, :string, default: "w-4 h-4")
 
   def linkedin_icon(assigns) do
     ~H"""
@@ -119,7 +120,7 @@ defmodule AgentJidoWeb.Jido.Nav do
     """
   end
 
-  attr :class, :string, default: "w-4 h-4"
+  attr(:class, :string, default: "w-4 h-4")
 
   def youtube_icon(assigns) do
     ~H"""
@@ -130,8 +131,8 @@ defmodule AgentJidoWeb.Jido.Nav do
   end
 
   @doc "Renders the appropriate social icon for a given key."
-  attr :icon, :atom, required: true
-  attr :class, :string, default: "w-4 h-4"
+  attr(:icon, :atom, required: true)
+  attr(:class, :string, default: "w-4 h-4")
 
   def social_icon(assigns) do
     ~H"""

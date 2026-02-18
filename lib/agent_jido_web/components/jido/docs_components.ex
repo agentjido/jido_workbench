@@ -6,7 +6,7 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
 
   alias AgentJidoWeb.Jido.Nav
 
-  attr :current_path, :string, default: nil
+  attr(:current_path, :string, default: nil)
 
   def docs_header(assigns) do
     assigns = assign(assigns, :nav_links, Nav.docs_nav_links())
@@ -32,13 +32,16 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
       </div>
 
       <div class="flex items-center gap-3">
-        <div class="hidden md:flex items-center gap-2 bg-elevated border border-border rounded px-3 py-2 min-w-[200px] cursor-pointer hover:border-muted-foreground transition-colors">
+        <.link
+          navigate="/search"
+          class="hidden md:flex items-center gap-2 bg-elevated border border-border rounded px-3 py-2 min-w-[200px] hover:border-muted-foreground transition-colors"
+        >
           <.icon name="hero-magnifying-glass" class="h-3 w-3 text-muted-foreground" />
           <span class="text-xs text-muted-foreground flex-1">Search...</span>
           <kbd class="text-[10px] text-muted-foreground px-1.5 py-0.5 bg-card border border-border rounded">
             ⌘K
           </kbd>
-        </div>
+        </.link>
 
         <button class="hidden md:flex items-center gap-2 bg-primary/10 border border-primary/30 rounded px-3 py-2 text-xs text-primary font-medium hover:bg-primary/20 transition-colors">
           <.icon name="hero-sparkles" class="h-3 w-3" /> Ask AI
@@ -66,7 +69,7 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
   end
 
   # Secondary Navigation Component
-  attr :current_path, :string, default: nil
+  attr(:current_path, :string, default: nil)
 
   def docs_secondary_nav(assigns) do
     ~H"""
@@ -109,9 +112,9 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
   end
 
   # Left Sidebar Component
-  attr :nav, :list, required: true
-  attr :current_path, :string, default: nil
-  attr :open, :boolean, default: true
+  attr(:nav, :list, required: true)
+  attr(:current_path, :string, default: nil)
+  attr(:open, :boolean, default: true)
 
   def docs_sidebar(assigns) do
     ~H"""
@@ -213,7 +216,7 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
   end
 
   # Right Sidebar Component
-  attr :toc, :list, default: nil
+  attr(:toc, :list, default: nil)
 
   def docs_right_sidebar(assigns) do
     ~H"""
@@ -264,10 +267,10 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
   end
 
   # Numbered Card Component
-  attr :number, :string, required: true
-  attr :title, :string, required: true
-  attr :description, :string, required: true
-  attr :href, :string, required: true
+  attr(:number, :string, required: true)
+  attr(:title, :string, required: true)
+  attr(:description, :string, required: true)
+  attr(:href, :string, required: true)
 
   def numbered_card(assigns) do
     ~H"""
@@ -290,11 +293,11 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
   end
 
   # Icon Card Component
-  attr :icon, :string, required: true
-  attr :title, :string, required: true
-  attr :description, :string, required: true
-  attr :color, :string, default: "green"
-  attr :href, :string, required: true
+  attr(:icon, :string, required: true)
+  attr(:title, :string, required: true)
+  attr(:description, :string, required: true)
+  attr(:color, :string, default: "green")
+  attr(:href, :string, required: true)
 
   def icon_card(assigns) do
     ~H"""

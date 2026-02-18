@@ -6,6 +6,9 @@ defmodule AgentJidoWeb.SearchLiveTest do
   import Plug.Conn
 
   @endpoint AgentJidoWeb.Endpoint
+  @query_issued_event [:agent_jido, :search, :query, :issued]
+  @query_success_event [:agent_jido, :search, :query, :success]
+  @query_failure_event [:agent_jido, :search, :query, :failure]
 
   defmodule SearchStub do
     @moduledoc false
@@ -47,6 +50,8 @@ defmodule AgentJidoWeb.SearchLiveTest do
       {:ok, []}
     end
 
+    def query("backend-down", _opts), do: {:error, :arcana_unavailable}
+    def query("raises", _opts), do: raise("arcana crashed")
     def query(_query, _opts), do: {:ok, []}
   end
 
@@ -105,6 +110,75 @@ defmodule AgentJidoWeb.SearchLiveTest do
       assert html =~ "No results found for"
       assert html =~ "missing"
     end
+
+    test "renders explicit failure fallback messaging when backend search fails", %{conn: conn} do
+      conn = with_search_stub(conn)
+      {:ok, view, _html} = live(conn, "/search")
+
+      view
+      |> form("#site-search-form", search: %{q: "backend-down"})
+      |> render_submit()
+
+      html = assert_state(view, ~s(id="search-error-state"))
+
+      assert html =~ "Search is temporarily unavailable right now."
+    end
+
+    test "emits issued and success telemetry for successful search flow", %{conn: conn} do
+      attach_search_telemetry([@query_issued_event, @query_success_event])
+
+      conn = with_search_stub(conn)
+      {:ok, view, _html} = live(conn, "/search")
+
+      view
+      |> form("#site-search-form", search: %{q: "arcana"})
+      |> render_submit()
+
+      assert_receive {:search_telemetry, @query_issued_event, %{count: 1}, issued_meta}, 1_000
+      assert issued_meta.query_length == 6
+
+      assert_receive {:search_telemetry, @query_success_event, success_measurements, success_meta}, 1_000
+      assert success_measurements.count == 1
+      assert is_integer(success_measurements.latency_ms)
+      assert success_measurements.latency_ms >= 0
+      assert success_meta.query_length == 6
+      assert success_meta.results_count == 3
+      refute_receive {:search_telemetry, @query_failure_event, _, _}, 50
+    end
+
+    test "emits issued and failure telemetry for backend failure flow", %{conn: conn} do
+      attach_search_telemetry([@query_issued_event, @query_failure_event])
+
+      conn = with_search_stub(conn)
+      {:ok, view, _html} = live(conn, "/search")
+
+      view
+      |> form("#site-search-form", search: %{q: "backend-down"})
+      |> render_submit()
+
+      assert_receive {:search_telemetry, @query_issued_event, %{count: 1}, issued_meta}, 1_000
+      assert issued_meta.query_length == String.length("backend-down")
+
+      assert_receive {:search_telemetry, @query_failure_event, failure_measurements, failure_meta}, 1_000
+      assert failure_measurements.count == 1
+      assert is_integer(failure_measurements.latency_ms)
+      assert failure_measurements.latency_ms >= 0
+      assert failure_meta.query_length == String.length("backend-down")
+      refute_receive {:search_telemetry, @query_success_event, _, _}, 50
+    end
+  end
+
+  describe "navigation entry points" do
+    test "home header includes search in primary navigation", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/")
+      assert html =~ ~s(href="/search")
+    end
+
+    test "docs header includes search entry and search shortcut link", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/docs")
+      assert html =~ ~s(href="/search")
+      assert html =~ "Search..."
+    end
   end
 
   setup_all do
@@ -131,6 +205,27 @@ defmodule AgentJidoWeb.SearchLiveTest do
     conn
     |> init_test_session(%{})
     |> put_session(:search_module, SearchStub)
+  end
+
+  defp attach_search_telemetry(events) do
+    handler_id = "search-live-test-#{System.unique_integer([:positive, :monotonic])}"
+    pid = self()
+
+    :ok =
+      :telemetry.attach_many(
+        handler_id,
+        events,
+        fn event, measurements, metadata, _config ->
+          send(pid, {:search_telemetry, event, measurements, metadata})
+        end,
+        nil
+      )
+
+    on_exit(fn ->
+      :telemetry.detach(handler_id)
+    end)
+
+    :ok
   end
 
   defp assert_state(view, state_id_fragment, attempts \\ 40)

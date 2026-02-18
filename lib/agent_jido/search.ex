@@ -32,6 +32,7 @@ defmodule AgentJido.Search do
           }
   end
 
+  @type query_status :: :success | :fallback
   @type search_fun :: (String.t(), keyword() -> {:ok, [map()]} | {:error, term()})
   @type document_lookup_fun :: ([map()], module() -> %{optional(String.t()) => map()})
 
@@ -52,25 +53,29 @@ defmodule AgentJido.Search do
 
   """
   @spec query(String.t(), keyword()) :: {:ok, [Result.t()]}
-  def query(query, opts \\ [])
+  def query(query, opts \\ []) do
+    case query_with_status(query, opts) do
+      {:ok, results, _status} -> {:ok, results}
+    end
+  end
 
-  def query(query, opts) when is_binary(query) do
+  @doc """
+  Searches Arcana and returns normalized results with backend fallback status.
+  """
+  @spec query_with_status(String.t(), keyword()) :: {:ok, [Result.t()], query_status}
+  def query_with_status(query, opts \\ [])
+
+  def query_with_status(query, opts) when is_binary(query) do
     query = String.trim(query)
 
     if query == "" do
-      {:ok, []}
+      {:ok, [], :success}
     else
       run_query(query, opts)
     end
   end
 
-  def query(_query, _opts), do: {:ok, []}
-
-  @doc """
-  Default Arcana collections used for site-wide search.
-  """
-  @spec collections() :: [String.t()]
-  def collections, do: @collections
+  def query_with_status(_query, _opts), do: {:ok, [], :success}
 
   defp run_query(query, opts) do
     repo = Keyword.get(opts, :repo, AgentJido.Repo)
@@ -84,13 +89,19 @@ defmodule AgentJido.Search do
 
     with {:ok, rows} when is_list(rows) <- safe_search(search_fun, query, search_opts) do
       docs_by_id = safe_document_lookup(document_lookup_fun, rows, repo)
-      {:ok, normalize_results(rows, docs_by_id)}
+      {:ok, normalize_results(rows, docs_by_id), :success}
     else
-      _ -> {:ok, []}
+      _ -> {:ok, [], :fallback}
     end
   rescue
-    _ -> {:ok, []}
+    _ -> {:ok, [], :fallback}
   end
+
+  @doc """
+  Default Arcana collections used for site-wide search.
+  """
+  @spec collections() :: [String.t()]
+  def collections, do: @collections
 
   defp safe_search(search_fun, query, opts) do
     search_fun.(query, opts)

@@ -102,4 +102,16 @@ defmodule AgentJido.SearchTest do
       assert {:ok, []} = Search.query("arcana", search_fun: search_fun)
     end
   end
+
+  describe "query_with_status/2" do
+    test "returns success status for normal backend responses" do
+      search_fun = fn _query, _opts -> {:ok, []} end
+      assert {:ok, [], :success} = Search.query_with_status("arcana", search_fun: search_fun)
+    end
+
+    test "returns fallback status when backend returns an error" do
+      search_fun = fn _query, _opts -> {:error, :backend_down} end
+      assert {:ok, [], :fallback} = Search.query_with_status("arcana", search_fun: search_fun)
+    end
+  end
 end
