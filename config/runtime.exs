@@ -1,7 +1,14 @@
 import Config
 import Dotenvy
 
-source!([".env", System.get_env()])
+dotenv_sources =
+  if config_env() == :test do
+    [System.get_env()]
+  else
+    [".env", System.get_env()]
+  end
+
+source!(dotenv_sources)
 
 # config/runtime.exs is executed for all environments, including
 # during releases. It is executed after compilation and before the
@@ -53,7 +60,11 @@ contentops_chat_config =
   end
 
 contentops_chat_enabled =
-  env!("CONTENTOPS_CHAT_ENABLED", :boolean, Keyword.get(contentops_chat_config, :enabled, false))
+  if config_env() == :test do
+    false
+  else
+    env!("CONTENTOPS_CHAT_ENABLED", :boolean, Keyword.get(contentops_chat_config, :enabled, false))
+  end
 
 contentops_chat_config = Keyword.put(contentops_chat_config, :enabled, contentops_chat_enabled)
 config :agent_jido, AgentJido.ContentOps.Chat, contentops_chat_config

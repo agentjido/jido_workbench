@@ -321,3 +321,35 @@ Implemented in `lib/agent_jido_web/live/chat_ops_live.ex:19` and asserted in `te
 - No functional blockers.
 - Assumption: in-memory `ActionStore` is acceptable for this story (persistent migration is explicitly out of scope).
 - Assumption: router metadata coverage for this story is focused on `/ops run` command outcomes.
+1) changed files
+- `config/runtime.exs`
+- `test/agent_jido/content_ops/chat/integration_test.exs`
+- `specs/chatops_durability_decision.md`
+- `specs/chatops_runbook.md`
+- `test/agent_jido/content_ops/chat/operations_docs_test.exs`
+- `test/agent_jido/content_ops/chat/test_boot_determinism_test.exs`
+
+2) tests/commands executed
+- `elixir -pa /tmp/mix_shim/ebin -S mix format`
+- `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 elixir -pa /tmp/mix_shim/ebin -S mix run --no-start -e 'Mix.Tasks.Test.run(["--no-start", "test/agent_jido/content_ops/chat/integration_test.exs", "test/agent_jido/content_ops/chat/operations_docs_test.exs", "test/agent_jido/content_ops/chat/test_boot_determinism_test.exs"])'` (pass)
+- Repeat determinism run (3x):
+  - `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 elixir -pa /tmp/mix_shim/ebin -S mix run --no-start -e 'Mix.Tasks.Test.run(["--no-start", "test/agent_jido/content_ops/chat/integration_test.exs"])'` (all 3 passes)
+- `MIX_OS_CONCURRENCY_LOCK=0 elixir -pa /tmp/mix_shim/ebin -S mix precommit` (pass)
+
+3) acceptance criteria coverage
+- Chat integration tests deterministic under standard test settings:
+  - Hardened test boot config in `config/runtime.exs` so test env no longer ingests `.env` and ChatOps is forced disabled in `MIX_ENV=test`.
+  - Removed fixed sleeps in integration tests; replaced with readiness polling and bridge subscription checks in `test/agent_jido/content_ops/chat/integration_test.exs`.
+  - Verified repeatability by running the integration test 3 consecutive times with 0 failures.
+- Durability decision explicit and documented:
+  - Added `specs/chatops_durability_decision.md` with explicit “keep ETS now / defer durable adapter migration” decision and consequences.
+- Runbook complete for operator handoff:
+  - Added `specs/chatops_runbook.md` with required env vars, room/channel mapping, startup procedure, and health validation checks.
+  - Added doc verification tests in `test/agent_jido/content_ops/chat/operations_docs_test.exs`.
+
+4) blockers/assumptions
+- Sandbox blocks local TCP sockets and DB access, so raw `mix` task execution and alias `mix test` flow are not viable here.
+- To execute required checks non-interactively, I used:
+  - a local Mix pubsub shim via `elixir -pa /tmp/mix_shim/ebin -S mix ...`
+  - `MIX_OS_CONCURRENCY_LOCK=0`
+  - `Mix.Tasks.Test.run(..., ["--no-start", ...])` for targeted test execution without DB startup.

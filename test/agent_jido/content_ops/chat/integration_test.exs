@@ -30,6 +30,14 @@ defmodule AgentJido.ContentOps.Chat.IntegrationTest do
   end
 
   setup do
+    for app <- [:telemetry, :phoenix_pubsub, :jido_signal] do
+      {:ok, _started} = Application.ensure_all_started(app)
+    end
+
+    unless Process.whereis(AgentJido.PubSub) do
+      start_supervised!({Phoenix.PubSub, name: AgentJido.PubSub})
+    end
+
     start_supervised!(Messaging)
     start_supervised!(SessionManager)
 
@@ -52,17 +60,19 @@ defmodule AgentJido.ContentOps.Chat.IntegrationTest do
       {BindingBootstrapper, instance_module: Messaging, bindings: bindings, telegram_instance_id: "tg-test", discord_instance_id: "dc-test"}
     )
 
-    Process.sleep(100)
-
-    assert {:ok, _room} = Messaging.get_room(room_id)
-    assert {:ok, room_bindings} = Messaging.list_room_bindings(room_id)
-    assert length(room_bindings) == 2
+    assert_eventually(fn ->
+      match?({:ok, _room}, Messaging.get_room(room_id)) and
+        match?({:ok, [_first, _second]}, Messaging.list_room_bindings(room_id))
+    end)
 
     BindingBootstrapper.bootstrap()
-    Process.sleep(100)
 
-    assert {:ok, room_bindings_after} = Messaging.list_room_bindings(room_id)
-    assert length(room_bindings_after) == 2
+    assert_eventually(fn ->
+      case Messaging.list_room_bindings(room_id) do
+        {:ok, room_bindings_after} -> length(room_bindings_after) == 2
+        _other -> false
+      end
+    end)
   end
 
   test "bridge forwards to non-origin channel only" do
@@ -91,9 +101,11 @@ defmodule AgentJido.ContentOps.Chat.IntegrationTest do
 
     {:ok, room_server} = Messaging.get_or_start_room_server(room)
 
-    start_supervised!({Bridge, name: :contentops_bridge_test, instance_module: Messaging, telegram_sender: TelegramStub, discord_sender: DiscordStub})
+    bridge_name = :"contentops_bridge_test_#{System.unique_integer([:positive])}"
 
-    Process.sleep(100)
+    start_supervised!({Bridge, name: bridge_name, instance_module: Messaging, telegram_sender: TelegramStub, discord_sender: DiscordStub})
+
+    assert_eventually(fn -> bridge_subscribed?(bridge_name) end)
 
     {:ok, message} =
       Messaging.save_message(%{
@@ -137,5 +149,29 @@ defmodule AgentJido.ContentOps.Chat.IntegrationTest do
 
     [stored | _] = RunStore.recent(1)
     assert stored.run_id == "run_test_1"
+  end
+
+  defp bridge_subscribed?(bridge_name) do
+    case :sys.get_state(bridge_name) do
+      %{subscribed: true} -> true
+      _state -> false
+    end
+  catch
+    :exit, _reason -> false
+  end
+
+  defp assert_eventually(check_fun, attempts \\ 20)
+
+  defp assert_eventually(check_fun, attempts) when attempts > 0 do
+    if check_fun.() do
+      :ok
+    else
+      Process.sleep(25)
+      assert_eventually(check_fun, attempts - 1)
+    end
+  end
+
+  defp assert_eventually(_check_fun, 0) do
+    flunk("expected condition to become true")
   end
 end
