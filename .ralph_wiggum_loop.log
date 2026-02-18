@@ -244,3 +244,28 @@ Implemented in `lib/agent_jido_web/live/chat_ops_live.ex:19` and asserted in `te
 4) blockers/assumptions
 - Blocker: this sandbox disallows TCP sockets, so DB-backed `mix test` execution could not complete (`Postgrex` connect `:eperm`).
 - Assumption: in a normal dev/CI environment with reachable Postgres, the added tests will run as written.
+1) changed files
+- `lib/agent_jido/content_ops/chat/room_inventory.ex`
+- `lib/agent_jido_web/live/chat_ops_live.ex`
+- `test/agent_jido_web/live/chat_ops_live_test.exs`
+
+2) tests/commands executed
+- `mix format --dot-formatter /tmp/codex_formatter.exs lib/agent_jido/content_ops/chat/room_inventory.ex lib/agent_jido_web/live/chat_ops_live.ex test/agent_jido_web/live/chat_ops_live_test.exs` (pass)
+- `MIX_OS_CONCURRENCY_LOCK=0 ERL_LIBS="_build/dev/lib" mix compile --from-mix-deps-compile --no-deps-check --warnings-as-errors` (pass)
+- `mix format --check-formatted --dot-formatter /tmp/codex_formatter.exs lib/agent_jido/content_ops/chat/room_inventory.ex lib/agent_jido_web/live/chat_ops_live.ex test/agent_jido_web/live/chat_ops_live_test.exs` (pass)
+- `MIX_ENV=test ERL_LIBS="_build/test/lib" elixir -e 'config = Config.Reader.read!("config/config.exs", env: :test, target: :host); Application.put_all_env(config, persistent: true)' -r test/test_helper.exs -r test/agent_jido_web/live/chat_ops_live_test.exs` (pass, `3 tests, 0 failures`)
+- `mix precommit` (fails in this sandbox due Mix PubSub socket restriction: `failed to open a TCP socket ... reason: :eperm`)
+
+3) acceptance criteria coverage
+- Admin room/binding inventory panel is now wired to messaging services via `AgentJido.ContentOps.Chat.RoomInventory` (default provider uses `AgentJido.ContentOps.Messaging` room/binding APIs).
+- UI now renders room id/name plus bound channel identifiers and instance ids in `ChatOpsLive`.
+- Refresh mechanism added with `Refresh` button and `refresh_inventory` event, plus refreshed timestamp display.
+- Missing/empty binding data is normalized and rendered safely (no crash path).
+- Tests added for:
+  - populated room/binding inventory with stubbed data,
+  - empty-state rendering,
+  - refresh invocation behavior.
+
+4) blockers/assumptions
+- Blocker: this environment denies local TCP sockets (`:eperm`), which prevents normal `mix precommit`/`mix test` execution paths that start Mix PubSub (and DB TCP access).
+- Assumption: isolated LiveView tests for `ST-CHOPS-002` are acceptable since auth/routing coverage from `ST-CHOPS-001` remains in existing route/auth tests.
