@@ -243,4 +243,48 @@ defmodule AgentJido.PagesTest do
       assert orders == Enum.sort(orders)
     end
   end
+
+  describe "features wave A content quality" do
+    test "first three feature pages are published and routable" do
+      target_paths = [
+        "/features/reliability-by-architecture",
+        "/features/multi-agent-coordination",
+        "/features/operations-observability"
+      ]
+
+      Enum.each(target_paths, fn path ->
+        page = Pages.get_page_by_path(path)
+
+        assert page != nil
+        assert page.category == :features
+        assert page.draft == false
+      end)
+    end
+
+    test "first three feature source files do not contain placeholder markers" do
+      feature_files = [
+        Path.expand("../../priv/pages/features/reliability-by-architecture.md", __DIR__),
+        Path.expand("../../priv/pages/features/multi-agent-coordination.md", __DIR__),
+        Path.expand("../../priv/pages/features/operations-observability.md", __DIR__)
+      ]
+
+      placeholder_patterns = [
+        ~r/content coming soon/i,
+        ~r/\bcoming soon\b/i,
+        ~r/\bTODO\b/,
+        ~r/\bTBD\b/,
+        ~r/lorem ipsum/i
+      ]
+
+      Enum.each(feature_files, fn file ->
+        body = File.read!(file)
+
+        assert body =~ "draft: false"
+
+        Enum.each(placeholder_patterns, fn pattern ->
+          refute body =~ pattern
+        end)
+      end)
+    end
+  end
 end

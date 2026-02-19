@@ -435,3 +435,28 @@ Implemented in `lib/agent_jido_web/live/chat_ops_live.ex:19` and asserted in `te
 4) blockers/assumptions
 - Sandbox blocks local TCP sockets and DB access, so default `mix`/`mix test` paths were not usable as-is.
 - Assumed acceptable to use a temporary local Mix PubSub shim (`/tmp/mix_patch`) plus `MIX_OS_CONCURRENCY_LOCK=0` for command execution, and to run the story-specific tests directly via `Mix.Tasks.Test.run(..., "--no-start")` instead of full `mix test` alias (which runs `ecto.create/migrate`).
+1) changed files
+- `priv/pages/features/reliability-by-architecture.md`
+- `priv/pages/features/multi-agent-coordination.md`
+- `priv/pages/features/operations-observability.md`
+- `test/agent_jido/pages_test.exs`
+- `test/agent_jido_web/live/page_live_test.exs`
+
+2) tests/commands executed
+- `mix test test/agent_jido/pages_test.exs test/agent_jido_web/live/page_live_test.exs` (pass)
+- `mix compile --no-deps-check --warnings-as-errors` (pass)
+- `mix precommit` (fails in this sandbox with `Mix.Sync.PubSub.subscribe/1` TCP socket `:eperm`)
+
+3) acceptance criteria coverage
+- Replaced placeholder content with publishable copy for exactly the 3 in-scope pages.
+- Set `draft: false` on those 3 pages after adding proof-aligned, route-valid links and concrete examples.
+- Added route smoke coverage for:
+  - `/features/reliability-by-architecture`
+  - `/features/multi-agent-coordination`
+  - `/features/operations-observability`
+- Added content checks confirming placeholder markers are removed from those 3 source files.
+- New LiveView assertions verify rendered pages no longer contain `"Content coming soon."` and include coherent page copy.
+
+4) blockers/assumptions
+- Blocker: `mix precommit` cannot complete in this execution environment due sandbox socket restrictions (`Mix.PubSub` loopback TCP open returns `:eperm`).
+- Assumption: story scope is limited to ST-CONT-004 page/test updates; no release-note artifact for reviewer sign-off exists in-repo for this story.

@@ -90,4 +90,25 @@ defmodule AgentJidoWeb.PageLiveTest do
       end
     end
   end
+
+  describe "features wave A pages" do
+    test "smoke routes for first three feature pages", %{conn: conn} do
+      target_routes = [
+        {"/features/reliability-by-architecture", "Jido treats reliability as an architectural constraint"},
+        {"/features/multi-agent-coordination", "Jido models multi-agent behavior as explicit coordination contracts"},
+        {"/features/operations-observability", "The router mounts LiveDashboard with Jido runtime pages enabled"}
+      ]
+
+      Enum.each(target_routes, fn {path, expected_copy} ->
+        page = Pages.get_page_by_path(path)
+        assert page != nil
+
+        {:ok, _view, html} = live(conn, path)
+
+        assert html =~ expected_copy
+        assert html =~ "Get Building"
+        refute html =~ "Content coming soon."
+      end)
+    end
+  end
 end
