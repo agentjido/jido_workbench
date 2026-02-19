@@ -184,4 +184,36 @@ defmodule AgentJidoWeb.PageLiveTest do
       end)
     end
   end
+
+  describe "community pages" do
+    test "renders /community index with section cards and no placeholder copy", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/community")
+
+      assert html =~ "Community"
+      assert html =~ "Learning Paths"
+      assert html =~ "Adoption Playbooks"
+      assert html =~ "Case Studies"
+      refute html =~ "Content coming soon."
+    end
+
+    test "smoke routes for all four community pages", %{conn: conn} do
+      target_pages = [
+        {"/community", "Community is where implementation experience gets turned into reusable playbooks."},
+        {"/community/learning-paths", "Learning paths reduce random exploration by pairing one objective with one proof checkpoint."},
+        {"/community/adoption-playbooks", "Adoption playbooks are decision records, not slide decks."},
+        {"/community/case-studies", "Each case study in this page has explicit publication permission for this repository."}
+      ]
+
+      Enum.each(target_pages, fn {path, expected_copy} ->
+        page = Pages.get_page_by_path(path)
+        assert page != nil
+
+        {:ok, _view, html} = live(conn, Pages.route_for(page))
+
+        assert html =~ expected_copy
+        assert html =~ "Get Building"
+        refute html =~ "Content coming soon."
+      end)
+    end
+  end
 end

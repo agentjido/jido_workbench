@@ -629,3 +629,31 @@ Notes:
 - In this sandbox, plain `mix` is blocked from opening local TCP sockets (`:eperm`), so I used a temporary runtime-only PubSub shim in `/tmp/mix_patch` to execute precommit successfully.
 - No commit was made.
 - No push was made.
+1) changed files
+- `priv/pages/community/index.md`
+- `priv/pages/community/learning-paths.md`
+- `priv/pages/community/adoption-playbooks.md`
+- `priv/pages/community/case-studies.md`
+- `test/agent_jido/pages_test.exs`
+- `test/agent_jido_web/live/page_live_test.exs`
+
+2) tests/commands executed
+- `MIX_PATH=/tmp/mix_patch_tasks MIX_OS_CONCURRENCY_LOCK=0 mix do patch_pubsub + format test/agent_jido_web/live/page_live_test.exs test/agent_jido/pages_test.exs` (pass)
+- `MIX_PATH=/tmp/mix_patch_tasks MIX_OS_CONCURRENCY_LOCK=0 mix do patch_pubsub + precommit` (pass)
+- `MIX_ENV=test MIX_PATH=/tmp/mix_patch_tasks MIX_OS_CONCURRENCY_LOCK=0 mix do patch_pubsub + raw_test test/agent_jido/pages_test.exs` (pass)
+- `MIX_ENV=test MIX_PATH=/tmp/mix_patch_tasks MIX_OS_CONCURRENCY_LOCK=0 mix do patch_pubsub + raw_test test/agent_jido_web/live/page_live_test.exs` (fails in sandbox due DB connection unavailability)
+
+3) acceptance criteria coverage
+- Community section has no placeholder body text:
+  - Replaced all four community page bodies with full content; removed `Content coming soon.` and similar markers.
+  - Added placeholder-scan assertions for all four source files in `test/agent_jido/pages_test.exs`.
+- Draft flags reflect DoD criteria for all community pages:
+  - Set `draft: false` in all four `priv/pages/community/*.md` files.
+  - Added assertions that each community page resolves, is `:community`, and has `draft == false` in `test/agent_jido/pages_test.exs`.
+- `/community` section feels launch-ready relative to roadmap:
+  - Added production-style content with attribution/evidence links, rollout playbooks, explicit permission policy for case studies, and concrete CTAs.
+  - Added `/community` index + four-page smoke tests in `test/agent_jido_web/live/page_live_test.exs` (added; execution blocked by DB in this sandbox).
+
+4) blockers/assumptions
+- Blocker: this sandbox denies required DB connectivity (`localhost:5432` TCP) and local Postgres bootstrap (`shmget` denied), so `ConnCase`-based LiveView tests cannot run here.
+- Assumption: explicit attribution language and explicit permission statements in `case-studies.md` satisfy ST-CONT-001 community-page DoD checks for adoption/usage claims and permission.
