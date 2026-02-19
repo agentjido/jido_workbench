@@ -408,3 +408,30 @@ Implemented in `lib/agent_jido_web/live/chat_ops_live.ex:19` and asserted in `te
 4) blockers/assumptions
 - Blocker encountered: direct `mix precommit` fails in this sandbox due loopback TCP restrictions in Mix pubsub/lock (`:eperm`).
 - Workaround used: run precommit via `elixir -S mix precommit` with a temporary no-op `Mix.PubSub` preload and `MIX_OS_CONCURRENCY_LOCK=0`; command completed successfully without repo code changes outside the story.
+1) changed files
+- `lib/agent_jido_web/router.ex:37`
+- `lib/agent_jido_web/live/jido_ecosystem_package_matrix_live.ex`
+- `test/agent_jido_web/live/jido_ecosystem_package_matrix_live_test.exs`
+
+2) tests/commands executed
+- `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 elixir -pa /tmp/mix_patch -S mix run --no-start -e 'Mix.Tasks.Test.run(["--no-start", "test/agent_jido_web/live/jido_ecosystem_package_matrix_live_test.exs"])'`  
+  Result: `3 tests, 0 failures`
+- `MIX_OS_CONCURRENCY_LOCK=0 elixir -pa /tmp/mix_patch -S mix precommit`  
+  Result: passing
+- `MIX_OS_CONCURRENCY_LOCK=0 elixir -pa /tmp/mix_patch -S mix format`  
+  Result: passing
+
+3) acceptance criteria coverage
+- `/ecosystem/package-matrix` resolves reliably:
+  - Added dedicated page at `lib/agent_jido_web/live/jido_ecosystem_package_matrix_live.ex`.
+  - Added explicit static route `live "/ecosystem/package-matrix", ...` before `"/ecosystem/:id"` in `lib/agent_jido_web/router.ex:38`.
+- Existing package detail pages still resolve via `/ecosystem/:id`:
+  - Tested representative ids (`jido`, `jido_ai`) in `test/agent_jido_web/live/jido_ecosystem_package_matrix_live_test.exs:37`.
+- Collision behavior explicitly tested:
+  - Added route precedence/render test asserting `/ecosystem/package-matrix` renders matrix content and not package detail marker (`FULL OVERVIEW`) in `test/agent_jido_web/live/jido_ecosystem_package_matrix_live_test.exs:28`.
+- Router placement/auth rationale:
+  - Route was added in public `scope "/", AgentJidoWeb` with `pipe_through(:browser)` (same public marketing scope as existing ecosystem routes), so it works with or without auth and keeps consistent `current_scope` fetching behavior from the browser pipeline.
+
+4) blockers/assumptions
+- Sandbox blocks local TCP sockets and DB access, so default `mix`/`mix test` paths were not usable as-is.
+- Assumed acceptable to use a temporary local Mix PubSub shim (`/tmp/mix_patch`) plus `MIX_OS_CONCURRENCY_LOCK=0` for command execution, and to run the story-specific tests directly via `Mix.Tasks.Test.run(..., "--no-start")` instead of full `mix test` alias (which runs `ecto.create/migrate`).
