@@ -657,3 +657,29 @@ Notes:
 4) blockers/assumptions
 - Blocker: this sandbox denies required DB connectivity (`localhost:5432` TCP) and local Postgres bootstrap (`shmget` denied), so `ConnCase`-based LiveView tests cannot run here.
 - Assumption: explicit attribution language and explicit permission statements in `case-studies.md` satisfy ST-CONT-001 community-page DoD checks for adoption/usage claims and permission.
+1) changed files
+- `lib/agent_jido/demos/address_normalization/address_normalization_agent.ex`
+- `lib/agent_jido/demos/address_normalization/actions/execute_action.ex`
+- `lib/agent_jido/demos/address_normalization/actions/reset_action.ex`
+- `lib/agent_jido_web/examples/address_normalization_agent_live.ex`
+- `priv/examples/address-normalization-agent.md`
+- `test/agent_jido/demos/address_normalization_agent_test.exs`
+- `test/agent_jido_web/live/jido_example_live_test.exs`
+
+2) tests/commands executed
+- `MIX_OS_CONCURRENCY_LOCK=0 elixir /tmp/run_mix_task.exs format`
+- `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 elixir /tmp/run_mix_task.exs test.raw --no-start test/agent_jido/demos/address_normalization_agent_test.exs test/agent_jido_web/live/jido_example_live_test.exs` (10 tests, 0 failures)
+- `MIX_OS_CONCURRENCY_LOCK=0 elixir /tmp/run_mix_task.exs compile --no-deps-check`
+- `MIX_OS_CONCURRENCY_LOCK=0 elixir /tmp/run_mix_task.exs precommit` (passing)
+
+3) acceptance criteria coverage
+- `/examples/address-normalization-agent` explanation tab render: covered by `test/agent_jido_web/live/jido_example_live_test.exs` (`renders explanation tab`).
+- `/examples/address-normalization-agent` source tab render: covered by `test/agent_jido_web/live/jido_example_live_test.exs` (`renders source tab`).
+- Demo tab mount + interaction: covered by `test/agent_jido_web/live/jido_example_live_test.exs` (`renders demo tab and validates interaction flow`), including valid normalization and invalid contract rejection.
+- Action contracts/validation demonstration: implemented in `ExecuteAction` schema + invalid payload flow in `AddressNormalizationAgentLive`; verified by live interaction test and agent tests.
+- `source_files` resolution and metadata: covered by `test/agent_jido_web/live/jido_example_live_test.exs` (`example registry metadata resolves source files`) and aligned in `priv/examples/address-normalization-agent.md`.
+- Route placement: no router changes were needed because existing public route `live "/examples/:slug", JidoExampleLive, :show` already serves this example slug.
+
+4) blockers/assumptions
+- Sandbox blocks TCP sockets used by Mix PubSub/locks and localhost Postgres. To complete validation, I used an equivalent Mix-task runner (`/tmp/run_mix_task.exs`) with `MIX_OS_CONCURRENCY_LOCK=0` and ran story-specific tests via `test.raw --no-start`.
+- Full `mix test` alias was not used because it invokes DB create/migrate against blocked localhost Postgres; story-focused tests for this implementation are passing.

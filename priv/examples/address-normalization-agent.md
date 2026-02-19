@@ -25,14 +25,19 @@
 
 ## How it works
 
-This example is part of the top-20 rollout and is scoped to one clear learning outcome: **Action contracts and validation**.
+This example focuses on one learning outcome: **Action contracts and validation**.
+
+The interactive demo runs two deterministic payloads:
+
+1. A valid US-style address payload that normalizes into a canonical string.
+2. An invalid payload (missing `postal_code`) that is rejected by the action contract.
 
 ### Agent Boundary
 
-- Planned agent module: `AgentJido.Demos.AddressNormalizationAgent`
-- Capability focus: Jido.Agent schema
-- Capability focus: Jido.Action validation
-- Capability focus: cmd/2 transitions
+- Agent module: `AgentJido.Demos.AddressNormalizationAgent`
+- Execute action: `AgentJido.Demos.AddressNormalization.ExecuteAction`
+- Reset action: `AgentJido.Demos.AddressNormalization.ResetAction`
+- Agent API: `AddressNormalizationAgent.cmd/2`
 
 ### LiveView Boundary
 
@@ -40,12 +45,11 @@ This example is part of the top-20 rollout and is scoped to one clear learning o
 - Demo source target: `lib/agent_jido_web/examples/address_normalization_agent_live.ex`
 - Route: `/examples/address-normalization-agent`
 
-### Implementation Checklist
+### Demo flow
 
-1. Implement the agent and actions listed in `source_files`.
-2. Implement LiveView events and deterministic state rendering.
-3. Verify explanation, source, and demo tabs all load correctly.
-4. Add tests for route rendering and one core demo interaction.
+1. Click **Run Valid Payload** to normalize a deterministic address sample.
+2. Click **Run Invalid Payload** to trigger action validation rejection.
+3. Click **Reset** to clear the demo state.
 
 ## Prerequisites
 
