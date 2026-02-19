@@ -31,8 +31,142 @@ defmodule AgentJido.Pages do
 
   @published_pages Enum.reject(@pages, & &1.draft)
 
+  @canonical_path_groups @pages
+                         |> Enum.group_by(fn page ->
+                           page.path
+                           |> case do
+                             "/" -> "/"
+                             other -> String.trim_trailing(other, "/")
+                           end
+                         end)
+
+  for {canonical_path, pages} <- @canonical_path_groups, length(pages) > 1 do
+    files =
+      pages
+      |> Enum.map(& &1.source_path)
+      |> Enum.join(", ")
+
+    raise ArgumentError,
+          "Duplicate canonical page path #{canonical_path}: #{files}"
+  end
+
+  @docs_pages Enum.filter(@pages, &(&1.category == :docs))
+
+  for page <- @docs_pages do
+    if Regex.match?(~r{/priv/pages/docs/[^/]+/index\.(md|livemd)$}, page.source_path) do
+      raise ArgumentError,
+            "Docs section roots must use /docs/<section>.md|livemd (not index.*): #{page.source_path}"
+    end
+  end
+
+  @docs_section_shape Enum.reduce(@docs_pages, %{}, fn page, acc ->
+                        segments =
+                          page.path
+                          |> String.trim_leading("/docs")
+                          |> String.trim_leading("/")
+                          |> String.split("/", trim: true)
+
+                        case segments do
+                          [section] when section != "" ->
+                            Map.update(acc, section, %{root?: true, children?: false, child_paths: []}, fn state ->
+                              %{state | root?: true}
+                            end)
+
+                          [section | _rest] when section != "" ->
+                            Map.update(
+                              acc,
+                              section,
+                              %{root?: false, children?: true, child_paths: [page.path]},
+                              fn state ->
+                                %{state | children?: true, child_paths: [page.path | state.child_paths]}
+                              end
+                            )
+
+                          _other ->
+                            acc
+                        end
+                      end)
+
+  for {section, state} <- @docs_section_shape, state.children? and not state.root? do
+    child_paths =
+      state.child_paths
+      |> Enum.uniq()
+      |> Enum.sort()
+      |> Enum.join(", ")
+
+    raise ArgumentError,
+          "Docs section #{section} has child pages but no root /docs/#{section}: #{child_paths}"
+  end
+
+  @legacy_path_entries (for page <- @pages,
+                            legacy_path <- page.legacy_paths || [] do
+                          normalized =
+                            case legacy_path do
+                              "/" -> "/"
+                              other -> String.trim_trailing(other, "/")
+                            end
+
+                          {normalized, page}
+                        end)
+
+  @legacy_path_groups @legacy_path_entries |> Enum.group_by(fn {legacy_path, _page} -> legacy_path end)
+
+  for {legacy_path, entries} <- @legacy_path_groups, length(entries) > 1 do
+    paths =
+      entries
+      |> Enum.map(fn {_legacy, page} -> page.path end)
+      |> Enum.join(", ")
+
+    raise ArgumentError,
+          "Duplicate legacy path #{legacy_path} is assigned to multiple pages: #{paths}"
+  end
+
+  @canonical_paths_set MapSet.new(Map.keys(@canonical_path_groups))
+
+  for {legacy_path, page} <- @legacy_path_entries do
+    if MapSet.member?(@canonical_paths_set, legacy_path) do
+      raise ArgumentError,
+            "Legacy path #{legacy_path} for #{page.path} conflicts with an existing canonical path"
+    end
+  end
+
   @pages_by_id Map.new(@published_pages, &{&1.id, &1})
-  @pages_by_path Map.new(@published_pages, &{&1.path, &1})
+  @pages_by_path Map.new(@published_pages, fn page ->
+                   normalized =
+                     case page.path do
+                       "/" -> "/"
+                       other -> String.trim_trailing(other, "/")
+                     end
+
+                   {normalized, page}
+                 end)
+  @pages_by_route Map.new(@published_pages, fn page ->
+                    route =
+                      case page.category do
+                        :docs ->
+                          case page.path do
+                            "/" -> "/"
+                            other -> String.trim_trailing(other, "/")
+                          end
+
+                        :training ->
+                          "/training/#{page.id}"
+
+                        :features ->
+                          "/features/#{page.id}"
+
+                        :build ->
+                          "/build/#{page.id}"
+
+                        :community ->
+                          "/community/#{page.id}"
+                      end
+
+                    {route, page}
+                  end)
+  @pages_by_legacy_path @legacy_path_entries
+                        |> Enum.filter(fn {_legacy_path, page} -> not page.draft end)
+                        |> Map.new()
 
   @pages_by_category @published_pages
                      |> Enum.group_by(& &1.category)
@@ -97,15 +231,47 @@ defmodule AgentJido.Pages do
   Returns a page by its path, or nil if not found.
   """
   @spec get_page_by_path(String.t()) :: Page.t() | nil
-  def get_page_by_path(path), do: Map.get(@pages_by_path, path)
+  def get_page_by_path(path), do: Map.get(@pages_by_path, normalize_path_lookup(path))
 
   @doc """
   Returns a page by its path, raises `NotFoundError` if not found.
   """
   @spec get_page_by_path!(String.t()) :: Page.t()
   def get_page_by_path!(path) do
-    Map.get(@pages_by_path, path) ||
+    Map.get(@pages_by_path, normalize_path_lookup(path)) ||
       raise NotFoundError, "page with path=#{path} not found"
+  end
+
+  @doc """
+  Returns a page by its legacy path alias, or nil if not found.
+  """
+  @spec get_page_by_legacy_path(String.t()) :: Page.t() | nil
+  def get_page_by_legacy_path(path), do: Map.get(@pages_by_legacy_path, normalize_path_lookup(path))
+
+  @doc """
+  Resolves a request path against canonical and legacy lookups.
+  """
+  @spec resolve_page_for_path(String.t()) ::
+          {:ok, Page.t(), :canonical | :legacy | :route_alias} | :error
+  def resolve_page_for_path(path) do
+    normalized = normalize_path_lookup(path)
+
+    case Map.get(@pages_by_path, normalized) do
+      %Page{} = page ->
+        {:ok, page, :canonical}
+
+      nil ->
+        case Map.get(@pages_by_legacy_path, normalized) do
+          %Page{} = page ->
+            {:ok, page, :legacy}
+
+          nil ->
+            case Map.get(@pages_by_route, normalized) do
+              %Page{} = page -> {:ok, page, :route_alias}
+              nil -> :error
+            end
+        end
+    end
   end
 
   @doc """
@@ -135,6 +301,68 @@ defmodule AgentJido.Pages do
   """
   @spec all_categories() :: [atom()]
   def all_categories, do: @categories
+
+  @doc """
+  Returns docs section root pages (`/docs/<section>`) ordered for secondary nav.
+  """
+  @spec docs_sections() :: [Page.t()]
+  def docs_sections do
+    :docs
+    |> pages_by_category()
+    |> Enum.filter(&docs_section_root_page?/1)
+    |> Enum.filter(& &1.in_menu)
+    |> Enum.sort_by(&{&1.order, &1.path})
+  end
+
+  @doc """
+  Returns docs pages in a section, including the section root and descendants.
+  """
+  @spec docs_section_pages(String.t()) :: [Page.t()]
+  def docs_section_pages(section) when is_binary(section) do
+    normalized_section = normalize_docs_section(section)
+
+    :docs
+    |> pages_by_category()
+    |> Enum.filter(&docs_page_in_section?(&1, normalized_section))
+    |> Enum.filter(& &1.in_menu)
+    |> Enum.sort_by(&{&1.order, &1.path})
+  end
+
+  @doc """
+  Returns a docs section root page by section slug.
+  """
+  @spec docs_section_root(String.t()) :: Page.t() | nil
+  def docs_section_root(section) when is_binary(section) do
+    normalized_section = normalize_docs_section(section)
+
+    :docs
+    |> pages_by_category()
+    |> Enum.find(fn page -> docs_section_root_page?(page) and docs_section_for_page(page) == normalized_section end)
+  end
+
+  @doc """
+  Returns the docs section slug for a request path.
+  """
+  @spec docs_section_for_path(String.t()) :: String.t() | nil
+  def docs_section_for_path(path) when is_binary(path) do
+    normalized = normalize_path_lookup(path)
+
+    case normalized |> String.trim_leading("/") |> String.split("/", trim: true) do
+      ["docs", section | _rest] when section != "" -> section
+      _other -> nil
+    end
+  end
+
+  @doc """
+  Returns docs legacy redirect pairs as `{legacy_path, canonical_path}`.
+  """
+  @spec docs_legacy_redirects() :: [{String.t(), String.t()}]
+  def docs_legacy_redirects do
+    @pages_by_legacy_path
+    |> Enum.map(fn {legacy_path, page} -> {legacy_path, route_for(page)} end)
+    |> Enum.filter(fn {_legacy_path, canonical_path} -> String.starts_with?(canonical_path, "/docs") end)
+    |> Enum.sort()
+  end
 
   @doc """
   Returns the total number of published pages.
@@ -238,7 +466,7 @@ defmodule AgentJido.Pages do
       "/training/foundations-intro"
   """
   @spec route_for(Page.t()) :: String.t()
-  def route_for(%Page{category: :docs} = p), do: "/docs/#{path_suffix(p.path)}"
+  def route_for(%Page{category: :docs, path: path}), do: normalize_path_lookup(path)
   def route_for(%Page{category: :training} = p), do: "/training/#{p.id}"
   def route_for(%Page{category: :features} = p), do: "/features/#{p.id}"
   def route_for(%Page{category: :build} = p), do: "/build/#{p.id}"
@@ -246,12 +474,44 @@ defmodule AgentJido.Pages do
 
   # --- Private helpers ---
 
-  defp path_suffix(path) do
-    case path |> String.trim_leading("/") |> String.split("/", parts: 2) do
-      [_category, rest] -> rest
-      [only] -> only
-      _ -> ""
+  defp normalize_path_lookup(path) when is_binary(path) do
+    case path do
+      "/" -> "/"
+      other -> String.trim_trailing(other, "/")
     end
+  end
+
+  defp docs_section_root_page?(%Page{category: :docs} = page) do
+    case page.path |> String.trim_leading("/docs") |> String.trim_leading("/") |> String.split("/", trim: true) do
+      [section] when section != "" -> true
+      _other -> false
+    end
+  end
+
+  defp docs_section_root_page?(_page), do: false
+
+  defp docs_page_in_section?(%Page{category: :docs} = page, section) do
+    case docs_section_for_page(page) do
+      ^section -> true
+      _other -> false
+    end
+  end
+
+  defp docs_page_in_section?(_page, _section), do: false
+
+  defp docs_section_for_page(%Page{category: :docs, path: path}) do
+    case path |> String.trim_leading("/docs") |> String.trim_leading("/") |> String.split("/", trim: true) do
+      [section | _rest] when section != "" -> section
+      _other -> nil
+    end
+  end
+
+  defp docs_section_for_page(_page), do: nil
+
+  defp normalize_docs_section(section) do
+    section
+    |> String.trim()
+    |> String.trim("/")
   end
 
   defp do_build_menu_tree(pages) do

@@ -67,7 +67,7 @@ Jido favors explicit contracts that can be asserted in tests. You can verify rou
 - **Ecosystem:** [Jido Signal](/ecosystem/jido_signal) and [Jido Action](/ecosystem/jido_action)
 - **Training:** [Signals, Routing, and Agent Communication](/training/signals-routing)
 - **Training:** [Directives, Scheduling, and Time-Based Behavior](/training/directives-scheduling)
-- **Docs:** [Architecture](/docs/architecture) and [Reference](/docs/reference)
+- **Docs:** [Architecture](/docs/reference/architecture) and [Reference](/docs/reference)
 - **Context:** [All feature pillars](/features)
 
 ## Get Building

@@ -3,6 +3,7 @@
   description: "Security controls, policy boundaries, and governance practices.",
   category: :docs,
   order: 70,
+  legacy_paths: ["/docs/security-and-governance"],
   tags: [:security, :governance]
 }
 ---

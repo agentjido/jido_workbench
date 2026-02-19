@@ -3,6 +3,7 @@
   description: "Operational checklist for shipping Jido workloads to production.",
   category: :docs,
   order: 60,
+  legacy_paths: ["/docs/production-readiness-checklist"],
   tags: [:production, :checklist]
 }
 ---

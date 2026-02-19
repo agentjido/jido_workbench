@@ -57,9 +57,9 @@ Jido expects operating concerns early: telemetry dimensions, runtime introspecti
 
 - **Ecosystem:** [Jido Live Dashboard](/ecosystem/jido_live_dashboard) and [Jido core runtime](/ecosystem/jido)
 - **Training:** [Production Readiness: Supervision, Telemetry, and Failure Modes](/training/production-readiness)
-- **Docs:** [Production Readiness Checklist](/docs/production-readiness-checklist) and [Incident Playbooks](/docs/incident-playbooks)
+- **Docs:** [Production Readiness Checklist](/docs/reference/production-readiness-checklist) and [Incident Playbooks](/docs/reference/incident-playbooks)
 - **Context:** [All feature pillars](/features)
 
 ## Get Building
 
-Ready to operationalize your workflow? [Get Building](/getting-started), then run your first readiness pass with the [production checklist](/docs/production-readiness-checklist).
+Ready to operationalize your workflow? [Get Building](/getting-started), then run your first readiness pass with the [production checklist](/docs/reference/production-readiness-checklist).

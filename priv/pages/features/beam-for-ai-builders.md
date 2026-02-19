@@ -67,7 +67,7 @@ Jido treats runtime semantics as first-class: isolation, supervision, and recurr
 - **Ecosystem:** [Jido core runtime](/ecosystem/jido) and [Jido Signal](/ecosystem/jido_signal)
 - **Ecosystem:** [Jido Live Dashboard](/ecosystem/jido_live_dashboard)
 - **Training:** [Production Readiness: Supervision, Telemetry, and Failure Modes](/training/production-readiness)
-- **Docs:** [Architecture](/docs/architecture) and [Production Readiness Checklist](/docs/production-readiness-checklist)
+- **Docs:** [Architecture](/docs/reference/architecture) and [Production Readiness Checklist](/docs/reference/production-readiness-checklist)
 - **Context:** [All feature pillars](/features)
 
 ## Get Building

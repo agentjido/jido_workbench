@@ -3,6 +3,7 @@
   description: "Foundational concepts and vocabulary for building with Jido.",
   category: :docs,
   order: 20,
+  legacy_paths: ["/docs/core-concepts"],
   tags: [:core_concepts]
 }
 ---

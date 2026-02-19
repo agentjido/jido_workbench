@@ -163,10 +163,18 @@ defmodule AgentJidoWeb.SearchLive do
       end
 
     case response do
-      {:ok, results, :success} when is_list(results) -> {:success, results}
-      {:ok, _results, :fallback} -> {:failure, []}
-      {:ok, results} when is_list(results) -> {:success, results}
-      _ -> {:failure, []}
+      {:ok, results, status} when is_list(results) ->
+        cond do
+          results != [] -> {:success, results}
+          status == :success -> {:success, []}
+          true -> {:failure, []}
+        end
+
+      {:ok, results} when is_list(results) ->
+        {:success, results}
+
+      _ ->
+        {:failure, []}
     end
   rescue
     _ -> {:failure, []}
@@ -174,7 +182,7 @@ defmodule AgentJidoWeb.SearchLive do
 
   defp resolve_search_module(session) do
     case Map.get(session, "search_module") do
-      module when is_atom(module) -> module
+      module when is_atom(module) and not is_nil(module) -> module
       _ -> Search
     end
   end

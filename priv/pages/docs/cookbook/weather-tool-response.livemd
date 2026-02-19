@@ -2,7 +2,8 @@
 title: "Weather Agent",
 description: "This guide will walk you through building a Weather Agent using the Jido Agent SDK. We'll create an agent that can respond to natural language queries about weather conditions in different locations.",
 category: :docs,
-order: 100,
+order: 50,
+legacy_paths: ["/docs/weather-tool-response"],
 tags: [:agent_sdk, :getting_started]
 } -->
 

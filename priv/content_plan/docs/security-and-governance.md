@@ -22,7 +22,7 @@
     "training/manager-roadmap"
   ],
   ecosystem_packages: ["jido", "agent_jido"],
-  destination_route: "/docs/security-and-governance",
+  destination_route: "/docs/reference/security-and-governance",
   destination_collection: :pages,
   tags: [:operate, :security, :governance, :compliance]
 }

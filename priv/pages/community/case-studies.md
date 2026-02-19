@@ -22,7 +22,7 @@ If an external team case is added later, written approval and attribution must b
 
 - Context: onboarding engineers needed a minimal supervised workflow to learn state transitions.
 - Implementation asset: [Counter Agent example](/examples/counter-agent)
-- Supporting training/doc links: [Agent Fundamentals on the BEAM](/training/agent-fundamentals), [Core Concepts](/docs/core-concepts)
+- Supporting training/doc links: [Agent Fundamentals on the BEAM](/training/agent-fundamentals), [Core Concepts](/docs/getting-started/core-concepts)
 - Proof signal: deterministic state updates from bounded actions.
 - Permission: approved by repository maintainers for documentation use.
 
@@ -30,7 +30,7 @@ If an external team case is added later, written approval and attribution must b
 
 - Context: teams needed an event-driven example that showed signals plus directive emission.
 - Implementation asset: [Demand Tracker Agent example](/examples/demand-tracker-agent)
-- Supporting training/doc links: [Signals and Routing](/training/signals-routing), [Architecture](/docs/architecture)
+- Supporting training/doc links: [Signals and Routing](/training/signals-routing), [Architecture](/docs/reference/architecture)
 - Proof signal: explicit action execution plus emitted directive data.
 - Permission: approved by repository maintainers for documentation use.
 
@@ -38,7 +38,7 @@ If an external team case is added later, written approval and attribution must b
 
 - Context: content waves required consistent publish gating before `draft: false` transitions.
 - Implementation asset: [Adoption Playbooks](/community/adoption-playbooks)
-- Supporting training/doc links: [Production Readiness: Supervision, Telemetry, and Failure Modes](/training/production-readiness), [Production Readiness Checklist](/docs/production-readiness-checklist)
+- Supporting training/doc links: [Production Readiness: Supervision, Telemetry, and Failure Modes](/training/production-readiness), [Production Readiness Checklist](/docs/reference/production-readiness-checklist)
 - Proof signal: story-scoped tests validate placeholder removal and draft-state transitions.
 - Permission: approved by repository maintainers for documentation use.
 

@@ -67,7 +67,7 @@ Jido starts with runtime boundaries and supervised execution, so a small pilot c
 - **Ecosystem:** [Jido core runtime](/ecosystem/jido) and [Jido Action](/ecosystem/jido_action)
 - **Training:** [Agent Fundamentals on the BEAM](/training/agent-fundamentals)
 - **Training:** [LiveView + Jido Integration Patterns](/training/liveview-integration)
-- **Docs:** [Architecture](/docs/architecture) and [Guides](/docs/guides)
+- **Docs:** [Architecture](/docs/reference/architecture) and [Guides](/docs/getting-started/guides)
 - **Context:** [All feature pillars](/features)
 
 ## Get Building

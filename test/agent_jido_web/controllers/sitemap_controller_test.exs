@@ -23,9 +23,9 @@ defmodule AgentJidoWeb.SitemapControllerTest do
       |> get("/sitemap.xml")
       |> response(200)
 
-    # Training pages should be included
+    # Training pages are intentionally retired from public routing
     for page <- Pages.pages_by_category(:training) do
-      assert body =~ Pages.route_for(page)
+      refute body =~ Pages.route_for(page)
     end
 
     assert body =~ "/features"

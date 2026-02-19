@@ -1,7 +1,8 @@
 %{
 title: "Tool Response",
 category: :docs,
-order: 100,
+order: 40,
+legacy_paths: ["/docs/tool-response"],
 tags: [:tool_response, :getting_started]
 }
 

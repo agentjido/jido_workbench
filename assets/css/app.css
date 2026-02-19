@@ -487,6 +487,56 @@
 }
 
 @layer utilities {
+  .docs-prose.prose {
+    --tw-prose-body: hsl(var(--secondary-foreground));
+    --tw-prose-headings: hsl(var(--foreground));
+    --tw-prose-lead: hsl(var(--muted-foreground));
+    --tw-prose-links: hsl(var(--primary));
+    --tw-prose-bold: hsl(var(--foreground));
+    --tw-prose-counters: hsl(var(--muted-foreground));
+    --tw-prose-bullets: hsl(var(--muted-foreground));
+    --tw-prose-hr: hsl(var(--border));
+    --tw-prose-quotes: hsl(var(--foreground));
+    --tw-prose-quote-borders: hsl(var(--border));
+    --tw-prose-captions: hsl(var(--muted-foreground));
+    --tw-prose-code: hsl(var(--accent-cyan));
+    --tw-prose-pre-code: hsl(var(--foreground));
+    --tw-prose-pre-bg: hsl(var(--code-bg));
+    --tw-prose-th-borders: hsl(var(--border));
+    --tw-prose-td-borders: hsl(var(--border));
+  }
+
+  .docs-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border-strong)) transparent;
+  }
+
+  .docs-scrollbar::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  .docs-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .docs-scrollbar::-webkit-scrollbar-thumb {
+    background: hsl(var(--border-strong));
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+
+  .docs-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground));
+    background-clip: padding-box;
+  }
+
+  .docs-scrollbar::-webkit-scrollbar-thumb:active {
+    background: hsl(var(--primary) / 0.7);
+    background-clip: padding-box;
+  }
+
   .syntax-keyword { color: hsl(var(--code-keyword)); }
   .syntax-string { color: hsl(var(--code-string)); }
   .syntax-comment { color: hsl(var(--code-comment)); }

@@ -23,29 +23,31 @@ let Hooks = {
 
 Hooks.ThemeToggle = {
   mounted() {
-    const theme = this.el.dataset.theme;
-
     this.updateButtonStates();
+    this.handleClick = () => {
+      const isLight = document.documentElement.classList.contains("light");
+      const nextTheme = isLight ? "dark" : "light";
 
-    this.el.addEventListener("click", () => {
-      applyTheme(theme);
+      applyTheme(nextTheme);
       this.updateButtonStates();
-    });
+    };
+
+    this.el.addEventListener("click", this.handleClick);
+  },
+
+  destroyed() {
+    this.el.removeEventListener("click", this.handleClick);
   },
 
   updateButtonStates() {
     const isLight = document.documentElement.classList.contains("light");
-    const darkBtn = document.getElementById("theme-dark-btn");
-    const lightBtn = document.getElementById("theme-light-btn");
+    const moonIcon = this.el.querySelector("[data-theme-icon='moon']");
+    const sunIcon = this.el.querySelector("[data-theme-icon='sun']");
 
-    if (darkBtn && lightBtn) {
-      if (isLight) {
-        darkBtn.className = "px-3 py-1.5 rounded text-[10px] font-semibold transition-colors text-muted-foreground hover:text-foreground";
-        lightBtn.className = "px-3 py-1.5 rounded text-[10px] font-semibold transition-colors bg-primary text-primary-foreground";
-      } else {
-        darkBtn.className = "px-3 py-1.5 rounded text-[10px] font-semibold transition-colors bg-primary text-primary-foreground";
-        lightBtn.className = "px-3 py-1.5 rounded text-[10px] font-semibold transition-colors text-muted-foreground hover:text-foreground";
-      }
+    if (moonIcon && sunIcon) {
+      moonIcon.classList.toggle("hidden", isLight);
+      sunIcon.classList.toggle("hidden", !isLight);
+      this.el.setAttribute("aria-label", isLight ? "Switch to dark mode" : "Switch to light mode");
     }
   }
 };
@@ -117,6 +119,42 @@ window.addEventListener("phx:page-loading-stop", (_info) => topbar.hide());
 liveSocket.connect();
 
 window.liveSocket = liveSocket;
+
+function isEditableTarget(target) {
+  if (!target) return false;
+  if (target.isContentEditable) return true;
+
+  const tagName = target.tagName ? target.tagName.toLowerCase() : "";
+  return tagName === "input" || tagName === "textarea" || tagName === "select";
+}
+
+function openPrimaryNavSearch() {
+  const trigger = document.getElementById("primary-nav-search-trigger");
+
+  if (trigger) {
+    trigger.click();
+  }
+}
+
+document.addEventListener("keydown", (event) => {
+  if (event.defaultPrevented || isEditableTarget(event.target)) {
+    return;
+  }
+
+  const key = event.key.toLowerCase();
+  const hasCommandModifier = event.metaKey || event.ctrlKey;
+
+  if (hasCommandModifier && key === "k") {
+    event.preventDefault();
+    openPrimaryNavSearch();
+    return;
+  }
+
+  if (!event.metaKey && !event.ctrlKey && !event.altKey && !event.shiftKey && key === "/") {
+    event.preventDefault();
+    openPrimaryNavSearch();
+  }
+});
 
 document.addEventListener("click", (e) => {
   if (e.target.closest("[data-copy-button]")) {

@@ -9,77 +9,28 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
   attr(:current_path, :string, default: nil)
 
   def docs_header(assigns) do
-    assigns = assign(assigns, :nav_links, Nav.docs_nav_links())
-
     ~H"""
-    <nav class="flex items-center justify-between px-6 py-4 bg-card border-b border-border sticky top-0 z-50">
-      <div class="flex items-center gap-6">
-        <Nav.logo show_version={false} />
-        <span class="text-[11px] text-muted-foreground px-2 py-0.5 bg-elevated rounded -ml-2">
-          Docs
-        </span>
-
-        <div class="hidden md:flex items-center gap-5">
-          <%= for item <- @nav_links do %>
-            <.link
-              navigate={item}
-              class={"text-xs transition-colors #{if @current_path && String.starts_with?(@current_path, item), do: "text-primary font-semibold", else: "text-muted-foreground hover:text-foreground"}"}
-            >
-              {String.replace_prefix(item, "/", "")}
-            </.link>
-          <% end %>
-        </div>
-      </div>
-
-      <div class="flex items-center gap-3">
-        <.link
-          navigate="/search"
-          class="hidden md:flex items-center gap-2 bg-elevated border border-border rounded px-3 py-2 min-w-[200px] hover:border-muted-foreground transition-colors"
-        >
-          <.icon name="hero-magnifying-glass" class="h-3 w-3 text-muted-foreground" />
-          <span class="text-xs text-muted-foreground flex-1">Search...</span>
-          <kbd class="text-[10px] text-muted-foreground px-1.5 py-0.5 bg-card border border-border rounded">
-            ⌘K
-          </kbd>
-        </.link>
-
-        <button class="hidden md:flex items-center gap-2 bg-primary/10 border border-primary/30 rounded px-3 py-2 text-xs text-primary font-medium hover:bg-primary/20 transition-colors">
-          <.icon name="hero-sparkles" class="h-3 w-3" /> Ask AI
-        </button>
-
-        <a
-          href={Nav.github_url()}
-          target="_blank"
-          rel="noopener noreferrer"
-          class="text-xs text-muted-foreground hover:text-foreground transition-colors"
-        >
-          GitHub
-        </a>
-        <a
-          href={Nav.hex_url()}
-          target="_blank"
-          rel="noopener noreferrer"
-          class="text-xs text-muted-foreground hover:text-foreground transition-colors"
-        >
-          Hex
-        </a>
-      </div>
-    </nav>
+    <header class="z-40 border-b border-border bg-background/90 backdrop-blur-md">
+      <Nav.primary_nav
+        current_path={@current_path}
+        layout_mode={:fluid}
+        surface_mode={:flush}
+        show_theme_toggle={true}
+        mobile_menu_id="docs-primary-mobile-menu"
+      />
+    </header>
     """
   end
 
   # Secondary Navigation Component
   attr(:current_path, :string, default: nil)
+  attr(:tabs, :list, default: [])
 
   def docs_secondary_nav(assigns) do
     ~H"""
-    <div class="border-b border-border bg-card/50 px-6 overflow-x-auto">
-      <nav class="flex items-center gap-1">
-        <%= for tab <- [
-          %{label: "Get Started", href: "/docs", active_paths: ["/docs"]},
-          %{label: "Cookbook", href: "/cookbook", active_paths: ["/cookbook"]},
-          %{label: "Reference", href: "https://hexdocs.pm/jido", active_paths: [], external: true}
-        ] do %>
+    <div class="border-b border-border bg-card/50 px-6">
+      <nav class="docs-scrollbar flex min-w-0 items-center gap-1 overflow-x-auto overflow-y-hidden">
+        <%= for tab <- @tabs do %>
           <%= if tab[:external] do %>
             <a
               href={tab.href}
@@ -95,7 +46,7 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
               navigate={tab.href}
               class={
                 "flex items-center gap-1 px-4 py-3 text-[13px] whitespace-nowrap transition-colors border-b-2 -mb-[1px] " <>
-                if Enum.any?(tab.active_paths, &String.starts_with?(@current_path || "", &1)) do
+                if Enum.any?(Map.get(tab, :active_paths, [tab.href]), &String.starts_with?(@current_path || "", &1)) do
                   "text-foreground font-medium border-b-primary"
                 else
                   "text-muted-foreground border-b-transparent hover:text-foreground hover:border-b-border"
@@ -119,7 +70,7 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
   def docs_sidebar(assigns) do
     ~H"""
     <%= if @open do %>
-      <aside class="hidden lg:block w-[260px] shrink-0 bg-card border-r border-border overflow-y-auto sticky top-[105px] h-[calc(100vh-105px)]">
+      <aside class="docs-scrollbar hidden lg:block h-full w-[260px] shrink-0 overflow-y-auto border-r border-border bg-card">
         <div class="py-4">
           <!-- Jido Docs header -->
           <div class="flex items-center justify-between px-4 mb-4">
@@ -136,11 +87,11 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
           </div>
 
           <%= for section <- @nav do %>
-            <div class="mb-2">
-              <div class="w-full flex items-center justify-between px-4 py-2.5 text-[12px] font-bold tracking-[0.05em] uppercase text-foreground hover:text-primary transition-colors cursor-pointer">
+            <details class="mb-2 group" open>
+              <summary class="list-none w-full flex items-center justify-between px-4 py-2.5 text-[12px] font-bold tracking-[0.05em] uppercase text-foreground hover:text-primary transition-colors cursor-pointer [&::-webkit-details-marker]:hidden">
                 <span>{section.title}</span>
-                <.icon name="hero-chevron-down" class="h-3.5 w-3.5 text-muted-foreground" />
-              </div>
+                <.icon name="hero-chevron-down" class="h-3.5 w-3.5 text-muted-foreground transition-transform group-open:rotate-180" />
+              </summary>
 
               <div class="mt-1">
                 <%= for item <- section.items do %>
@@ -189,12 +140,12 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
                   <% end %>
                 <% end %>
               </div>
-            </div>
+            </details>
           <% end %>
         </div>
       </aside>
     <% else %>
-      <aside class="hidden lg:flex flex-col w-[56px] shrink-0 bg-card border-r border-border sticky top-[105px] h-[calc(100vh-105px)]">
+      <aside class="docs-scrollbar hidden lg:flex h-full w-[56px] shrink-0 flex-col overflow-y-auto border-r border-border bg-card">
         <button
           phx-click="toggle_sidebar"
           class="m-3 p-2 rounded-md bg-elevated border border-border text-muted-foreground hover:text-foreground transition-colors"
@@ -220,13 +171,13 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
 
   def docs_right_sidebar(assigns) do
     ~H"""
-    <aside class="hidden xl:block w-[200px] shrink-0 sticky top-[105px] h-[calc(100vh-105px)] py-12 px-5 overflow-y-auto">
+    <aside class="hidden xl:flex h-full w-[200px] shrink-0 flex-col border-l border-border bg-background/40 px-5 py-12">
       <%= if @toc && @toc != [] do %>
-        <div class="mb-8">
+        <div class="mb-8 flex min-h-0 flex-1 flex-col">
           <div class="text-[10px] font-bold tracking-[0.1em] uppercase text-muted-foreground mb-4">
             ON THIS PAGE
           </div>
-          <nav class="space-y-0">
+          <nav class="docs-scrollbar min-h-0 flex-1 space-y-0 overflow-y-auto pr-1">
             <%= for item <- @toc do %>
               <a
                 href={"##{item.id}"}
@@ -237,10 +188,12 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
             <% end %>
           </nav>
         </div>
+      <% else %>
+        <div class="flex-1" />
       <% end %>
       
     <!-- Quick Links -->
-      <div class="p-4 rounded-md bg-card border border-border">
+      <div class="shrink-0 p-4 rounded-md bg-card border border-border">
         <div class="text-[10px] font-semibold text-muted-foreground mb-2">
           QUICK LINKS
         </div>

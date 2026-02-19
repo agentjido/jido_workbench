@@ -48,7 +48,7 @@ defmodule AgentJidoWeb.CoreComponents do
 
   def phx_modal(assigns) do
     ~H"""
-    <div id={@id} phx-mounted={@show && show_modal(@id)} phx-remove={hide_modal(@id)} class="relative z-50 hidden">
+    <div id={@id} phx-mounted={@show && show_modal(@id)} phx-remove={hide_modal(@id)} class="relative z-[100] hidden">
       <div id={"#{@id}-bg"} class="fixed inset-0 transition-opacity bg-background/80" aria-hidden="true" />
       <div
         class="fixed inset-0 overflow-y-auto"

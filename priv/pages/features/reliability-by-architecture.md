@@ -69,9 +69,9 @@ Jido starts from runtime structure first. Agent behavior, process boundaries, an
 
 - **Ecosystem:** [Jido package overview](/ecosystem/jido) and [Jido Live Dashboard](/ecosystem/jido_live_dashboard)
 - **Training:** [Production Readiness: Supervision, Telemetry, and Failure Modes](/training/production-readiness)
-- **Docs:** [Production Readiness Checklist](/docs/production-readiness-checklist) and [Architecture](/docs/architecture)
+- **Docs:** [Production Readiness Checklist](/docs/reference/production-readiness-checklist) and [Architecture](/docs/reference/architecture)
 - **Context:** [All feature pillars](/features)
 
 ## Get Building
 
-Ready to apply this in your own service? [Get Building](/getting-started), then validate your rollout with the [production checklist](/docs/production-readiness-checklist).
+Ready to apply this in your own service? [Get Building](/getting-started), then validate your rollout with the [production checklist](/docs/reference/production-readiness-checklist).

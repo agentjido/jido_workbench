@@ -41,14 +41,14 @@ If any link or module moves, update this page in the same release window.
 
 - Primary goal: define rollout boundaries and governance before broad adoption.
 - Start module: [Production Readiness: Supervision, Telemetry, and Failure Modes](/training/production-readiness)
-- Proof checkpoint: [Architecture](/docs/architecture)
+- Proof checkpoint: [Architecture](/docs/reference/architecture)
 - Next step: [Adoption Playbooks](/community/adoption-playbooks)
 
 ### Path D: Platform and SRE engineer
 
 - Primary goal: establish observability, incident response, and review cadence.
 - Start module: [Signals and Routing](/training/signals-routing)
-- Proof checkpoint: [Incident Playbooks](/docs/incident-playbooks)
+- Proof checkpoint: [Incident Playbooks](/docs/reference/incident-playbooks)
 - Next step: [Case Studies](/community/case-studies)
 
 ## Completion criteria

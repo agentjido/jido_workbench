@@ -1,19 +1,20 @@
 <%= case @layout_type do %>
   <% :docs_shell -> %>
     <%!-- Docs layout (sidebar + TOC) --%>
-    <div class="min-h-screen bg-background flex flex-col">
+    <div class="h-dvh min-h-screen bg-background flex flex-col overflow-hidden">
       <.docs_header current_path={@request_path} />
-      <.docs_secondary_nav current_path={@request_path} />
+      <AgentJidoWeb.Jido.Nav.primary_nav_modals />
+      <.docs_secondary_nav current_path={@request_path} tabs={@docs_secondary_tabs || []} />
 
-      <div class="flex flex-1">
+      <div class="flex flex-1 min-h-0">
         <.docs_sidebar
-          nav={sidebar_nav()}
+          nav={@docs_sidebar_nav || []}
           current_path={@request_path}
           open={@sidebar_open}
         />
 
-        <main class="flex-1 min-w-0 flex flex-col items-center">
-          <div class="flex-1 max-w-[900px] px-8 lg:px-16 py-12 w-full">
+        <main class="docs-scrollbar flex-1 min-h-0 min-w-0 overflow-y-auto">
+          <div class="mx-auto w-full max-w-[900px] px-8 py-12 lg:px-16">
             <%= if @selected_document do %>
               <div class="space-y-8">
                 <div class="space-y-4">
@@ -24,7 +25,7 @@
                     {@selected_document.description}
                   </p>
                 </div>
-                <div class="prose prose-sm max-w-none">
+                <div class="docs-prose prose prose-sm max-w-none">
                   {raw(@selected_document.body)}
                 </div>
               </div>
@@ -68,7 +69,7 @@
                       number="1"
                       title="Learn the Basics"
                       description="Install Jido, create your first agent, and understand OTP supervision patterns."
-                      href="/docs/installation"
+                      href="/docs/getting-started"
                     />
                     <.numbered_card
                       number="2"
@@ -80,13 +81,13 @@
                       number="3"
                       title="Build Agent Workflows"
                       description="Learn actions, signals, and inter-agent communication patterns."
-                      href="/docs/quickstart"
+                      href="/docs/getting-started/core-concepts"
                     />
                     <.numbered_card
                       number="4"
                       title="Deploy to Production"
                       description="Scaling, observability, failure handling, and production checklist."
-                      href="/docs/production-checklist"
+                      href="/docs/reference/production-readiness-checklist"
                     />
                   </div>
                 </section>
@@ -101,28 +102,28 @@
                       title="jido"
                       description="BEAM-native bot framework with OTP supervision. Run thousands of agents per node."
                       color="green"
-                      href="/docs/packages/jido"
+                      href="/ecosystem/jido"
                     />
                     <.icon_card
                       icon="⚡"
                       title="jido_ai"
                       description="LLM-powered agents with token budgets, tool calling, and streaming support."
                       color="yellow"
-                      href="/docs/packages/jido-ai"
+                      href="/ecosystem/jido_ai"
                     />
                     <.icon_card
                       icon="⟳"
                       title="req_llm"
                       description="HTTP client for LLM APIs. Retries, rate limiting, and multi-provider support."
                       color="cyan"
-                      href="/docs/packages/req-llm"
+                      href="/ecosystem/req_llm"
                     />
                     <.icon_card
                       icon="⚙"
                       title="jido_coder"
                       description="AI coding agent with file operations, git integration, and test execution."
                       color="red"
-                      href="/docs/packages/jido-coder"
+                      href="/ecosystem/agent_jido"
                     />
                   </div>
                 </section>
@@ -154,42 +155,42 @@
                       title="Agents"
                       description="Define agents, manage state, handle lifecycle and supervision."
                       color="green"
-                      href="/docs/agents/defining"
+                      href="/docs/getting-started/core-concepts"
                     />
                     <.icon_card
                       icon="⟡"
                       title="Actions"
                       description="Schema-based validation, composable operations, constraints."
                       color="yellow"
-                      href="/docs/actions/schemas"
+                      href="/docs/getting-started/guides"
                     />
                     <.icon_card
                       icon="⫸"
                       title="Signals"
                       description="Pub/sub patterns for decoupled inter-agent communication."
                       color="cyan"
-                      href="/docs/signals/pubsub"
+                      href="/docs/cookbook/chat-response"
                     />
                     <.icon_card
                       icon="◇"
                       title="LLM Integration"
                       description="Configure providers, manage tokens, handle streaming."
                       color="red"
-                      href="/docs/ai/llm-config"
+                      href="/docs/cookbook/tool-response"
                     />
                     <.icon_card
                       icon="◎"
                       title="Observability"
                       description="Telemetry, metrics, tracing, and debugging agents."
                       color="green"
-                      href="/docs/production/observability"
+                      href="/docs/reference/production-readiness-checklist"
                     />
                     <.icon_card
                       icon="⊕"
-                      title="Training"
-                      description="Structured modules to level up practical Jido skills."
+                      title="Guided Learning"
+                      description="Follow the docs learning path and practical implementation guides."
                       color="yellow"
-                      href="/training"
+                      href="/docs"
                     />
                   </div>
                 </section>
@@ -284,17 +285,24 @@ sup = Jido.Supervisor.start_link()
 
           <%= if @selected_document do %>
             <footer class="border-t border-border py-6 px-8 lg:px-16 w-full">
-              <div class="flex items-center justify-end text-[11px] text-muted-foreground">
-                <%= if @selected_document.github_url do %>
-                  <a
-                    href={String.replace(@selected_document.github_url, "/blob/", "/edit/")}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="hover:text-foreground transition-colors"
-                  >
-                    Edit this page →
-                  </a>
-                <% end %>
+              <div class="flex flex-col items-end gap-3 text-[11px] text-muted-foreground">
+                <div class="flex items-center justify-end">
+                  <%= if @selected_document.github_url do %>
+                    <a
+                      href={String.replace(@selected_document.github_url, "/blob/", "/edit/")}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="hover:text-foreground transition-colors"
+                    >
+                      Edit this page →
+                    </a>
+                  <% end %>
+                </div>
+                <div class="flex flex-wrap items-center justify-end gap-4">
+                  <span>Apache License 2.0</span>
+                  <span>Copyright © 2025-> Mike Hostetler</span>
+                  <span>Jido {AgentJidoWeb.Jido.Nav.jido_version()}</span>
+                </div>
               </div>
             </footer>
           <% end %>

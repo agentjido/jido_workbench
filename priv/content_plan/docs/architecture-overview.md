@@ -63,7 +63,7 @@
     "build/first-agent"
   ],
   ecosystem_packages: ["jido", "jido_action", "jido_signal", "jido_ai", "req_llm"],
-  destination_route: "/docs/architecture-overview",
+  destination_route: "/docs/reference/architecture-overview",
   destination_collection: :pages,
   tags: [:docs, :architecture, :foundation, :overview]
 }

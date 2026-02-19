@@ -1,7 +1,8 @@
 %{
 title: "Chat Response",
 category: :docs,
-order: 100,
+order: 30,
+legacy_paths: ["/docs/chat-response"],
 tags: [:chat_response, :getting_started]
 }
 

@@ -17,7 +17,7 @@
   prerequisites: ["ecosystem/package-matrix", "build/reference-architectures"],
   related: ["ecosystem/package-selection-by-use-case", "docs/production-readiness-checklist", "community/adoption-playbooks"],
   ecosystem_packages: ["jido", "agent_jido"],
-  destination_route: "/docs/architecture-decision-guides",
+  destination_route: "/docs/reference/architecture-decision-guides",
   destination_collection: :pages,
   tags: [:reference, :architecture, :decision]
 }

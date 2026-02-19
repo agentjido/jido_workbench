@@ -48,6 +48,7 @@ defmodule AgentJido.Pages.LivebookParser do
   - `prerequisites` - List of prerequisite page IDs
   - `learning_outcomes` - List of learning outcome strings
   - `og_image` - Per-page Open Graph image URL
+  - `legacy_paths` - Legacy URL aliases that should redirect to this page
   """
 
   @frontmatter_separator ~r/^---\s*$/m
@@ -163,6 +164,7 @@ defmodule AgentJido.Pages.LivebookParser do
     |> Map.put_new(:tags, [])
     |> Map.put_new(:draft, false)
     |> Map.put_new(:in_menu, true)
+    |> Map.put_new(:legacy_paths, [])
     |> validate_required!(path, [:title])
     |> validate_types!(path)
   end
@@ -186,6 +188,7 @@ defmodule AgentJido.Pages.LivebookParser do
       {:tags, &is_list/1, "must be a list"},
       {:draft, &is_boolean/1, "must be a boolean"},
       {:in_menu, &is_boolean/1, "must be a boolean"},
+      {:legacy_paths, &is_list/1, "must be a list"},
       {:track, &is_atom/1, "must be an atom"},
       {:difficulty, &is_atom/1, "must be an atom"},
       {:duration_minutes, &is_integer/1, "must be an integer"},
@@ -216,6 +219,15 @@ defmodule AgentJido.Pages.LivebookParser do
         raise ArgumentError,
               "Invalid frontmatter in #{inspect(path)}: og_image must be a string"
       end
+    end
+
+    if Map.has_key?(attrs, :legacy_paths) do
+      Enum.each(attrs.legacy_paths, fn legacy_path ->
+        unless is_binary(legacy_path) and String.starts_with?(legacy_path, "/") do
+          raise ArgumentError,
+                "Invalid frontmatter in #{inspect(path)}: legacy_paths entries must be strings starting with '/'"
+        end
+      end)
     end
 
     attrs

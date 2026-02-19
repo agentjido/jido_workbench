@@ -1,5 +1,6 @@
 %{
 title: "Getting Started",
+menu_label: "Get Started",
 category: :docs,
 order: 10,
 tags: [:getting_started]

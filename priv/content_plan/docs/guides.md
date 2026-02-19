@@ -17,7 +17,7 @@
   prerequisites: ["docs/overview"],
   related: ["build/ai-chat-agent", "build/multi-agent-workflows", "docs/agent-server", "docs/troubleshooting-and-debugging-playbook"],
   ecosystem_packages: ["agent_jido"],
-  destination_route: "/docs/guides",
+  destination_route: "/docs/getting-started/guides",
   destination_collection: :pages,
   tags: [:docs, :guides, :navigation]
 }

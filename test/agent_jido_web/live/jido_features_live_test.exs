@@ -12,7 +12,7 @@ defmodule AgentJidoWeb.JidoFeaturesLiveTest do
     assert html =~ "Production Readiness"
     assert html =~ "BEAM-Native Agent Model"
     assert html =~ "Schema-Validated Actions"
-    assert html =~ ~s(href="/training")
+    assert html =~ ~s(href="/docs")
   end
 
   test "legacy partners route serves features page", %{conn: conn} do

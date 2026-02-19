@@ -55,9 +55,31 @@ defmodule AgentJidoWeb.SearchLiveTest do
     def query(_query, _opts), do: {:ok, []}
   end
 
-  describe "/search" do
-    test "is publicly routable and renders no-query state by default", %{conn: conn} do
-      {:ok, _view, html} = live(conn, "/search")
+  defmodule SearchFallbackStatusStub do
+    @moduledoc false
+
+    alias AgentJido.Search.Result
+
+    @spec query_with_status(String.t(), keyword()) :: {:ok, [Result.t()], :fallback}
+    def query_with_status("jido", _opts) do
+      {:ok,
+       [
+         %Result{
+           title: "Jido from fallback",
+           snippet: "Fallback still produced results.",
+           url: "/docs/getting-started",
+           source_type: :docs,
+           score: 0.42
+         }
+       ], :fallback}
+    end
+
+    def query_with_status(_query, _opts), do: {:ok, [], :fallback}
+  end
+
+  describe "SearchLive" do
+    test "renders no-query state by default", %{conn: conn} do
+      {:ok, _view, html} = mount_search_live(conn)
 
       assert html =~ "Search the site"
       assert html =~ ~s(id="search-no-query-state")
@@ -65,7 +87,7 @@ defmodule AgentJidoWeb.SearchLiveTest do
 
     test "renders loading state while a query is running", %{conn: conn} do
       conn = with_search_stub(conn)
-      {:ok, view, _html} = live(conn, "/search")
+      {:ok, view, _html} = mount_search_live(conn)
 
       loading_html =
         view
@@ -79,7 +101,7 @@ defmodule AgentJidoWeb.SearchLiveTest do
 
     test "renders query results with source labels and destination links", %{conn: conn} do
       conn = with_search_stub(conn)
-      {:ok, view, _html} = live(conn, "/search")
+      {:ok, view, _html} = mount_search_live(conn)
 
       view
       |> form("#site-search-form", search: %{q: "arcana"})
@@ -100,7 +122,7 @@ defmodule AgentJidoWeb.SearchLiveTest do
 
     test "renders no-results state when query returns no matches", %{conn: conn} do
       conn = with_search_stub(conn)
-      {:ok, view, _html} = live(conn, "/search")
+      {:ok, view, _html} = mount_search_live(conn)
 
       view
       |> form("#site-search-form", search: %{q: "missing"})
@@ -111,9 +133,35 @@ defmodule AgentJidoWeb.SearchLiveTest do
       assert html =~ "missing"
     end
 
+    test "falls back to default search module when session search_module is nil", %{conn: conn} do
+      conn = with_search_module(conn, nil)
+      {:ok, view, _html} = mount_search_live(conn)
+
+      view
+      |> form("#site-search-form", search: %{q: "4f6a76f0b4b24891895d31bdbf6f3f20"})
+      |> render_submit()
+
+      html = assert_state(view, ~s(id="search-no-results-state"))
+      refute html =~ ~s(id="search-error-state")
+    end
+
+    test "renders results when backend reports fallback status with non-empty results", %{conn: conn} do
+      conn = with_search_module(conn, SearchFallbackStatusStub)
+      {:ok, view, _html} = mount_search_live(conn)
+
+      view
+      |> form("#site-search-form", search: %{q: "jido"})
+      |> render_submit()
+
+      html = assert_state(view, ~s(id="search-results-state"))
+
+      assert html =~ "Jido from fallback"
+      refute html =~ ~s(id="search-error-state")
+    end
+
     test "renders explicit failure fallback messaging when backend search fails", %{conn: conn} do
       conn = with_search_stub(conn)
-      {:ok, view, _html} = live(conn, "/search")
+      {:ok, view, _html} = mount_search_live(conn)
 
       view
       |> form("#site-search-form", search: %{q: "backend-down"})
@@ -128,7 +176,7 @@ defmodule AgentJidoWeb.SearchLiveTest do
       attach_search_telemetry([@query_issued_event, @query_success_event])
 
       conn = with_search_stub(conn)
-      {:ok, view, _html} = live(conn, "/search")
+      {:ok, view, _html} = mount_search_live(conn)
 
       view
       |> form("#site-search-form", search: %{q: "arcana"})
@@ -150,7 +198,7 @@ defmodule AgentJidoWeb.SearchLiveTest do
       attach_search_telemetry([@query_issued_event, @query_failure_event])
 
       conn = with_search_stub(conn)
-      {:ok, view, _html} = live(conn, "/search")
+      {:ok, view, _html} = mount_search_live(conn)
 
       view
       |> form("#site-search-form", search: %{q: "backend-down"})
@@ -169,15 +217,19 @@ defmodule AgentJidoWeb.SearchLiveTest do
   end
 
   describe "navigation entry points" do
-    test "home header includes search in primary navigation", %{conn: conn} do
+    test "home header exposes modal search trigger in primary navigation", %{conn: conn} do
       {:ok, _view, html} = live(conn, "/")
-      assert html =~ ~s(href="/search")
+      assert html =~ ~s(id="primary-nav-search-trigger")
+      refute html =~ ~s(href="/search")
+      refute html =~ "Premium Support"
     end
 
-    test "docs header includes search entry and search shortcut link", %{conn: conn} do
+    test "docs header exposes modal search trigger and Ask AI action", %{conn: conn} do
       {:ok, _view, html} = live(conn, "/docs")
-      assert html =~ ~s(href="/search")
-      assert html =~ "Search..."
+      assert html =~ ~s(id="primary-nav-search-trigger")
+      assert html =~ "Ask AI"
+      refute html =~ ~s(href="/search")
+      refute html =~ "Premium Support"
     end
   end
 
@@ -202,9 +254,18 @@ defmodule AgentJidoWeb.SearchLiveTest do
   end
 
   defp with_search_stub(conn) do
+    with_search_module(conn, SearchStub)
+  end
+
+  defp with_search_module(conn, module) do
     conn
     |> init_test_session(%{})
-    |> put_session(:search_module, SearchStub)
+    |> put_session(:search_module, module)
+  end
+
+  defp mount_search_live(conn) do
+    session = conn.private[:plug_session] || %{}
+    live_isolated(conn, AgentJidoWeb.SearchLive, session: session)
   end
 
   defp attach_search_telemetry(events) do

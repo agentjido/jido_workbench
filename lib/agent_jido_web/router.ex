@@ -7,9 +7,13 @@ defmodule AgentJidoWeb.Router do
   import ArcanaWeb.Router
 
   # Build page routes at compile time from the unified Pages system
-  @page_routes (for page <- AgentJido.Pages.all_pages() do
-                  AgentJido.Pages.route_for(page)
+  @page_routes (for page <- AgentJido.Pages.all_pages(),
+                    route = AgentJido.Pages.route_for(page),
+                    route != "/docs",
+                    not String.starts_with?(route, "/training/") do
+                  route
                 end)
+  @legacy_docs_routes AgentJido.Pages.docs_legacy_redirects()
   @admin_on_mount [
     {AgentJidoWeb.UserAuth, :require_authenticated},
     {AgentJidoWeb.UserAuth, :require_admin}
@@ -47,9 +51,13 @@ defmodule AgentJidoWeb.Router do
 
     # Pages system — index routes
     live "/docs", PageLive, :index
-    live "/training", PageLive, :index
     live "/build", PageLive, :index
     live "/community", PageLive, :index
+
+    # Docs legacy aliases redirect to canonical section routes.
+    for {legacy_path, _canonical} <- @legacy_docs_routes do
+      get legacy_path, PageController, :docs_legacy_redirect
+    end
 
     # Pages system — compile-time show routes
     for route_path <- @page_routes do
@@ -139,7 +147,6 @@ defmodule AgentJidoWeb.Router do
 
     live_session :current_user,
       on_mount: [{AgentJidoWeb.UserAuth, :mount_current_scope}] do
-      live "/search", SearchLive, :index
       live "/users/log-in", UserLive.Login, :new
       live "/users/log-in/:token", UserLive.Confirmation, :new
     end

@@ -32,13 +32,15 @@ defmodule AgentJido.ContentOps.OrchestratorAgent do
       last_run_mode: [type: :atom, default: nil],
       last_run_at: [type: :any, default: nil],
       total_runs: [type: :integer, default: 0]
-    ],
-    schedules: [
-      {"0 * * * *", "contentops.tick.hourly", job_id: :hourly_tick},
-      {"0 2 * * *", "contentops.tick.nightly", job_id: :nightly_tick},
-      {"0 3 * * 1", "contentops.tick.weekly", job_id: :weekly_tick},
-      {"0 4 1 * *", "contentops.tick.monthly", job_id: :monthly_tick}
     ]
+
+  # ContentOps schedules temporarily disabled.
+  # schedules: [
+  #   {"0 * * * *", "contentops.tick.hourly", job_id: :hourly_tick},
+  #   {"0 2 * * *", "contentops.tick.nightly", job_id: :nightly_tick},
+  #   {"0 3 * * 1", "contentops.tick.weekly", job_id: :weekly_tick},
+  #   {"0 4 1 * *", "contentops.tick.monthly", job_id: :monthly_tick}
+  # ]
 
   alias AgentJido.ContentOps.Actions.{
     BuildRunContext,

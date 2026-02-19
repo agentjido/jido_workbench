@@ -22,7 +22,7 @@
     "community/adoption-playbooks"
   ],
   ecosystem_packages: ["jido", "agent_jido"],
-  destination_route: "/docs/production-readiness-checklist",
+  destination_route: "/docs/reference/production-readiness-checklist",
   destination_collection: :pages,
   tags: [:operate, :checklist, :production, :readiness]
 }

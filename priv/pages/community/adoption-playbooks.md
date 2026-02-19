@@ -15,7 +15,7 @@ Use them to ship one bounded workflow, capture evidence, and expand only after r
 
 This page summarizes patterns observed in this repository's shipped assets:
 
-- Runtime and release controls in [Production Readiness Checklist](/docs/production-readiness-checklist)
+- Runtime and release controls in [Production Readiness Checklist](/docs/reference/production-readiness-checklist)
 - Coordination and execution patterns in [Directives and Scheduling](/training/directives-scheduling)
 - Concrete implementation references in [Build with Jido](/build/build)
 
@@ -25,7 +25,7 @@ No external customer metrics are asserted in this playbook.
 
 - Scope: single workflow, single owner, single success metric.
 - Required proof: one runnable demo and one rollback plan.
-- Review links: [Counter Agent](/examples/counter-agent), [Security and Governance](/docs/security-and-governance)
+- Review links: [Counter Agent](/examples/counter-agent), [Security and Governance](/docs/reference/security-and-governance)
 
 Exit criteria:
 
@@ -37,7 +37,7 @@ Exit criteria:
 
 - Scope: add one neighboring workflow that reuses existing runtime boundaries.
 - Required proof: signal/action contracts and incident path updates.
-- Review links: [Signals and Routing](/training/signals-routing), [Incident Playbooks](/docs/incident-playbooks)
+- Review links: [Signals and Routing](/training/signals-routing), [Incident Playbooks](/docs/reference/incident-playbooks)
 
 Exit criteria:
 
@@ -49,7 +49,7 @@ Exit criteria:
 
 - Scope: move documentation and training references from draft to publish-ready.
 - Required proof: ST-CONT-001 checks completed.
-- Review links: [Content Governance](/docs/security-and-governance), [Case Studies](/community/case-studies)
+- Review links: [Content Governance](/docs/reference/security-and-governance), [Case Studies](/community/case-studies)
 
 Exit criteria:
 

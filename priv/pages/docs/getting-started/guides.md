@@ -3,6 +3,7 @@
   description: "Task-oriented guides for building and operating Jido systems.",
   category: :docs,
   order: 30,
+  legacy_paths: ["/docs/guides"],
   tags: [:guides]
 }
 ---

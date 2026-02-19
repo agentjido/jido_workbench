@@ -48,6 +48,36 @@ defmodule AgentJido.PagesTest do
     end
   end
 
+  describe "docs hierarchy helpers" do
+    test "returns docs sections from root section pages" do
+      sections = Pages.docs_sections()
+
+      assert Enum.map(sections, &Pages.route_for/1) == [
+               "/docs/getting-started",
+               "/docs/cookbook",
+               "/docs/reference"
+             ]
+    end
+
+    test "returns contextual section pages" do
+      pages = Pages.docs_section_pages("reference")
+      routes = Enum.map(pages, &Pages.route_for/1)
+
+      assert "/docs/reference" in routes
+      assert "/docs/reference/architecture" in routes
+      assert "/docs/reference/production-readiness-checklist" in routes
+      assert "/docs/reference/security-and-governance" in routes
+      assert "/docs/reference/incident-playbooks" in routes
+      refute "/docs/getting-started" in routes
+    end
+
+    test "extracts section slug from docs path" do
+      assert Pages.docs_section_for_path("/docs") == nil
+      assert Pages.docs_section_for_path("/docs/getting-started") == "getting-started"
+      assert Pages.docs_section_for_path("/docs/getting-started/core-concepts") == "getting-started"
+    end
+  end
+
   describe "menu_tree/0" do
     test "returns a list of MenuNode structs" do
       tree = Pages.menu_tree()
@@ -224,13 +254,13 @@ defmodule AgentJido.PagesTest do
   describe "docs IA stubs" do
     test "required docs IA pages exist and are routable" do
       required_paths = [
-        "/docs/core-concepts",
-        "/docs/guides",
+        "/docs/getting-started/core-concepts",
+        "/docs/getting-started/guides",
         "/docs/reference",
-        "/docs/architecture",
-        "/docs/production-readiness-checklist",
-        "/docs/security-and-governance",
-        "/docs/incident-playbooks"
+        "/docs/reference/architecture",
+        "/docs/reference/production-readiness-checklist",
+        "/docs/reference/security-and-governance",
+        "/docs/reference/incident-playbooks"
       ]
 
       Enum.each(required_paths, fn path ->
@@ -239,6 +269,26 @@ defmodule AgentJido.PagesTest do
         assert page != nil
         assert page.category == :docs
         assert Pages.route_for(page) == path
+      end)
+    end
+
+    test "legacy docs paths resolve to canonical docs pages" do
+      legacy_to_canonical = %{
+        "/docs/cookbook-index" => "/docs/cookbook",
+        "/docs/core-concepts" => "/docs/getting-started/core-concepts",
+        "/docs/guides" => "/docs/getting-started/guides",
+        "/docs/chat-response" => "/docs/cookbook/chat-response",
+        "/docs/tool-response" => "/docs/cookbook/tool-response",
+        "/docs/weather-tool-response" => "/docs/cookbook/weather-tool-response",
+        "/docs/architecture" => "/docs/reference/architecture",
+        "/docs/production-readiness-checklist" => "/docs/reference/production-readiness-checklist",
+        "/docs/security-and-governance" => "/docs/reference/security-and-governance",
+        "/docs/incident-playbooks" => "/docs/reference/incident-playbooks"
+      }
+
+      Enum.each(legacy_to_canonical, fn {legacy_path, canonical_path} ->
+        assert {:ok, legacy_page, :legacy} = Pages.resolve_page_for_path(legacy_path)
+        assert legacy_page.path == canonical_path
       end)
     end
   end

@@ -85,10 +85,10 @@ defmodule AgentJidoWeb.JidoFeaturesLive do
               Follow the module sequence to learn each feature hands-on with runnable exercises.
             </p>
             <.link
-              navigate="/training"
+              navigate="/docs"
               class="bg-primary text-primary-foreground hover:bg-primary/90 text-[13px] font-bold px-7 py-3 rounded transition-colors inline-block"
             >
-              START TRAINING →
+              OPEN DOCS →
             </.link>
           </div>
         </section>

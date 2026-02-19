@@ -4,17 +4,18 @@ defmodule AgentJidoWeb.Jido.MarketingLayouts do
   """
   use AgentJidoWeb, :html
 
-  alias Phoenix.LiveView.JS
   alias AgentJidoWeb.Jido.Nav
 
   attr :title, :string, default: "Jido"
   attr :current_path, :string, default: "/"
+  attr :show_nav_modals, :boolean, default: true
   slot :inner_block, required: true
 
   def marketing_layout(assigns) do
     ~H"""
     <div class="min-h-screen flex flex-col bg-background text-foreground">
       <.marketing_header current_path={@current_path} />
+      <Nav.primary_nav_modals :if={@show_nav_modals} />
       <main class="flex-1">
         {render_slot(@inner_block)}
       </main>
@@ -26,94 +27,13 @@ defmodule AgentJidoWeb.Jido.MarketingLayouts do
   attr :current_path, :string, default: "/"
 
   def marketing_header(assigns) do
-    assigns = assign(assigns, :nav_links, Nav.marketing_nav_links())
-
     ~H"""
-    <%!-- Theme Toggle - Fixed position --%>
-    <div class="fixed top-4 right-4 z-[100] flex gap-1 bg-surface border border-border rounded p-1">
-      <button
-        id="theme-dark-btn"
-        phx-hook="ThemeToggle"
-        data-theme="dark"
-        class="px-3 py-1.5 rounded text-[10px] font-semibold transition-colors bg-primary text-primary-foreground"
-      >
-        DARK
-      </button>
-      <button
-        id="theme-light-btn"
-        phx-hook="ThemeToggle"
-        data-theme="light"
-        class="px-3 py-1.5 rounded text-[10px] font-semibold transition-colors text-muted-foreground hover:text-foreground"
-      >
-        LIGHT
-      </button>
-    </div>
-
     <header class="sticky top-0 z-50 bg-background/80 backdrop-blur-md pt-6 pb-12" id="main-header" phx-hook="ScrollShrink">
-      <div class="container max-w-[1000px] mx-auto px-6">
-        <nav class="nav-surface flex justify-between items-center px-6 py-5 transition-all duration-300">
-          <Nav.logo />
-
-          <%!-- Desktop Navigation --%>
-          <div class="hidden md:flex items-center gap-7">
-            <%= for {label, href} <- @nav_links do %>
-              <.link
-                navigate={href}
-                class={"text-xs transition-colors #{if @current_path == href, do: "text-primary font-semibold", else: "text-secondary-foreground hover:text-foreground"}"}
-              >
-                {label}
-              </.link>
-            <% end %>
-            <a
-              href="mailto:support@agentjido.com?subject=Premium%20Support%20Inquiry"
-              class="text-xs font-medium bg-gradient-to-r from-accent-yellow to-accent-red bg-clip-text text-transparent hover:opacity-80 transition-opacity"
-            >
-              Premium Support
-            </a>
-          </div>
-
-          <%!-- CTA --%>
-          <div class="hidden md:block">
-            <.link
-              navigate="/getting-started"
-              class="bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-bold px-4 py-2.5 rounded transition-colors"
-            >
-              $ GET STARTED
-            </.link>
-          </div>
-
-          <%!-- Mobile Menu Button --%>
-          <button class="md:hidden text-foreground" phx-click={JS.toggle(to: "#mobile-menu")}>
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-        </nav>
-
-        <%!-- Mobile Menu --%>
-        <div id="mobile-menu" class="hidden md:hidden mt-4 nav-surface p-4 space-y-3">
-          <%= for {label, href} <- @nav_links do %>
-            <.link
-              navigate={href}
-              class={"block px-4 py-3 text-xs rounded transition-colors #{if @current_path == href, do: "text-primary bg-primary/10 font-semibold", else: "text-secondary-foreground hover:text-foreground hover:bg-muted"}"}
-            >
-              {label}
-            </.link>
-          <% end %>
-          <a
-            href="mailto:support@agentjido.com?subject=Premium%20Support%20Inquiry"
-            class="block px-4 py-3 text-xs rounded bg-gradient-to-r from-accent-yellow to-accent-red bg-clip-text text-transparent font-medium"
-          >
-            Premium Support
-          </a>
-          <.link
-            navigate="/getting-started"
-            class="block bg-primary text-primary-foreground text-xs font-bold px-4 py-2.5 rounded text-center mt-4"
-          >
-            $ GET STARTED
-          </.link>
-        </div>
-      </div>
+      <Nav.primary_nav
+        current_path={@current_path}
+        layout_mode={:constrained}
+        mobile_menu_id="marketing-primary-mobile-menu"
+      />
     </header>
     """
   end
@@ -121,7 +41,6 @@ defmodule AgentJidoWeb.Jido.MarketingLayouts do
   def marketing_footer(assigns) do
     assigns =
       assigns
-      |> assign(:current_year, Date.utc_today().year)
       |> assign(:company_links, Nav.footer_company_links())
       |> assign(:resource_links, Nav.footer_resource_links())
       |> assign(:package_links, Nav.footer_package_links())
@@ -144,9 +63,47 @@ defmodule AgentJidoWeb.Jido.MarketingLayouts do
               <span class="text-muted-foreground text-xs">All systems operational</span>
             </div>
 
+            <button
+              id="theme-toggle-btn"
+              phx-hook="ThemeToggle"
+              aria-label="Toggle theme"
+              class="inline-flex h-8 w-8 items-center justify-center rounded border border-border bg-surface text-muted-foreground transition-colors hover:text-foreground hover:border-foreground/40 mb-4"
+            >
+              <svg
+                data-theme-icon="moon"
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.75"
+                  d="M21 12.79A9 9 0 1 1 11.21 3c0 .45.05.89.14 1.31A7 7 0 0 0 19.69 12.65c.44.09.87.14 1.31.14Z"
+                />
+              </svg>
+              <svg
+                data-theme-icon="sun"
+                xmlns="http://www.w3.org/2000/svg"
+                class="hidden h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.75"
+                  d="M12 3v2.25m0 13.5V21m6.364-15.364-1.591 1.591M7.227 16.773l-1.591 1.591M21 12h-2.25M5.25 12H3m15.364 6.364-1.591-1.591M7.227 7.227 5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"
+                />
+              </svg>
+            </button>
+
             <div class="text-muted-foreground text-xs space-y-1">
               <p>Made with ❤️ for the BEAM</p>
-              <p>Copyright © 2024–{@current_year} AgentJido</p>
+              <p>Copyright © 2025-> Mike Hostetler</p>
             </div>
           </div>
 
@@ -215,7 +172,7 @@ defmodule AgentJidoWeb.Jido.MarketingLayouts do
         <%!-- Bottom Bar --%>
         <div class="mt-12 pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
           <div class="flex items-center gap-4 text-xs text-muted-foreground">
-            <span>MIT License</span>
+            <span>Apache License 2.0</span>
           </div>
           <div class="flex items-center gap-2">
             <span class="text-xs text-muted-foreground">Jido {Nav.jido_version()}</span>

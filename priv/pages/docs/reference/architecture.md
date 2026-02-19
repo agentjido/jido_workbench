@@ -3,6 +3,7 @@
   description: "High-level architecture model and system responsibilities.",
   category: :docs,
   order: 50,
+  legacy_paths: ["/docs/architecture"],
   tags: [:architecture]
 }
 ---

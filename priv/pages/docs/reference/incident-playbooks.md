@@ -3,6 +3,7 @@
   description: "Response playbooks for diagnosing and recovering from production incidents.",
   category: :docs,
   order: 80,
+  legacy_paths: ["/docs/incident-playbooks"],
   tags: [:incidents, :operations]
 }
 ---

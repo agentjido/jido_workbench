@@ -1,37 +1,24 @@
 defmodule AgentJidoWeb.Jido.Nav do
   @moduledoc """
   Shared navigation constants and icon components used across marketing,
-  docs, and (legacy) workbench headers/footers.
+  docs, and footer surfaces.
   """
   use AgentJidoWeb, :html
 
-  @jido_version "v0.1.0"
+  @jido_version_fallback "2.0.0-rc.5"
+  @search_modal_id "primary-nav-search-modal"
+  @ask_ai_modal_id "primary-nav-ask-ai-modal"
+  @premium_support_enabled false
+  @premium_support_href "mailto:support@agentjido.com?subject=Premium%20Support%20Inquiry"
 
-  @marketing_nav_links [
-    {"Ecosystem", "/ecosystem"},
+  @primary_nav_links [
     {"Features", "/features"},
+    {"Ecosystem", "/ecosystem"},
     {"Examples", "/examples"},
-    {"Training", "/training"},
-    {"Docs", "/docs"},
-    {"Search", "/search"}
-  ]
-
-  @docs_nav_links ["/docs", "/examples", "/training", "/ecosystem", "/search"]
-
-  @footer_company_links [
-    {"Blog", "/blog"},
-    {"Features", "/features"}
-  ]
-
-  @footer_resource_links [
-    {"Docs", "/docs"},
-    {"Examples", "/examples"},
-    {"Training", "/training"}
+    {"Docs", "/docs"}
   ]
 
   @footer_package_links [
-    {"Hex", "https://hex.pm/packages/jido"},
-    {"HexDocs", "https://hexdocs.pm/jido"},
     {"jido", "https://hex.pm/packages/jido"},
     {"jido_ai", "https://hex.pm/packages/jido_ai"},
     {"req_llm", "https://hex.pm/packages/req_llm"}
@@ -41,8 +28,7 @@ defmodule AgentJidoWeb.Jido.Nav do
     {:discord, "Discord", "https://discord.gg/jido"},
     {:github, "GitHub", "https://github.com/agentjido/jido"},
     {:x, "x.com", "https://x.com/agentjido"},
-    {:linkedin, "LinkedIn", "https://linkedin.com/company/jido"},
-    {:youtube, "YouTube", "https://youtube.com/@agentjido"}
+    {:llmdb, "LLMDB", "https://llmdb.xyz"}
   ]
 
   @github_url "https://github.com/agentjido/jido"
@@ -50,17 +36,321 @@ defmodule AgentJidoWeb.Jido.Nav do
   @hexdocs_url "https://hexdocs.pm/jido"
   @discord_url "https://discord.gg/jido"
 
-  def marketing_nav_links, do: @marketing_nav_links
-  def docs_nav_links, do: @docs_nav_links
-  def footer_company_links, do: @footer_company_links
-  def footer_resource_links, do: @footer_resource_links
+  @type layout_mode :: :constrained | :fluid
+
+  @doc "Shared primary navigation links."
+  @spec primary_nav_links() :: [{String.t(), String.t()}]
+  def primary_nav_links, do: @primary_nav_links
+
+  @doc "Compatibility alias for legacy callers."
+  @spec marketing_nav_links() :: [{String.t(), String.t()}]
+  def marketing_nav_links, do: @primary_nav_links
+
+  @doc "Compatibility alias for legacy callers."
+  @spec docs_nav_links() :: [{String.t(), String.t()}]
+  def docs_nav_links, do: @primary_nav_links
+
+  @spec footer_company_links() :: [{String.t(), String.t()}]
+  def footer_company_links do
+    [
+      {"Blog", "/blog"},
+      {"Features", primary_nav_path!("Features")},
+      {"Ecosystem", primary_nav_path!("Ecosystem")}
+    ]
+  end
+
+  @spec footer_resource_links() :: [{String.t(), String.t()}]
+  def footer_resource_links do
+    [
+      {"Docs", primary_nav_path!("Docs")},
+      {"Examples", primary_nav_path!("Examples")}
+    ]
+  end
+
+  @spec footer_package_links() :: [{String.t(), String.t()}]
   def footer_package_links, do: @footer_package_links
+
+  @spec social_links() :: [{atom(), String.t(), String.t()}]
   def social_links, do: @social_links
+
+  @spec github_url() :: String.t()
   def github_url, do: @github_url
+
+  @spec hex_url() :: String.t()
   def hex_url, do: @hex_url
+
+  @spec hexdocs_url() :: String.t()
   def hexdocs_url, do: @hexdocs_url
+
+  @spec discord_url() :: String.t()
   def discord_url, do: @discord_url
-  def jido_version, do: @jido_version
+
+  @spec search_modal_id() :: String.t()
+  def search_modal_id, do: @search_modal_id
+
+  @spec ask_ai_modal_id() :: String.t()
+  def ask_ai_modal_id, do: @ask_ai_modal_id
+
+  @spec premium_support_enabled?() :: boolean()
+  def premium_support_enabled?, do: @premium_support_enabled
+
+  @spec premium_support_href() :: String.t()
+  def premium_support_href, do: @premium_support_href
+
+  @spec jido_version() :: String.t()
+  def jido_version, do: jido_version(Application.spec(:jido, :vsn))
+
+  @spec jido_version(term()) :: String.t()
+  def jido_version(vsn) when is_list(vsn), do: List.to_string(vsn)
+  def jido_version(vsn) when is_binary(vsn), do: vsn
+  def jido_version(_), do: @jido_version_fallback
+
+  attr(:current_path, :string, default: "/")
+  attr(:layout_mode, :atom, default: :constrained, values: [:constrained, :fluid])
+  attr(:surface_mode, :atom, default: :framed, values: [:framed, :flush])
+  attr(:show_theme_toggle, :boolean, default: false)
+  attr(:mobile_menu_id, :string, default: "primary-nav-mobile-menu")
+
+  @doc "Unified primary nav for marketing and docs."
+  @spec primary_nav(map()) :: Phoenix.LiveView.Rendered.t()
+  def primary_nav(assigns) do
+    assigns =
+      assigns
+      |> assign(:nav_links, @primary_nav_links)
+      |> assign(:search_modal_id, @search_modal_id)
+      |> assign(:ask_ai_modal_id, @ask_ai_modal_id)
+      |> assign(:premium_support_enabled, @premium_support_enabled)
+      |> assign(:premium_support_href, @premium_support_href)
+      |> assign(:container_class, nav_container_class(assigns.layout_mode))
+      |> assign(:nav_surface_class, nav_surface_class(assigns.surface_mode))
+      |> assign(:mobile_menu_class, mobile_menu_class(assigns.surface_mode))
+
+    ~H"""
+    <div class={@container_class}>
+      <nav class={@nav_surface_class}>
+        <div class="flex items-center gap-6">
+          <.logo />
+
+          <div class="hidden md:flex items-center gap-6">
+            <%= for {label, href} <- @nav_links do %>
+              <.link
+                navigate={href}
+                class={
+                  "text-xs transition-colors " <>
+                    if active_nav_link?(@current_path, href) do
+                      "text-primary font-semibold"
+                    else
+                      "text-secondary-foreground hover:text-foreground"
+                    end
+                }
+              >
+                {label}
+              </.link>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="hidden md:flex items-center gap-3">
+          <.theme_toggle_button :if={@show_theme_toggle} id="primary-nav-theme-toggle" />
+
+          <button
+            id="primary-nav-search-trigger"
+            type="button"
+            phx-click={show_modal(@search_modal_id)}
+            class="inline-flex h-9 w-9 items-center justify-center rounded border border-border bg-surface text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground"
+            aria-label="Open search"
+            title="Search (Ctrl/Cmd+K)"
+          >
+            <.icon name="hero-magnifying-glass" class="h-4 w-4" />
+          </button>
+
+          <button
+            type="button"
+            phx-click={show_modal(@ask_ai_modal_id)}
+            class="inline-flex items-center gap-2 rounded border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-medium text-primary transition-colors hover:bg-primary/20"
+          >
+            <.icon name="hero-sparkles" class="h-3 w-3" /> Ask AI
+          </button>
+
+          <a
+            :if={@premium_support_enabled}
+            href={@premium_support_href}
+            class="text-xs font-medium bg-gradient-to-r from-accent-yellow to-accent-red bg-clip-text text-transparent hover:opacity-80 transition-opacity"
+          >
+            Premium Support
+          </a>
+
+          <.link
+            navigate="/getting-started"
+            class="bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-bold px-4 py-2.5 rounded transition-colors"
+          >
+            $ GET STARTED
+          </.link>
+        </div>
+
+        <button
+          type="button"
+          class="md:hidden inline-flex h-9 w-9 items-center justify-center rounded border border-border bg-surface text-foreground"
+          phx-click={JS.toggle(to: "##{@mobile_menu_id}")}
+          aria-label="Toggle navigation menu"
+        >
+          <.icon name="hero-bars-3" class="h-5 w-5" />
+        </button>
+      </nav>
+
+      <div id={@mobile_menu_id} class={@mobile_menu_class}>
+        <%= for {label, href} <- @nav_links do %>
+          <.link
+            navigate={href}
+            class={
+              "block rounded px-3 py-2 text-xs transition-colors " <>
+                if active_nav_link?(@current_path, href) do
+                  "text-primary bg-primary/10 font-semibold"
+                else
+                  "text-secondary-foreground hover:text-foreground hover:bg-muted"
+                end
+            }
+          >
+            {label}
+          </.link>
+        <% end %>
+
+        <button
+          type="button"
+          phx-click={show_modal(@search_modal_id)}
+          class="w-full rounded border border-border bg-surface px-3 py-2 text-left text-xs text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground"
+        >
+          <span class="inline-flex items-center gap-2">
+            <.icon name="hero-magnifying-glass" class="h-3.5 w-3.5" /> Search
+          </span>
+        </button>
+
+        <button
+          type="button"
+          phx-click={show_modal(@ask_ai_modal_id)}
+          class="w-full rounded border border-primary/30 bg-primary/10 px-3 py-2 text-left text-xs font-medium text-primary transition-colors hover:bg-primary/20"
+        >
+          <span class="inline-flex items-center gap-2">
+            <.icon name="hero-sparkles" class="h-3.5 w-3.5" /> Ask AI
+          </span>
+        </button>
+
+        <.theme_toggle_button
+          :if={@show_theme_toggle}
+          id="primary-nav-mobile-theme-toggle"
+          class="w-full justify-center"
+        />
+
+        <a
+          :if={@premium_support_enabled}
+          href={@premium_support_href}
+          class="block px-3 py-2 text-xs rounded bg-gradient-to-r from-accent-yellow to-accent-red bg-clip-text text-transparent font-medium"
+        >
+          Premium Support
+        </a>
+
+        <.link
+          navigate="/getting-started"
+          class="mt-2 block rounded bg-primary px-3 py-2 text-center text-xs font-bold text-primary-foreground"
+        >
+          $ GET STARTED
+        </.link>
+      </div>
+    </div>
+    """
+  end
+
+  attr(:id, :string, default: "primary-nav-theme-toggle")
+  attr(:class, :string, default: "")
+
+  @doc "Icon-only dark/light toggle used by the primary nav."
+  @spec theme_toggle_button(map()) :: Phoenix.LiveView.Rendered.t()
+  def theme_toggle_button(assigns) do
+    ~H"""
+    <button
+      id={@id}
+      phx-hook="ThemeToggle"
+      aria-label="Toggle theme"
+      class={"inline-flex h-9 w-9 items-center justify-center rounded border border-border bg-surface text-muted-foreground transition-colors hover:text-foreground hover:border-foreground/40 #{@class}"}
+    >
+      <svg
+        data-theme-icon="moon"
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-4 w-4"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.75"
+          d="M21 12.79A9 9 0 1 1 11.21 3c0 .45.05.89.14 1.31A7 7 0 0 0 19.69 12.65c.44.09.87.14 1.31.14Z"
+        />
+      </svg>
+      <svg
+        data-theme-icon="sun"
+        xmlns="http://www.w3.org/2000/svg"
+        class="hidden h-4 w-4"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.75"
+          d="M12 3v2.25m0 13.5V21m6.364-15.364-1.591 1.591M7.227 16.773l-1.591 1.591M21 12h-2.25M5.25 12H3m15.364 6.364-1.591-1.591M7.227 7.227 5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"
+        />
+      </svg>
+    </button>
+    """
+  end
+
+  @doc "Site-global modals controlled by primary nav actions."
+  @spec primary_nav_modals(map()) :: Phoenix.LiveView.Rendered.t()
+  def primary_nav_modals(assigns) do
+    assigns =
+      assigns
+      |> assign(:search_modal_id, @search_modal_id)
+      |> assign(:ask_ai_modal_id, @ask_ai_modal_id)
+
+    ~H"""
+    <div id="primary-nav-modal-root">
+      <.live_component module={AgentJidoWeb.NavSearchModalComponent} id={@search_modal_id} />
+      <.live_component module={AgentJidoWeb.NavAskAiModalComponent} id={@ask_ai_modal_id} />
+    </div>
+    """
+  end
+
+  defp nav_container_class(:constrained), do: "container max-w-[1000px] mx-auto px-6"
+  defp nav_container_class(:fluid), do: "w-full"
+
+  defp nav_surface_class(:framed),
+    do: "nav-surface flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4"
+
+  defp nav_surface_class(:flush),
+    do: "flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4"
+
+  defp mobile_menu_class(:framed), do: "hidden md:hidden mt-3 nav-surface p-4 space-y-2"
+  defp mobile_menu_class(:flush), do: "hidden md:hidden border-t border-border bg-card p-4 space-y-2"
+
+  defp active_nav_link?(current_path, "/features") do
+    path = current_path || ""
+    path == "/features" or path == "/partners" or String.starts_with?(path, "/features/")
+  end
+
+  defp active_nav_link?(current_path, href) do
+    path = current_path || ""
+    path == href or String.starts_with?(path, href <> "/")
+  end
+
+  defp primary_nav_path!(label) do
+    case Enum.find(@primary_nav_links, fn {entry_label, _path} -> entry_label == label end) do
+      {^label, path} -> path
+      nil -> raise ArgumentError, "missing primary nav label: #{label}"
+    end
+  end
 
   @doc "Jido logo mark — gradient J block + JIDO text."
   attr(:class, :string, default: "")
@@ -112,20 +402,10 @@ defmodule AgentJidoWeb.Jido.Nav do
 
   attr(:class, :string, default: "w-4 h-4")
 
-  def linkedin_icon(assigns) do
+  def llmdb_icon(assigns) do
     ~H"""
     <svg class={@class} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-    </svg>
-    """
-  end
-
-  attr(:class, :string, default: "w-4 h-4")
-
-  def youtube_icon(assigns) do
-    ~H"""
-    <svg class={@class} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+      <path d="M12 3C7.03 3 3 4.343 3 6v12c0 1.657 4.03 3 9 3s9-1.343 9-3V6c0-1.657-4.03-3-9-3zm0 2c4.419 0 7 1 7 1s-2.581 1-7 1-7-1-7-1 2.581-1 7-1zm0 4c4.419 0 7-1 7-1v2c0 .06-2.581 1-7 1s-7-.94-7-1V8c0 .06 2.581 1 7 1zm0 4c4.419 0 7-1 7-1v2c0 .06-2.581 1-7 1s-7-.94-7-1v-2c0 .06 2.581 1 7 1zm0 4c4.419 0 7-1 7-1v2c0 .06-2.581 1-7 1s-7-.94-7-1v-2c0 .06 2.581 1 7 1z" />
     </svg>
     """
   end
@@ -134,6 +414,7 @@ defmodule AgentJidoWeb.Jido.Nav do
   attr(:icon, :atom, required: true)
   attr(:class, :string, default: "w-4 h-4")
 
+  @spec social_icon(map()) :: Phoenix.LiveView.Rendered.t()
   def social_icon(assigns) do
     ~H"""
     <%= case @icon do %>
@@ -143,10 +424,8 @@ defmodule AgentJidoWeb.Jido.Nav do
         <.github_icon class={@class} />
       <% :x -> %>
         <.x_icon class={@class} />
-      <% :linkedin -> %>
-        <.linkedin_icon class={@class} />
-      <% :youtube -> %>
-        <.youtube_icon class={@class} />
+      <% :llmdb -> %>
+        <.llmdb_icon class={@class} />
       <% _ -> %>
         <span />
     <% end %>

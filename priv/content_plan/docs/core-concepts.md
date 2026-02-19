@@ -17,7 +17,7 @@
   prerequisites: ["docs/overview"],
   related: ["docs/key-concepts", "docs/agents", "docs/actions", "docs/signals", "docs/directives", "docs/plugins"],
   ecosystem_packages: ["jido", "jido_action", "jido_signal"],
-  destination_route: "/docs/core-concepts",
+  destination_route: "/docs/getting-started/core-concepts",
   destination_collection: :pages,
   tags: [:docs, :core, :concepts]
 }

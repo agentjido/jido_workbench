@@ -67,7 +67,7 @@ Jido is a fit when your decision criteria include reliability boundaries, operab
 
 - **Ecosystem:** [Package matrix](/ecosystem/package-matrix) and [Jido core runtime](/ecosystem/jido)
 - **Training:** [Production Readiness: Supervision, Telemetry, and Failure Modes](/training/production-readiness)
-- **Docs:** [Architecture](/docs/architecture), [Reference](/docs/reference), and [Security and Governance](/docs/security-and-governance)
+- **Docs:** [Architecture](/docs/reference/architecture), [Reference](/docs/reference), and [Security and Governance](/docs/reference/security-and-governance)
 - **Context:** [Comparison details](/features/jido-vs-framework-first-stacks) and [all feature pillars](/features)
 
 ## Get Building

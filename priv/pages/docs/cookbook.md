@@ -1,6 +1,8 @@
 %{
   title: "Cookbook",
   category: :docs,
+  order: 20,
+  legacy_paths: ["/docs/cookbook-index"]
 }
 ---
 # Welcome to Jido!

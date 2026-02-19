@@ -10,7 +10,6 @@ defmodule AgentJidoWeb.PageLive do
   use AgentJidoWeb, :live_view
 
   alias AgentJido.Pages
-  alias AgentJido.Pages.MenuNode
 
   import AgentJidoWeb.Jido.DocsComponents
   import AgentJidoWeb.Jido.MarketingLayouts
@@ -50,6 +49,8 @@ defmodule AgentJidoWeb.PageLive do
 
   defp handle_docs_index(socket) do
     documents = Pages.pages_by_category(:docs)
+    secondary_tabs = docs_secondary_tabs()
+    sidebar = sidebar_nav("/docs")
 
     toc = [
       %{id: "get-started", title: "Get Started", level: 2},
@@ -68,6 +69,8 @@ defmodule AgentJidoWeb.PageLive do
        category: :docs,
        documents: documents,
        selected_document: nil,
+       docs_secondary_tabs: secondary_tabs,
+       docs_sidebar_nav: sidebar,
        page: nil,
        toc: toc
      )}
@@ -140,7 +143,9 @@ defmodule AgentJidoWeb.PageLive do
           case page.category do
             :docs ->
               documents = Pages.pages_by_category(:docs)
-              assigns ++ [documents: documents]
+              secondary_tabs = docs_secondary_tabs()
+              sidebar = sidebar_nav(path)
+              assigns ++ [documents: documents, docs_secondary_tabs: secondary_tabs, docs_sidebar_nav: sidebar]
 
             :training ->
               {prev, next} = Pages.neighbors(page.id)
@@ -155,13 +160,10 @@ defmodule AgentJidoWeb.PageLive do
   end
 
   defp find_page_for_path(path) do
-    # First try exact match on the full path
-    all_pages = Pages.all_pages()
-
-    Enum.find(all_pages, fn page ->
-      route = Pages.route_for(page)
-      route == path || route == String.trim_trailing(path, "/")
-    end)
+    case Pages.resolve_page_for_path(path) do
+      {:ok, page, _resolution} -> page
+      :error -> nil
+    end
   end
 
   defp fallback_path("/docs" <> _), do: "/docs"
@@ -259,56 +261,53 @@ defmodule AgentJidoWeb.PageLive do
 
   # --- Sidebar for docs ---
 
-  def sidebar_nav do
-    docs_node =
-      Pages.menu_tree()
-      |> Enum.find(fn node -> node.slug == "docs" end)
-
-    sections = build_sections_from_node(docs_node)
-
-    sections ++
-      [
-        %{
-          title: "Reference",
-          items: [
-            %{label: "API Reference", href: "https://hexdocs.pm/jido", external: true}
-          ]
-        }
-      ]
+  def sidebar_nav(request_path \\ "/docs") do
+    case Pages.docs_section_for_path(request_path) do
+      nil -> sidebar_sections_for_overview()
+      section -> sidebar_sections_for_section(section)
+    end
   end
 
-  defp build_sections_from_node(nil), do: []
+  defp docs_secondary_tabs do
+    Pages.docs_sections()
+    |> Enum.map(fn page ->
+      section = Pages.docs_section_for_path(page.path)
 
-  defp build_sections_from_node(%MenuNode{children: children} = node) do
-    parent_item =
-      if node.doc, do: [%{label: MenuNode.label(node), href: Pages.route_for(node.doc)}], else: []
+      %{
+        label: Map.get(page, :menu_label) || page.title,
+        href: Pages.route_for(page),
+        active_paths: ["/docs/#{section}"]
+      }
+    end)
+  end
 
-    leaf_children =
-      children
-      |> Enum.filter(&(&1.doc != nil && &1.children == []))
-      |> Enum.sort_by(& &1.order)
-      |> Enum.map(fn n -> %{label: MenuNode.label(n), href: Pages.route_for(n.doc)} end)
-
-    top_level_items = parent_item ++ leaf_children
-
-    child_sections =
-      children
-      |> Enum.filter(&(length(&1.children) > 0 && &1.doc != nil))
-      |> Enum.sort_by(& &1.order)
-      |> Enum.map(fn child ->
-        items =
-          [child | child.children]
-          |> Enum.filter(&(&1.doc != nil))
-          |> Enum.sort_by(& &1.order)
-          |> Enum.map(fn n -> %{label: MenuNode.label(n), href: Pages.route_for(n.doc)} end)
-
-        %{title: MenuNode.label(child), items: items}
+  defp sidebar_sections_for_overview do
+    items =
+      Pages.docs_sections()
+      |> Enum.map(fn page ->
+        %{label: Map.get(page, :menu_label) || page.title, href: Pages.route_for(page)}
       end)
 
-    case top_level_items do
-      [] -> child_sections
-      items -> [%{title: MenuNode.label(node), items: items} | child_sections]
-    end
+    [%{title: "Documentation", items: items}]
+  end
+
+  defp sidebar_sections_for_section(section) do
+    pages = Pages.docs_section_pages(section)
+    root_page = Pages.docs_section_root(section)
+
+    title =
+      case root_page do
+        nil -> section |> String.replace("-", " ") |> Phoenix.Naming.humanize()
+        page -> Map.get(page, :menu_label) || page.title
+      end
+
+    items =
+      pages
+      |> Enum.map(fn page ->
+        %{label: Map.get(page, :menu_label) || page.title, href: Pages.route_for(page)}
+      end)
+
+    [%{title: title, items: items}]
   end
 
   # --- Events ---

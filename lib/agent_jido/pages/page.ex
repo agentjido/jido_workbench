@@ -28,6 +28,7 @@ defmodule AgentJido.Pages.Page do
   - `draft` - If true, page is hidden from listings
   - `in_menu` - If false, page is hidden from navigation menu
   - `menu_label` - Override title in menu display
+  - `legacy_paths` - Legacy URL aliases that should redirect to this page
 
   ### Document metadata
   - `doc_type` - Document type (:guide, :reference, :tutorial, :explanation, :cookbook)
@@ -84,6 +85,9 @@ defmodule AgentJido.Pages.Page do
                 Zoi.boolean(description: "If false, page is hidden from navigation menu")
                 |> Zoi.default(true),
               menu_label: Zoi.string(description: "Override title in menu display") |> Zoi.optional(),
+              legacy_paths:
+                Zoi.any(description: "Legacy URL paths that should redirect to this page")
+                |> Zoi.default([]),
               # Document metadata
               doc_type:
                 Zoi.atom(description: "Document type (:guide, :reference, :tutorial, :explanation, :cookbook)")
@@ -261,6 +265,7 @@ defmodule AgentJido.Pages.Page do
       |> Map.put(:github_url, github_url)
       |> Map.put(:menu_path, menu_path)
       |> Map.put(:order, order)
+      |> Map.put(:legacy_paths, normalize_legacy_paths(Map.get(attrs, :legacy_paths, [])))
       |> Map.put(:word_count, word_count)
       |> Map.put(:reading_time_minutes, reading_time_minutes)
       |> Map.put(:freshness, computed_freshness)
@@ -323,6 +328,33 @@ defmodule AgentJido.Pages.Page do
     |> String.trim_leading("/")
     |> String.split("/")
     |> Enum.filter(&(&1 != "index" and &1 != ""))
+  end
+
+  defp normalize_legacy_paths(paths) when is_list(paths) do
+    paths
+    |> Enum.map(&normalize_legacy_path/1)
+    |> Enum.uniq()
+  end
+
+  defp normalize_legacy_paths(_paths), do: []
+
+  defp normalize_legacy_path(path) when is_binary(path) do
+    path
+    |> String.trim()
+    |> case do
+      "" ->
+        "/"
+
+      "/" ->
+        "/"
+
+      p ->
+        if String.starts_with?(p, "/"), do: p, else: "/" <> p
+    end
+    |> case do
+      "/" = root -> root
+      other -> String.trim_trailing(other, "/")
+    end
   end
 
   defp build_github_url(doc_root, path, true = _is_livebook) do

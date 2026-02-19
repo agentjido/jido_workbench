@@ -12,10 +12,50 @@ defmodule AgentJidoWeb.PageLiveTest do
       refute html =~ ~s(href="/users/log-in")
     end
 
-    test "renders login link on non-home public pages", %{conn: conn} do
+    test "does not render login link on non-home public pages", %{conn: conn} do
       {:ok, _view, html} = live(conn, "/docs")
 
-      assert html =~ ~s(href="/users/log-in")
+      refute html =~ ~s(href="/users/log-in")
+    end
+  end
+
+  describe "footer metadata" do
+    test "marketing footer reflects legal and ecosystem updates", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/features")
+      jido_version = AgentJidoWeb.Jido.Nav.jido_version()
+
+      assert html =~ "Apache License 2.0"
+      assert html =~ "Copyright © 2025-&gt; Mike Hostetler"
+      assert html =~ "Jido #{jido_version}"
+
+      assert html =~ ~s(href="/ecosystem")
+      assert html =~ ~s(href="https://llmdb.xyz")
+      assert html =~ ~s(id="primary-nav-search-trigger")
+
+      assert html =~ "jido"
+      assert html =~ "jido_ai"
+      assert html =~ "req_llm"
+      refute html =~ "HexDocs"
+      refute html =~ "LinkedIn"
+      refute html =~ "YouTube"
+      refute html =~ ~s(href="/training")
+      refute html =~ ~s(href="/search")
+    end
+
+    test "docs footer includes legal/version row and edit link", %{conn: conn} do
+      page =
+        Pages.pages_by_category(:docs)
+        |> Enum.find(fn doc -> not is_nil(doc.github_url) end)
+
+      assert page != nil
+
+      {:ok, _view, html} = live(conn, Pages.route_for(page))
+      jido_version = AgentJidoWeb.Jido.Nav.jido_version()
+
+      assert html =~ "Edit this page"
+      assert html =~ "Apache License 2.0"
+      assert html =~ "Copyright © 2025-&gt; Mike Hostetler"
+      assert html =~ "Jido #{jido_version}"
     end
   end
 
@@ -37,13 +77,13 @@ defmodule AgentJidoWeb.PageLiveTest do
 
     test "smoke routes for required docs IA stubs", %{conn: conn} do
       required_paths = [
-        "/docs/core-concepts",
-        "/docs/guides",
+        "/docs/getting-started/core-concepts",
+        "/docs/getting-started/guides",
         "/docs/reference",
-        "/docs/architecture",
-        "/docs/production-readiness-checklist",
-        "/docs/security-and-governance",
-        "/docs/incident-playbooks"
+        "/docs/reference/architecture",
+        "/docs/reference/production-readiness-checklist",
+        "/docs/reference/security-and-governance",
+        "/docs/reference/incident-playbooks"
       ]
 
       Enum.each(required_paths, fn path ->
@@ -54,40 +94,45 @@ defmodule AgentJidoWeb.PageLiveTest do
         assert html =~ page.title
       end)
     end
+
+    test "legacy docs routes redirect permanently to canonical section routes", %{conn: conn} do
+      legacy_to_canonical = %{
+        "/docs/cookbook-index" => "/docs/cookbook",
+        "/docs/core-concepts" => "/docs/getting-started/core-concepts",
+        "/docs/guides" => "/docs/getting-started/guides",
+        "/docs/chat-response" => "/docs/cookbook/chat-response",
+        "/docs/tool-response" => "/docs/cookbook/tool-response",
+        "/docs/weather-tool-response" => "/docs/cookbook/weather-tool-response",
+        "/docs/architecture" => "/docs/reference/architecture",
+        "/docs/production-readiness-checklist" => "/docs/reference/production-readiness-checklist",
+        "/docs/security-and-governance" => "/docs/reference/security-and-governance",
+        "/docs/incident-playbooks" => "/docs/reference/incident-playbooks"
+      }
+
+      Enum.each(legacy_to_canonical, fn {legacy, canonical} ->
+        redirected_conn = get(recycle(conn), legacy)
+        assert redirected_to(redirected_conn, 301) == canonical
+      end)
+    end
   end
 
-  describe "training" do
-    test "renders training index page with curriculum modules", %{conn: conn} do
-      {:ok, _view, html} = live(conn, "/training")
-
-      assert html =~ "TRAINING TRACK"
-      assert html =~ "Practical Jido training for"
-
-      for page <- Pages.pages_by_category(:training) do
-        assert html =~ page.title
-      end
+  describe "disabled public routes" do
+    test "training index route returns 404", %{conn: conn} do
+      conn = get(conn, "/training")
+      assert response(conn, 404)
     end
 
-    test "renders training detail page", %{conn: conn} do
-      page = Pages.pages_by_category(:training) |> hd()
-      route = Pages.route_for(page)
-      {:ok, _view, html} = live(conn, route)
+    test "training detail routes return 404", %{conn: conn} do
+      training_page = Pages.pages_by_category(:training) |> hd()
+      training_path = Pages.route_for(training_page)
 
-      assert html =~ page.title
-      assert html =~ "LEARNING OUTCOMES"
+      conn = get(conn, training_path)
+      assert response(conn, 404)
     end
 
-    test "training detail has previous/next navigation", %{conn: conn} do
-      training = Pages.pages_by_category(:training)
-
-      if length(training) >= 3 do
-        middle = Enum.at(training, 1)
-        route = Pages.route_for(middle)
-        {:ok, _view, html} = live(conn, route)
-
-        assert html =~ "Previous Module"
-        assert html =~ "Next Module"
-      end
+    test "search route returns 404", %{conn: conn} do
+      conn = get(conn, "/search")
+      assert response(conn, 404)
     end
   end
 

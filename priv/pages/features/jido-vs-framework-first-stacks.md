@@ -65,7 +65,7 @@ Jido is optimized for a different constraint set: explicit coordination contract
 - **Ecosystem:** [Jido core runtime](/ecosystem/jido), [Jido Action](/ecosystem/jido_action), and [Jido Signal](/ecosystem/jido_signal)
 - **Ecosystem:** [Package matrix](/ecosystem/package-matrix)
 - **Training:** [Signals, Routing, and Agent Communication](/training/signals-routing)
-- **Docs:** [Reference](/docs/reference) and [Architecture](/docs/architecture)
+- **Docs:** [Reference](/docs/reference) and [Architecture](/docs/reference/architecture)
 - **Context:** [All feature pillars](/features)
 
 ## Get Building

@@ -21,7 +21,7 @@
     "community/adoption-playbooks"
   ],
   ecosystem_packages: ["jido", "agent_jido"],
-  destination_route: "/docs/incident-playbooks",
+  destination_route: "/docs/reference/incident-playbooks",
   destination_collection: :pages,
   tags: [:operate, :incidents, :runbooks, :reliability]
 }

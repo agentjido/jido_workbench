@@ -10,7 +10,10 @@
     <script>
       (function() {
         var stored = localStorage.getItem('theme');
-        if (stored === 'light') {
+        var systemPrefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+        var theme = stored === 'light' || stored === 'dark' ? stored : (systemPrefersLight ? 'light' : 'dark');
+
+        if (theme === 'light') {
           document.documentElement.classList.add('light');
           document.documentElement.classList.remove('dark');
         } else {
@@ -45,23 +48,6 @@
     <meta name="twitter:image" content={assigns[:og_image] || "https://agentjido.xyz/og/default.png"} />
   </head>
   <body class="antialiased font-mono">
-    <ul class="menu menu-horizontal w-full relative z-10 flex items-center gap-4 px-4 sm:px-6 lg:px-8 justify-end">
-      <%= if @current_scope do %>
-        <li>
-          {@current_scope.user.email}
-        </li>
-        <li>
-          <.link href={~p"/users/settings"}>Settings</.link>
-        </li>
-        <li>
-          <.link href={~p"/users/log-out"} method="delete">Log out</.link>
-        </li>
-      <% else %>
-        <li :if={@conn.request_path != "/"}>
-          <.link href={~p"/users/log-in"}>Log in</.link>
-        </li>
-      <% end %>
-    </ul>
     {@inner_content}
   </body>
 </html>
