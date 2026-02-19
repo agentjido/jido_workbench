@@ -181,17 +181,35 @@ defmodule AgentJido.PagesTest do
 
   describe "route_for/1" do
     test "generates correct routes for docs" do
-      page = %Page{id: "getting-started", path: "/docs/getting-started", title: "GS", category: :docs}
+      page = %Page{
+        id: "getting-started",
+        path: "/docs/getting-started",
+        title: "GS",
+        category: :docs
+      }
+
       assert Pages.route_for(page) == "/docs/getting-started"
     end
 
     test "generates correct routes for training" do
-      page = %Page{id: "agent-fundamentals", path: "/training/agent-fundamentals", title: "AF", category: :training}
+      page = %Page{
+        id: "agent-fundamentals",
+        path: "/training/agent-fundamentals",
+        title: "AF",
+        category: :training
+      }
+
       assert Pages.route_for(page) == "/training/agent-fundamentals"
     end
 
     test "generates correct routes for features" do
-      page = %Page{id: "reliability", path: "/features/reliability", title: "R", category: :features}
+      page = %Page{
+        id: "reliability",
+        path: "/features/reliability",
+        title: "R",
+        category: :features
+      }
+
       assert Pages.route_for(page) == "/features/reliability"
     end
   end
@@ -378,6 +396,49 @@ defmodule AgentJido.PagesTest do
         Path.expand("../../priv/pages/build/index.md", __DIR__),
         Path.expand("../../priv/pages/build/quickstarts-by-persona.md", __DIR__),
         Path.expand("../../priv/pages/build/reference-architectures.md", __DIR__)
+      ]
+
+      placeholder_patterns = [
+        ~r/content coming soon/i,
+        ~r/\bcoming soon\b/i,
+        ~r/\bTODO\b/,
+        ~r/\bTBD\b/,
+        ~r/lorem ipsum/i
+      ]
+
+      Enum.each(build_files, fn file ->
+        body = File.read!(file)
+
+        assert body =~ "draft: false"
+
+        Enum.each(placeholder_patterns, fn pattern ->
+          refute body =~ pattern
+        end)
+      end)
+    end
+  end
+
+  describe "build wave B content quality" do
+    test "remaining build pages are published and routable" do
+      target_pages = [
+        {"/build/mixed-stack-integration", "/build/mixed-stack-integration"},
+        {"/build/product-feature-blueprints", "/build/product-feature-blueprints"}
+      ]
+
+      Enum.each(target_pages, fn {path, expected_route} ->
+        page = Pages.get_page_by_path(path)
+
+        assert page != nil
+        assert page.category == :build
+        assert page.draft == false
+        assert Pages.route_for(page) == expected_route
+      end)
+    end
+
+    test "remaining build source files do not contain placeholder markers" do
+      build_files = [
+        Path.expand("../../priv/pages/build/mixed-stack-integration.md", __DIR__),
+        Path.expand("../../priv/pages/build/product-feature-blueprints.md", __DIR__)
       ]
 
       placeholder_patterns = [

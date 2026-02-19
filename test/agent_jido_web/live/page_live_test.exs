@@ -164,4 +164,24 @@ defmodule AgentJidoWeb.PageLiveTest do
       end)
     end
   end
+
+  describe "build wave B pages" do
+    test "smoke routes for remaining build pages", %{conn: conn} do
+      target_pages = [
+        {"/build/mixed-stack-integration", "Mixed-stack integration works when Jido owns orchestration"},
+        {"/build/product-feature-blueprints", "Product feature blueprints convert fuzzy requirements into shippable milestones"}
+      ]
+
+      Enum.each(target_pages, fn {path, expected_copy} ->
+        page = Pages.get_page_by_path(path)
+        assert page != nil
+
+        {:ok, _view, html} = live(conn, path)
+
+        assert html =~ expected_copy
+        assert html =~ "Get Building"
+        refute html =~ "Content coming soon."
+      end)
+    end
+  end
 end
