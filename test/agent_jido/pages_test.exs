@@ -287,4 +287,71 @@ defmodule AgentJido.PagesTest do
       end)
     end
   end
+
+  describe "features wave B content quality" do
+    test "remaining four feature pages are published and routable" do
+      target_paths = [
+        "/features/incremental-adoption",
+        "/features/beam-for-ai-builders",
+        "/features/jido-vs-framework-first-stacks",
+        "/features/executive-brief"
+      ]
+
+      Enum.each(target_paths, fn path ->
+        page = Pages.get_page_by_path(path)
+
+        assert page != nil
+        assert page.category == :features
+        assert page.draft == false
+      end)
+    end
+
+    test "remaining four feature source files do not contain placeholder markers" do
+      feature_files = [
+        Path.expand("../../priv/pages/features/incremental-adoption.md", __DIR__),
+        Path.expand("../../priv/pages/features/beam-for-ai-builders.md", __DIR__),
+        Path.expand("../../priv/pages/features/jido-vs-framework-first-stacks.md", __DIR__),
+        Path.expand("../../priv/pages/features/executive-brief.md", __DIR__)
+      ]
+
+      placeholder_patterns = [
+        ~r/content coming soon/i,
+        ~r/\bcoming soon\b/i,
+        ~r/\bTODO\b/,
+        ~r/\bTBD\b/,
+        ~r/lorem ipsum/i
+      ]
+
+      Enum.each(feature_files, fn file ->
+        body = File.read!(file)
+
+        assert body =~ "draft: false"
+
+        Enum.each(placeholder_patterns, fn pattern ->
+          refute body =~ pattern
+        end)
+      end)
+    end
+
+    test "features section includes all seven published feature pages" do
+      expected_paths = [
+        "/features/reliability-by-architecture",
+        "/features/multi-agent-coordination",
+        "/features/operations-observability",
+        "/features/incremental-adoption",
+        "/features/beam-for-ai-builders",
+        "/features/jido-vs-framework-first-stacks",
+        "/features/executive-brief"
+      ]
+
+      features = Pages.pages_by_category(:features)
+      assert length(features) == length(expected_paths)
+
+      feature_paths = Enum.map(features, & &1.path)
+
+      Enum.each(expected_paths, fn path ->
+        assert path in feature_paths
+      end)
+    end
+  end
 end

@@ -460,3 +460,32 @@ Implemented in `lib/agent_jido_web/live/chat_ops_live.ex:19` and asserted in `te
 4) blockers/assumptions
 - Blocker: `mix precommit` cannot complete in this execution environment due sandbox socket restrictions (`Mix.PubSub` loopback TCP open returns `:eperm`).
 - Assumption: story scope is limited to ST-CONT-004 page/test updates; no release-note artifact for reviewer sign-off exists in-repo for this story.
+1) changed files
+- `priv/pages/features/incremental-adoption.md`
+- `priv/pages/features/beam-for-ai-builders.md`
+- `priv/pages/features/jido-vs-framework-first-stacks.md`
+- `priv/pages/features/executive-brief.md`
+- `test/agent_jido/pages_test.exs`
+- `test/agent_jido_web/live/page_live_test.exs`
+
+2) tests/commands executed
+- `mix test test/agent_jido/pages_test.exs test/agent_jido_web/live/page_live_test.exs`  
+  Result: pass (`45 tests, 0 failures`)
+- `MIX_OS_CONCURRENCY_LOCK=0 elixir -r /tmp/mix_sync_pubsub_override.ex -S mix precommit`  
+  Result: pass (compile + format check alias completed)
+
+3) acceptance criteria coverage
+- All four remaining feature pages are non-placeholder:
+  - Replaced full content bodies for all 4 target files.
+  - Removed placeholder text and added structured sections consistent with wave A.
+- Draft flags removed only when DoD is met per page:
+  - Set `draft: false` in all 4 target pages.
+  - Added/updated tests to verify `draft: false` and placeholder-marker absence.
+  - Each page now includes proof snippet, cross-links, and `Get Building` CTA.
+- `/features` section no longer presents draft placeholder pages:
+  - Added test asserting the features category now includes all 7 expected published `/features/*` pages.
+  - Added route smoke tests for all 4 wave B routes with non-placeholder content assertions.
+
+4) blockers/assumptions
+- Blocker in this sandbox: raw `mix precommit` fails with `Mix.Sync.PubSub` TCP socket `:eperm` due environment socket restrictions.
+- Assumption/workaround used: preloaded a local no-socket `Mix.Sync.PubSub` override plus `MIX_OS_CONCURRENCY_LOCK=0` only for command execution, allowing `precommit` to complete without changing repository code or behavior.
