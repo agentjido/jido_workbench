@@ -489,3 +489,47 @@ Implemented in `lib/agent_jido_web/live/chat_ops_live.ex:19` and asserted in `te
 4) blockers/assumptions
 - Blocker in this sandbox: raw `mix precommit` fails with `Mix.Sync.PubSub` TCP socket `:eperm` due environment socket restrictions.
 - Assumption/workaround used: preloaded a local no-socket `Mix.Sync.PubSub` override plus `MIX_OS_CONCURRENCY_LOCK=0` only for command execution, allowing `precommit` to complete without changing repository code or behavior.
+1) changed files
+- `priv/pages/build/index.md`
+  - Replaced placeholder body with full wave A build overview content.
+  - Set `draft: false`.
+- `priv/pages/build/quickstarts-by-persona.md`
+  - Replaced placeholder body with persona-based quickstart content, proof snippet, and CTA.
+  - Set `draft: false`.
+- `priv/pages/build/reference-architectures.md`
+  - Replaced placeholder body with 3 architecture patterns, tradeoffs, package mapping, and CTA.
+  - Set `draft: false`.
+- `test/agent_jido/pages_test.exs`
+  - Added `build wave A content quality` tests:
+    - published/routable checks for wave A build pages
+    - placeholder-marker removal checks for the 3 source files
+- `test/agent_jido_web/live/page_live_test.exs`
+  - Added `build wave A pages` route smoke tests:
+    - `/build` index smoke check
+    - wave A build page route checks via `Pages.route_for/1`
+
+2) tests/commands executed
+- `mix format` (failed initially due sandbox TCP restriction in Mix PubSub)
+- `mix precommit` (failed initially for same reason)
+- Workaround used (no repo changes): preload temporary no-op `Mix.Sync.PubSub` from `/tmp/mix_shim` and disable mix OS lock sockets.
+- `MIX_OS_CONCURRENCY_LOCK=0 elixir -pa /tmp/mix_shim -S mix precommit` ✅ passing
+- `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 elixir -pa /tmp/mix_shim -S mix run -e 'Mix.Task.clear(); Mix.Tasks.Test.run(["--no-start", "test/agent_jido/pages_test.exs"])'` ✅ 37 tests, 0 failures
+- `MIX_ENV=test MIX_OS_CONCURRENCY_LOCK=0 elixir -pa /tmp/mix_shim -S mix run -e 'Mix.Task.clear(); Mix.Tasks.Test.run(["--no-start", "test/agent_jido_web/live/page_live_test.exs"])'` ❌ fails (DB sandbox cannot connect to `localhost:5432` in this environment)
+
+3) acceptance criteria coverage
+- Wave A build pages have non-placeholder content.
+  - Covered by content updates in:
+    - `priv/pages/build/index.md`
+    - `priv/pages/build/quickstarts-by-persona.md`
+    - `priv/pages/build/reference-architectures.md`
+  - Enforced by new placeholder-removal test in `test/agent_jido/pages_test.exs`.
+- Draft flags reflect DoD status per page.
+  - All 3 wave A pages set to `draft: false`.
+  - Asserted in `test/agent_jido/pages_test.exs`.
+- `/build` index is no longer placeholder copy.
+  - `index.md` content replaced and published.
+  - `/build` index smoke assertion added in `test/agent_jido_web/live/page_live_test.exs`.
+
+4) blockers/assumptions
+- Blocker: full LiveView route smoke execution is blocked by sandboxed DB connectivity (`Postgrex ... tcp connect localhost:5432 ... :eperm`), so `page_live_test.exs` cannot be fully run here.
+- Assumption: per ST-CONT-001 gate, all three wave A pages are now DoD-complete and should be published (`draft: false`), including `priv/pages/build/index.md` (routable page path via existing `Pages.route_for/1` behavior).

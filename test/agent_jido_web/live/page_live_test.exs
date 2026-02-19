@@ -133,4 +133,35 @@ defmodule AgentJidoWeb.PageLiveTest do
       end)
     end
   end
+
+  describe "build wave A pages" do
+    test "renders /build index with wave A cards and no placeholder copy", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/build")
+
+      assert html =~ "Build"
+      assert html =~ "Build with Jido"
+      assert html =~ "Quickstarts by Persona"
+      assert html =~ "Reference Architectures"
+      refute html =~ "Content coming soon."
+    end
+
+    test "smoke routes for wave A build pages", %{conn: conn} do
+      target_pages = [
+        {"/build", "Build is where you convert Jido concepts"},
+        {"/build/quickstarts-by-persona", "Use this page as a routing layer"},
+        {"/build/reference-architectures", "Reference architectures let you choose runtime boundaries"}
+      ]
+
+      Enum.each(target_pages, fn {path, expected_copy} ->
+        page = Pages.get_page_by_path(path)
+        assert page != nil
+
+        {:ok, _view, html} = live(conn, Pages.route_for(page))
+
+        assert html =~ expected_copy
+        assert html =~ "Get Building"
+        refute html =~ "Content coming soon."
+      end)
+    end
+  end
 end

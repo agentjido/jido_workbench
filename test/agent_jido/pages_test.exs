@@ -354,4 +354,49 @@ defmodule AgentJido.PagesTest do
       end)
     end
   end
+
+  describe "build wave A content quality" do
+    test "wave A build pages are published and routable" do
+      target_pages = [
+        {"/build", "/build/build"},
+        {"/build/quickstarts-by-persona", "/build/quickstarts-by-persona"},
+        {"/build/reference-architectures", "/build/reference-architectures"}
+      ]
+
+      Enum.each(target_pages, fn {path, expected_route} ->
+        page = Pages.get_page_by_path(path)
+
+        assert page != nil
+        assert page.category == :build
+        assert page.draft == false
+        assert Pages.route_for(page) == expected_route
+      end)
+    end
+
+    test "wave A build source files do not contain placeholder markers" do
+      build_files = [
+        Path.expand("../../priv/pages/build/index.md", __DIR__),
+        Path.expand("../../priv/pages/build/quickstarts-by-persona.md", __DIR__),
+        Path.expand("../../priv/pages/build/reference-architectures.md", __DIR__)
+      ]
+
+      placeholder_patterns = [
+        ~r/content coming soon/i,
+        ~r/\bcoming soon\b/i,
+        ~r/\bTODO\b/,
+        ~r/\bTBD\b/,
+        ~r/lorem ipsum/i
+      ]
+
+      Enum.each(build_files, fn file ->
+        body = File.read!(file)
+
+        assert body =~ "draft: false"
+
+        Enum.each(placeholder_patterns, fn pattern ->
+          refute body =~ pattern
+        end)
+      end)
+    end
+  end
 end
