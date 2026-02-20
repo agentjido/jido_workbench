@@ -84,7 +84,8 @@ defmodule AgentJido.MixProject do
       {:jido, "~> 2.0.0-rc.5", override: true},
       {:jido_action, github: "agentjido/jido_action", branch: "main", override: true},
       {:jido_signal, github: "agentjido/jido_signal", branch: "main", override: true},
-      {:jido_ai, github: "agentjido/jido_ai", ref: "ae4d37a0dfae564bc7a6a94323fd5a9756a3853d", override: true},
+      # CI fix: use a local patched jido_ai copy for Elixir 1.18 compatibility.
+      {:jido_ai, path: "vendor/jido_ai", override: true},
       # CI fix: use a local patched telegex copy for Elixir 1.18 compatibility.
       {:telegex, path: "vendor/telegex", override: true, env: :test},
       {:jido_runic, github: "agentjido/jido_runic", branch: "main"},

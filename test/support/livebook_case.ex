@@ -53,7 +53,7 @@ defmodule AgentJido.LivebookCase do
         if @livebook_required_any_env == [] or any_required_env_present?(@livebook_required_any_env) do
           :ok
         else
-          :skip
+          {:ok, skip: "requires one of: #{Enum.join(@livebook_required_any_env, ", ")}"}
         end
       end
 
