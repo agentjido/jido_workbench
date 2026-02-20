@@ -8,7 +8,6 @@ defmodule Jido.AI.Examples.Tools.ValidateSkillName do
       name: [type: :string, required: true, doc: "The proposed skill name to validate"]
     ]
 
-  @name_regex ~r/^[a-z0-9]+(-[a-z0-9]+)*$/
   @max_length 64
 
   @impl true
@@ -22,7 +21,7 @@ defmodule Jido.AI.Examples.Tools.ValidateSkillName do
       String.length(name) > @max_length ->
         {:ok, %{valid: false, name: name, error: "Name exceeds #{@max_length} characters"}}
 
-      not Regex.match?(@name_regex, name) ->
+      not Regex.match?(~r/^[a-z0-9]+(-[a-z0-9]+)*$/, name) ->
         {:ok,
          %{
            valid: false,

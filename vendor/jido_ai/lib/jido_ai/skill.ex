@@ -47,7 +47,6 @@ defmodule Jido.AI.Skill do
 
   alias Jido.AI.Skill.{Spec, Registry, Error}
 
-  @name_regex ~r/^[a-z0-9]+(-[a-z0-9]+)*$/
   @max_name_length 64
   @max_description_length 1024
 
@@ -220,7 +219,7 @@ defmodule Jido.AI.Skill do
   def __validate_name__!(name) do
     if !(is_binary(name) and
            String.length(name) <= @max_name_length and
-           Regex.match?(@name_regex, name)) do
+           Regex.match?(~r/^[a-z0-9]+(-[a-z0-9]+)*$/, name)) do
       raise ArgumentError,
             "Invalid skill name '#{name}': must be 1-#{@max_name_length} chars, " <>
               "lowercase alphanumeric with hyphens (e.g., 'my-skill-name')"

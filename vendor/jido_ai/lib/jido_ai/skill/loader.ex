@@ -7,7 +7,6 @@ defmodule Jido.AI.Skill.Loader do
 
   alias Jido.AI.Skill.{Spec, Error}
 
-  @name_regex ~r/^[a-z0-9]+(-[a-z0-9]+)*$/
   @max_name_length 64
   @max_description_length 1024
   @max_compatibility_length 500
@@ -88,7 +87,7 @@ defmodule Jido.AI.Skill.Loader do
       String.length(name) > @max_name_length ->
         {:error, %Error.Validation.InvalidName{name: name}}
 
-      not Regex.match?(@name_regex, name) ->
+      not Regex.match?(~r/^[a-z0-9]+(-[a-z0-9]+)*$/, name) ->
         {:error, %Error.Validation.InvalidName{name: name}}
 
       true ->
