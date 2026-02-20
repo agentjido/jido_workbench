@@ -49,26 +49,19 @@ defmodule AgentJido.LivebookCase do
       @livebook_timeout timeout
       @livebook_required_any_env required_any_env
 
-      setup do
-        if @livebook_required_any_env == [] or any_required_env_present?(@livebook_required_any_env) do
-          :ok
-        else
-          {:ok, skip: "requires one of: #{Enum.join(@livebook_required_any_env, ", ")}"}
-        end
+      if @livebook_required_any_env != [] and
+           not Enum.any?(@livebook_required_any_env, fn var ->
+             var
+             |> System.get_env()
+             |> AgentJido.LivebookCase.normalize_env_value()
+             |> is_binary()
+           end) do
+        @moduletag skip: "requires one of: #{Enum.join(@livebook_required_any_env, ", ")}"
       end
 
       defp run_livebook(opts \\ []) do
         timeout = Keyword.get(opts, :timeout, @livebook_timeout)
         LivebookRunner.run_file(@livebook_path, timeout: timeout)
-      end
-
-      defp any_required_env_present?(vars) do
-        Enum.any?(vars, fn var ->
-          var
-          |> System.get_env()
-          |> AgentJido.LivebookCase.normalize_env_value()
-          |> is_binary()
-        end)
       end
 
       @doc false

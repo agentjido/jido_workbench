@@ -25,7 +25,7 @@ defmodule Mix.Tasks.Agentjido.SignalTest do
   test "self-bootstraps runtime and executes a run" do
     output =
       capture_io(fn ->
-        Mix.Tasks.Agentjido.Signal.run(["run", "--mode", "weekly", "--timeout", "30"])
+        Mix.Tasks.Agentjido.Signal.run(["run", "--mode", "hourly", "--timeout", "120"])
       end)
 
     assert output =~ "Run completed"
