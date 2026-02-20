@@ -14,6 +14,10 @@ jobs:
   lint:
     name: Lint
     uses: agentjido/github-actions/.github/workflows/elixir-lint.yml@main
+    with:
+      otp_version: "27.2.1"
+      elixir_version: "1.18.2"
+      lint_command: mix quality
 
   test:
     name: Test
