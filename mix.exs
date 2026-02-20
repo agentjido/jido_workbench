@@ -46,7 +46,7 @@ defmodule AgentJido.MixProject do
       {:plug, "~> 1.14"},
       {:plug_cowboy, "~> 2.5"},
       {:bandit, "~> 1.0"},
-      {:remote_ip, "~> 1.2", only: [:dev, :test]},
+      {:remote_ip, "~> 1.2"},
       {:plug_canonical_host, "~> 2.0"},
       {:multipart, "~> 0.4", override: true},
       {:phoenix_seo, "~> 0.1.11"},

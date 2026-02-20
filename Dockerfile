@@ -11,9 +11,9 @@
 #   - https://pkgs.org/ - resource for finding needed packages
 #   - Ex: hexpm/elixir:1.16.0-erlang-26.2.1-debian-bullseye-20231009-slim
 #
-ARG ELIXIR_VERSION=1.18.2
-ARG OTP_VERSION=27.2.1
-ARG DEBIAN_VERSION=bookworm-20250113
+ARG ELIXIR_VERSION=1.19.2
+ARG OTP_VERSION=28.3.2
+ARG DEBIAN_VERSION=bookworm-20260202
 
 ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
 ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
@@ -92,11 +92,12 @@ ENV MIX_ENV="prod"
 # Only copy the final release from the build stage
 COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/agent_jido ./
 
-# install hivemind
-RUN wget https://github.com/DarthSim/hivemind/releases/download/v1.1.0/hivemind-v1.1.0-linux-amd64.gz
-RUN gunzip ./hivemind-v1.1.0-linux-amd64.gz
-RUN chmod +x ./hivemind-v1.1.0-linux-amd64
-RUN mv ./hivemind-v1.1.0-linux-amd64 ./bin/hivemind
+# install hivemind (arch-aware: supports both amd64 and arm64)
+RUN ARCH=$(dpkg --print-architecture) && \
+  wget https://github.com/DarthSim/hivemind/releases/download/v1.1.0/hivemind-v1.1.0-linux-${ARCH}.gz && \
+  gunzip hivemind-v1.1.0-linux-${ARCH}.gz && \
+  chmod +x hivemind-v1.1.0-linux-${ARCH} && \
+  mv hivemind-v1.1.0-linux-${ARCH} ./bin/hivemind
 
 COPY Procfile ./
 COPY entrypoint ./bin
