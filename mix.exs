@@ -85,8 +85,8 @@ defmodule AgentJido.MixProject do
       {:jido_action, github: "agentjido/jido_action", branch: "main", override: true},
       {:jido_signal, github: "agentjido/jido_signal", branch: "main", override: true},
       {:jido_ai, github: "agentjido/jido_ai", ref: "ae4d37a0dfae564bc7a6a94323fd5a9756a3853d", override: true},
-      # CI fix: pull upstream fix for missing Plug guard in telegex hook server.
-      {:telegex, github: "telegex/telegex", ref: "cc8a77c9436ff89e1e3dc8d0068c8c901d647785", override: true, env: :test},
+      # CI fix: use a local patched telegex copy for Elixir 1.18 compatibility.
+      {:telegex, path: "vendor/telegex", override: true, env: :test},
       {:jido_runic, github: "agentjido/jido_runic", branch: "main"},
       {:jido_live_dashboard, github: "agentjido/jido_live_dashboard", branch: "main"},
       {:libgraph, github: "zblanco/libgraph", branch: "zw/multigraph-indexes", override: true},
