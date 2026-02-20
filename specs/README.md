@@ -1,6 +1,6 @@
 # Site Strategy & Content Specs
 
-Last updated: 2026-02-19
+Last updated: 2026-02-20
 
 This folder is the authoritative home for site positioning, content strategy, and messaging governance.
 
@@ -8,6 +8,7 @@ This folder is the authoritative home for site positioning, content strategy, an
 
 - Anchor phrase: `Jido is a runtime for reliable, multi-agent systems.`
 - Differentiator: `Built on Elixir/OTP for fault-tolerant concurrency and production-grade reliability.`
+- Intelligence posture: `Model-agnostic runtime: LLM integration is optional via add-on packages such as jido_ai/req_llm.`
 - Primary CTA convention: `Get Building`
 - Hero headline (locked): `A runtime for reliable, multi-agent systems.`
 - Hero subhead (locked): `Design, coordinate, and operate agent workflows that stay stable in production — built on Elixir/OTP for fault isolation, concurrency, and uptime.`
@@ -86,5 +87,6 @@ Specs govern what goes into priv/. `content-system.md` maps the full pipeline.
 - Keep claims proof-backed (example + training + docs/reference path).
 - Keep top-level language broad and clear.
 - Use Elixir/OTP as explicit differentiator language, not insider shorthand.
+- Treat LLM capabilities as optional add-ons; include at least one non-LLM proof path on strategic feature pages.
 - Keep the project posture OSS-first; default CTAs should drive self-serve builder onboarding.
 - Update the `Last updated` line when materially changing strategy.

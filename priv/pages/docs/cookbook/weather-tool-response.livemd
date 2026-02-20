@@ -68,7 +68,7 @@ defmodule WeatherAgent do
     name: "weather_agent",
     description: "Weather assistant example",
     tools: [Jido.Tools.Weather],
-    model: "openai:gpt-4o-mini",
+    model: "openai:gpt-4-turbo",
     max_iterations: 6,
     system_prompt: """
     You are an enthusiastic weather reporter.
@@ -88,13 +88,14 @@ end
 {:ok, pid} = WeatherAgent.start_link()
 ```
 
-This block defines our agent and starts the GenServer to run our Agent. With this now started, we can request a response via the `tool_response/2` method. This default implementation uses test data from the Weather API.
+This block defines our agent and starts the GenServer to run our Agent. With this now started, we can send weather queries via `query/3`.
 
 ```elixir
-# Ask for the weather in Tokyo
-{:ok, answer} = WeatherAgent.query(pid, "What is the weather like in Tokyo right now?")
+# Ask for the weather in Seattle
+{:ok, answer} = WeatherAgent.query(pid, "What is the weather like in Seattle right now?")
+false = String.starts_with?(answer, "Error:")
 IO.puts(answer)
-answer
+:ok
 ```
 
 That's it! With just a few lines of code, we've created an AI agent that can answer weather questions.
@@ -297,23 +298,26 @@ Let's ask our agent a few more questions:
 
 ```elixir
 # Ask about tomorrow's weather
-{:ok, answer} = WeatherAgent.query(pid, "Will I need an umbrella in Paris tomorrow?")
+{:ok, answer} = WeatherAgent.query(pid, "Will I need an umbrella in Chicago tomorrow?")
+false = String.starts_with?(answer, "Error:")
 IO.puts(answer)
-answer
+:ok
 ```
 
 ```elixir
 # Ask about multiple locations
 {:ok, answer} = WeatherAgent.query(pid, "Compare the weather in New York and San Francisco today.")
+false = String.starts_with?(answer, "Error:")
 IO.puts(answer)
-answer
+:ok
 ```
 
 ```elixir
 # Ask a more complex weather question
-{:ok, answer} = WeatherAgent.query(pid, "Is it a good day for hiking in the mountains near Seattle?")
+{:ok, answer} = WeatherAgent.query(pid, "Is it a good day for hiking in the mountains near Denver?")
+false = String.starts_with?(answer, "Error:")
 IO.puts(answer)
-answer
+:ok
 ```
 
 ## Additional Resources
