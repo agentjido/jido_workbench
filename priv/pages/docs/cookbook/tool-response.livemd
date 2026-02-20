@@ -14,7 +14,7 @@ tags: [:tool_response, :getting_started]
 defmodule Examples.ToolAgent02 do
   alias Jido.Tools.Arithmetic.{Add, Subtract, Multiply, Divide}
 
-  use Jido.AI.ReActAgent,
+  use Jido.AI.Agent,
     name: "tool_agent_02",
     description: "Foundational tool-calling example",
     tools: [Add, Subtract, Multiply, Divide],

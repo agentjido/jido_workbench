@@ -8,7 +8,7 @@ defmodule AgentJido.Demos.ChatAgent do
   - Uses :fast model (Claude Haiku) for quick responses
   - Streams responses via polling
   """
-  use Jido.AI.ReActAgent,
+  use Jido.AI.Agent,
     name: "demo_chat_agent",
     description: "AI chat assistant with arithmetic and weather tools",
     tools: [

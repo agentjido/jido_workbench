@@ -12,7 +12,7 @@ Getting started with Jido Workbench!
 
 ```elixir
 defmodule Examples.BasicAgent01 do
-  use Jido.AI.ReActAgent,
+  use Jido.AI.Agent,
     name: "basic_agent_01",
     description: "Foundational chat example",
     tools: [Jido.Tools.Weather],

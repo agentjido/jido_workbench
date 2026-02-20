@@ -64,7 +64,7 @@ Let's create and use our Weather Agent right away:
 
 ```elixir
 defmodule WeatherAgent do
-  use Jido.AI.ReActAgent,
+  use Jido.AI.Agent,
     name: "weather_agent",
     description: "Weather assistant example",
     tools: [Jido.Tools.Weather],

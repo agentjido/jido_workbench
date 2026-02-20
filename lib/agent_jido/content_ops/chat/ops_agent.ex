@@ -3,7 +3,7 @@ defmodule AgentJido.ContentOps.Chat.OpsAgent do
   Room-scoped ReAct agent for ContentOps ChatOps.
   """
 
-  use Jido.AI.ReActAgent,
+  use Jido.AI.Agent,
     name: "contentops_chat_ops_agent",
     description: "ContentOps chat assistant with run and GitHub mutation tools",
     tools: [

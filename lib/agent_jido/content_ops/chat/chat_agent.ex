@@ -3,7 +3,7 @@ defmodule AgentJido.ContentOps.Chat.ChatAgent do
   Lightweight chat agent for conversational responses (no tools).
   """
 
-  use Jido.AI.ReActAgent,
+  use Jido.AI.Agent,
     name: "contentops_chat_agent",
     description: "Conversational chat agent for ContentOps channels",
     tools: [],

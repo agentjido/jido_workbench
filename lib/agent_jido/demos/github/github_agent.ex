@@ -43,7 +43,7 @@ defmodule AgentJido.Demos.GithubAgent do
   - Token is injected via tool_context, never exposed to LLM
   """
 
-  use Jido.AI.ReActAgent,
+  use Jido.AI.Agent,
     name: "github_agent",
     description: "GitHub repository management assistant",
     tags: ["github", "demo"],

@@ -11,6 +11,8 @@ defmodule AgentJido.OGImage.Resolver do
   alias AgentJido.OGImage.Descriptor
   alias AgentJido.Pages
 
+  @og_render_version "v4"
+
   @top_level_routes %{
     "/" => %{
       template: :home,
@@ -294,7 +296,7 @@ defmodule AgentJido.OGImage.Resolver do
 
   defp build_descriptor(attrs) do
     resolved_path = attrs.resolved_path
-    content_hash = attrs.content_hash
+    content_hash = hash_from([@og_render_version, attrs.content_hash || ""])
 
     %Descriptor{
       template: attrs.template,
@@ -304,7 +306,7 @@ defmodule AgentJido.OGImage.Resolver do
       badges: Enum.map(attrs.badges || [], &to_string/1),
       footer_url: footer_url(attrs.footer_path || resolved_path),
       content_hash: content_hash,
-      cache_key: "v3:path=#{resolved_path}:hash=#{content_hash}",
+      cache_key: "#{@og_render_version}:path=#{resolved_path}:hash=#{content_hash}",
       resolved_path: resolved_path
     }
   end

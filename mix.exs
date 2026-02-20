@@ -45,7 +45,10 @@ defmodule AgentJido.MixProject do
       # HTTP / Server
       {:plug, "~> 1.14"},
       {:plug_cowboy, "~> 2.5"},
+      {:bandit, "~> 1.0", only: [:dev, :test]},
+      {:remote_ip, "~> 1.2", only: [:dev, :test]},
       {:plug_canonical_host, "~> 2.0"},
+      {:multipart, "~> 0.4", override: true},
       {:phoenix_seo, "~> 0.1.11"},
       {:finch, "~> 0.13"},
       {:swoosh, "~> 1.5"},
@@ -81,7 +84,9 @@ defmodule AgentJido.MixProject do
       {:jido, "~> 2.0.0-rc.5", override: true},
       {:jido_action, github: "agentjido/jido_action", branch: "main", override: true},
       {:jido_signal, github: "agentjido/jido_signal", branch: "main", override: true},
-      {:jido_ai, github: "agentjido/jido_ai", branch: "main", override: true},
+      {:jido_ai, github: "agentjido/jido_ai", ref: "ae4d37a0dfae564bc7a6a94323fd5a9756a3853d", override: true},
+      # CI fix: pull upstream fix for missing Plug guard in telegex hook server.
+      {:telegex, github: "telegex/telegex", ref: "cc8a77c9436ff89e1e3dc8d0068c8c901d647785", override: true, env: :test},
       {:jido_runic, github: "agentjido/jido_runic", branch: "main"},
       {:jido_live_dashboard, github: "agentjido/jido_live_dashboard", branch: "main"},
       {:libgraph, github: "zblanco/libgraph", branch: "zw/multigraph-indexes", override: true},

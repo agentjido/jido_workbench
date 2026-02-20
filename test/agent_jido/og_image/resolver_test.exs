@@ -12,7 +12,7 @@ defmodule AgentJido.OGImage.ResolverTest do
 
     assert descriptor.template == :marketing
     assert descriptor.title == "Jido Features"
-    assert descriptor.cache_key =~ "v3:path=/features:hash="
+    assert descriptor.cache_key =~ "v4:path=/features:hash="
   end
 
   test "resolves blog posts to blog_post descriptors" do
