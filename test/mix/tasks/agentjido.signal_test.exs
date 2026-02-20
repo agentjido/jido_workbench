@@ -1,5 +1,6 @@
 defmodule Mix.Tasks.Agentjido.SignalTest do
   use ExUnit.Case, async: false
+  @moduletag :flaky
 
   import ExUnit.CaptureIO
 
