@@ -38,3 +38,5 @@ npm-debug.log
 .vscode
 .elixir_ls
 
+_build_18_28/
+_build_19_27/
