@@ -1,17 +1,35 @@
 name: Deploy Fly STAGE
 on:
   workflow_dispatch:
-  push:
+  workflow_run:
+    workflows:
+      - CI
+    types:
+      - completed
     branches:
       - main
+
+concurrency:
+  group: deploy-fly-stage-${{ github.event.workflow_run.head_branch || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   deploy:
     name: Deploy
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event_name == 'workflow_run' &&
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.head_branch == 'main'
+      )
     runs-on: ubuntu-latest
     steps:
       # This step checks out a copy of your repository.
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
       # This step runs `flyctl deploy`.
       - uses: superfly/flyctl-actions@master
         env:
