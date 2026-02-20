@@ -1,8 +1,8 @@
 defmodule AgentJido.ContentOps.Chat.OperationsDocsTest do
   use ExUnit.Case, async: true
 
-  @runbook_path Path.expand("../../../../specs/chatops_runbook.md", __DIR__)
-  @durability_note_path Path.expand("../../../../specs/chatops_durability_decision.md", __DIR__)
+  @runbook_path Path.expand("../../../../specs/runbooks/chatops_runbook.md", __DIR__)
+  @durability_note_path Path.expand("../../../../specs/runbooks/chatops_durability_decision.md", __DIR__)
 
   @required_env_vars [
     "CONTENTOPS_CHAT_ENABLED",

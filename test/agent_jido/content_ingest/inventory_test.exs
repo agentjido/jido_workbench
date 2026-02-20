@@ -14,7 +14,7 @@ defmodule AgentJido.ContentIngest.InventoryTest do
       expected_count =
         length(Pages.all_pages()) +
           length(Blog.all_posts()) +
-          length(Ecosystem.all_packages())
+          length(Ecosystem.public_packages())
 
       assert length(sources) == expected_count
       assert Enum.all?(sources, &match?(%Source{}, &1))

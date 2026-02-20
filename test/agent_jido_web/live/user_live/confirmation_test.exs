@@ -1,5 +1,5 @@
 defmodule AgentJidoWeb.UserLive.ConfirmationTest do
-  use AgentJidoWeb.ConnCase, async: true
+  use AgentJidoWeb.ConnCase, async: false
 
   import Phoenix.LiveViewTest
   import AgentJido.AccountsFixtures

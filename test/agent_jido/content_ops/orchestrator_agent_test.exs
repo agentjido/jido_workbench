@@ -32,36 +32,12 @@ defmodule AgentJido.ContentOps.OrchestratorAgentTest do
   end
 
   describe "OrchestratorAgent schedules" do
-    test "declares hourly, nightly, weekly, and monthly schedules" do
+    test "does not declare plugin schedules while cadence scheduling is disabled" do
       schedules =
         OrchestratorAgent.plugin_schedules()
         |> Enum.filter(fn schedule -> match?({:agent_schedule, _, _}, schedule.job_id) end)
 
-      assert length(schedules) == 4
-
-      assert Enum.any?(schedules, fn s ->
-               s.cron_expression == "0 * * * *" and
-                 s.signal_type == "contentops.tick.hourly" and
-                 s.job_id == {:agent_schedule, "contentops_orchestrator", :hourly_tick}
-             end)
-
-      assert Enum.any?(schedules, fn s ->
-               s.cron_expression == "0 2 * * *" and
-                 s.signal_type == "contentops.tick.nightly" and
-                 s.job_id == {:agent_schedule, "contentops_orchestrator", :nightly_tick}
-             end)
-
-      assert Enum.any?(schedules, fn s ->
-               s.cron_expression == "0 3 * * 1" and
-                 s.signal_type == "contentops.tick.weekly" and
-                 s.job_id == {:agent_schedule, "contentops_orchestrator", :weekly_tick}
-             end)
-
-      assert Enum.any?(schedules, fn s ->
-               s.cron_expression == "0 4 1 * *" and
-                 s.signal_type == "contentops.tick.monthly" and
-                 s.job_id == {:agent_schedule, "contentops_orchestrator", :monthly_tick}
-             end)
+      assert schedules == []
     end
   end
 

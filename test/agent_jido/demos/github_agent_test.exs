@@ -14,16 +14,10 @@ defmodule AgentJido.Demos.GithubAgentTest do
   @repo "agentjido_xyz"
 
   setup do
-    token = System.get_env("GITHUB_TOKEN")
-
-    if is_nil(token) or token == "" do
-      IO.puts("Skipping: GITHUB_TOKEN not set")
-      :skip
-    else
-      client = Tentacat.Client.new(%{access_token: token})
-      context = %{client: client}
-      %{client: client, context: context}
-    end
+    token = System.get_env("GITHUB_TOKEN") || ""
+    client = Tentacat.Client.new(%{access_token: token})
+    context = %{client: client}
+    %{client: client, context: context}
   end
 
   describe "Issues tools" do

@@ -3,9 +3,8 @@ defmodule AgentJido.Specs.ContentGovernanceContractTest do
 
   @governance_path Path.expand("../../../specs/content-governance.md", __DIR__)
   @specs_readme_path Path.expand("../../../specs/README.md", __DIR__)
-  @content_infra_story_path Path.expand("../../../specs/stories/04_content_infra.md", __DIR__)
-  @features_story_path Path.expand("../../../specs/stories/05_content_features.md", __DIR__)
-  @build_community_story_path Path.expand("../../../specs/stories/06_content_build_community.md", __DIR__)
+  @community_index_path Path.expand("../../../priv/pages/community/index.md", __DIR__)
+  @adoption_playbooks_path Path.expand("../../../priv/pages/community/adoption-playbooks.md", __DIR__)
 
   test "content governance defines ST-CONT-001 publish DoD hard gate" do
     governance = File.read!(@governance_path)
@@ -35,22 +34,17 @@ defmodule AgentJido.Specs.ContentGovernanceContractTest do
     assert governance =~ "### Freshness checklist (required each release window)"
     assert governance =~ "### Release cadence process"
 
-    assert specs_readme =~ "Canonical ST-CONT-001 publish hard gate"
+    assert specs_readme =~ "canonical ST-CONT-001 publish hard gate"
   end
 
-  test "epic 4 content stories reference ST-CONT-001 as dependency and gate" do
-    infra_story = File.read!(@content_infra_story_path)
-    features_story = File.read!(@features_story_path)
-    build_community_story = File.read!(@build_community_story_path)
+  test "published community pages reference ST-CONT-001 as a release gate" do
+    community_index = File.read!(@community_index_path)
+    adoption_playbooks = File.read!(@adoption_playbooks_path)
 
-    assert infra_story =~ "ST-CONT-001 Define content publish DoD and freshness checklist cadence"
+    assert community_index =~ "ST-CONT-001"
 
-    assert features_story =~ "#### Dependencies"
-    assert features_story =~ "- ST-CONT-001"
-    assert features_story =~ "Apply ST-CONT-001 DoD"
-
-    assert build_community_story =~ "#### Dependencies"
-    assert build_community_story =~ "- ST-CONT-001"
-    assert build_community_story =~ "Apply ST-CONT-001 DoD"
+    assert adoption_playbooks =~ "Required proof: ST-CONT-001 checks completed."
+    assert adoption_playbooks =~ "No placeholder markers remain."
+    assert adoption_playbooks =~ "Route/content parity is verified."
   end
 end

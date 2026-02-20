@@ -1,1 +1,1 @@
-ExUnit.start()
+ExUnit.start(exclude: [github_agent: true])

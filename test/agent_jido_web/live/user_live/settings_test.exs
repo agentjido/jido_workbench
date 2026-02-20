@@ -1,5 +1,5 @@
 defmodule AgentJidoWeb.UserLive.SettingsTest do
-  use AgentJidoWeb.ConnCase, async: true
+  use AgentJidoWeb.ConnCase, async: false
 
   alias AgentJido.Accounts
   import Phoenix.LiveViewTest
