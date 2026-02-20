@@ -129,7 +129,7 @@ defmodule AgentJidoWeb.Jido.Nav do
     <div class={@container_class}>
       <nav class={@nav_surface_class}>
         <div class="flex items-center gap-6">
-          <.logo />
+          <.logo show_version={false} />
 
           <div class="hidden md:flex items-center gap-6">
             <%= for {label, href} <- @nav_links do %>

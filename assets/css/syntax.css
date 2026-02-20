@@ -1,12 +1,17 @@
-/* Base styles for the code container
-   Makeup outputs <pre class="highlight"><code>…</code></pre>
-   We target both .makeup (legacy) and .highlight for compatibility. */
-.makeup,
-.highlight {
-  border-radius: theme('borderRadius.lg');
-  overflow-x: auto;
+/* Base styles for syntax-highlighted blocks.
+   We support both NimblePublisher/Makeup outputs:
+   1) <pre><code class="makeup ...">...</code></pre>
+   2) <pre class="highlight"><code>...</code></pre> */
+pre > code.makeup,
+pre > code.highlight,
+.highlight > code {
+  display: block;
+  min-width: max-content;
   font-family: var(--font-mono);
-  line-height: 1.5;
+  font-size: clamp(0.9rem, 0.86rem + 0.22vw, 1rem);
+  line-height: 1.75;
+  white-space: pre;
+  tab-size: 2;
 }
 
 .makeup .unselectable,
@@ -175,14 +180,25 @@
 
 /* Improve spacing and display */
 .prose pre {
-  margin: 0;
-  background-color: transparent;
-}
-
-.makeup pre,
-.highlight pre {
-  padding: 1em;
-  margin: 0;
+  margin: 1.25rem 0;
+  padding: 1.15rem 1.3rem;
+  border: 1px solid hsl(var(--code-border) / 0.85);
+  border-radius: 0.8rem;
+  background:
+    radial-gradient(
+      140% 120% at 0% 0%,
+      hsl(var(--accent-cyan) / 0.12),
+      transparent 56%
+    ),
+    linear-gradient(
+      180deg,
+      hsl(var(--surface)) 0%,
+      hsl(var(--code-bg)) 100%
+    );
+  box-shadow:
+    inset 0 1px 0 hsl(var(--foreground) / 0.04),
+    0 14px 30px -24px hsl(var(--background));
+  overflow-x: auto;
 }
 
 /* Remove text decoration to improve readability */

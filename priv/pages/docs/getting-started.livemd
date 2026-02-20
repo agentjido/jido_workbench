@@ -8,8 +8,6 @@ tags: [:getting_started]
 
 ---
 
-# Getting Started with Jido
-
 This was pulled from the Jido Getting Started Guide https://hexdocs.pm/jido/getting-started.html
 
 ## Introduction
