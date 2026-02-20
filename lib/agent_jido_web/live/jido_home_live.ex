@@ -21,8 +21,7 @@ defmodule AgentJidoWeb.JidoHomeLive do
        meta_description:
          "Jido is a runtime for reliable, multi-agent systems, built on Elixir/OTP for fault isolation, concurrency, and production uptime.",
        install_tab: "full",
-       ecosystem_rows: build_home_ecosystem_rows(),
-       og_image: "https://agentjido.xyz/og/home.png"
+       ecosystem_rows: build_home_ecosystem_rows()
      )}
   end
 

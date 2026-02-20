@@ -65,7 +65,6 @@ defmodule AgentJidoWeb.PageLive do
      assign(socket,
        page_title: "Jido Documentation",
        meta_description: "Reference docs and implementation guides for building reliable multi-agent systems with Jido.",
-       og_image: "https://agentjido.xyz/og/docs.png",
        layout_type: :docs_shell,
        category: :docs,
        documents: documents,
@@ -85,7 +84,6 @@ defmodule AgentJidoWeb.PageLive do
      assign(socket,
        page_title: "Training",
        meta_description: "Hands-on learning modules for building and operating reliable multi-agent workflows with Jido.",
-       og_image: "https://agentjido.xyz/og/training.png",
        layout_type: :training_index,
        category: :training,
        modules: modules,
@@ -104,7 +102,6 @@ defmodule AgentJidoWeb.PageLive do
      assign(socket,
        page_title: title,
        meta_description: description,
-       og_image: "https://agentjido.xyz/og/default.png",
        layout_type: :marketing_shell,
        category: category,
        pages: pages,
@@ -139,7 +136,7 @@ defmodule AgentJidoWeb.PageLive do
           og_description: seo_value(page_seo, :og_description),
           canonical_url: seo_value(page_seo, :canonical_url),
           robots: if(noindex?, do: ["noindex", "nofollow"]),
-          og_image: seo_value(page_seo, :og_image) || page.og_image || og_image_for(page.category),
+          og_image: seo_value(page_seo, :og_image) || page.og_image,
           layout_type: layout_type,
           category: page.category,
           page: page,
@@ -225,11 +222,6 @@ defmodule AgentJidoWeb.PageLive do
   defp layout_for(:features), do: :marketing_shell
   defp layout_for(:build), do: :marketing_shell
   defp layout_for(:community), do: :marketing_shell
-
-  defp og_image_for(:docs), do: "https://agentjido.xyz/og/docs.png"
-  defp og_image_for(:training), do: "https://agentjido.xyz/og/training.png"
-  defp og_image_for(:features), do: "https://agentjido.xyz/og/features.png"
-  defp og_image_for(_), do: "https://agentjido.xyz/og/default.png"
 
   # --- TOC building ---
 

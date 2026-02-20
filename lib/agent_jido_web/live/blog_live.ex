@@ -8,7 +8,6 @@ defmodule AgentJidoWeb.BlogLive do
 
   alias AgentJido.Blog
 
-  @blog_og_image "https://agentjido.xyz/og/blog.png"
   @blog_index_description "Product updates, technical write-ups, and release notes from the Jido project."
 
   @impl true
@@ -242,7 +241,6 @@ defmodule AgentJidoWeb.BlogLive do
     assign(socket,
       page_title: "Blog",
       meta_description: @blog_index_description,
-      og_image: @blog_og_image,
       posts: Blog.all_posts(),
       tags: Blog.all_tags()
     )
@@ -261,7 +259,7 @@ defmodule AgentJidoWeb.BlogLive do
       og_description: og_description,
       canonical_url: canonical_url,
       robots: if(noindex?, do: ["noindex", "nofollow"]),
-      og_image: seo_value(seo, :og_image) || "https://agentjido.xyz/og/blog/#{slug}",
+      og_image: seo_value(seo, :og_image),
       post: post,
       seo: seo
     )
@@ -271,7 +269,6 @@ defmodule AgentJidoWeb.BlogLive do
     assign(socket,
       page_title: "Blog: #{tag}",
       meta_description: tag_meta_description(tag),
-      og_image: @blog_og_image,
       posts: Blog.get_posts_by_tag!(tag),
       tag: tag,
       tags: Blog.all_tags()

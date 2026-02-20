@@ -163,7 +163,7 @@ end
 Now that we have our individual actions, let's see how we can chain them together using Jido's workflow system:
 
 ```elixir
-alias Jido.Workflow.Chain
+alias Jido.Exec.Chain
 
 # Our initial test data
 user_data = %{
@@ -212,14 +212,23 @@ Try modifying the chain! Here are some experiments you can run:
 
 ```elixir
 # What happens if we try to notify before enriching?
-{:ok, result} = Chain.chain(
-  [
-    FormatUser,
-    NotifyUser,     # This will fail! Why?
-    EnrichUserData
-  ],
-  user_data
-)
+# This order fails because NotifyUser expects :username (created by EnrichUserData).
+case Chain.chain(
+       [
+         FormatUser,
+         NotifyUser,     # This fails because :username does not exist yet
+         EnrichUserData
+       ],
+       user_data
+     ) do
+  {:ok, result} ->
+    IO.puts("Unexpected success")
+    IO.inspect(result, label: "Out-of-order chain result")
+
+  {:error, error} ->
+    IO.puts("Expected failure for out-of-order chain:")
+    IO.inspect(error)
+end
 ```
 
 2. Add context data:

@@ -38,8 +38,7 @@ defmodule AgentJidoWeb.JidoEcosystemPackageMatrixLive do
        rows: rows,
        title_by_id: title_by_id,
        package_count: length(rows),
-       layer_count: rows |> Enum.map(& &1.layer) |> Enum.uniq() |> length(),
-       og_image: "https://agentjido.xyz/og/ecosystem.png"
+       layer_count: rows |> Enum.map(& &1.layer) |> Enum.uniq() |> length()
      )}
   end
 

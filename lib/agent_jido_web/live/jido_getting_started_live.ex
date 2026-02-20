@@ -9,8 +9,7 @@ defmodule AgentJidoWeb.JidoGettingStartedLive do
     {:ok,
      assign(socket,
        page_title: "Getting Started with Jido",
-       meta_description: "Install Jido and build your first Elixir/OTP multi-agent workflow in minutes.",
-       og_image: "https://agentjido.xyz/og/getting-started.png"
+       meta_description: "Install Jido and build your first Elixir/OTP multi-agent workflow in minutes."
      )}
   end
 

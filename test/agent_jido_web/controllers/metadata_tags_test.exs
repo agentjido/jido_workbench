@@ -2,6 +2,8 @@ defmodule AgentJidoWeb.MetadataTagsTest do
   use AgentJidoWeb.ConnCase, async: true
 
   alias AgentJido.Blog
+  alias AgentJido.Pages
+  import Phoenix.LiveViewTest
 
   test "GET / renders release metadata with canonical and social images", %{conn: conn} do
     conn = get(conn, "/")
@@ -16,8 +18,13 @@ defmodule AgentJidoWeb.MetadataTagsTest do
     )
 
     assert body =~ ~r/<link rel="canonical" href="#{Regex.escape(AgentJidoWeb.Endpoint.url() <> "/")}"\s*\/?>/
-    assert body =~ ~r/<meta property="og:image" content="https:\/\/agentjido\.xyz\/og\/home\.png"\s*\/?>/
-    assert body =~ ~r/<meta name="twitter:image" content="https:\/\/agentjido\.xyz\/og\/home\.png"\s*\/?>/
+
+    assert body =~
+             ~r/<meta property="og:image" content="#{Regex.escape(AgentJidoWeb.Endpoint.url() <> "/og/render/home")}"\s*\/?>/
+
+    assert body =~
+             ~r/<meta name="twitter:image" content="#{Regex.escape(AgentJidoWeb.Endpoint.url() <> "/og/render/home")}"\s*\/?>/
+
     assert length(Regex.scan(~r/<meta name="twitter:card"/, body)) == 1
   end
 
@@ -32,6 +39,9 @@ defmodule AgentJidoWeb.MetadataTagsTest do
       "description",
       "Explore the architecture and runtime capabilities that make Jido reliable for production multi-agent systems."
     )
+
+    assert body =~
+             ~r/<meta property="og:image" content="#{Regex.escape(AgentJidoWeb.Endpoint.url() <> "/og/render/features")}"\s*\/?>/
 
     refute body =~ "<title>Agent Jido</title>"
   end
@@ -52,6 +62,13 @@ defmodule AgentJidoWeb.MetadataTagsTest do
     else
       assert body =~ ~r/<meta name="description" content=".+?"\s*\/?>/
     end
+
+    expected_og =
+      Map.get(post.seo || %{}, :og_image) || Map.get(post.seo || %{}, "og_image") ||
+        AgentJidoWeb.Endpoint.url() <> "/og/render/blog/#{post.id}"
+
+    assert body =~
+             ~r/<meta property="og:image" content="#{Regex.escape(expected_og)}"\s*\/?>/
   end
 
   test "GET /docs uses section-specific metadata", %{conn: conn} do
@@ -65,6 +82,23 @@ defmodule AgentJidoWeb.MetadataTagsTest do
       "description",
       "Reference docs and implementation guides for building reliable multi-agent systems with Jido."
     )
+
+    assert body =~
+             ~r/<meta property="og:image" content="#{Regex.escape(AgentJidoWeb.Endpoint.url() <> "/og/render/docs")}"\s*\/?>/
+  end
+
+  test "docs detail route emits dynamic og:image path", %{conn: conn} do
+    docs_path =
+      Pages.pages_by_category(:docs)
+      |> Enum.map(&Pages.route_for/1)
+      |> Enum.find(&(&1 != "/docs"))
+      |> Kernel.||("/docs")
+
+    conn = get(conn, docs_path)
+    body = response(conn, 200)
+
+    assert body =~
+             ~r/<meta property="og:image" content="#{Regex.escape(AgentJidoWeb.Endpoint.url() <> "/og/render" <> docs_path)}"\s*\/?>/
   end
 
   test "missing routes emit noindex robots, no canonical, and a single twitter card", %{conn: conn} do
@@ -74,6 +108,22 @@ defmodule AgentJidoWeb.MetadataTagsTest do
     assert body =~ ~r/<meta name="robots" content="noindex,\s*nofollow"\s*\/?>/
     refute body =~ ~r/<link rel="canonical"/
     assert length(Regex.scan(~r/<meta name="twitter:card"/, body)) == 1
+  end
+
+  test "explicit og_image assign overrides dynamic default mapping" do
+    conn = build_conn(:get, "/features")
+
+    html =
+      render_component(&AgentJidoWeb.Layouts.root/1,
+        conn: conn,
+        inner_content: "",
+        page_title: "Test Page",
+        meta_description: "Test description",
+        og_image: "https://cdn.example.com/custom-og.png"
+      )
+
+    assert html =~ ~s(<meta property="og:image" content="https://cdn.example.com/custom-og.png")
+    assert html =~ ~s(<meta name="twitter:image" content="https://cdn.example.com/custom-og.png")
   end
 
   defp assert_meta_content(body, name, content) do

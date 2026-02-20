@@ -63,17 +63,7 @@ defmodule AgentJidoWeb.Router do
       live route_path, PageLive, :show
     end
 
-    get "/og/default.png", OGImageController, :default
-    get "/og/home.png", OGImageController, :home
-    get "/og/ecosystem.png", OGImageController, :ecosystem
-    get "/og/getting-started.png", OGImageController, :getting_started
-    get "/og/examples.png", OGImageController, :examples
-    get "/og/features.png", OGImageController, :features
-    get "/og/partners.png", OGImageController, :features
-    get "/og/training.png", OGImageController, :training
-    get "/og/docs.png", OGImageController, :docs
-    get "/og/blog.png", OGImageController, :blog
-    get "/og/blog/:slug", OGImageController, :blog_post
+    get "/og/render/*path", OGImageController, :render
 
     live "/blog", BlogLive, :index
     live "/blog/tags/:tag", BlogLive, :tag

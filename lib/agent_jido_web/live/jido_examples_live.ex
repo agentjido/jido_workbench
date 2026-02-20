@@ -17,7 +17,6 @@ defmodule AgentJidoWeb.JidoExamplesLive do
      assign(socket,
        page_title: "Jido Examples",
        meta_description: "Run practical examples that show how to design, coordinate, and operate agents with Jido.",
-       og_image: "https://agentjido.xyz/og/examples.png",
        examples: examples,
        categories: categories,
        core_examples: Examples.examples_by_category(:core),

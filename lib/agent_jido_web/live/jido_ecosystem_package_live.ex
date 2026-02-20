@@ -30,8 +30,7 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLive do
        module_map: module_map(package),
        quick_install: quick_install_snippet(package),
        dependencies: resolve_packages(package.ecosystem_deps || []),
-       reverse_dependencies: resolve_packages(Ecosystem.reverse_deps(package.id)),
-       og_image: "https://agentjido.xyz/og/ecosystem.png"
+       reverse_dependencies: resolve_packages(Ecosystem.reverse_deps(package.id))
      )}
   end
 

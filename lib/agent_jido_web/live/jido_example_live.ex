@@ -50,8 +50,7 @@ defmodule AgentJidoWeb.JidoExampleLive do
      |> assign(:active_tab, tab)
      |> assign(:active_source, active_source)
      |> assign(:page_title, example.title)
-     |> assign(:meta_description, example.description)
-     |> assign(:og_image, "https://agentjido.xyz/og/examples.png")}
+     |> assign(:meta_description, example.description)}
   end
 
   @impl true

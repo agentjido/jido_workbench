@@ -31,7 +31,6 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
        packages: package_cards,
        layer_rows: build_layer_rows(public_packages),
        package_name_by_id: name_by_id,
-       og_image: "https://agentjido.xyz/og/ecosystem.png",
        package_count: length(package_cards),
        layer_count: count_layers(package_cards)
      )}

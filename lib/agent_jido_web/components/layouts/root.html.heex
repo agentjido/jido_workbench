@@ -40,15 +40,29 @@
     <% end %>
 
     <% default_description = "Agent Jido is the Elixir Autonomous Agent Framework"
-    default_og_image = "https://agentjido.xyz/og/default.png"
-
     status = @conn.status
     canonical_allowed? = is_nil(status) or status == 200
-    request_path = @conn.request_path || "/"
+
+    request_path =
+      case @conn.request_path do
+        path when is_binary(path) and path != "" -> path
+        _ -> "/"
+      end
+
+    request_path =
+      if request_path == "/", do: "/", else: String.trim_trailing(request_path, "/")
+
+    endpoint_url = AgentJidoWeb.Endpoint.url()
+
+    default_og_image =
+      case request_path do
+        "/" -> endpoint_url <> "/og/render/home"
+        path -> endpoint_url <> "/og/render" <> path
+      end
 
     default_canonical_url =
       if canonical_allowed? and is_binary(request_path) do
-        AgentJidoWeb.Endpoint.url() <> request_path
+        endpoint_url <> request_path
       end
 
     canonical_url =

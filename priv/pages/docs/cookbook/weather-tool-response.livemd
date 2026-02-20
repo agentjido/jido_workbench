@@ -64,28 +64,24 @@ Let's create and use our Weather Agent right away:
 
 ```elixir
 defmodule WeatherAgent do
-  use Jido.Agent, name: "weather_agent"
+  use Jido.AI.ReActAgent,
+    name: "weather_agent",
+    description: "Weather assistant example",
+    tools: [Jido.Tools.Weather],
+    model: "openai:gpt-4o-mini",
+    max_iterations: 6,
+    system_prompt: """
+    You are an enthusiastic weather reporter.
+    <%= @message %>
+    """
 
   def start_link(_opts \\ []) do
-    Jido.AI.Agent.start_link(
-      agent: __MODULE__,
-      # log_level: :info,
-      ai: [
-        model: {:openai, model: "gpt-4o-mini"},
-        prompt: """
-        You are an enthusiastic weather reporter.
-        <%= @message %>
-        """,
-        tools: [
-          Jido.Tools.Weather
-        ],
-        # verbose: true
-      ]
-    )
+    Jido.AgentServer.start_link(agent: __MODULE__, jido: AgentJido.Jido)
   end
 
-  defdelegate chat_response(pid, message), to: Jido.AI.Agent
-  defdelegate tool_response(pid, message), to: Jido.AI.Agent
+  def query(pid, message, opts \\ []) do
+    ask_sync(pid, message, Keyword.put_new(opts, :timeout, 45_000))
+  end
 end
 
 # Start the Weather Agent
@@ -96,7 +92,9 @@ This block defines our agent and starts the GenServer to run our Agent. With thi
 
 ```elixir
 # Ask for the weather in Tokyo
-WeatherAgent.tool_response(pid, "What is the weather like in Tokyo right now?")
+{:ok, answer} = WeatherAgent.query(pid, "What is the weather like in Tokyo right now?")
+IO.puts(answer)
+answer
 ```
 
 That's it! With just a few lines of code, we've created an AI agent that can answer weather questions.
@@ -109,7 +107,7 @@ Let's explore the key components that make our Weather Agent work:
 
 The Weather Tool provides our agent with the ability to fetch weather data. Here's a simplified view of its structure:
 
-```elixir
+```text
 # This is not executable code, just for demonstration
 defmodule Jido.Tools.Weather do
   use Jido.Action,
@@ -140,7 +138,7 @@ The Weather Tool:
 
 The Keyring manages access to environment variables like API keys:
 
-```elixir
+```text
 # This is not executable code, just for demonstration
 defmodule Jido.AI.Keyring do
   # Get a value from the keyring
@@ -165,7 +163,7 @@ The Keyring helps our agent access the OpenWeather API key securely.
 
 The AI Agent is the core of our system:
 
-```elixir
+```text
 # This is not executable code, just for demonstration
 defmodule Jido.AI.Agent do
   use Jido.Agent,
@@ -205,7 +203,7 @@ The AI Agent:
 
 The AI Skill organizes functionality for the agent:
 
-```elixir
+```text
 # This is not executable code, just for demonstration
 defmodule Jido.AI.Skill do
   use Jido.Skill,
@@ -237,7 +235,7 @@ The AI Skill:
 
 The Tool Response Action executes tool operations:
 
-```elixir
+```text
 # This is not executable code, just for demonstration
 defmodule Jido.AI.Actions.Langchain.ToolResponse do
   use Jido.Action,
@@ -299,17 +297,23 @@ Let's ask our agent a few more questions:
 
 ```elixir
 # Ask about tomorrow's weather
-WeatherAgent.tool_response(pid, "Will I need an umbrella in Paris tomorrow?")
+{:ok, answer} = WeatherAgent.query(pid, "Will I need an umbrella in Paris tomorrow?")
+IO.puts(answer)
+answer
 ```
 
 ```elixir
 # Ask about multiple locations
-WeatherAgent.tool_response(pid, "Compare the weather in New York and San Francisco today.")
+{:ok, answer} = WeatherAgent.query(pid, "Compare the weather in New York and San Francisco today.")
+IO.puts(answer)
+answer
 ```
 
 ```elixir
 # Ask a more complex weather question
-WeatherAgent.tool_response(pid, "Is it a good day for hiking in the mountains near Seattle?")
+{:ok, answer} = WeatherAgent.query(pid, "Is it a good day for hiking in the mountains near Seattle?")
+IO.puts(answer)
+answer
 ```
 
 ## Additional Resources

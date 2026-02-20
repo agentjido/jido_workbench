@@ -15,7 +15,6 @@ defmodule AgentJidoWeb.SearchLive do
     {:ok,
      socket
      |> assign(:page_title, "Search")
-     |> assign(:og_image, "https://agentjido.xyz/og/default.png")
      |> assign(:query, "")
      |> assign(:results, [])
      |> assign(:status, :no_query)
