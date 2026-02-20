@@ -35,4 +35,4 @@ jobs:
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
         with:
-          args: "deploy -c build/agentjido-stage.toml -a agentjido-stage --remote-only --depot=false"
+          args: "deploy -c build/agentjido-stage.toml -a agentjido-stage --remote-only"
