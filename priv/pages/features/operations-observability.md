@@ -1,35 +1,45 @@
 %{
-  title: "Operations & Observability",
+  title: "Operations and observability",
   category: :features,
-  description: "Built-in telemetry, metrics, tracing, and debugging for production agent systems.",
+  description: "Operate agent workflows with telemetry, trace boundaries, and production readiness checks.",
   doc_type: :explanation,
   audience: :intermediate,
   draft: false,
   order: 30
 }
 ---
-Jido is designed for teams that need to operate agents after launch. Telemetry, runtime inspection, and debugging surfaces are part of the operating model, not a separate afterthought.
+Jido is designed for teams that need to run agents after launch. The runtime surfaces metrics, traces, and state boundaries that map to incident response and readiness workflows.
 
-## The problem
+## At a glance
 
-Agent systems fail in ways that are hard to diagnose if you only have logs and request traces. Without stable telemetry and runtime visibility, teams struggle to answer simple operational questions:
+| Item | Summary |
+|---|---|
+| Best for | Platform/SRE teams, architects, and engineering leads responsible for uptime |
+| Core packages | [jido](/ecosystem/jido), [jido_otel](/ecosystem/jido_otel) |
+| Integration support | [jido_messaging](/ecosystem/jido_messaging) for channel-level workflows |
+| Package status | `jido` (Beta), `jido_otel` (Experimental), `jido_messaging` (Experimental) |
+| First proof path | [Telemetry SLO budget sentinel](/examples/telemetry-slo-budget-sentinel) -> [Production readiness checklist](/docs/reference/production-readiness-checklist) |
 
-- Which workflows are degraded right now?
-- Where are failures occurring in the flow?
-- Are retries and queues behaving as expected?
+## What operations teams need from day one
 
-## How Jido addresses this
+Agent systems require more than logs:
 
-The workbench uses two complementary observability surfaces:
+- Runtime-level latency and queue pressure visibility.
+- Trace boundaries across multi-step workflows.
+- Repeatable runbooks for degraded or failed paths.
 
-- Phoenix telemetry metrics via `AgentJidoWeb.Telemetry`
-- Runtime-focused pages from `jido_live_dashboard` mounted in LiveDashboard
+Jido supports this by making runtime behavior observable through telemetry and explicit execution boundaries.
 
-That combination gives teams both application-level and agent-runtime-level views for operations and incident response.
+## Capability map
 
-## Proof: see it work
+| Capability | Runtime mechanism | Package proof | Status |
+|---|---|---|---|
+| Telemetry event emission | Runtime emits operational measurements and metadata | [jido](/ecosystem/jido) | Beta |
+| Trace bridge integration | OpenTelemetry bridge for centralized tracing stacks | [jido_otel](/ecosystem/jido_otel) | Experimental |
+| Channel workflow visibility | Messaging workflows expose telemetry + Signal events | [jido_messaging](/ecosystem/jido_messaging) | Experimental |
+| Incident readiness flow | Checklist + playbooks map runtime symptoms to actions | [Production readiness checklist](/docs/reference/production-readiness-checklist), [Incident playbooks](/docs/reference/incident-playbooks) | Reference docs |
 
-The router mounts LiveDashboard with Jido runtime pages enabled:
+## Proof: dashboard wiring for runtime visibility
 
 ```elixir
 live_dashboard("/dashboard",
@@ -39,27 +49,27 @@ live_dashboard("/dashboard",
 )
 ```
 
-**Result:**
+Expected result:
 
 ```
-/dev/dashboard includes Phoenix metrics and Jido runtime/trace pages.
+/dev/dashboard exposes Phoenix metrics and Jido runtime pages.
 ```
 
-For a runnable operational example, open [Demand Tracker Agent](/examples/demand-tracker-agent), then inspect behavior in dashboard traces and metrics while signals are processed.
+Pair this with [Demand Tracker Agent](/examples/demand-tracker-agent) to inspect runtime behavior while signals are processed.
 
-## How this differs
+## Tradeoffs and non-goals
 
-Many prototype-first approaches treat observability as something you add after workflow logic is complete. That delays operational feedback until late in the lifecycle.
+- Observability quality depends on instrumentation discipline and alert design.
+- Experimental observability/integration packages should be validated in bounded environments first.
+- Jido does not remove the need for team-specific SLO design and incident ownership.
 
-Jido expects operating concerns early: telemetry dimensions, runtime introspection, and debugging workflows are part of the design conversation from the first production candidate.
+## What to explore next
 
-## Learn more
-
-- **Ecosystem:** [Jido Live Dashboard](/ecosystem/jido_live_dashboard) and [Jido core runtime](/ecosystem/jido)
-- **Training:** [Production Readiness: Supervision, Telemetry, and Failure Modes](/training/production-readiness)
-- **Docs:** [Production Readiness Checklist](/docs/reference/production-readiness-checklist) and [Incident Playbooks](/docs/reference/incident-playbooks)
-- **Context:** [All feature pillars](/features)
+- **Failure boundaries:** [Reliability by architecture](/features/reliability-by-architecture)
+- **Coordination traces:** [Multi-agent coordination](/features/multi-agent-coordination)
+- **Training:** [Production readiness](/training/production-readiness)
+- **Reference docs:** [Production readiness checklist](/docs/reference/production-readiness-checklist), [Incident playbooks](/docs/reference/incident-playbooks), [Security and governance](/docs/reference/security-and-governance)
 
 ## Get Building
 
-Ready to operationalize your workflow? [Get Building](/getting-started), then run your first readiness pass with the [production checklist](/docs/reference/production-readiness-checklist).
+Run [Telemetry SLO budget sentinel](/examples/telemetry-slo-budget-sentinel), then complete one pass of the [production readiness checklist](/docs/reference/production-readiness-checklist).

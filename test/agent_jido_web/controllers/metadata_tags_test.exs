@@ -37,7 +37,7 @@ defmodule AgentJidoWeb.MetadataTagsTest do
     assert_meta_content(
       body,
       "description",
-      "Explore the architecture and runtime capabilities that make Jido reliable for production multi-agent systems."
+      "Explore runtime capabilities, orchestration strategies, and ecosystem packages for building reliable multi-agent systems with Jido."
     )
 
     assert body =~

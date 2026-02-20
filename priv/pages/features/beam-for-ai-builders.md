@@ -1,38 +1,45 @@
 %{
-  title: "BEAM for AI Builders",
+  title: "BEAM for AI builders",
   category: :features,
-  description: "Why the BEAM VM is the ideal runtime for building reliable, concurrent AI agent systems.",
+  description: "Why Elixir/OTP runtime semantics matter for long-lived AI workflows, including non-LLM workloads.",
   doc_type: :explanation,
   audience: :beginner,
   draft: false,
   order: 50
 }
 ---
-AI builders often hit runtime limits before model limits. Jido uses Elixir/OTP and the BEAM process model so agent workflows can run concurrently with explicit failure boundaries.
+If your team is evaluating Jido from Python or TypeScript, this is the core point: Jido is a runtime architecture for agent systems. LLM integration is optional, not foundational.
 
-## The problem
+## At a glance
 
-As agent workflows grow, teams run into operational issues that are not about prompt quality:
+| Item | Summary |
+|---|---|
+| Best for | Python/TS evaluators, AI platform teams, architects reviewing runtime tradeoffs |
+| Core runtime packages | [jido](/ecosystem/jido), [jido_action](/ecosystem/jido_action), [jido_signal](/ecosystem/jido_signal) |
+| Optional intelligence layer | [jido_ai](/ecosystem/jido_ai), [req_llm](/ecosystem/req_llm), [llm_db](/ecosystem/llm_db) |
+| Package status | Core packages are Beta; `req_llm` and `llm_db` are Stable; `jido_ai` is Beta |
+| First proof path | [Counter Agent](/examples/counter-agent) (non-LLM) -> [Document-grounded policy Q&A](/examples/document-grounded-policy-qna-agent) (LLM add-on) |
 
-- Long-lived jobs contend for worker capacity.
-- One unhealthy workflow can slow unrelated work.
-- Recovery behavior depends on ad-hoc retry code spread across services.
+## The runtime argument
 
-Without a runtime model designed for concurrency and isolation, those failures surface as incidents rather than predictable system behavior.
+As AI workflows become long-lived and multi-step, runtime semantics become more important than model prompt quality alone.
 
-## How Jido addresses this
+Elixir/OTP gives Jido three practical advantages:
 
-Jido maps agent workloads onto BEAM-friendly primitives:
+- Process isolation for failure containment.
+- Supervision for explicit recovery semantics.
+- Concurrency model suited to many long-lived, coordinated workloads.
 
-- Each Agent runs with clear process boundaries via `Jido.AgentServer`.
-- Supervision handles process recovery with explicit restart semantics.
-- Signals and schedules let you represent recurring and event-driven behavior as runtime contracts.
+## Model-agnostic architecture map
 
-This combination makes concurrency and failure handling architecture concerns, not application afterthoughts.
+| Workload type | Recommended package baseline | Why |
+|---|---|---|
+| Deterministic, non-LLM orchestration | `jido` + `jido_action` + `jido_signal` | Explicit state, typed actions, event routing |
+| Tool-using workflow with optional model calls | baseline + `jido_ai` + `req_llm` | Keep runtime boundaries, add model layer as needed |
+| Model-provider flexibility and cost controls | baseline + `req_llm` + `llm_db` | Stable provider abstraction + model metadata |
+| Advanced decision orchestration | baseline + `jido_behaviortree` or `jido_runic` | Strategy-level control for specific workflow shapes |
 
-## Proof: see it work
-
-The demand tracker demo declares recurring schedules and executes heartbeat updates deterministically.
+## Proof: non-LLM runtime behavior is first-class
 
 ```elixir
 alias AgentJido.Demos.DemandTrackerAgent
@@ -48,28 +55,27 @@ agent = DemandTrackerAgent.new()
 {agent.state.ticks, Enum.any?(directives, &match?(%Jido.Agent.Directive.Emit{}, &1))}
 ```
 
-**Result:**
+Expected result:
 
 ```
 {1, true}
 ```
 
-You get scheduled runtime behavior and explicit side-effect directives in a model that is testable before production rollout.
+This is runtime coordination and scheduling behavior with no required LLM dependency.
 
-## How this differs
+## Tradeoffs and non-goals
 
-Many framework-first approaches are strong at initial orchestration APIs but leave process lifecycle strategy to surrounding infrastructure choices.
+- Jido optimizes for operational control, not minimal first-demo code.
+- Teams new to Elixir/OTP should budget onboarding time.
+- Optional strategy and integration packages have mixed maturity and should be evaluated deliberately.
 
-Jido treats runtime semantics as first-class: isolation, supervision, and recurring workload behavior are part of the design surface from the start.
+## What to explore next
 
-## Learn more
-
-- **Ecosystem:** [Jido core runtime](/ecosystem/jido) and [Jido Signal](/ecosystem/jido_signal)
-- **Ecosystem:** [Jido Live Dashboard](/ecosystem/jido_live_dashboard)
-- **Training:** [Production Readiness: Supervision, Telemetry, and Failure Modes](/training/production-readiness)
-- **Docs:** [Architecture](/docs/reference/architecture) and [Production Readiness Checklist](/docs/reference/production-readiness-checklist)
-- **Context:** [All feature pillars](/features)
+- **Architecture contrast:** [Jido vs framework-first stacks](/features/jido-vs-framework-first-stacks)
+- **Adoption planning:** [Incremental adoption](/features/incremental-adoption)
+- **Build path:** [Mixed-stack integration](/build/mixed-stack-integration)
+- **Training:** [LiveView integration](/training/liveview-integration), [Production readiness](/training/production-readiness)
 
 ## Get Building
 
-Ready to run agents on BEAM-native runtime semantics? [Get Building](/getting-started), then inspect a working flow in [Demand Tracker Agent](/examples/demand-tracker-agent).
+Start with [Counter Agent](/examples/counter-agent) to validate non-LLM runtime behavior, then add the optional intelligence layer only where it improves a real workload.

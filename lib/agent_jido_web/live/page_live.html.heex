@@ -468,6 +468,42 @@ sup = Jido.Supervisor.start_link()
                 {@page.description}
               </p>
             </div>
+            <%= if @category == :features do %>
+              <section class="grid sm:grid-cols-3 gap-3">
+                <div class="feature-card py-4">
+                  <div class="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Audience</div>
+                  <div class="text-sm font-semibold text-foreground">
+                    {@page.audience |> to_string() |> Phoenix.Naming.humanize()}
+                  </div>
+                </div>
+                <div class="feature-card py-4">
+                  <div class="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Document type</div>
+                  <div class="text-sm font-semibold text-foreground">
+                    {@page.doc_type |> to_string() |> Phoenix.Naming.humanize()}
+                  </div>
+                </div>
+                <div class="feature-card py-4">
+                  <div class="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Read time</div>
+                  <div class="text-sm font-semibold text-foreground">
+                    {@page.reading_time_minutes} min
+                  </div>
+                </div>
+              </section>
+
+              <section :if={@toc && @toc != []} class="feature-card py-4">
+                <div class="text-[10px] uppercase tracking-wider text-muted-foreground mb-3">Jump to section</div>
+                <div class="flex flex-wrap gap-2">
+                  <%= for heading <- @toc |> Enum.filter(&(&1.level <= 2)) |> Enum.take(8) do %>
+                    <a
+                      href={"##{heading.id}"}
+                      class="text-[11px] px-2 py-1 rounded border border-border bg-elevated text-foreground hover:border-primary/40 transition-colors"
+                    >
+                      {heading.title}
+                    </a>
+                  <% end %>
+                </div>
+              </section>
+            <% end %>
             <article class="prose prose-invert max-w-none text-sm leading-relaxed">
               {Phoenix.HTML.raw(@page.body)}
             </article>

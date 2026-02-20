@@ -1,77 +1,82 @@
 %{
   title: "Reliability by Architecture",
   category: :features,
-  description: "How Jido's OTP foundation provides fault isolation, supervision, and recovery by default.",
+  description: "Design agent workflows around OTP supervision, process isolation, and deterministic state transitions.",
   doc_type: :explanation,
   audience: :intermediate,
   draft: false,
   order: 10
 }
 ---
-Jido treats reliability as an architectural constraint, not a patch you add later. Agent behavior stays deterministic in `cmd/2`, while OTP supervision handles process lifecycle and failure recovery.
+Jido treats reliability as a runtime design concern, not an afterthought. The core pattern is simple: deterministic Agent logic in `cmd/2`, supervised execution in `Jido.AgentServer`, and explicit side effects through Directives.
 
-## The problem
+## At a glance
 
-Many agent stacks are easy to demo but fragile under real load. Once workflows become long-lived and concurrent, teams end up writing custom restart logic, ad-hoc retry code, and one-off incident playbooks.
+| Item | Summary |
+|---|---|
+| Best for | Elixir platform engineers, SRE/platform teams, and architects reviewing failure boundaries |
+| Core packages | [jido](/ecosystem/jido), [jido_action](/ecosystem/jido_action), [jido_signal](/ecosystem/jido_signal) |
+| Package status | `jido` (Beta), `jido_action` (Beta), `jido_signal` (Beta) |
+| First proof path | [Counter Agent](/examples/counter-agent) -> [Production readiness checklist](/docs/reference/production-readiness-checklist) |
+| Adoption stance | Start with one supervised workflow, then expand scope |
 
-That approach creates two classes of failures:
+## Where reliability breaks in agent systems
 
-- A single unhealthy workflow can affect unrelated work.
-- Runtime recovery behavior is hard to reason about before an incident.
+Reliability usually degrades when runtime concerns are implicit:
 
-## How Jido addresses this
+- Restart behavior is spread across retries, queues, and app-level callbacks.
+- Side effects run directly in business logic, which makes recovery paths hard to test.
+- Multi-agent failures propagate across shared state boundaries.
 
-Jido separates decision logic from runtime execution:
+Jido addresses this by separating concerns: pure decision logic in Agents, runtime lifecycle in OTP, and effect execution through Directives.
 
-- Agent state transitions happen in `cmd/2`, which keeps behavior explicit and testable.
-- `Jido.AgentServer` runs agents inside OTP processes, so failures are isolated to process boundaries.
-- Supervision strategy is part of your deployment topology, not hidden in application glue code.
+## Capability map
 
-This gives you a clear model:
+| Capability | Runtime mechanism | Package proof | Status |
+|---|---|---|---|
+| Agent lifecycle control | `Jido.AgentServer` wraps Agent execution under OTP processes | [jido](/ecosystem/jido) | Beta |
+| Deterministic updates | `cmd/2` returns updated Agent + Directives | [jido](/ecosystem/jido) | Beta |
+| Typed capability boundaries | Schema-validated Actions gate state changes | [jido_action](/ecosystem/jido_action) | Beta |
+| Explicit coordination signals | Named Signals prevent hidden coupling | [jido_signal](/ecosystem/jido_signal) | Beta |
+| Trace export bridge | Telemetry can be bridged to OTel | [jido_otel](/ecosystem/jido_otel) | Experimental |
 
-1. Write deterministic agent logic.
-2. Run it under supervised OTP processes.
-3. Observe and operate it with repeatable runbooks.
-
-## Proof: see it work
-
-The workbench starts a production agent runtime under supervision in `AgentJido.Application`.
+## Proof: supervise one Agent and inspect state
 
 ```elixir
 children = [
   {Jido.AgentServer,
-   id: AgentJido.ContentOps.OrchestratorServer,
-   agent: AgentJido.ContentOps.OrchestratorAgent,
+   id: :counter_agent_server,
+   agent: AgentJido.Demos.CounterAgent,
    jido: AgentJido.Jido,
-   name: AgentJido.ContentOps.OrchestratorServer}
+   name: :counter_agent_server}
 ]
 
-Supervisor.start_link(children, strategy: :one_for_one)
+{:ok, _pid} = Supervisor.start_link(children, strategy: :one_for_one)
+{:ok, server_state} = Jido.AgentServer.state(:counter_agent_server)
+server_state.agent.state.count
 ```
 
-**Result:**
+Expected result:
 
 ```
-{:ok, #PID<...>}
+0
 ```
 
-The runtime process is now managed by OTP supervision and can be restarted according to your supervision strategy when it exits.
+This verifies a supervised runtime process with inspectable Agent state before adding LLMs, external tools, or distributed complexity.
 
-You can also inspect a concrete runtime-oriented example in [Demand Tracker Agent](/examples/demand-tracker-agent), which runs via `Jido.AgentServer` and scheduled signals.
+## Tradeoffs and non-goals
 
-## How this differs
+- Jido is intentionally explicit; there is more up-front structure than prototype-first frameworks.
+- Reliability still depends on your supervision topology and runbook quality.
+- `jido` is currently **Beta**; treat API changes as part of rollout planning.
 
-Prototype-first frameworks often put reliability behavior in app-level conventions: retries in one service, timeout handling in another, and runbooks that are disconnected from runtime structure.
+## What to explore next
 
-Jido starts from runtime structure first. Agent behavior, process boundaries, and supervision are explicit parts of the system model, which makes recovery behavior easier to test and operate.
-
-## Learn more
-
-- **Ecosystem:** [Jido package overview](/ecosystem/jido) and [Jido Live Dashboard](/ecosystem/jido_live_dashboard)
-- **Training:** [Production Readiness: Supervision, Telemetry, and Failure Modes](/training/production-readiness)
-- **Docs:** [Production Readiness Checklist](/docs/reference/production-readiness-checklist) and [Architecture](/docs/reference/architecture)
-- **Context:** [All feature pillars](/features)
+- **Coordination contracts:** [Multi-agent coordination](/features/multi-agent-coordination)
+- **Operations checks:** [Operations and observability](/features/operations-observability)
+- **Hands-on training:** [Agent fundamentals](/training/agent-fundamentals), [Production readiness](/training/production-readiness)
+- **Reference docs:** [Architecture](/docs/reference/architecture), [Incident playbooks](/docs/reference/incident-playbooks)
 
 ## Get Building
 
-Ready to apply this in your own service? [Get Building](/getting-started), then validate your rollout with the [production checklist](/docs/reference/production-readiness-checklist).
+Start with [Counter Agent](/examples/counter-agent), then run the [production readiness checklist](/docs/reference/production-readiness-checklist) against your first supervised workflow.

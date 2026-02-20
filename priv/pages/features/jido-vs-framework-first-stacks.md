@@ -1,38 +1,46 @@
 %{
-  title: "Jido vs Framework-First Stacks",
+  title: "Jido vs framework-first stacks",
   category: :features,
-  description: "How Jido compares to LangChain, CrewAI, AutoGen, and other agent frameworks.",
+  description: "Fit-for-purpose comparison between runtime-first and framework-first approaches to agent systems.",
   doc_type: :explanation,
   audience: :beginner,
   draft: false,
   order: 60
 }
 ---
-This comparison is about operating model, not brand ranking. If your team needs long-lived, observable, and recoverable agent workflows, runtime architecture matters as much as API ergonomics.
+This comparison is about operating model fit, not vendor ranking. Prototype-first frameworks can be the right tool for rapid exploration. Jido is for teams optimizing for long-lived, operable multi-agent systems.
 
-## The problem
+## At a glance
 
-Many evaluations prioritize how quickly a prototype can be assembled. That is useful, but production teams also need answers to operational questions:
+| Item | Summary |
+|---|---|
+| Best for | Teams evaluating architecture posture for production agent systems |
+| Core question | Are we optimizing for fastest prototype or most predictable operation over time? |
+| Jido posture | Runtime-first: explicit lifecycle, coordination, and operations boundaries |
+| First proof path | [Multi-agent coordination](/features/multi-agent-coordination) -> [Production readiness checklist](/docs/reference/production-readiness-checklist) |
 
-- Where do failures get isolated?
-- How do workflows recover after process exits?
-- Can coordination behavior be asserted in tests without full end-to-end environments?
+## Fit-for-purpose comparison
 
-If those answers remain implicit, teams often pay the cost later during incident response and maintenance.
+| Dimension | Prototype-first frameworks | Jido runtime-first posture |
+|---|---|---|
+| Initial setup | Usually faster for early experiments | More explicit setup up front |
+| Runtime semantics | Often app-layer conventions | OTP supervision and process boundaries |
+| Coordination model | Frequently callback/prompt choreography | Actions + Signals + Directives |
+| Failure handling | Can be distributed across custom glue | Centralized lifecycle model in runtime |
+| Operability | Often added later | Designed into architecture decisions |
+| LLM dependency | Commonly central | Optional add-on layer |
 
-## How Jido addresses this
+## Capability-level view
 
-Jido is runtime-first:
+| Capability category | Jido package proof | Maturity |
+|---|---|---|
+| Runtime lifecycle and recovery | [jido](/ecosystem/jido) | Beta |
+| Typed capability contracts | [jido_action](/ecosystem/jido_action) | Beta |
+| Signal-based coordination | [jido_signal](/ecosystem/jido_signal) | Beta |
+| Optional LLM intelligence layer | [jido_ai](/ecosystem/jido_ai), [req_llm](/ecosystem/req_llm), [llm_db](/ecosystem/llm_db) | Beta / Stable |
+| Advanced orchestration strategies | [jido_behaviortree](/ecosystem/jido_behaviortree), [jido_runic](/ecosystem/jido_runic) | Experimental |
 
-- Agents expose explicit signal routes and typed Actions.
-- State transitions happen in deterministic `cmd/2` paths.
-- Side effects are represented as Directives and managed under OTP supervision.
-
-Framework-first stacks can be a good fit for rapid exploration. Jido is designed for teams that need production operation characteristics to be part of the architecture from the first real workload.
-
-## Proof: see it work
-
-Coordination and state changes are explicit in code and can be asserted directly.
+## Proof: coordination contracts are inspectable in code
 
 ```elixir
 alias AgentJido.Demos.CounterAgent
@@ -46,28 +54,30 @@ routes = CounterAgent.signal_routes(%{})
 agent.state.count
 ```
 
-**Result:**
+Expected result:
 
 ```
 3
 ```
 
-The same primitives used in production execution can be validated in focused tests.
+This is a focused, testable contract path rather than hidden orchestration behavior.
 
-## How this differs
+## Tradeoffs and non-goals
 
-LangChain, CrewAI, AutoGen, and similar stacks can be excellent for quick iteration and prototype velocity. That fit is real when the main objective is short-cycle experimentation.
+- Jido does not optimize for minimum boilerplate in day-one prototypes.
+- Runtime-first structure can feel heavier early but reduces long-term ambiguity.
+- Experimental strategy/integration packages should not be default choices for production rollouts.
 
-Jido is optimized for a different constraint set: explicit coordination contracts, supervised runtime boundaries, and operational clarity for multi-agent systems that must stay healthy after launch.
+## How to choose quickly
 
-## Learn more
+Use Jido when your primary constraints are:
 
-- **Ecosystem:** [Jido core runtime](/ecosystem/jido), [Jido Action](/ecosystem/jido_action), and [Jido Signal](/ecosystem/jido_signal)
-- **Ecosystem:** [Package matrix](/ecosystem/package-matrix)
-- **Training:** [Signals, Routing, and Agent Communication](/training/signals-routing)
-- **Docs:** [Reference](/docs/reference) and [Architecture](/docs/reference/architecture)
-- **Context:** [All feature pillars](/features)
+- explicit failure boundaries,
+- operability under sustained load,
+- multi-agent coordination you can review and test.
+
+Use prototype-first stacks when your primary constraint is very short-cycle idea validation with low operational risk.
 
 ## Get Building
 
-Ready to evaluate fit against your operating constraints? [Get Building](/getting-started), then map required packages in the [package matrix](/ecosystem/package-matrix).
+Run a bounded comparison: start with [Counter Agent](/examples/counter-agent), then map production criteria using the [production readiness checklist](/docs/reference/production-readiness-checklist).

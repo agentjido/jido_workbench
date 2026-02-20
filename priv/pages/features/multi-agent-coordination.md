@@ -1,38 +1,46 @@
 %{
   title: "Multi-Agent Coordination",
   category: :features,
-  description: "Orchestrate fleets of agents with supervision trees, signal routing, and distributed coordination.",
+  description: "Coordinate agent workflows with explicit Signals, typed Actions, and strategy-driven orchestration.",
   doc_type: :explanation,
   audience: :intermediate,
   draft: false,
   order: 20
 }
 ---
-Jido models multi-agent behavior as explicit coordination contracts: Signals for communication, Actions for capability boundaries, and Directives for runtime side effects.
+Jido models multi-agent coordination as explicit runtime contracts. Signals define message boundaries, Actions define capability boundaries, and Directives define effect boundaries.
 
-## The problem
+## At a glance
 
-Coordination usually becomes fragile when it is encoded implicitly in prompts, callback chains, or shared mutable state. Teams can ship an initial workflow quickly, but debugging cross-agent behavior gets expensive as more agents are added.
+| Item | Summary |
+|---|---|
+| Best for | AI product engineers, staff architects, and teams moving beyond single-agent flows |
+| Core packages | [jido_signal](/ecosystem/jido_signal), [jido_action](/ecosystem/jido_action), [jido](/ecosystem/jido) |
+| Strategy add-ons | [jido_behaviortree](/ecosystem/jido_behaviortree), [jido_runic](/ecosystem/jido_runic) |
+| Package status | `jido_signal` (Beta), `jido_action` (Beta), strategy add-ons (Experimental) |
+| First proof path | [Demand Tracker Agent](/examples/demand-tracker-agent) -> [Signals routing training](/training/signals-routing) |
 
-Typical failure modes include:
+## Why coordination gets fragile
 
-- Hidden coupling between producer and consumer behavior
-- Unclear ownership of side effects and retries
-- Coordination logic that is hard to test without full end-to-end environments
+Coordination fails when behavior is encoded implicitly:
 
-## How Jido addresses this
+- Producer and consumer logic depend on undocumented callback order.
+- Side-effect ownership is unclear across agent boundaries.
+- Teams cannot test route-to-action behavior without running full environments.
 
-Jido coordination is structural, not implicit:
+Jido addresses this with explicit route tables, typed Actions, and inspectable Directives.
 
-- Signal routes map named events to Action modules.
-- Actions define typed input contracts and deterministic state transitions.
-- Directives describe side effects after state updates, so behavior remains inspectable.
+## Capability map
 
-This keeps coordination logic readable in code reviews and testable in small units before you run a full distributed workflow.
+| Capability | Runtime mechanism | Package proof | Status |
+|---|---|---|---|
+| Event envelope consistency | CloudEvents-compatible Signal schema | [jido_signal](/ecosystem/jido_signal) | Beta |
+| Route-level coordination | Signal route tables map event type -> Action module | [jido_signal](/ecosystem/jido_signal) | Beta |
+| Typed capability execution | Action schema validation + execution controls | [jido_action](/ecosystem/jido_action) | Beta |
+| Explicit side effects | Directives emitted from `cmd/2` instead of ad-hoc calls | [jido](/ecosystem/jido) | Beta |
+| Strategy modularity | Behavior tree and DAG workflow strategy packages | [jido_behaviortree](/ecosystem/jido_behaviortree), [jido_runic](/ecosystem/jido_runic) | Experimental |
 
-## Proof: see it work
-
-The demand tracker demo exposes coordination contracts directly in code and tests.
+## Proof: verify route contracts and emitted directives
 
 ```elixir
 alias AgentJido.Demos.DemandTrackerAgent
@@ -48,28 +56,27 @@ Enum.any?(directives, &match?(%Emit{}, &1))
 #=> true
 ```
 
-**Result:**
+Expected result:
 
 ```
-Coordination is explicit: route table + typed action + emitted domain signal.
+true
 ```
 
-Run the end-to-end version in [Demand Tracker Agent](/examples/demand-tracker-agent).
+This proves a concrete route mapping and an explicit emitted side effect using the same primitives you use in production.
 
-## How this differs
+## Tradeoffs and non-goals
 
-In prototype-first stacks, multi-agent behavior is often represented as prompt choreography plus framework callbacks. That can work for quick evaluation, but it can be difficult to reason about ownership and failure boundaries.
+- Explicit route and action design is slower up front than prompt-only choreography.
+- Experimental strategy packages should be used with bounded pilots.
+- Coordination clarity does not remove the need for domain-level retry and idempotency policies.
 
-Jido favors explicit contracts that can be asserted in tests. You can verify route mappings and emitted directives with the same primitives used in production workflows.
+## What to explore next
 
-## Learn more
-
-- **Ecosystem:** [Jido Signal](/ecosystem/jido_signal) and [Jido Action](/ecosystem/jido_action)
-- **Training:** [Signals, Routing, and Agent Communication](/training/signals-routing)
-- **Training:** [Directives, Scheduling, and Time-Based Behavior](/training/directives-scheduling)
-- **Docs:** [Architecture](/docs/reference/architecture) and [Reference](/docs/reference)
-- **Context:** [All feature pillars](/features)
+- **Reliability boundary design:** [Reliability by architecture](/features/reliability-by-architecture)
+- **Operational posture:** [Operations and observability](/features/operations-observability)
+- **Training paths:** [Signals routing](/training/signals-routing), [Directives scheduling](/training/directives-scheduling)
+- **Reference docs:** [Architecture](/docs/reference/architecture), [Guides](/docs/getting-started/guides)
 
 ## Get Building
 
-Ready to design explicit coordination paths? [Get Building](/getting-started), then validate your flow against [Signals and Routing training](/training/signals-routing).
+Start with [Demand Tracker Agent](/examples/demand-tracker-agent), then validate your first route table with [Signals routing training](/training/signals-routing).

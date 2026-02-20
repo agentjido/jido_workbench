@@ -1,38 +1,44 @@
 %{
-  title: "Incremental Adoption",
+  title: "Incremental adoption",
   category: :features,
-  description: "Start with one agent in an existing Elixir app and expand adoption in controlled steps.",
+  description: "Adopt Jido in bounded stages: one supervised workflow first, then expand package scope with clear guardrails.",
   doc_type: :explanation,
   audience: :beginner,
   draft: false,
   order: 40
 }
 ---
-You do not need a rewrite to adopt Jido. Start with one workflow in one supervised process, then expand to additional agents after you validate behavior in production.
+You do not need a rewrite to adopt Jido. The recommended posture is bounded adoption: one production-relevant workflow, one explicit success criterion, then controlled expansion.
 
-## The problem
+## At a glance
 
-Most teams evaluating agent infrastructure already run production systems with existing APIs, queues, and deployment pipelines. A full migration is usually high risk and hard to justify early.
+| Item | Summary |
+|---|---|
+| Best for | Staff architects, mixed-stack teams, engineering managers |
+| Core packages | [jido](/ecosystem/jido), [jido_action](/ecosystem/jido_action) |
+| Integration options | [ash_jido](/ecosystem/ash_jido), [jido_messaging](/ecosystem/jido_messaging), [jido_studio](/ecosystem/jido_studio) |
+| Package status | Core runtime packages are Beta; integration packages are mostly Experimental |
+| First proof path | [Counter Agent](/examples/counter-agent) -> [Quickstarts by persona](/build/quickstarts-by-persona) |
 
-Common adoption blockers look like this:
+## Why phased adoption works better
 
-- Existing services cannot pause feature delivery for a platform rewrite.
-- Teams need proof on one critical workflow before broader rollout.
-- Runtime behavior must be observable from day one to earn trust.
+Most teams already have production systems, existing APIs, and delivery commitments. A full migration increases risk and delays learning.
 
-## How Jido addresses this
+A phased rollout makes evaluation measurable:
 
-Jido supports staged adoption:
+- Pilot one workflow with clear runtime boundaries.
+- Keep package scope minimal until the workflow is stable.
+- Expand only after readiness and operational checks are passing.
 
-1. Model one domain workflow as an Agent with explicit state and Actions.
-2. Run that Agent under `Jido.AgentServer` inside your current supervision tree.
-3. Expand signal routes and neighboring agents only after the first workflow is stable.
+## Phased rollout model
 
-That gives you a bounded pilot with real runtime semantics, instead of a throwaway prototype that must be rewritten later.
+| Phase | Goal | Typical package set | Exit criteria |
+|---|---|---|---|
+| Phase 1: bounded pilot | Run one supervised workflow | `jido`, `jido_action`, `jido_signal` | deterministic behavior + basic runbook |
+| Phase 2: product integration | Connect existing app boundaries | phase 1 + `ash_jido` or `jido_messaging` | integration tests + rollback path |
+| Phase 3: intelligence expansion | Add LLM and advanced strategies where needed | phase 2 + `jido_ai`, `req_llm`, optional strategy packages | workload SLOs + cost controls |
 
-## Proof: see it work
-
-You can add a single Agent server to an existing OTP tree and inspect its state immediately.
+## Proof: add one Agent server to an existing supervision tree
 
 ```elixir
 children = [
@@ -48,28 +54,27 @@ children = [
 server_state.agent.state.count
 ```
 
-**Result:**
+Expected result:
 
 ```
 0
 ```
 
-The workflow now runs under OTP supervision without changing the rest of your application architecture.
+This proves bounded runtime adoption without changing the rest of your application architecture.
 
-## How this differs
+## Tradeoffs and non-goals
 
-Prototype-first stacks often optimize for greenfield setup, then require additional glue to retrofit reliability and operations controls into an existing system.
+- Incremental rollout is slower than all-at-once rebuilds but lowers operational risk.
+- Experimental integration packages require explicit pilot guardrails.
+- Phased adoption still needs ownership for architecture decisions and runbook quality.
 
-Jido starts with runtime boundaries and supervised execution, so a small pilot can use the same operational model as a larger rollout. You can migrate in steps without changing your reliability model later.
+## What to explore next
 
-## Learn more
-
-- **Ecosystem:** [Jido core runtime](/ecosystem/jido) and [Jido Action](/ecosystem/jido_action)
-- **Training:** [Agent Fundamentals on the BEAM](/training/agent-fundamentals)
-- **Training:** [LiveView + Jido Integration Patterns](/training/liveview-integration)
-- **Docs:** [Architecture](/docs/reference/architecture) and [Guides](/docs/getting-started/guides)
-- **Context:** [All feature pillars](/features)
+- **Architectural framing:** [Reference architectures](/build/reference-architectures)
+- **Mixed-stack boundary design:** [Mixed-stack integration](/build/mixed-stack-integration)
+- **Decision support:** [Executive brief](/features/executive-brief)
+- **Readiness docs:** [Production readiness checklist](/docs/reference/production-readiness-checklist), [Security and governance](/docs/reference/security-and-governance)
 
 ## Get Building
 
-Ready to pilot one production workflow? [Get Building](/getting-started), then review a minimal implementation in [Counter Agent](/examples/counter-agent).
+Start with one [Counter Agent](/examples/counter-agent) workflow, then map your next package decisions in [quickstarts by persona](/build/quickstarts-by-persona).
