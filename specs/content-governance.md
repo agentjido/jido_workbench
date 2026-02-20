@@ -89,7 +89,7 @@ Required for published content:
 
 ## 8) Ownership Model
 
-- Marketing/content owner: message clarity, narrative consistency.
+- Content strategy owner: message clarity, narrative consistency.
 - Technical docs owner: API and implementation correctness.
 - Platform owner: validation jobs and observability health.
 - Reviewer gate: no major page publish without proof links.

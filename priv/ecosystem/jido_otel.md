@@ -1,37 +1,39 @@
 %{
-  name: "jido_otel",
-  title: "Jido Otel",
-  version: "0.1.0",
-  tagline: "OpenTelemetry tracer bridge for Jido.Observe instrumentation",
-  license: "Apache-2.0",
-  visibility: :public,
-  category: :integrations,
-  tier: 2,
-  tags: [:opentelemetry, :observability, :tracing, :telemetry],
-  github_url: "https://github.com/agentjido/jido_otel",
-  github_org: "agentjido",
-  github_repo: "jido_otel",
-  elixir: "~> 1.18",
-  maturity: :experimental,
-  hex_status: "unreleased",
-  api_stability: "unstable - integration package still maturing",
-  stub: false,
-  support: :best_effort,
-  limitations: [
-    "Not published to Hex - available via GitHub dependency",
-    "Tied to current Jido Observe and OpenTelemetry APIs",
-    "Instrumentation defaults may evolve as tracing conventions stabilize"
-  ],
-  ecosystem_deps: ["jido"],
-  key_features: [
-    "Implements Jido.Observe tracer bridge for OpenTelemetry",
-    "Maps Jido event prefixes into span naming conventions",
-    "Converts metadata and measurements into OTel attributes",
-    "Captures Jido exceptions as OTel exception events",
-    "Includes runtime app startup and telemetry wiring patterns"
-  ]
+name: "jido_otel",
+title: "Jido OTEL",
+version: "0.1.0",
+tagline: "OpenTelemetry tracer bridge for Jido.Observe instrumentation",
+license: "Apache-2.0",
+visibility: :public,
+category: :integrations,
+tier: 2,
+tags: [:opentelemetry, :observability, :tracing, :telemetry],
+github_url: "https://github.com/agentjido/jido_otel",
+github_org: "agentjido",
+github_repo: "jido_otel",
+elixir: "~> 1.18",
+maturity: :experimental,
+hex_status: "unreleased",
+api_stability: "unstable - integration package still maturing",
+stub: false,
+support: :best_effort,
+limitations: [
+"Not published to Hex - available via GitHub dependency",
+"Tied to current Jido Observe and OpenTelemetry APIs",
+"Instrumentation defaults may evolve as tracing conventions stabilize"
+],
+ecosystem_deps: ["jido"],
+key_features: [
+"Implements Jido.Observe tracer bridge for OpenTelemetry",
+"Maps Jido event prefixes into span naming conventions",
+"Converts metadata and measurements into OTel attributes",
+"Captures Jido exceptions as OTel exception events",
+"Includes runtime app startup and telemetry wiring patterns"
+]
 }
+
 ---
+
 ## Overview
 
 Jido Otel integrates Jido observability events with the OpenTelemetry ecosystem so traces can flow into standard tooling stacks.

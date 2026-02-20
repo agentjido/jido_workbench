@@ -32,6 +32,7 @@ defmodule AgentJidoWeb.Jido.MarketingLayouts do
       <Nav.primary_nav
         current_path={@current_path}
         layout_mode={:constrained}
+        show_theme_toggle={true}
         mobile_menu_id="marketing-primary-mobile-menu"
       />
     </header>
@@ -45,6 +46,7 @@ defmodule AgentJidoWeb.Jido.MarketingLayouts do
       |> assign(:resource_links, Nav.footer_resource_links())
       |> assign(:package_links, Nav.footer_package_links())
       |> assign(:social_links, Nav.social_links())
+      |> assign(:current_year, Date.utc_today().year)
 
     ~H"""
     <footer class="border-t border-border bg-background">
@@ -63,47 +65,9 @@ defmodule AgentJidoWeb.Jido.MarketingLayouts do
               <span class="text-muted-foreground text-xs">All systems operational</span>
             </div>
 
-            <button
-              id="theme-toggle-btn"
-              phx-hook="ThemeToggle"
-              aria-label="Toggle theme"
-              class="inline-flex h-8 w-8 items-center justify-center rounded border border-border bg-surface text-muted-foreground transition-colors hover:text-foreground hover:border-foreground/40 mb-4"
-            >
-              <svg
-                data-theme-icon="moon"
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="1.75"
-                  d="M21 12.79A9 9 0 1 1 11.21 3c0 .45.05.89.14 1.31A7 7 0 0 0 19.69 12.65c.44.09.87.14 1.31.14Z"
-                />
-              </svg>
-              <svg
-                data-theme-icon="sun"
-                xmlns="http://www.w3.org/2000/svg"
-                class="hidden h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="1.75"
-                  d="M12 3v2.25m0 13.5V21m6.364-15.364-1.591 1.591M7.227 16.773l-1.591 1.591M21 12h-2.25M5.25 12H3m15.364 6.364-1.591-1.591M7.227 7.227 5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"
-                />
-              </svg>
-            </button>
-
             <div class="text-muted-foreground text-xs space-y-1">
               <p>Made with ❤️ for the BEAM</p>
-              <p>Copyright © 2025-> Mike Hostetler</p>
+              <p>Copyright © 2025-{@current_year} Mike Hostetler</p>
             </div>
           </div>
 

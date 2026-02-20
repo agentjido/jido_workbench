@@ -5,7 +5,10 @@ defmodule AgentJidoWeb.TrainingRoutesTest do
 
   test "GET /training is not routable", %{conn: conn} do
     conn = get(conn, "/training")
-    assert response(conn, 404)
+    body = response(conn, 404)
+    assert body =~ "Page not found"
+    assert body =~ "/training"
+    assert body =~ "training routes"
   end
 
   test "GET /training/:id is not routable", %{conn: conn} do
@@ -15,7 +18,9 @@ defmodule AgentJidoWeb.TrainingRoutesTest do
       |> Pages.route_for()
 
     conn = get(conn, training_route)
-    assert response(conn, 404)
+    body = response(conn, 404)
+    assert body =~ "Page not found"
+    assert body =~ training_route
   end
 
   test "GET /search is not routable", %{conn: conn} do
@@ -31,5 +36,14 @@ defmodule AgentJidoWeb.TrainingRoutesTest do
   test "GET /benchmarks is not routable", %{conn: conn} do
     conn = get(conn, "/benchmarks")
     assert response(conn, 404)
+  end
+
+  test "unknown routes render the branded 404 page", %{conn: conn} do
+    conn = get(conn, "/totally-missing-route")
+    body = response(conn, 404)
+
+    assert body =~ "Page not found"
+    assert body =~ "/totally-missing-route"
+    assert body =~ "GET BUILDING"
   end
 end

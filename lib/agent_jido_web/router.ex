@@ -46,7 +46,6 @@ defmodule AgentJidoWeb.Router do
     live "/examples/:slug", JidoExampleLive, :show
 
     live "/features", JidoFeaturesLive, :index
-    live "/partners", JidoFeaturesLive, :index
     get("/discord", PageController, :discord)
 
     # Pages system — index routes
@@ -76,10 +75,10 @@ defmodule AgentJidoWeb.Router do
     get "/og/blog.png", OGImageController, :blog
     get "/og/blog/:slug", OGImageController, :blog_post
 
-    get("/blog", BlogController, :index)
-    get("/blog/tags/:tag", BlogController, :tag)
+    live "/blog", BlogLive, :index
+    live "/blog/tags/:tag", BlogLive, :tag
     get("/blog/search", BlogController, :search)
-    get("/blog/:slug", BlogController, :show)
+    live "/blog/:slug", BlogLive, :show
     get("/feed", BlogController, :feed)
     get("/sitemap.xml", SitemapController, :index)
   end
@@ -153,5 +152,11 @@ defmodule AgentJidoWeb.Router do
 
     post "/users/log-in", UserSessionController, :create
     delete "/users/log-out", UserSessionController, :delete
+  end
+
+  scope "/", AgentJidoWeb do
+    pipe_through :browser
+
+    match :*, "/*path", PageController, :not_found
   end
 end

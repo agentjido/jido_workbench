@@ -4,7 +4,7 @@
   version: "0.1.0",
   tagline: "Platform-agnostic messaging for AI agents across Telegram, Discord, Slack, and WhatsApp",
   license: "Apache-2.0",
-  visibility: :private,
+  visibility: :public,
   category: :integrations,
   tier: 2,
   tags: [:messaging, :telegram, :discord, :slack, :whatsapp, :chat],

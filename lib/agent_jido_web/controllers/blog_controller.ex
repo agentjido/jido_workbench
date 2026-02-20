@@ -1,35 +1,10 @@
 defmodule AgentJidoWeb.BlogController do
+  @moduledoc """
+  HTTP endpoints for blog-adjacent responses that are not LiveView pages.
+  """
   use AgentJidoWeb, :controller
 
   alias AgentJido.Blog
-
-  def index(conn, _params) do
-    render(conn, :index,
-      posts: Blog.all_posts(),
-      tags: Blog.all_tags(),
-      og_image: "https://agentjido.xyz/og/blog.png"
-    )
-  end
-
-  def show(conn, %{"slug" => slug}) do
-    post = Blog.get_post_by_id!(slug)
-
-    render(conn, :show,
-      post: post,
-      og_image: "https://agentjido.xyz/og/blog/#{slug}"
-    )
-  end
-
-  def tag(conn, %{"tag" => tag}) do
-    posts = Blog.get_posts_by_tag!(tag)
-
-    render(conn, :tag,
-      posts: posts,
-      tag: tag,
-      tags: Blog.all_tags(),
-      og_image: "https://agentjido.xyz/og/blog.png"
-    )
-  end
 
   def search(conn, %{"q" => query}) do
     site_url = AgentJidoWeb.Endpoint.url()
@@ -47,9 +22,10 @@ defmodule AgentJidoWeb.BlogController do
 
   def feed(conn, _params) do
     posts = Blog.all_posts()
+    feed_xml = Phoenix.Template.render_to_string(AgentJidoWeb.BlogHTML, "feed", "xml", posts: posts)
 
     conn
-    |> put_resp_content_type("application/xml")
-    |> render(:feed, posts: posts)
+    |> put_resp_content_type("application/rss+xml")
+    |> send_resp(200, feed_xml)
   end
 end

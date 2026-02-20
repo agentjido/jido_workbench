@@ -1,8 +1,8 @@
-# Marketing Strategy Docs
+# Site Strategy & Content Specs
 
-Last updated: 2026-02-12
+Last updated: 2026-02-19
 
-This folder is the persistent home for site strategy and messaging work papers.
+This folder is the authoritative home for site positioning, content strategy, and messaging governance.
 
 ## Core Positioning (Current Anchor)
 
@@ -15,31 +15,52 @@ This folder is the persistent home for site strategy and messaging work papers.
 
 ## Document Index
 
-- `marketing/positioning.md`
-  - Full positioning strategy, narrative system, differentiation framing, and messaging copy.
-- `marketing/content-outline.md`
-  - High-level information architecture and headline/content outline for the site.
-- `marketing/persona-journeys.md`
-  - Persona clusters, buyer intent stages, canonical journeys, and conversion signals.
-- `marketing/content-governance.md`
-  - Content quality controls, validation pipeline, and operating model for keeping site content in sync with ecosystem source truth.
-  - Canonical ST-CONT-001 publish hard gate: content DoD (§11) and freshness/release cadence checklist (§12).
-- `marketing/style-voice.md`
-  - Voice, tone, and style/mechanical conventions guide for all site content.
-- `marketing/proof.md`
-  - Proof inventory mapping messaging pillars to concrete evidence assets.
-- `marketing/TODO.md`
-  - Pre-writing prep task tracker.
-- `marketing/templates/`
-  - Page template skeletons for each content type (feature, ecosystem, build, training, docs-concept, docs-reference).
-- `marketing/docs-manifesto.md`
-  - Documentation writing principles adapted from direct response copywriting for Elixir library ecosystems.
-- `marketing/content-system.md`
-  - Content pipeline reference — where content lives in `priv/`, frontmatter schemas, compile-time flow, and route mapping. Essential context for AI agents.
+### Positioning & Messaging
+
+- `positioning.md` — Core positioning strategy, narrative system, differentiation framing, persona coverage, messaging pillars, and copy system.
+- `style-voice.md` — Voice, tone, terminology, and style/mechanical conventions for all site content.
+- `proof.md` — Proof inventory mapping messaging pillars to concrete evidence assets.
+
+### Content Architecture
+
+- `content-outline.md` — Site information architecture, page inventory, section outline, and delivery phases.
+- `persona-journeys.md` — Persona clusters, buyer intent stages, canonical journeys, and conversion signals.
+- `content-system.md` — Content pipeline reference — where content lives in `priv/`, frontmatter schemas, compile-time flow, and route mapping.
+
+### Governance & Quality
+
+- `content-governance.md` — Content quality controls, validation pipeline, publish gates, and operating model. Includes canonical ST-CONT-001 publish hard gate (§11) and freshness/release cadence checklist (§12).
+- `docs-manifesto.md` — Documentation writing principles adapted from direct response copywriting for Elixir library ecosystems.
+
+### Templates
+
+- `templates/` — Page template skeletons for each content type:
+  - `feature-page.md`, `build-guide.md`, `docs-concept.md`, `docs-reference.md`, `ecosystem-package.md`, `training-module.md`
+
+### Task Tracking
+
+- `TODO.md` — Pre-writing prep task tracker with priority and effort estimates.
+
+### Competitive Research
+
+- `competitors/` — Deep-dive competitor briefings for the top 10 agentic frameworks (AutoGen, LlamaIndex, CrewAI, Semantic Kernel, LangGraph, Haystack, Mastra, Google ADK, PydanticAI, Sagents).
+- `competitors/external_agentic_framework_feature_matrix.md` — Normalized feature matrix across all frameworks.
+
+### Runbooks
+
+- `runbooks/admin_bootstrap_runbook.md` — Admin user bootstrap and verification procedures.
+- `runbooks/chatops_runbook.md` — ChatOps subsystem startup and health validation.
+- `runbooks/chatops_durability_decision.md` — Architecture decision record for messaging durability.
+- `runbooks/release_punchlist.md` — Homepage-down release checklist, quality gates, and page review matrix.
+
+### Brainstorms
+
+- `brainstorms/content-agents.md` — ContentOps agent system design (v2) — multi-agent content factory brainstorm.
+- `brainstorms/mintlify_gaps/` — Mintlify feature gap analysis for the docs site platform.
 
 ## Content Pipeline
 
-All site content is static Markdown compiled at build time via NimblePublisher with Zoi schema validation. See `marketing/content-system.md` for the full reference.
+All site content is static Markdown compiled at build time via NimblePublisher with Zoi schema validation. See `content-system.md` for the full reference.
 
 ### Source directories (priv/)
 
@@ -52,13 +73,13 @@ All site content is static Markdown compiled at build time via NimblePublisher w
 | `priv/documentation/` | Docs & guides | `AgentJido.Documentation.Document` | ✅ `/docs/...` |
 | `priv/content_plan/` | Editorial briefs | `AgentJido.ContentPlan.Entry` | ❌ Internal |
 
-### Relationship: marketing/ → priv/
+### Relationship: specs/ → priv/
 
-`marketing/` contains strategy, constraints, and specifications.  
+`specs/` contains strategy, constraints, and specifications.  
 `priv/` contains the actual content that gets rendered.  
 `lib/agent_jido/` contains the schema modules that define the contract between them.
 
-Marketing docs govern what goes into priv/. Content-system.md maps the full pipeline.
+Specs govern what goes into priv/. `content-system.md` maps the full pipeline.
 
 ## Working Agreement
 

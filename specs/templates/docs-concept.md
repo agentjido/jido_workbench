@@ -1,7 +1,7 @@
 <!-- 
   TEMPLATE: Docs Concept Page
   Use for: /docs/core-concepts/* pages (e.g., /docs/core-concepts/signals)
-  Tone: See marketing/style-voice.md — code-first for docs, show implementation then explain.
+  Tone: See specs/style-voice.md — code-first for docs, show implementation then explain.
   Rules: content-outline.md §5 (clear claim, architecture explanation, runnable proof,
          training cross-link, docs/reference cross-link, CTA).
 -->

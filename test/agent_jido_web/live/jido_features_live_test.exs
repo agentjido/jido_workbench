@@ -15,8 +15,11 @@ defmodule AgentJidoWeb.JidoFeaturesLiveTest do
     assert html =~ ~s(href="/docs")
   end
 
-  test "legacy partners route serves features page", %{conn: conn} do
-    {:ok, _view, html} = live(conn, "/partners")
-    assert html =~ "PLATFORM FEATURES"
+  test "legacy partners route returns branded 404 page", %{conn: conn} do
+    conn = get(conn, "/partners")
+    body = response(conn, 404)
+
+    assert body =~ "Page not found"
+    assert body =~ "/partners"
   end
 end

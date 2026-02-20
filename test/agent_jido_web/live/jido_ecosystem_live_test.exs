@@ -5,12 +5,15 @@ defmodule AgentJidoWeb.JidoEcosystemLiveTest do
 
   alias AgentJido.Ecosystem
 
-  test "renders ecosystem graph and links all public packages", %{conn: conn} do
+  test "renders ecosystem package directory and links all public packages", %{conn: conn} do
     {:ok, _view, html} = live(conn, "/ecosystem")
 
-    assert html =~ "DEPENDENCY GRAPH"
-    assert html =~ "APPLICATION LAYER"
+    assert html =~ "PACKAGE ECOSYSTEM"
+    assert html =~ "LAYERED ECOSYSTEM MAP"
     assert html =~ "FOUNDATION LAYER"
+    assert html =~ "APPLICATION LAYER"
+    assert html =~ "ALL PACKAGES"
+    refute html =~ "DEPENDENCY GRAPH"
     refute html =~ "jido_coder"
 
     for pkg <- Ecosystem.public_packages() do

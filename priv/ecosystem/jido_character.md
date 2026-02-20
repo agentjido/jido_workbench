@@ -4,7 +4,7 @@
   version: "1.0.0",
   tagline: "Composable character definitions and context rendering for AI agents",
   license: "Apache-2.0",
-  visibility: :public,
+  visibility: :private,
   category: :ai,
   tier: 2,
   tags: [:character, :persona, :prompting, :ai],

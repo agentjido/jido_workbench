@@ -1,12 +1,29 @@
 defmodule AgentJidoWeb.JidoHomeLive do
   use AgentJidoWeb, :live_view
 
+  alias AgentJido.LandingContent
+
   import AgentJidoWeb.Jido.MarketingLayouts
   import AgentJidoWeb.Jido.MarketingCards
 
+  @home_ecosystem_rows [
+    %{layer: :app, ids: ~w(jido_studio jido_messaging)},
+    %{layer: :ai, ids: ~w(jido_ai jido_behaviortree)},
+    %{layer: :core, ids: ~w(jido jido_action jido_signal)},
+    %{layer: :foundation, ids: ~w(req_llm llm_db)}
+  ]
+
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, install_tab: "full", og_image: "https://agentjido.xyz/og/home.png")}
+    {:ok,
+     assign(socket,
+       page_title: "A Runtime for Reliable Multi-Agent Systems",
+       meta_description:
+         "Jido is a runtime for reliable, multi-agent systems, built on Elixir/OTP for fault isolation, concurrency, and production uptime.",
+       install_tab: "full",
+       ecosystem_rows: build_home_ecosystem_rows(),
+       og_image: "https://agentjido.xyz/og/home.png"
+     )}
   end
 
   @impl true
@@ -20,11 +37,10 @@ defmodule AgentJidoWeb.JidoHomeLive do
     <.marketing_layout current_path="/">
       <div class="container max-w-[1000px] mx-auto px-6">
         <.hero_section />
-        <.metrics_strip />
-        <.package_ecosystem />
-        <.dependency_flow />
+        <.pillars_section />
+        <.ecosystem_section ecosystem_rows={@ecosystem_rows} />
         <.install_section install_tab={@install_tab} />
-        <.why_beam_section />
+        <.why_elixir_otp_section />
         <.quick_start_code />
         <.cta_section />
       </div>
@@ -37,163 +53,173 @@ defmodule AgentJidoWeb.JidoHomeLive do
     <section class="text-center mb-16 animate-fade-in">
       <div class="inline-block bg-primary/10 border border-primary/30 px-4 py-2 rounded mb-6">
         <span class="text-primary text-[11px] font-semibold tracking-widest">
-          BEAM-NATIVE AGENT ECOSYSTEM
+          RELIABLE MULTI-AGENT RUNTIME
         </span>
       </div>
 
       <h1 class="text-4xl sm:text-[42px] font-bold leading-tight mb-5 tracking-tight">
-        From <span class="text-accent-cyan">LLM calls</span> to <br />
-        <span class="text-primary">autonomous agents</span>
+        A runtime for reliable, <br />
+        <span class="text-primary">multi-agent systems.</span>
       </h1>
 
-      <p class="text-secondary-foreground text-[15px] leading-relaxed mb-8 max-w-lg mx-auto">
-        7 composable packages. One unified stack. <br /> Run 10,000+ agents on a single BEAM node.
+      <p class="text-secondary-foreground text-[15px] leading-relaxed mb-8 max-w-xl mx-auto">
+        Design, coordinate, and operate agent workflows that stay stable in production
+        — built on Elixir/OTP for fault isolation, concurrency, and uptime.
       </p>
 
       <div class="flex gap-3 justify-center mb-12">
         <.link
-          navigate="/ecosystem"
+          navigate="/docs/getting-started"
           class="bg-primary text-primary-foreground hover:bg-primary/90 text-[13px] font-bold px-7 py-5 rounded transition-colors"
         >
-          EXPLORE ECOSYSTEM →
+          GET BUILDING →
         </.link>
         <.link
-          navigate="/docs"
+          navigate="/features"
           class="border-2 border-accent-yellow text-accent-yellow hover:bg-accent-yellow/10 text-[13px] font-semibold px-6 py-5 rounded transition-colors"
         >
-          OPEN DOCS
+          EXPLORE FEATURES
         </.link>
       </div>
     </section>
     """
   end
 
-  defp metrics_strip(assigns) do
+  defp pillars_section(assigns) do
+    pillars = [
+      %{
+        icon: "◉",
+        title: "Reliability by architecture",
+        desc:
+          "Each agent runs in its own BEAM process with isolated state. When agents crash, OTP supervisors restart them in milliseconds — no external orchestrator needed.",
+        color_class: "text-accent-green",
+        link: "/features/reliability-by-architecture"
+      },
+      %{
+        icon: "⧉",
+        title: "Coordination you can reason about",
+        desc:
+          "Multi-agent behavior is explicit and testable. Actions define capabilities, Signals handle communication, and Directives model orchestration — not role-play in a single prompt.",
+        color_class: "text-accent-yellow",
+        link: "/features/multi-agent-coordination"
+      },
+      %{
+        icon: "⬡",
+        title: "Production operations built in",
+        desc:
+          "Telemetry, debugging workflows, and operational controls are first-class. Observe agent behavior, trace workflows across processes, and run with confidence under real load.",
+        color_class: "text-accent-cyan",
+        link: "/features/operations-observability"
+      },
+      %{
+        icon: "▣",
+        title: "Composable, incremental adoption",
+        desc:
+          "Adopt only what you need now, expand safely later. Start with the core runtime, add AI capabilities, layer on tooling — each package composes without lock-in.",
+        color_class: "text-accent-red",
+        link: "/features/incremental-adoption"
+      }
+    ]
+
+    assigns = assign(assigns, :pillars, pillars)
+
     ~H"""
-    <section class="mb-16 animate-fade-in">
-      <div class="grid grid-cols-4 gap-px bg-border rounded-md overflow-hidden max-w-[700px] mx-auto">
-        <.metric_card value="10,000+" label="agents/node" color_class="text-accent-green" />
-        <.metric_card value="~200MB" label="RAM @ 5k agents" color_class="text-accent-yellow" />
-        <.metric_card value="<1ms" label="message latency" color_class="text-accent-cyan" />
-        <.metric_card value="7" label="packages" color_class="text-accent-red" />
+    <section id="pillars" class="mb-16 opacity-0" phx-hook="ScrollReveal">
+      <div class="text-center mb-10">
+        <h2 class="text-2xl font-bold tracking-tight mb-3">Why Jido</h2>
+        <p class="text-muted-foreground text-sm">
+          Prototyping is common. Reliable operation is rare. Jido is built for operation.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <%= for pillar <- @pillars do %>
+          <.link navigate={pillar.link} class="feature-card text-left group hover:-translate-y-0.5 transition-transform duration-200">
+            <div class={"text-2xl mb-3 #{pillar.color_class}"}>{pillar.icon}</div>
+            <div class="font-bold text-sm mb-2 group-hover:text-primary transition-colors">
+              {pillar.title}
+            </div>
+            <p class="text-muted-foreground text-[13px] leading-relaxed">{pillar.desc}</p>
+          </.link>
+        <% end %>
       </div>
     </section>
     """
   end
 
-  defp package_ecosystem(assigns) do
+  defp ecosystem_section(assigns) do
     ~H"""
-    <section id="package-ecosystem" class="mb-16 opacity-0" phx-hook="ScrollReveal">
+    <section id="ecosystem" class="mb-16 opacity-0" phx-hook="ScrollReveal">
       <div class="flex justify-between items-center mb-6">
         <div>
-          <span class="font-bold text-sm tracking-wider">PACKAGE ECOSYSTEM</span>
-          <span class="text-muted-foreground text-xs ml-4">4 layers • composable by design</span>
+          <h2 class="text-xl font-bold tracking-tight inline">Ecosystem</h2>
+          <span class="text-muted-foreground text-sm ml-4">4 layers · composable by design</span>
         </div>
-        <.link navigate="/ecosystem" class="text-primary text-xs hover:underline">
-          view all →
+        <.link navigate="/ecosystem" class="text-primary text-sm hover:underline">
+          see the ecosystem →
         </.link>
       </div>
-      
-    <!-- Row 1: App + AI -->
-      <div class="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-3 mb-3">
-        <.package_card
-          name="jido_coder"
-          desc="AI coding agent with file operations, git integration, and test execution"
-          layer={:app}
-          links={%{}}
-        />
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <.package_card
-            name="jido_ai"
-            desc="LLM-powered agents with token/cost tracking, tool calling, and streaming. Combines jido + req_llm + llmdb."
-            layer={:ai}
-            links={%{}}
-          />
-          <.package_card
-            name="jido_behaviortree"
-            desc="Behavior tree execution for complex agent decision-making. Composable nodes, conditions, and actions."
-            layer={:ai}
-            links={%{}}
-          />
+
+      <%= for row <- @ecosystem_rows do %>
+        <div class={row_grid_class(row.packages)}>
+          <%= for pkg <- row.packages do %>
+            <.package_card
+              name={pkg.name}
+              desc={pkg.desc}
+              layer={row.layer}
+              path={pkg.path}
+              links={%{}}
+            />
+          <% end %>
         </div>
-      </div>
-      
-    <!-- Row 2: Core -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-        <.package_card
-          name="jido"
-          desc="BEAM-native bot framework. OTP supervision, isolated processes, 10k+ agents per node."
-          layer={:core}
-          links={%{}}
-        />
-        <.package_card
-          name="jido_action"
-          desc="Schema-based action validation. Required fields, defaults, type constraints."
-          layer={:core}
-          links={%{}}
-        />
-        <.package_card
-          name="jido_signal"
-          desc="Pub/sub signaling between agents. Decoupled coordination via message-passing."
-          layer={:core}
-          links={%{}}
-        />
-      </div>
-      
-    <!-- Row 3: Foundation -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <.package_card
-          name="req_llm"
-          desc="HTTP client for LLM APIs. Built on Req with retries, rate limiting, and streaming support."
-          layer={:foundation}
-          links={%{}}
-        />
-        <.package_card
-          name="llmdb"
-          desc="Model registry and metadata. Token limits, pricing, capabilities for all major providers."
-          layer={:foundation}
-          links={%{}}
-        />
-      </div>
+      <% end %>
     </section>
     """
   end
 
-  defp dependency_flow(assigns) do
-    ~H"""
-    <section id="dependency-flow" class="mb-16 opacity-0" phx-hook="ScrollReveal">
-      <div class="code-block overflow-hidden">
-        <div class="code-header">
-          <span class="text-muted-foreground text-xs">
-            <span class="text-accent-yellow">#</span> dependency flow
-          </span>
-          <span class="text-muted-foreground text-[10px]">packages compose bottom-up</span>
-        </div>
-        <div class="p-6 overflow-x-auto">
-          <pre class="text-[11px] leading-relaxed whitespace-pre"><div>                                    ┌─────────────┐</div><div>                                    │ <span class="text-accent-red">jido_coder</span>  │  ← AI coding workflows</div><div>                                    └──────┬──────┘</div><div>                                           │</div><div>                                    ┌──────┴──────┐</div><div>                                    │   <span class="text-accent-yellow">jido_ai</span>   │  ← LLM-powered agents</div><div>                                    └──────┬──────┘</div><div>                           ┌───────────────┼───────────────┐</div><div>                           │               │               │</div><div>                    ┌──────┴──────┐ ┌──────┴──────┐ ┌──────┴──────┐</div><div>                    │    <span class="text-accent-green">jido</span>     │ │ <span class="text-accent-green">jido_action</span> │ │ <span class="text-accent-green">jido_signal</span> │</div><div>                    └──────┬──────┘ └─────────────┘ └─────────────┘</div><div>                           │</div><div>              ┌────────────┴────────────┐</div><div>              │                         │</div><div>       ┌──────┴──────┐          ┌───────┴───────┐</div><div>       │   <span class="text-accent-cyan">req_llm</span>   │          │     <span class="text-accent-cyan">llmdb</span>     │</div><div>       └─────────────┘          └───────────────┘</div></pre>
-        </div>
-      </div>
-    </section>
-    """
+  defp build_home_ecosystem_rows do
+    package_by_id =
+      LandingContent.packages()
+      |> Map.new(&{&1.id, &1})
+
+    @home_ecosystem_rows
+    |> Enum.map(fn row ->
+      packages =
+        row.ids
+        |> Enum.map(&Map.get(package_by_id, &1))
+        |> Enum.reject(&is_nil/1)
+
+      %{layer: row.layer, packages: packages}
+    end)
+    |> Enum.reject(&(&1.packages == []))
+  end
+
+  defp row_grid_class(packages) do
+    case length(packages) do
+      1 -> "grid grid-cols-1 gap-3 mb-3"
+      2 -> "grid grid-cols-1 md:grid-cols-2 gap-3 mb-3"
+      _ -> "grid grid-cols-1 md:grid-cols-3 gap-3 mb-3"
+    end
   end
 
   defp install_section(assigns) do
     install_configs = %{
       "full" => %{
-        comment: "# Full stack: AI coding agents",
-        deps: [{":jido_coder", ~s("~> 0.1.0"), ""}],
-        note: "# includes jido_ai, jido, req_llm, llmdb"
+        comment: "# Full stack: LLM-powered agents",
+        deps: [{":jido_ai", ~s("~> 0.1.0"), ""}],
+        note: "# includes jido, req_llm, llm_db"
       },
-      "bots" => %{
-        comment: "# Bots only: no LLM dependencies",
+      "core" => %{
+        comment: "# Core only: runtime without LLM dependencies",
         deps: [{":jido", ~s("~> 0.1.0"), ""}],
-        note: "# pure bot framework, OTP supervision"
+        note: "# agent runtime, supervision, orchestration"
       },
       "custom" => %{
-        comment: "# Custom: mix and match",
+        comment: "# Custom: adopt what you need",
         deps: [
-          {":jido", ~s("~> 0.1.0"), "# bot framework"},
-          {":jido_action", ~s("~> 0.1.0"), "# validation"},
+          {":jido", ~s("~> 0.1.0"), "# runtime"},
+          {":jido_action", ~s("~> 0.1.0"), "# typed actions"},
+          {":jido_signal", ~s("~> 0.1.0"), "# signal routing"},
           {":req_llm", ~s("~> 0.1.0"), "# LLM client"}
         ],
         note: ""
@@ -205,7 +231,10 @@ defmodule AgentJidoWeb.JidoHomeLive do
     ~H"""
     <section id="install-section" class="mb-16 opacity-0" phx-hook="ScrollReveal">
       <div class="mb-5">
-        <span class="font-bold text-sm tracking-wider">CHOOSE YOUR STACK</span>
+        <h2 class="text-xl font-bold tracking-tight mb-2">Choose your stack</h2>
+        <p class="text-muted-foreground text-sm">
+          Adopt only what you need now, expand safely later.
+        </p>
       </div>
 
       <div class="flex gap-1 mb-4">
@@ -214,14 +243,14 @@ defmodule AgentJidoWeb.JidoHomeLive do
           phx-value-tab="full"
           class={"px-5 py-2.5 rounded text-[11px] font-semibold transition-colors border #{if @install_tab == "full", do: "border-primary bg-primary/10 text-primary", else: "border-border text-secondary-foreground hover:text-foreground"}"}
         >
-          FULL AI STACK
+          AI AGENTS
         </button>
         <button
           phx-click="select_install_tab"
-          phx-value-tab="bots"
-          class={"px-5 py-2.5 rounded text-[11px] font-semibold transition-colors border #{if @install_tab == "bots", do: "border-primary bg-primary/10 text-primary", else: "border-border text-secondary-foreground hover:text-foreground"}"}
+          phx-value-tab="core"
+          class={"px-5 py-2.5 rounded text-[11px] font-semibold transition-colors border #{if @install_tab == "core", do: "border-primary bg-primary/10 text-primary", else: "border-border text-secondary-foreground hover:text-foreground"}"}
         >
-          BOTS ONLY
+          CORE RUNTIME
         </button>
         <button
           phx-click="select_install_tab"
@@ -291,24 +320,24 @@ defmodule AgentJidoWeb.JidoHomeLive do
     Phoenix.HTML.raw(html)
   end
 
-  defp why_beam_section(assigns) do
+  defp why_elixir_otp_section(assigns) do
     features = [
       %{
         icon: "◉",
-        title: "Isolated Processes",
-        desc: "Each agent runs in its own BEAM process with isolated state. No shared memory, no locks.",
+        title: "Process isolation",
+        desc: "Each agent runs in its own BEAM process with isolated state and memory. One agent failing never corrupts another.",
         color_class: "text-accent-green"
       },
       %{
         icon: "⟳",
-        title: "OTP Supervision",
-        desc: "When agents crash, supervisors restart them in milliseconds. No external orchestrator needed.",
+        title: "OTP supervision",
+        desc: "Supervisors restart crashed agents in milliseconds with clean state. Failure containment and recovery are built into the runtime.",
         color_class: "text-accent-yellow"
       },
       %{
         icon: "⚡",
-        title: "Native Concurrency",
-        desc: "Preemptive scheduler handles 10k+ agents per node. True parallelism on multi-core.",
+        title: "Fault-tolerant concurrency",
+        desc: "The BEAM's preemptive scheduler handles thousands of long-lived agent processes with true parallelism on multi-core hardware.",
         color_class: "text-accent-cyan"
       }
     ]
@@ -316,144 +345,98 @@ defmodule AgentJidoWeb.JidoHomeLive do
     assigns = assign(assigns, :features, features)
 
     ~H"""
-    <section id="why-beam" class="mb-16 opacity-0" phx-hook="ScrollReveal">
-      <div class="text-center mb-8">
-        <span class="font-bold text-sm tracking-wider">WHY BEAM-NATIVE?</span>
+    <section id="why-elixir-otp" class="mb-16 opacity-0" phx-hook="ScrollReveal">
+      <div class="text-center mb-10">
+        <h2 class="text-2xl font-bold tracking-tight mb-3">Why Elixir/OTP</h2>
+        <p class="text-muted-foreground text-sm">
+          The runtime model that makes reliability claims credible.
+        </p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <%= for feature <- @features do %>
           <div class="feature-card text-center">
             <div class={"text-2xl mb-4 #{feature.color_class}"}>{feature.icon}</div>
-            <div class="font-bold text-[13px] mb-2">{feature.title}</div>
-            <p class="text-muted-foreground text-xs leading-relaxed">{feature.desc}</p>
+            <div class="font-bold text-sm mb-2">{feature.title}</div>
+            <p class="text-muted-foreground text-[13px] leading-relaxed">{feature.desc}</p>
           </div>
         <% end %>
+      </div>
+
+      <div class="text-center mt-6">
+        <.link
+          navigate="/features/beam-for-ai-builders"
+          class="text-primary text-sm hover:underline"
+        >
+          Why Elixir/OTP for agent workloads →
+        </.link>
       </div>
     </section>
     """
   end
 
+  # credo:disable-for-next-line Credo.Check.Readability.MaxLineLength
+  @quick_start_html "<span class=\"syntax-keyword\">defmodule</span> <span class=\"syntax-type\">MyApp.WeatherAgent</span> <span class=\"syntax-keyword\">do</span>\n  <span class=\"syntax-keyword\">use</span> <span class=\"syntax-type\">Jido.AI.Agent</span>,\n    name: <span class=\"syntax-string\">\"weather_agent\"</span>,\n    description: <span class=\"syntax-string\">\"Weather Q&amp;A agent\"</span>,\n    tools: &lbrack;<span class=\"syntax-type\">Jido.Tools.Weather.Forecast</span>,\n           <span class=\"syntax-type\">Jido.Tools.Weather.CurrentConditions</span>&rbrack;,\n    system_prompt: <span class=\"syntax-string\">\"You are a weather planning assistant.\"</span>\n<span class=\"syntax-keyword\">end</span>\n\n<span class=\"syntax-comment\"># Start a supervised agent — isolated process, automatic restarts</span>\n&lbrace;<span class=\"syntax-atom\">:ok</span>, pid&rbrace; = <span class=\"syntax-type\">Jido.AgentServer</span>.start(agent: <span class=\"syntax-type\">MyApp.WeatherAgent</span>)\n\n<span class=\"syntax-comment\"># Async: send query, get a request handle back</span>\n&lbrace;<span class=\"syntax-atom\">:ok</span>, request&rbrace; = <span class=\"syntax-type\">MyApp.WeatherAgent</span>.ask(pid, <span class=\"syntax-string\">\"What's the weather in Tokyo?\"</span>)\n&lbrace;<span class=\"syntax-atom\">:ok</span>, answer&rbrace; = <span class=\"syntax-type\">MyApp.WeatherAgent</span>.await(request)\n\n<span class=\"syntax-comment\"># Or sync for simple cases</span>\n&lbrace;<span class=\"syntax-atom\">:ok</span>, answer&rbrace; = <span class=\"syntax-type\">MyApp.WeatherAgent</span>.ask_sync(pid, <span class=\"syntax-string\">\"Should I bring an umbrella?\"</span>)"
+
   defp quick_start_code(assigns) do
-    code = """
-    defmodule ResearchAgent do
-      use JidoAI.Agent
-
-      def init(args) do
-        {:ok, %{
-          model: {:openai, "gpt-4"},
-          budget: 10_000,
-          topic: args[:topic]
-        }}
-      end
-
-      def handle_action(:research, state) do
-        case JidoAI.chat(state, prompt) do
-          {:ok, response, new_state} ->
-            {:ok, %{new_state | findings: response}}
-          {:error, :budget_exceeded} ->
-            {:error, :out_of_tokens}
-        end
-      end
-    end
-
-    # Start 1,000 supervised research agents
-    for topic <- topics do
-      JidoAI.start_agent(ResearchAgent, topic: topic)
-    end
-    """
-
-    assigns = assign(assigns, :code, code)
+    assigns = assign(assigns, :code_html, Phoenix.HTML.raw(@quick_start_html))
 
     ~H"""
     <section id="quick-start" class="mb-16 opacity-0" phx-hook="ScrollReveal">
       <div class="flex justify-between items-center mb-5">
-        <span class="font-bold text-sm tracking-wider">QUICK START</span>
-        <span class="text-muted-foreground text-[11px]">run in less than 2 minutes</span>
+        <h2 class="text-xl font-bold tracking-tight">Quick start</h2>
+        <.link navigate="/docs/getting-started" class="text-primary text-sm hover:underline">
+          full getting started guide →
+        </.link>
       </div>
 
       <div class="code-block overflow-hidden">
         <div class="code-header">
-          <span class="text-muted-foreground text-xs">lib/my_app/research_agent.ex</span>
+          <span class="text-muted-foreground text-xs">lib/my_app/weather_agent.ex</span>
           <div class="flex gap-3">
-            <span class="text-primary text-[10px] cursor-pointer hover:underline">LIVEBOOK</span>
-            <span class="text-muted-foreground text-[10px] cursor-pointer hover:text-foreground">GITHUB</span>
+            <.link
+              navigate="/training/agent-fundamentals"
+              class="text-primary text-[10px] hover:underline"
+            >
+              TRAINING
+            </.link>
+            <.link
+              navigate="/docs"
+              class="text-muted-foreground text-[10px] hover:text-foreground"
+            >
+              DOCS
+            </.link>
           </div>
         </div>
         <div class="p-6 overflow-x-auto">
-          <pre class="text-xs leading-relaxed"><%= for line <- String.split(@code, "\n") do %><%= highlight_elixir_line(line) %><% end %></pre>
+          <pre class="text-xs leading-relaxed"><code><%= @code_html %></code></pre>
         </div>
       </div>
     </section>
     """
-  end
-
-  defp highlight_elixir_line(line) do
-    cond do
-      String.trim(line) |> String.starts_with?("#") ->
-        Phoenix.HTML.raw(~s(<div class="syntax-comment">#{escape_html(line)}</div>))
-
-      true ->
-        {main_part, comment_part} =
-          case String.split(line, " #", parts: 2) do
-            [main] -> {main, ""}
-            [main, comment] -> {main, " #" <> comment}
-          end
-
-        highlighted =
-          main_part
-          |> String.replace(~r/\b(defmodule|def|do|end|use|case|for)\b/, fn match ->
-            ~s(<span class="syntax-keyword">#{match}</span>)
-          end)
-          |> String.replace(~r/"[^"]*"/, fn match ->
-            ~s(<span class="syntax-string">#{escape_html(match)}</span>)
-          end)
-          |> String.replace(~r/:[a-z_]+/, fn match ->
-            ~s(<span class="syntax-atom">#{match}</span>)
-          end)
-          |> String.replace(~r/\b[A-Z][A-Za-z.]+/, fn match ->
-            ~s(<span class="syntax-type">#{match}</span>)
-          end)
-          |> String.replace(~r/\b\d+[_\d]*\b/, fn match ->
-            ~s(<span class="syntax-string">#{match}</span>)
-          end)
-
-        comment_html =
-          if comment_part != "",
-            do: ~s(<span class="syntax-comment">#{escape_html(comment_part)}</span>),
-            else: ""
-
-        Phoenix.HTML.raw("<div>#{highlighted}#{comment_html}</div>")
-    end
-  end
-
-  defp escape_html(text) do
-    text
-    |> String.replace("&", "&amp;")
-    |> String.replace("<", "&lt;")
-    |> String.replace(">", "&gt;")
   end
 
   defp cta_section(assigns) do
     ~H"""
     <section id="cta" class="mb-16 opacity-0" phx-hook="ScrollReveal">
       <div class="cta-glow rounded-lg p-12 text-center">
-        <h2 class="text-2xl font-bold mb-3">Ready to build?</h2>
-        <p class="text-secondary-foreground text-sm mb-6">
-          Start with the getting started guide or explore production examples.
+        <h2 class="text-2xl font-bold mb-3">Build your first agent</h2>
+        <p class="text-secondary-foreground text-sm mb-6 max-w-md mx-auto">
+          Go from zero to a supervised, fault-tolerant agent workflow.
+          Start with the getting started guide or explore the training modules.
         </p>
         <div class="flex gap-3 justify-center">
           <.link
-            navigate="/getting-started"
+            navigate="/docs/getting-started"
             class="bg-primary text-primary-foreground hover:bg-primary/90 text-[13px] font-bold px-7 py-5 rounded transition-colors"
           >
-            $ mix jido.new my_app
+            GET BUILDING →
           </.link>
           <.link
-            navigate="/docs"
+            navigate="/training"
             class="border border-accent-cyan text-accent-cyan hover:bg-accent-cyan/10 text-[13px] font-medium px-7 py-5 rounded transition-colors"
           >
-            READ THE DOCS
+            START TRAINING
           </.link>
         </div>
       </div>

@@ -4,7 +4,7 @@
   version: "0.1.0",
   tagline: "Amp CLI adapter for Jido agents with streaming session lifecycle management",
   license: "Apache-2.0",
-  visibility: :public,
+  visibility: :private,
   category: :integrations,
   tier: 2,
   tags: [:amp, :cli, :agents, :coding, :integration],

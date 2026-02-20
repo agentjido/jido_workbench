@@ -259,14 +259,71 @@
   }
 
   .code-block {
-    @apply rounded-md border overflow-x-auto;
-    background: hsl(var(--code-bg));
+    @apply rounded-lg border overflow-hidden;
     border-color: hsl(var(--code-border));
+    background:
+      radial-gradient(
+        140% 120% at 0% 0%,
+        hsl(var(--accent-cyan) / 0.12),
+        transparent 56%
+      ),
+      linear-gradient(
+        180deg,
+        hsl(var(--surface)) 0%,
+        hsl(var(--code-bg)) 100%
+      );
+    box-shadow:
+      inset 0 1px 0 hsl(var(--foreground) / 0.04),
+      0 14px 30px -24px hsl(var(--background));
   }
+
   .code-header {
     @apply px-5 py-3 border-b flex items-center justify-between;
-    background: hsl(var(--elevated));
     border-color: hsl(var(--code-border));
+    background: hsl(var(--elevated) / 0.75);
+  }
+
+  .code-content {
+    @apply overflow-x-auto;
+  }
+
+  .code-content pre {
+    margin: 0;
+  }
+
+  .code-content pre.highlight {
+    @apply px-5 py-4 border-0 rounded-none;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .code-content pre > code.makeup,
+  .code-content pre > code.highlight,
+  .code-content .highlight > code,
+  .code-content pre > code[class*="language-"] {
+    display: block;
+    min-width: max-content;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    line-height: 1.75;
+    letter-spacing: 0.01em;
+    white-space: pre;
+    tab-size: 2;
+  }
+
+  .code-block-terminal .terminal-content {
+    @apply px-5 py-4 text-xs;
+    font-family: var(--font-mono);
+    line-height: 1.75;
+  }
+
+  .code-block-terminal .terminal-prompt {
+    color: hsl(var(--primary));
+  }
+
+  .code-block-terminal .terminal-command {
+    @apply ml-2;
+    color: hsl(var(--foreground));
   }
 
   .ecosystem-layered-graph {

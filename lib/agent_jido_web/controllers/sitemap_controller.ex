@@ -1,4 +1,7 @@
 defmodule AgentJidoWeb.SitemapController do
+  @moduledoc """
+  Serves the XML sitemap used by search engines.
+  """
   use AgentJidoWeb, :controller
 
   alias AgentJido.Blog
@@ -10,12 +13,15 @@ defmodule AgentJidoWeb.SitemapController do
       Pages.all_pages()
       |> Enum.reject(&(&1.category == :training))
 
+    sitemap_xml =
+      Phoenix.Template.render_to_string(AgentJidoWeb.SitemapHTML, "index", "xml",
+        blog_posts: Blog.all_posts(),
+        pages: pages,
+        ecosystem_packages: Ecosystem.public_packages()
+      )
+
     conn
     |> put_resp_content_type("application/xml")
-    |> render(:index,
-      blog_posts: Blog.all_posts(),
-      pages: pages,
-      ecosystem_packages: Ecosystem.public_packages()
-    )
+    |> send_resp(200, sitemap_xml)
   end
 end

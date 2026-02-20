@@ -4,6 +4,17 @@ defmodule AgentJidoWeb.SitemapControllerTest do
   alias AgentJido.Ecosystem
   alias AgentJido.Pages
 
+  test "returns raw xml sitemap payload", %{conn: conn} do
+    conn = get(conn, "/sitemap.xml")
+    body = response(conn, 200)
+
+    assert body =~ ~s(<?xml version="1.0" encoding="UTF-8"?>)
+    assert body =~ "<urlset"
+    refute body =~ "&lt;urlset"
+    refute body =~ "<html"
+    assert get_resp_header(conn, "content-type") |> hd() =~ "application/xml"
+  end
+
   test "includes ecosystem package pages", %{conn: conn} do
     conn = get(conn, "/sitemap.xml")
 

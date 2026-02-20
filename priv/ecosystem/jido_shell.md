@@ -5,7 +5,7 @@
   tagline: "Shell primitives for agent and sandbox workflows",
   graph_label: "shell runtime",
   license: "Apache-2.0",
-  visibility: :public,
+  visibility: :private,
   category: :tools,
   tier: 2,
   tags: [:shell, :cli, :sandbox, :tools],

@@ -4,7 +4,7 @@
   version: "0.1.0",
   tagline: "Reusable standard-library style modules for common Jido automation workflows",
   license: "Apache-2.0",
-  visibility: :public,
+  visibility: :private,
   category: :tools,
   tier: 2,
   tags: [:library, :workflows, :github, :automation],

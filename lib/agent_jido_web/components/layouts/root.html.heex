@@ -39,13 +39,76 @@
       </script>
     <% end %>
 
-    <SEO.juice conn={@conn} config={AgentJidoWeb.SEO.config()} page_title={assigns[:page_title]} />
+    <% default_description = "Agent Jido is the Elixir Autonomous Agent Framework"
+    default_og_image = "https://agentjido.xyz/og/default.png"
 
-    <meta property="og:image" content={assigns[:og_image] || "https://agentjido.xyz/og/default.png"} />
+    status = @conn.status
+    canonical_allowed? = is_nil(status) or status == 200
+    request_path = @conn.request_path || "/"
+
+    default_canonical_url =
+      if canonical_allowed? and is_binary(request_path) do
+        AgentJidoWeb.Endpoint.url() <> request_path
+      end
+
+    canonical_url =
+      if canonical_allowed? do
+        assigns[:canonical_url] || default_canonical_url
+      else
+        nil
+      end
+
+    robots =
+      case assigns[:robots] do
+        nil ->
+          nil
+
+        value when is_binary(value) ->
+          value
+
+        value ->
+          value
+          |> List.wrap()
+          |> Enum.map(&to_string/1)
+          |> Enum.join(", ")
+      end
+
+    page_title = assigns[:page_title]
+
+    meta_description =
+      case assigns[:meta_description] do
+        value when is_binary(value) ->
+          if String.trim(value) == "", do: default_description, else: value
+
+        _ ->
+          default_description
+      end
+
+    og_description =
+      case assigns[:og_description] do
+        value when is_binary(value) ->
+          if String.trim(value) == "", do: meta_description, else: value
+
+        _ ->
+          meta_description
+      end
+
+    seo_item = %{
+      title: page_title,
+      description: og_description,
+      canonical_url: canonical_url,
+      url: canonical_url,
+      robots: robots
+    }
+
+    og_image = assigns[:og_image] || default_og_image %>
+
+    <SEO.juice conn={@conn} config={AgentJidoWeb.SEO.config()} page_title={page_title} item={seo_item} />
+
+    <meta property="og:image" content={og_image} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content={assigns[:og_image] || "https://agentjido.xyz/og/default.png"} />
+    <meta name="twitter:image" content={og_image} />
   </head>
   <body class="antialiased font-mono">
     {@inner_content}

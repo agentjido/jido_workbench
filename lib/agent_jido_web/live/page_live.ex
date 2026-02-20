@@ -64,6 +64,7 @@ defmodule AgentJidoWeb.PageLive do
     {:noreply,
      assign(socket,
        page_title: "Jido Documentation",
+       meta_description: "Reference docs and implementation guides for building reliable multi-agent systems with Jido.",
        og_image: "https://agentjido.xyz/og/docs.png",
        layout_type: :docs_shell,
        category: :docs,
@@ -83,6 +84,7 @@ defmodule AgentJidoWeb.PageLive do
     {:noreply,
      assign(socket,
        page_title: "Training",
+       meta_description: "Hands-on learning modules for building and operating reliable multi-agent workflows with Jido.",
        og_image: "https://agentjido.xyz/og/training.png",
        layout_type: :training_index,
        category: :training,
@@ -96,11 +98,12 @@ defmodule AgentJidoWeb.PageLive do
 
   defp handle_generic_index(socket, category) do
     pages = Pages.pages_by_category(category)
-    label = category |> to_string() |> Phoenix.Naming.humanize()
+    %{title: title, description: description} = generic_index_metadata(category)
 
     {:noreply,
      assign(socket,
-       page_title: label,
+       page_title: title,
+       meta_description: description,
        og_image: "https://agentjido.xyz/og/default.png",
        layout_type: :marketing_shell,
        category: category,
@@ -127,10 +130,16 @@ defmodule AgentJidoWeb.PageLive do
       page ->
         toc = build_toc(page.body)
         layout_type = layout_for(page.category)
+        page_seo = page_seo(page)
+        noindex? = seo_value(page_seo, :noindex) == true
 
         assigns = [
           page_title: page.title,
-          og_image: page.og_image || og_image_for(page.category),
+          meta_description: page_meta_description(page),
+          og_description: seo_value(page_seo, :og_description),
+          canonical_url: seo_value(page_seo, :canonical_url),
+          robots: if(noindex?, do: ["noindex", "nofollow"]),
+          og_image: seo_value(page_seo, :og_image) || page.og_image || og_image_for(page.category),
           layout_type: layout_type,
           category: page.category,
           page: page,
@@ -172,6 +181,42 @@ defmodule AgentJidoWeb.PageLive do
   defp fallback_path("/build" <> _), do: "/build"
   defp fallback_path("/community" <> _), do: "/community"
   defp fallback_path(_), do: "/"
+
+  defp generic_index_metadata(:build) do
+    %{
+      title: "Build with Jido",
+      description: "Implementation blueprints and practical build paths for shipping Jido-powered agent systems."
+    }
+  end
+
+  defp generic_index_metadata(:community) do
+    %{
+      title: "Jido Community",
+      description: "Learning paths, adoption playbooks, and case studies from teams building with Jido."
+    }
+  end
+
+  defp generic_index_metadata(category) do
+    %{
+      title: category |> to_string() |> Phoenix.Naming.humanize(),
+      description: "Explore practical resources for building and operating production systems with Jido."
+    }
+  end
+
+  defp page_meta_description(page) do
+    case page.description |> to_string() |> String.trim() do
+      "" -> "Explore implementation guidance and production practices for building with Jido."
+      description -> description
+    end
+  end
+
+  defp page_seo(page) do
+    Map.get(page, :seo, %{}) || %{}
+  end
+
+  defp seo_value(seo, key) do
+    Map.get(seo, key) || Map.get(seo, Atom.to_string(key))
+  end
 
   # --- Layout dispatch ---
 

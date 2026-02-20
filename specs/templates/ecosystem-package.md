@@ -1,7 +1,7 @@
 <!-- 
   TEMPLATE: Ecosystem Package Page
   Use for: Individual package detail pages under /ecosystem/*
-  Tone: See marketing/style-voice.md — concept-first, then one code example per capability.
+  Tone: See specs/style-voice.md — concept-first, then one code example per capability.
   Rules: content-outline.md §5 (clear claim, architecture explanation, runnable proof,
          training cross-link, docs/reference cross-link, CTA).
 -->

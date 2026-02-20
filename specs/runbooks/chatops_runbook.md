@@ -70,5 +70,5 @@ The room name shown in ChatOps UI is `CONTENTOPS_ROOM_NAME` (default `ContentOps
 
 ## Related Docs
 
-- Durability decision: `specs/chatops_durability_decision.md`
+- Durability decision: `specs/runbooks/chatops_durability_decision.md`
 - Story definition: `specs/stories/03_chatops_console.md` (`ST-CHOPS-005`)

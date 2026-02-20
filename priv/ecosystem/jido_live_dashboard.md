@@ -4,7 +4,7 @@
   version: "0.1.0",
   tagline: "Real-time observability and debugging for Jido agents in Phoenix LiveDashboard",
   license: "Apache-2.0",
-  visibility: :public,
+  visibility: :private,
   category: :tools,
   tier: 2,
   tags: [:dashboard, :observability, :debugging, :liveview],

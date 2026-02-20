@@ -10,7 +10,18 @@ defmodule AgentJido.Ecosystem.Layering do
     "req_llm" => :foundation,
     "jido_action" => :foundation,
     "jido_signal" => :foundation,
-    "jido" => :core
+    "jido_shell" => :foundation,
+    "jido_vfs" => :foundation,
+    "jido" => :core,
+    "jido_ai" => :ai,
+    "jido_browser" => :ai,
+    "jido_memory" => :ai,
+    "jido_behaviortree" => :ai,
+    "jido_runic" => :ai,
+    "ash_jido" => :app,
+    "jido_studio" => :app,
+    "jido_messaging" => :app,
+    "jido_otel" => :app
   }
 
   @category_defaults %{

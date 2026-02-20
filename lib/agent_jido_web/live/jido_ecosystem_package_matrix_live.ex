@@ -7,19 +7,34 @@ defmodule AgentJidoWeb.JidoEcosystemPackageMatrixLive do
   import AgentJidoWeb.Jido.MarketingLayouts
 
   @layer_order %{foundation: 1, core: 2, ai: 3, app: 4}
+  @core_package_ids ~w(llm_db req_llm jido_action jido_signal jido jido_ai jido_browser)
+  @opt_in_package_ids ~w(ash_jido jido_runic jido_memory jido_otel jido_studio jido_messaging jido_behaviortree)
+  @curated_package_ids @core_package_ids ++ @opt_in_package_ids
+  @package_rank @curated_package_ids |> Enum.with_index() |> Map.new()
 
   @impl true
   def mount(_params, _session, socket) do
-    packages = Ecosystem.public_packages()
+    packages =
+      Ecosystem.public_packages()
+      |> Enum.filter(&Map.has_key?(@package_rank, &1.id))
+
     title_by_id = Map.new(packages, &{&1.id, &1.title})
 
     rows =
       packages
       |> Enum.map(&to_row/1)
-      |> Enum.sort_by(fn row -> {layer_rank(row.layer), String.downcase(row.title)} end)
+      |> Enum.sort_by(fn row ->
+        {
+          track_rank(row.track),
+          layer_rank(row.layer),
+          Map.get(@package_rank, row.id, 999)
+        }
+      end)
 
     {:ok,
      assign(socket,
+       page_title: "Jido Ecosystem Package Matrix",
+       meta_description: "Compare responsibilities, dependencies, and maturity across the curated Jido ecosystem packages.",
        rows: rows,
        title_by_id: title_by_id,
        package_count: length(rows),
@@ -32,7 +47,7 @@ defmodule AgentJidoWeb.JidoEcosystemPackageMatrixLive do
   def render(assigns) do
     ~H"""
     <.marketing_layout current_path="/ecosystem">
-      <div class="container max-w-[1100px] mx-auto px-6 py-12">
+      <div class="container max-w-[960px] mx-auto px-6 py-12">
         <section class="mb-10">
           <div class="inline-block px-4 py-2 rounded mb-5 bg-primary/10 border border-primary/30">
             <span class="text-primary text-[11px] font-semibold tracking-widest uppercase">
@@ -45,8 +60,8 @@ defmodule AgentJidoWeb.JidoEcosystemPackageMatrixLive do
           </h1>
 
           <p class="text-sm text-secondary-foreground leading-relaxed max-w-[720px]">
-            Compare responsibilities, layering, maturity, and dependencies across public packages.
-            Use this matrix to pick an adoption path before diving into package details.
+            Compare responsibilities, layers, maturity, and dependencies across the curated ecosystem package set.
+            Use this matrix to choose between core and opt-in packages before diving into details.
           </p>
 
           <div class="flex flex-wrap items-center gap-6 mt-6">
@@ -62,7 +77,7 @@ defmodule AgentJidoWeb.JidoEcosystemPackageMatrixLive do
               navigate="/ecosystem"
               class="text-xs text-primary hover:text-primary/80 transition-colors font-semibold"
             >
-              VIEW DEPENDENCY GRAPH →
+              VIEW ECOSYSTEM →
             </.link>
           </div>
         </section>
@@ -76,7 +91,7 @@ defmodule AgentJidoWeb.JidoEcosystemPackageMatrixLive do
                   {layer_label(layer)}
                 </div>
                 <p class="text-xs text-muted-foreground mt-2">
-                  Start with {layer_label(layer) |> String.downcase()} packages when your architecture needs this layer.
+                  Start with {layer_label(layer)} packages when your architecture needs this layer.
                 </p>
               </article>
             <% end %>
@@ -90,34 +105,46 @@ defmodule AgentJidoWeb.JidoEcosystemPackageMatrixLive do
           </div>
 
           <div class="overflow-x-auto">
-            <table class="w-full min-w-[940px] text-xs">
+            <table class="w-full min-w-[760px] text-xs table-fixed">
+              <colgroup>
+                <col class="w-[34%]" />
+                <col class="w-[10%]" />
+                <col class="w-[12%]" />
+                <col class="w-[13%]" />
+                <col class="w-[21%]" />
+                <col class="w-[10%]" />
+              </colgroup>
               <thead class="bg-elevated text-muted-foreground uppercase tracking-wider">
                 <tr>
-                  <th class="text-left font-semibold px-4 py-3">Package</th>
-                  <th class="text-left font-semibold px-4 py-3">Layer</th>
-                  <th class="text-left font-semibold px-4 py-3">Category</th>
-                  <th class="text-left font-semibold px-4 py-3">Maturity</th>
-                  <th class="text-left font-semibold px-4 py-3">Dependencies</th>
-                  <th class="text-left font-semibold px-4 py-3">Links</th>
+                  <th class="text-left font-semibold px-3 py-3">Package</th>
+                  <th class="text-left font-semibold px-3 py-3">Track</th>
+                  <th class="text-left font-semibold px-3 py-3">Layer</th>
+                  <th class="text-left font-semibold px-3 py-3">Maturity</th>
+                  <th class="text-left font-semibold px-3 py-3">Dependencies</th>
+                  <th class="text-left font-semibold px-3 py-3">Links</th>
                 </tr>
               </thead>
               <tbody>
                 <%= for row <- @rows do %>
                   <tr class="border-t border-border align-top">
-                    <td class="px-4 py-3">
+                    <td class="px-3 py-3">
                       <.link navigate={row.path} class="font-semibold text-foreground hover:text-primary transition-colors">
                         {row.title}
                       </.link>
-                      <div class="text-muted-foreground mt-1">{row.tagline}</div>
+                      <div class="text-muted-foreground mt-1 break-words">{row.tagline}</div>
                     </td>
-                    <td class="px-4 py-3">
+                    <td class="px-3 py-3">
+                      <span class={"inline-flex px-2 py-1 rounded text-[10px] uppercase tracking-wide border #{track_badge_class(row.track)}"}>
+                        {track_label(row.track)}
+                      </span>
+                    </td>
+                    <td class="px-3 py-3">
                       <span class={"inline-flex px-2 py-1 rounded text-[10px] uppercase tracking-wide border #{layer_badge_class(row.layer)}"}>
                         {layer_label(row.layer)}
                       </span>
                     </td>
-                    <td class="px-4 py-3 text-muted-foreground">{row.category}</td>
-                    <td class="px-4 py-3 text-muted-foreground">{row.maturity}</td>
-                    <td class="px-4 py-3">
+                    <td class="px-3 py-3 text-muted-foreground">{row.maturity}</td>
+                    <td class="px-3 py-3">
                       <%= if row.dependency_ids == [] do %>
                         <span class="text-muted-foreground">none</span>
                       <% else %>
@@ -133,7 +160,7 @@ defmodule AgentJidoWeb.JidoEcosystemPackageMatrixLive do
                         </div>
                       <% end %>
                     </td>
-                    <td class="px-4 py-3">
+                    <td class="px-3 py-3">
                       <%= if row.links == [] do %>
                         <span class="text-muted-foreground">n/a</span>
                       <% else %>
@@ -164,10 +191,11 @@ defmodule AgentJidoWeb.JidoEcosystemPackageMatrixLive do
 
   defp to_row(pkg) do
     %{
+      id: pkg.id,
       title: pkg.title,
       tagline: normalize_text(pkg.tagline),
+      track: package_track(pkg.id),
       layer: Layering.layer_for(pkg),
-      category: format_atom(pkg.category),
       maturity: format_atom(pkg.maturity),
       dependency_ids: pkg.ecosystem_deps || [],
       path: package_path(pkg.id),
@@ -189,14 +217,28 @@ defmodule AgentJidoWeb.JidoEcosystemPackageMatrixLive do
   defp package_path(id), do: "/ecosystem/#{id}"
 
   defp layer_rank(layer), do: Map.get(@layer_order, layer, 99)
+  defp track_rank(:core), do: 1
+  defp track_rank(:opt_in), do: 2
+  defp track_rank(_), do: 99
+
+  defp package_track(id) when id in @core_package_ids, do: :core
+  defp package_track(id) when id in @opt_in_package_ids, do: :opt_in
+  defp package_track(_), do: :opt_in
 
   defp layer_label(layer), do: format_atom(layer)
+  defp track_label(:core), do: "CORE"
+  defp track_label(:opt_in), do: "OPT-IN"
+  defp track_label(_), do: "N/A"
 
   defp layer_label_class(:foundation), do: "text-accent-cyan"
   defp layer_label_class(:core), do: "text-accent-green"
   defp layer_label_class(:ai), do: "text-accent-yellow"
   defp layer_label_class(:app), do: "text-accent-red"
   defp layer_label_class(_), do: "text-primary"
+
+  defp track_badge_class(:core), do: "border-primary/40 bg-primary/10 text-primary"
+  defp track_badge_class(:opt_in), do: "border-border bg-elevated text-muted-foreground"
+  defp track_badge_class(_), do: "border-border bg-elevated text-muted-foreground"
 
   defp layer_badge_class(:foundation), do: "border-accent-cyan/40 bg-accent-cyan/10 text-accent-cyan"
   defp layer_badge_class(:core), do: "border-accent-green/40 bg-accent-green/10 text-accent-green"

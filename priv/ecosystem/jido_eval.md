@@ -4,7 +4,7 @@
   version: "0.1.0",
   tagline: "Evaluation framework for LLM and Jido agent quality measurement",
   license: "Apache-2.0",
-  visibility: :public,
+  visibility: :private,
   category: :ai,
   tier: 2,
   tags: [:evaluation, :llm, :benchmarking, :quality],

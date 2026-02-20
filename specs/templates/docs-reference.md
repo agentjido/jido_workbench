@@ -1,7 +1,7 @@
 <!-- 
   TEMPLATE: Docs Reference (API Reference Hub Page)
   Use for: /docs/reference/* pages — module-level API documentation
-  Tone: See marketing/style-voice.md — code-first, show implementation then explain.
+  Tone: See specs/style-voice.md — code-first, show implementation then explain.
   Rules: content-outline.md §5 (clear claim, architecture explanation, runnable proof,
          training cross-link, docs/reference cross-link, CTA).
   Note: This template is for hand-written reference hub pages that complement

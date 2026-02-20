@@ -167,4 +167,4 @@ Every strategic page should include:
 
 For content validation and drift control workflow, use:
 
-- `marketing/content-governance.md`
+- `specs/content-governance.md`

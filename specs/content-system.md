@@ -187,7 +187,7 @@ These sections are defined in `content-outline.md` but have no `priv/` content d
 | Community (`/community`, `/community/:slug`) | Content directory + loader + routes | ❌ Not started |
 | Ecosystem package-matrix (`/ecosystem/package-matrix`) | Static page or content file + route | ❌ Not started |
 
-See `marketing/TODO.md` for the implementation tasks.
+See `specs/TODO.md` for the implementation tasks.
 
 ### Docs pages defined in outline but missing from `priv/documentation/docs/`
 
@@ -203,11 +203,11 @@ Currently only `index.md` and `getting-started.livemd` exist. The outline requir
 
 These can use the existing documentation pipeline once content files are added to `priv/documentation/docs/`.
 
-## How marketing/ relates to priv/
+## How specs/ relates to priv/
 
-The `marketing/` folder contains **strategy, constraints, and specifications** that govern what goes into `priv/`.
+The `specs/` folder contains **strategy, constraints, and specifications** that govern what goes into `priv/`.
 
-| marketing/ doc | Governs |
+| specs/ doc | Governs |
 |---|---|
 | `positioning.md` | Messaging claims, pillars, and narrative constraints for all content |
 | `content-outline.md` | Information architecture — what pages exist and how they connect |
@@ -218,14 +218,14 @@ The `marketing/` folder contains **strategy, constraints, and specifications** t
 | `templates/` | Page scaffolds for each content type |
 | `docs-manifesto.md` | Writing principles and documentation quality standards |
 
-Think of it as: **marketing/ is the spec, priv/ is the implementation.**
+Think of it as: **specs/ is the spec, priv/ is the implementation.**
 
 ## Content plan as intermediate stage
 
-The `priv/content_plan/` directory is the **intermediate staging area** between strategy (marketing/) and published content (priv/). The pipeline is:
+The `priv/content_plan/` directory is the **intermediate staging area** between strategy (specs/) and published content (priv/). The pipeline is:
 
 ```
-marketing/content-outline.md  →  priv/content_plan/**/*.md  →  priv/{blog,documentation,training,...}/*.md
+specs/content-outline.md  →  priv/content_plan/**/*.md  →  priv/{blog,documentation,training,...}/*.md
        (what pages exist)          (editorial briefs)              (published content)
 ```
 
@@ -245,11 +245,11 @@ All slug mismatches have been resolved. Each entry now includes `destination_rou
 ## For AI agents
 
 When generating or validating content:
-1. Check `marketing/style-voice.md` for tone, terminology, and mechanical conventions
-2. Check `marketing/content-outline.md` for where the content fits in the IA
-3. Check `marketing/templates/` for the structural template for this page type
+1. Check `specs/style-voice.md` for tone, terminology, and mechanical conventions
+2. Check `specs/content-outline.md` for where the content fits in the IA
+3. Check `specs/templates/` for the structural template for this page type
 4. Use the frontmatter schema from the relevant schema module — all fields with descriptions
 5. Cross-reference `priv/ecosystem/*.md` for package claims and dependencies
 6. Check `priv/content_plan/` for the editorial brief if one exists
-7. Validate against `marketing/content-governance.md` §10 before publishing
-8. Use `marketing/proof.md` to verify claims have backing evidence
+7. Validate against `specs/content-governance.md` §10 before publishing
+8. Use `specs/proof.md` to verify claims have backing evidence

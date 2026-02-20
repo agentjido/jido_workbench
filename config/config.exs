@@ -31,7 +31,8 @@ config :agent_jido, AgentJidoWeb.Endpoint,
   url: [host: "localhost"],
   render_errors: [
     formats: [html: AgentJidoWeb.ErrorHTML, json: AgentJidoWeb.ErrorJSON],
-    layout: false
+    layout: false,
+    root_layout: [html: {AgentJidoWeb.Layouts, :root}]
   ],
   pubsub_server: AgentJido.PubSub,
   live_view: [signing_salt: "8Hv+cWMw"]

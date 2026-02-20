@@ -1,7 +1,7 @@
 <!-- 
   TEMPLATE: Training Module
   Use for: /training/* pages (e.g., /training/agent-fundamentals)
-  Tone: See marketing/style-voice.md — pedagogical, build concepts incrementally,
+  Tone: See specs/style-voice.md — pedagogical, build concepts incrementally,
         every code block should be runnable.
   Rules: content-outline.md §5 (clear claim, architecture explanation, runnable proof,
          training cross-link, docs/reference cross-link, CTA).

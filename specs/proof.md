@@ -2,7 +2,7 @@
 
 Version: 1.0  
 Last updated: 2026-02-12  
-Primary inputs: `marketing/positioning.md` §9 (Messaging Pillars), §7 (Persona Coverage), §8 (Ecosystem Proof Architecture)
+Primary inputs: `specs/positioning.md` §9 (Messaging Pillars), §7 (Persona Coverage), §8 (Ecosystem Proof Architecture)
 
 > **Purpose:** Map every positioning claim to concrete, verifiable proof. If a cell is empty, the claim is unsupported. Fill this in before publishing any major page.
 >

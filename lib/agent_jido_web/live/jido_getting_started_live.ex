@@ -6,7 +6,12 @@ defmodule AgentJidoWeb.JidoGettingStartedLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, og_image: "https://agentjido.xyz/og/getting-started.png")}
+    {:ok,
+     assign(socket,
+       page_title: "Getting Started with Jido",
+       meta_description: "Install Jido and build your first Elixir/OTP multi-agent workflow in minutes.",
+       og_image: "https://agentjido.xyz/og/getting-started.png"
+     )}
   end
 
   @impl true
@@ -22,61 +27,53 @@ defmodule AgentJidoWeb.JidoGettingStartedLive do
         </section>
 
         <section class="pb-16 space-y-12">
-          <!-- Step 1 -->
           <div>
             <h2 class="text-lg font-bold mb-4 flex items-center gap-3">
-              <span class="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm">1</span> Add Dependencies
+              <span class="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm">
+                1
+              </span>
+              Add Dependencies
             </h2>
             <.code_block
               title="mix.exs"
-              code={~s|defp deps do
-    [
-    {:jido, "~> 1.0"},
-    {:jido_ai, "~> 1.0"}
-    ]
-    end|}
+              code={deps_snippet()}
             />
           </div>
-          
-    <!-- Step 2 -->
+
           <div>
             <h2 class="text-lg font-bold mb-4 flex items-center gap-3">
-              <span class="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm">2</span> Fetch Dependencies
+              <span class="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm">
+                2
+              </span>
+              Fetch Dependencies
             </h2>
             <.terminal_command command="mix deps.get" />
           </div>
-          
-    <!-- Step 3 -->
+
           <div>
             <h2 class="text-lg font-bold mb-4 flex items-center gap-3">
-              <span class="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm">3</span>
-              Define Your First Agent
+              <span class="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm">
+                3
+              </span>
+              Define Your Weather Agent
             </h2>
             <.code_block
-              title="lib/my_app/my_agent.ex"
-              code={~s|defmodule MyApp.MyAgent do
-    use Jido.Agent,
-    name: "my_agent",
-    description: "My first AI agent"
-
-    def handle_signal(:greet, %{name: name}, state) do
-    {:ok, "Hello, \#{name}!", state}
-    end
-    end|}
+              title="lib/my_app/weather_agent.ex"
+              code={agent_snippet()}
             />
           </div>
-          
-    <!-- Step 4 -->
+
           <div>
             <h2 class="text-lg font-bold mb-4 flex items-center gap-3">
-              <span class="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm">4</span> Run Your Agent
+              <span class="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm">
+                4
+              </span>
+              Run It in IEx
             </h2>
             <.code_block
               title="iex -S mix"
               language="elixir"
-              code={~s|iex> {:ok, pid} = MyApp.MyAgent.start_link()
-    iex> MyApp.MyAgent.signal(pid, :greet, %{name: "World"})
-    {:ok, "Hello, World!"}|}
+              code={run_snippet()}
             />
           </div>
         </section>
@@ -91,6 +88,47 @@ defmodule AgentJidoWeb.JidoGettingStartedLive do
         </section>
       </div>
     </.marketing_layout>
+    """
+  end
+
+  defp deps_snippet do
+    ~S"""
+    defp deps do
+      [
+        {:jido, "~> 2.0"},
+        {:jido_ai, "~> 2.0"}
+      ]
+    end
+    """
+  end
+
+  defp agent_snippet do
+    ~S"""
+    defmodule MyApp.WeatherAgent do
+      use Jido.AI.Agent,
+        name: "weather_agent",
+        description: "Weather Q&A agent",
+        tools: [
+          Jido.Tools.Weather,
+          Jido.Tools.Weather.ByLocation,
+          Jido.Tools.Weather.Forecast,
+          Jido.Tools.Weather.CurrentConditions,
+          Jido.Tools.Weather.Geocode
+        ],
+        system_prompt: ~S|You are a weather planning assistant.
+        Use weather tools to answer with practical advice.|
+    end
+    """
+  end
+
+  defp run_snippet do
+    ~S"""
+    iex> {:ok, pid} = Jido.AgentServer.start(agent: MyApp.WeatherAgent)
+
+    iex> {:ok, request} = MyApp.WeatherAgent.ask(pid, "What's the weather in Tokyo?")
+    iex> {:ok, answer} = MyApp.WeatherAgent.await(request)
+
+    iex> {:ok, answer} = MyApp.WeatherAgent.ask_sync(pid, "Should I bring an umbrella?")
     """
   end
 end

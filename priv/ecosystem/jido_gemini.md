@@ -4,7 +4,7 @@
   version: "0.1.0",
   tagline: "Google Gemini CLI adapter implementing the Jido Harness protocol",
   license: "Apache-2.0",
-  visibility: :public,
+  visibility: :private,
   category: :integrations,
   tier: 2,
   tags: [:gemini, :google, :cli, :harness, :coding],

@@ -10,6 +10,8 @@ defmodule AgentJidoWeb.JidoFeaturesLive do
   def mount(_params, _session, socket) do
     {:ok,
      assign(socket,
+       page_title: "Jido Features",
+       meta_description: "Explore the architecture and runtime capabilities that make Jido reliable for production multi-agent systems.",
        og_image: "https://agentjido.xyz/og/features.png",
        core_features: core_features(),
        integration_features: integration_features(),

@@ -1,0 +1,53 @@
+<AgentJidoWeb.Jido.MarketingLayouts.marketing_layout current_path="" show_nav_modals={false}>
+  <section class="px-6 py-20 md:py-28">
+    <div class="mx-auto max-w-3xl">
+      <div class="inline-flex items-center rounded border border-border px-3 py-1 text-xs text-muted-foreground">
+        404
+      </div>
+      <h1 class="mt-5 text-3xl font-bold tracking-tight md:text-4xl">Page not found</h1>
+      <p class="mt-4 text-sm text-muted-foreground md:text-base">
+        We could not find <code class="rounded bg-muted px-1.5 py-0.5 text-foreground">{@request_path}</code>.
+        Some older links (including training routes) are intentionally hidden for this launch.
+      </p>
+      <p class="mt-2 text-sm text-muted-foreground md:text-base">
+        Use one of the paths below to continue.
+      </p>
+
+      <div class="mt-8 flex flex-wrap gap-3">
+        <.link
+          navigate="/docs/getting-started"
+          class="bg-primary text-primary-foreground hover:bg-primary/90 text-[13px] font-bold px-5 py-3 rounded transition-colors"
+        >
+          GET BUILDING
+        </.link>
+        <.link
+          navigate="/docs"
+          class="border border-border hover:border-foreground/40 text-[13px] font-medium px-5 py-3 rounded transition-colors"
+        >
+          Docs
+        </.link>
+        <.link
+          navigate="/examples"
+          class="border border-border hover:border-foreground/40 text-[13px] font-medium px-5 py-3 rounded transition-colors"
+        >
+          Examples
+        </.link>
+      </div>
+
+      <div class="mt-10 grid gap-3 text-sm text-muted-foreground md:grid-cols-2">
+        <.link navigate="/" class="feature-card hover:border-primary/50 transition-colors">
+          <span class="block text-foreground font-semibold">Home</span> Return to the top-level overview.
+        </.link>
+        <.link navigate="/features" class="feature-card hover:border-primary/50 transition-colors">
+          <span class="block text-foreground font-semibold">Features</span> Review architecture and reliability differentiators.
+        </.link>
+        <.link navigate="/ecosystem" class="feature-card hover:border-primary/50 transition-colors">
+          <span class="block text-foreground font-semibold">Ecosystem</span> Inspect packages and integration surfaces.
+        </.link>
+        <.link navigate="/community" class="feature-card hover:border-primary/50 transition-colors">
+          <span class="block text-foreground font-semibold">Community</span> Find learning paths and adoption guides.
+        </.link>
+      </div>
+    </div>
+  </section>
+</AgentJidoWeb.Jido.MarketingLayouts.marketing_layout>

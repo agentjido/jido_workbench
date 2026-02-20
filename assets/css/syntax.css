@@ -213,3 +213,82 @@ pre > code.highlight,
 :root[class~="dark"] .highlight .nn {
   text-decoration: none;
 }
+
+/* Marketing code blocks use app theme tokens so they stay readable in both modes. */
+.code-content .highlight,
+.code-content .highlight > code {
+  color: hsl(var(--foreground));
+}
+
+.code-content .highlight > code {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  line-height: 1.75;
+}
+
+.code-content .highlight .bp,
+.code-content .highlight .nb,
+.code-content .highlight .nn,
+.code-content .highlight .kt,
+.code-content .highlight .na,
+.code-content .highlight .nt {
+  color: hsl(var(--code-type));
+}
+
+.code-content .highlight .k,
+.code-content .highlight .kc,
+.code-content .highlight .kd,
+.code-content .highlight .kn,
+.code-content .highlight .kp,
+.code-content .highlight .kr,
+.code-content .highlight .ow {
+  color: hsl(var(--code-keyword));
+}
+
+.code-content .highlight .s,
+.code-content .highlight .sa,
+.code-content .highlight .sb,
+.code-content .highlight .sc,
+.code-content .highlight .sd,
+.code-content .highlight .s1,
+.code-content .highlight .s2,
+.code-content .highlight .dl,
+.code-content .highlight .si,
+.code-content .highlight .ss,
+.code-content .highlight .sx {
+  color: hsl(var(--code-string));
+}
+
+.code-content .highlight .nc,
+.code-content .highlight .nf {
+  color: hsl(var(--code-function));
+  text-decoration: none;
+}
+
+.code-content .highlight .nv,
+.code-content .highlight .vi,
+.code-content .highlight .vc,
+.code-content .highlight .vg,
+.code-content .highlight .vm,
+.code-content .highlight .m,
+.code-content .highlight .mi,
+.code-content .highlight .mf,
+.code-content .highlight .mh,
+.code-content .highlight .mo,
+.code-content .highlight .mb,
+.code-content .highlight .il {
+  color: hsl(var(--code-function));
+}
+
+.code-content .highlight .c,
+.code-content .highlight .c1,
+.code-content .highlight .ch,
+.code-content .highlight .cm,
+.code-content .highlight .cs {
+  color: hsl(var(--code-comment));
+  font-style: italic;
+}
+
+.code-content .highlight .o {
+  color: hsl(var(--muted-foreground));
+}

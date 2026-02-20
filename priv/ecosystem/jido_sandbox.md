@@ -4,7 +4,7 @@
   version: "0.1.0",
   tagline: "Pure-BEAM sandbox with virtual filesystem and Lua runtime for safe LLM tool execution",
   license: "Apache-2.0",
-  visibility: :public,
+  visibility: :private,
   category: :tools,
   tier: 2,
   tags: [:sandbox, :security, :vfs, :lua, :tools],

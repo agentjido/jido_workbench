@@ -1,7 +1,7 @@
 <!-- 
   TEMPLATE: Feature Page
   Use for: /features/* pages (e.g., /features/reliability-by-architecture)
-  Tone: See marketing/style-voice.md — staff engineer explaining to a peer.
+  Tone: See specs/style-voice.md — staff engineer explaining to a peer.
   Rules: content-outline.md §5 (every page needs: clear claim, concrete architecture 
          explanation, one runnable proof, one training cross-link, one docs/reference 
          cross-link, CTA).

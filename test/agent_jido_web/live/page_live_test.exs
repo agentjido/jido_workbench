@@ -23,9 +23,10 @@ defmodule AgentJidoWeb.PageLiveTest do
     test "marketing footer reflects legal and ecosystem updates", %{conn: conn} do
       {:ok, _view, html} = live(conn, "/features")
       jido_version = AgentJidoWeb.Jido.Nav.jido_version()
+      current_year = Date.utc_today().year
 
       assert html =~ "Apache License 2.0"
-      assert html =~ "Copyright © 2025-&gt; Mike Hostetler"
+      assert html =~ "Copyright © 2025-#{current_year} Mike Hostetler"
       assert html =~ "Jido #{jido_version}"
 
       assert html =~ ~s(href="/ecosystem")
@@ -51,10 +52,11 @@ defmodule AgentJidoWeb.PageLiveTest do
 
       {:ok, _view, html} = live(conn, Pages.route_for(page))
       jido_version = AgentJidoWeb.Jido.Nav.jido_version()
+      current_year = Date.utc_today().year
 
       assert html =~ "Edit this page"
       assert html =~ "Apache License 2.0"
-      assert html =~ "Copyright © 2025-&gt; Mike Hostetler"
+      assert html =~ "Copyright © 2025-#{current_year} Mike Hostetler"
       assert html =~ "Jido #{jido_version}"
     end
   end

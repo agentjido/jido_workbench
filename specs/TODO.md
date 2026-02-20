@@ -16,10 +16,10 @@
       Content plan brief created at `priv/content_plan/docs/architecture-overview.md` covering: Think/Act separation, package boundaries, 7 core components, OTP supervision tree, LLM integration layer, state taxonomy (7 locations), responsibility matrix, and 2 Mermaid diagrams.
 
 - [x] **P1 · M** — **Fill proof inventory** ✅
-      `marketing/proof.md` is fully populated with 4 pillar sections, proof tables, package coverage, 6 persona requirement sections, and a prioritized TODO list.
+      `specs/proof.md` is fully populated with 4 pillar sections, proof tables, package coverage, 6 persona requirement sections, and a prioritized TODO list.
 
 - [x] **P1 · M** — **Write canonical page templates** ✅
-      `marketing/templates/` contains 6 complete templates (`feature-page.md`, `build-guide.md`, `docs-concept.md`, `docs-reference.md`, `ecosystem-package.md`, `training-module.md`) with structural guidance, tone references, and publishing checklists.
+      `specs/templates/` contains 6 complete templates (`feature-page.md`, `build-guide.md`, `docs-concept.md`, `docs-reference.md`, `ecosystem-package.md`, `training-module.md`) with structural guidance, tone references, and publishing checklists.
 
 - [ ] **P2 · L** — **Write `/features/reliability-by-architecture`**
       First canonical template page demonstrating the full proof chain and voice in practice. Serves as the reference implementation for all future feature pages.
@@ -66,8 +66,8 @@
   - `/partners` is aliased to `JidoFeaturesLive` — remove or redirect
   - `/getting-started` exists as a standalone LiveView but outline places getting-started under `/docs/getting-started` — reconcile or redirect
 
-- [x] **P2 · S** — **Update `marketing/content-system.md` route table** ✅
-      `marketing/content-system.md` (273 lines, updated 2026-02-12) is comprehensive and current with all 6 content directories, route mapping table, gap analysis, and schema documentation.
+- [x] **P2 · S** — **Update `specs/content-system.md` route table** ✅
+      `specs/content-system.md` (273 lines, updated 2026-02-12) is comprehensive and current with all 6 content directories, route mapping table, gap analysis, and schema documentation.
 
 ---
 

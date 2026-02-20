@@ -19,6 +19,7 @@ defmodule AgentJido.Ecosystem do
   @packages Enum.sort_by(@packages, fn p -> {p.tier, p.category, p.name} end)
 
   @public_packages Enum.filter(@packages, &(&1.visibility == :public))
+  @public_packages_by_id Map.new(@public_packages, &{&1.id, &1})
 
   @packages_by_id Map.new(@packages, &{&1.id, &1})
 
@@ -68,6 +69,15 @@ defmodule AgentJido.Ecosystem do
   def get_package!(id) do
     Map.get(@packages_by_id, id) ||
       raise NotFoundError, "package with id=#{id} not found"
+  end
+
+  @spec get_public_package(String.t()) :: Package.t() | nil
+  def get_public_package(id), do: Map.get(@public_packages_by_id, id)
+
+  @spec get_public_package!(String.t()) :: Package.t()
+  def get_public_package!(id) do
+    Map.get(@public_packages_by_id, id) ||
+      raise NotFoundError, "public package with id=#{id} not found"
   end
 
   @spec packages_by_category(atom()) :: [Package.t()]

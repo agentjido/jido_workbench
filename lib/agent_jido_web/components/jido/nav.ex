@@ -337,7 +337,7 @@ defmodule AgentJidoWeb.Jido.Nav do
 
   defp active_nav_link?(current_path, "/features") do
     path = current_path || ""
-    path == "/features" or path == "/partners" or String.starts_with?(path, "/features/")
+    path == "/features" or String.starts_with?(path, "/features/")
   end
 
   defp active_nav_link?(current_path, href) do

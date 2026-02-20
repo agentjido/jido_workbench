@@ -4,7 +4,7 @@
   version: "0.1.0",
   tagline: "Claude Code CLI integration for Jido agents with multi-session orchestration",
   license: "Apache-2.0",
-  visibility: :public,
+  visibility: :private,
   category: :ai,
   tier: 2,
   tags: [:claude, :anthropic, :cli, :coding, :orchestration],

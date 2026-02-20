@@ -16,8 +16,20 @@ defmodule AgentJidoWeb.PageController do
         |> redirect(to: Pages.route_for(page))
 
       _other ->
-        send_resp(conn, :not_found, "Not found")
+        not_found(conn, %{})
     end
+  end
+
+  def not_found(conn, _params) do
+    conn
+    |> put_status(:not_found)
+    |> put_view(html: AgentJidoWeb.PageHTML)
+    |> render(:not_found,
+      request_path: conn.request_path,
+      page_title: "Page Not Found",
+      meta_description: "The requested page could not be found on agentjido.xyz.",
+      robots: ["noindex", "nofollow"]
+    )
   end
 
   def arcana_redirect(conn, params) do

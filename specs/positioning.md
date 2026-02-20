@@ -2,7 +2,7 @@
 
 Version: 3.0  
 Last updated: 2026-02-12  
-Primary inputs: `marketing/content-outline.md`, `marketing/persona-journeys.md`, `priv/ecosystem/*.md`
+Primary inputs: `specs/content-outline.md`, `specs/persona-journeys.md`, `priv/ecosystem/*.md`
 
 ## 1) Core Positioning
 
@@ -299,4 +299,4 @@ Response:
 
 ## 19) Voice and Tone Guide
 
-See `marketing/style-voice.md` for the full voice, tone, and style/mechanical conventions guide.
+See `specs/style-voice.md` for the full voice, tone, and style/mechanical conventions guide.

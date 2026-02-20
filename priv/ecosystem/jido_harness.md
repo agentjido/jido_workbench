@@ -4,7 +4,7 @@
   version: "0.1.0",
   tagline: "Unified Elixir protocol for CLI AI coding agent providers",
   license: "Apache-2.0",
-  visibility: :public,
+  visibility: :private,
   category: :core,
   tier: 2,
   tags: [:harness, :protocol, :coding, :adapters],

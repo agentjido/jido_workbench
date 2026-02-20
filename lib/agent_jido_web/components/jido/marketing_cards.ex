@@ -12,19 +12,23 @@ defmodule AgentJidoWeb.Jido.MarketingCards do
 
   def package_card(assigns) do
     ~H"""
-    <div class={"package-card-#{@layer} hover:-translate-y-0.5 cursor-pointer transition-transform duration-200"}>
+    <div class={"package-card-#{@layer} relative group hover:-translate-y-0.5 transition-transform duration-200 #{if @path, do: "cursor-pointer", else: ""}"}>
+      <.link
+        :if={@path}
+        navigate={@path}
+        aria-label={"View #{@name} package details"}
+        class="absolute inset-0 z-10 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+      >
+        <span class="sr-only">View {@name} package details</span>
+      </.link>
+
       <div class="flex justify-between items-start mb-3">
-        <%= if @path do %>
-          <.link navigate={@path} class="text-sm font-bold text-foreground hover:text-primary transition-colors">
-            {@name}
-          </.link>
-        <% else %>
-          <span class="text-sm font-bold text-foreground">{@name}</span>
-        <% end %>
+        <span class="text-sm font-bold text-foreground group-hover:text-primary transition-colors">{@name}</span>
         <.layer_badge layer={@layer} />
       </div>
       <p class="text-xs text-muted-foreground leading-relaxed mb-4">{@desc}</p>
-      <div class="flex gap-2 flex-wrap">
+
+      <div class="relative z-20 flex gap-2 flex-wrap">
         <%= if @path do %>
           <.link navigate={@path} class="text-[10px] px-2 py-1 rounded bg-primary/10 text-primary hover:bg-primary/15 transition-colors">
             details

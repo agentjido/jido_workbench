@@ -7,9 +7,17 @@ defmodule AgentJidoWeb.Jido.MarketingCode do
   attr :title, :string, default: nil
   attr :language, :string, default: "elixir"
   attr :code, :string, required: true
+  attr :highlight, :boolean, default: true
   attr :class, :string, default: ""
 
   def code_block(assigns) do
+    normalized_code = normalize_code(assigns.code)
+
+    assigns =
+      assigns
+      |> assign(:normalized_code, normalized_code)
+      |> assign(:highlighted_code, highlighted_code(normalized_code, assigns.language, assigns.highlight))
+
     ~H"""
     <div class={"code-block #{@class}"}>
       <%= if @title do %>
@@ -22,7 +30,13 @@ defmodule AgentJidoWeb.Jido.MarketingCode do
           <span class="text-[10px] text-muted-foreground">{@title}</span>
         </div>
       <% end %>
-      <pre class="p-5 text-[11px] leading-relaxed overflow-x-auto"><code class={"language-#{@language}"}><%= @code %></code></pre>
+      <div class="code-content">
+        <%= if @highlighted_code do %>
+          {raw(@highlighted_code)}
+        <% else %>
+          <pre class="p-5 text-[12px] leading-relaxed"><code class={"language-#{@language}"}><%= @normalized_code %></code></pre>
+        <% end %>
+      </div>
     </div>
     """
   end
@@ -32,7 +46,7 @@ defmodule AgentJidoWeb.Jido.MarketingCode do
 
   def terminal_command(assigns) do
     ~H"""
-    <div class={"code-block #{@class}"}>
+    <div class={"code-block code-block-terminal #{@class}"}>
       <div class="code-header">
         <div class="flex gap-2">
           <span class="w-2.5 h-2.5 rounded-full bg-accent-red"></span>
@@ -41,9 +55,9 @@ defmodule AgentJidoWeb.Jido.MarketingCode do
         </div>
         <span class="text-[10px] text-muted-foreground">terminal</span>
       </div>
-      <div class="p-5 text-[11px] leading-relaxed">
-        <span class="text-primary">$</span>
-        <span class="text-foreground ml-2">{@command}</span>
+      <div class="terminal-content">
+        <span class="terminal-prompt">$</span>
+        <span class="terminal-command">{@command}</span>
       </div>
     </div>
     """
@@ -73,5 +87,76 @@ defmodule AgentJidoWeb.Jido.MarketingCode do
       <% end %>
     </div>
     """
+  end
+
+  defp highlighted_code(_code, _language, false), do: nil
+
+  defp highlighted_code(code, language, true) do
+    formatter_options = [css_class: "highlight marketing-highlight language-#{language}"]
+
+    options =
+      case lexer_for(language) do
+        nil -> [formatter_options: formatter_options]
+        lexer -> [lexer: lexer, formatter_options: formatter_options]
+      end
+
+    try do
+      Makeup.highlight(code, options)
+    rescue
+      _ -> nil
+    end
+  end
+
+  defp lexer_for(language) when is_binary(language) do
+    case String.downcase(language) do
+      "elixir" -> Makeup.Lexers.ElixirLexer
+      "js" -> Makeup.Lexers.JsLexer
+      "javascript" -> Makeup.Lexers.JsLexer
+      "html" -> Makeup.Lexers.HTMLLexer
+      _ -> nil
+    end
+  end
+
+  defp normalize_code(code) when is_binary(code) do
+    lines =
+      code
+      |> String.split("\n")
+      |> Enum.drop_while(&blank_line?/1)
+      |> drop_trailing_blank_lines()
+
+    indent =
+      lines
+      |> Enum.reject(&blank_line?/1)
+      |> Enum.map(&leading_indent/1)
+      |> Enum.min(fn -> 0 end)
+
+    lines
+    |> Enum.map(&strip_indent(&1, indent))
+    |> Enum.join("\n")
+  end
+
+  defp drop_trailing_blank_lines(lines) do
+    lines
+    |> Enum.reverse()
+    |> Enum.drop_while(&blank_line?/1)
+    |> Enum.reverse()
+  end
+
+  defp blank_line?(line), do: String.trim(line) == ""
+
+  defp leading_indent(line) do
+    line
+    |> String.replace_prefix(String.trim_leading(line), "")
+    |> String.length()
+  end
+
+  defp strip_indent(line, indent) do
+    {prefix, rest} = String.split_at(line, indent)
+
+    if String.length(prefix) == indent do
+      rest
+    else
+      line
+    end
   end
 end

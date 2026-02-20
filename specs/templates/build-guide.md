@@ -1,7 +1,7 @@
 <!-- 
   TEMPLATE: Build Guide
   Use for: /build/* pages (e.g., /build/mixed-stack-integration)
-  Tone: See marketing/style-voice.md — code-first, then explain why it works that way.
+  Tone: See specs/style-voice.md — code-first, then explain why it works that way.
   Rules: content-outline.md §5 (clear claim, architecture explanation, runnable proof,
          training cross-link, docs/reference cross-link, CTA).
 -->

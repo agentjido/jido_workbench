@@ -5,7 +5,7 @@
   tagline: "Virtual filesystem primitives for safe agent execution",
   graph_label: "virtual fs",
   license: "Apache-2.0",
-  visibility: :public,
+  visibility: :private,
   category: :tools,
   tier: 2,
   tags: [:vfs, :filesystem, :sandbox, :tools],

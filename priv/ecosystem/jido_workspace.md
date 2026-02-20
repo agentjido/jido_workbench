@@ -4,7 +4,7 @@
   version: "0.1.0",
   tagline: "Unified artifact workspace for agent sessions on top of jido_shell and jido_vfs",
   license: "Apache-2.0",
-  visibility: :public,
+  visibility: :private,
   category: :tools,
   tier: 2,
   tags: [:workspace, :artifacts, :shell, :vfs, :agents],

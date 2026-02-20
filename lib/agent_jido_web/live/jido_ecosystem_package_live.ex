@@ -13,14 +13,17 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLive do
 
   @impl true
   def mount(%{"id" => id}, _session, socket) do
-    package = Ecosystem.get_package!(id)
+    package = Ecosystem.get_public_package!(id)
+    package_hero_summary = hero_summary(package)
 
     {:ok,
      assign(socket,
+       page_title: package.title,
+       meta_description: package_meta_description(package, package_hero_summary),
        package: package,
        layer: Layering.layer_for(package),
        package_links: package_links(package),
-       hero_summary: hero_summary(package),
+       hero_summary: package_hero_summary,
        cliff_notes: cliff_notes(package),
        major_components: major_components(package),
        important_packages: important_packages(package),
@@ -231,7 +234,7 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLive do
 
         <section class="ecosystem-package-details mb-12">
           <h2 class="text-sm font-bold tracking-wider mb-3">FULL OVERVIEW</h2>
-          <article class="prose prose-invert max-w-none text-sm leading-relaxed">
+          <article class="prose max-w-none text-sm leading-relaxed text-foreground prose-headings:text-foreground prose-p:text-foreground/90 prose-li:text-foreground/90 prose-strong:text-foreground prose-code:text-foreground">
             {Phoenix.HTML.raw(@package.body)}
           </article>
         </section>
@@ -242,7 +245,7 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLive do
 
   defp resolve_packages(ids) do
     ids
-    |> Enum.map(&Ecosystem.get_package/1)
+    |> Enum.map(&Ecosystem.get_public_package/1)
     |> Enum.reject(&is_nil/1)
     |> Enum.map(fn pkg ->
       %{
@@ -270,6 +273,16 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLive do
     end
   end
 
+  defp package_meta_description(pkg, summary) do
+    normalized_summary = normalize_text(summary)
+
+    if normalized_summary == "" do
+      "Learn about #{pkg.title} in the Jido ecosystem and how it composes with related packages."
+    else
+      normalized_summary
+    end
+  end
+
   defp cliff_notes(pkg) do
     custom_notes = normalize_string_list(pkg.landing_cliff_notes) |> Enum.take(@max_cliff_notes)
 
@@ -292,7 +305,7 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLive do
       if MapSet.member?(seen, id) do
         {seen, acc}
       else
-        case Ecosystem.get_package(id) do
+        case Ecosystem.get_public_package(id) do
           nil ->
             {MapSet.put(seen, id), acc}
 
@@ -474,7 +487,7 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLive do
   defp module_node_path(""), do: nil
 
   defp module_node_path(id) do
-    case Ecosystem.get_package(id) do
+    case Ecosystem.get_public_package(id) do
       nil -> nil
       _pkg -> "/ecosystem/#{id}"
     end

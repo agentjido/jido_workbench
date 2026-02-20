@@ -133,7 +133,7 @@ defmodule AgentJido.ContentIngest.Inventory do
   defp build_ecosystem do
     {collection, description} = @doc_collections.ecosystem
 
-    for pkg <- Ecosystem.all_packages() do
+    for pkg <- Ecosystem.public_packages() do
       body_text = html_to_text(pkg.body)
       package_url = "/ecosystem##{pkg.id}"
 

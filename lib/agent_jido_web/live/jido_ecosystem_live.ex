@@ -2,29 +2,38 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
   use AgentJidoWeb, :live_view
 
   alias AgentJido.Ecosystem
-  alias AgentJido.Ecosystem.GraphAscii
+  alias AgentJido.Ecosystem.Layering
   alias AgentJido.LandingContent
 
   import AgentJidoWeb.Jido.MarketingLayouts
   import AgentJidoWeb.Jido.MarketingCards
 
+  @curated_layer_rows %{
+    foundation: [~w(llm_db req_llm), ~w(jido_action jido_signal)],
+    core: [~w(jido)],
+    ai: [~w(jido_ai jido_browser), ~w(jido_memory jido_behaviortree jido_runic)],
+    app: [~w(ash_jido jido_studio), ~w(jido_messaging jido_otel)]
+  }
+
+  @layer_order [:foundation, :core, :ai, :app]
+
   @impl true
   def mount(_params, _session, socket) do
-    ecosystem_packages = Ecosystem.public_packages()
-    package_cards = LandingContent.packages_from(ecosystem_packages)
-    graph_model = GraphAscii.build_model(ecosystem_packages)
-    graph_name_by_id = Map.new(graph_model.nodes, &{&1.id, &1.name})
+    public_packages = Ecosystem.public_packages()
+    package_cards = LandingContent.packages_from(public_packages)
+    name_by_id = Map.new(public_packages, &{&1.id, &1.title})
 
     {:ok,
      assign(socket,
+       page_title: "Jido Ecosystem",
+       meta_description: "Discover composable Jido packages across runtime core, AI orchestration, and production operations.",
        selected_layer: :all,
        packages: package_cards,
-       graph_layers: graph_model.layers,
-       graph_name_by_id: graph_name_by_id,
+       layer_rows: build_layer_rows(public_packages),
+       package_name_by_id: name_by_id,
        og_image: "https://agentjido.xyz/og/ecosystem.png",
        package_count: length(package_cards),
-       layer_count: count_layers(package_cards),
-       edge_count: length(graph_model.edges)
+       layer_count: count_layers(package_cards)
      )}
   end
 
@@ -66,79 +75,56 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
               <span class="text-primary text-2xl font-bold">{@layer_count}</span>
               <span class="text-muted-foreground text-xs">layers</span>
             </div>
-            <div class="flex items-baseline gap-2">
-              <span class="text-primary text-2xl font-bold">{@edge_count}</span>
-              <span class="text-muted-foreground text-xs">dependency edges</span>
-            </div>
           </div>
         </section>
 
-        <%!-- Dependency Graph --%>
+        <%!-- Layered Map Section --%>
         <section class="mb-16">
           <div class="flex justify-between items-center mb-5">
-            <span class="text-sm font-bold tracking-wider">DEPENDENCY GRAPH</span>
-            <span class="text-[11px] text-muted-foreground">packages compose bottom-up</span>
+            <span class="text-sm font-bold tracking-wider">LAYERED ECOSYSTEM MAP</span>
+            <span class="text-[11px] text-muted-foreground">curated architecture view</span>
           </div>
 
-          <div class="code-block overflow-hidden">
-            <div class="code-header">
-              <div class="flex gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-accent-red"></span>
-                <span class="w-2.5 h-2.5 rounded-full bg-accent-yellow"></span>
-                <span class="w-2.5 h-2.5 rounded-full bg-primary"></span>
-              </div>
-              <span class="text-[10px] text-muted-foreground">dependency_graph.html</span>
-            </div>
-            <div class="p-6">
-              <div class="ecosystem-layered-graph" id="ecosystem-layered-graph">
-                <div :if={@graph_layers == []} class="text-xs text-muted-foreground">
-                  No public package relationships found.
+          <div class="space-y-4">
+            <%= for layer <- @layer_rows do %>
+              <article class="rounded-md border border-border bg-card/60 overflow-hidden">
+                <div class="px-4 py-3 border-b border-border flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                  <span class={"text-[11px] font-bold tracking-wider uppercase #{layer_title_class(layer.id)}"}>
+                    {layer.label}
+                  </span>
+                  <span class="text-[11px] text-muted-foreground">{layer.summary}</span>
                 </div>
-                <%= for {layer, layer_index} <- Enum.with_index(@graph_layers) do %>
-                  <section class="ecosystem-graph-layer">
-                    <div class="ecosystem-layer-header">
-                      <span class={"ecosystem-layer-title #{node_text_class(layer.id)}"}>
-                        {layer.label}
-                      </span>
-                      <span class="ecosystem-layer-summary">
-                        {layer.summary}
-                      </span>
-                    </div>
-                    <%= for row <- layer.rows do %>
-                      <div
-                        class="ecosystem-depth-grid ecosystem-layer-row"
-                        style={"--ecosystem-cols: #{max(length(row), 1)}"}
-                      >
-                        <%= for node <- row do %>
-                          <article class={"ecosystem-graph-node ecosystem-node-#{node.layer}"}>
-                            <.link
-                              navigate={"/ecosystem/#{node.id}"}
-                              class={"ecosystem-node-name #{node_text_class(node.layer)}"}
-                            >
-                              {node.name}
-                            </.link>
-                            <p class="ecosystem-node-desc">{node.short_desc}</p>
-                            <div class="ecosystem-node-dependencies">
-                              <span class="ecosystem-node-meta-label">depends on</span>
-                              <%= if node.deps == [] do %>
-                                <span class="ecosystem-node-chip ecosystem-node-chip-muted">none</span>
-                              <% else %>
-                                <%= for dep_id <- node.deps do %>
-                                  <.link navigate={"/ecosystem/#{dep_id}"} class="ecosystem-node-chip">
-                                    {Map.get(@graph_name_by_id, dep_id, dep_id)}
-                                  </.link>
-                                <% end %>
+
+                <div class="p-4 space-y-3">
+                  <%= for row <- layer.rows do %>
+                    <div class={row_grid_class(length(row))}>
+                      <%= for pkg <- row do %>
+                        <.link
+                          navigate={pkg.path}
+                          class="block rounded-md border border-border bg-card p-3 cursor-pointer transition-all duration-150 hover:border-primary/50 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                        >
+                          <div class="text-xs font-bold text-foreground">{pkg.name}</div>
+                          <p class="text-[11px] text-muted-foreground leading-relaxed mt-1">{pkg.desc}</p>
+
+                          <div class="mt-2 flex flex-wrap gap-1.5 items-center">
+                            <span class="text-[9px] uppercase tracking-wider text-muted-foreground">depends on</span>
+                            <%= if pkg.dep_ids == [] do %>
+                              <span class="text-[10px] px-2 py-0.5 rounded border border-border/60 text-muted-foreground">none</span>
+                            <% else %>
+                              <%= for dep_id <- pkg.dep_ids do %>
+                                <span class="text-[10px] px-2 py-0.5 rounded border border-border bg-surface text-foreground">
+                                  {Map.get(@package_name_by_id, dep_id, dep_id)}
+                                </span>
                               <% end %>
-                            </div>
-                          </article>
-                        <% end %>
-                      </div>
-                    <% end %>
-                  </section>
-                  <div :if={layer_index < length(@graph_layers) - 1} class="ecosystem-layer-divider"></div>
-                <% end %>
-              </div>
-            </div>
+                            <% end %>
+                          </div>
+                        </.link>
+                      <% end %>
+                    </div>
+                  <% end %>
+                </div>
+              </article>
+            <% end %>
           </div>
         </section>
 
@@ -237,9 +223,67 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
     |> length()
   end
 
-  defp node_text_class(:foundation), do: "text-accent-cyan"
-  defp node_text_class(:core), do: "text-accent-green"
-  defp node_text_class(:ai), do: "text-accent-yellow"
-  defp node_text_class(:app), do: "text-accent-red"
-  defp node_text_class(_), do: "text-primary"
+  defp build_layer_rows(public_packages) do
+    package_map = Map.new(public_packages, &{&1.id, &1})
+
+    @layer_order
+    |> Enum.map(fn layer_id ->
+      rows =
+        @curated_layer_rows
+        |> Map.get(layer_id, [])
+        |> Enum.map(fn ids ->
+          ids
+          |> Enum.map(&to_layer_package(&1, package_map))
+          |> Enum.reject(&is_nil/1)
+        end)
+        |> Enum.reject(&(&1 == []))
+
+      %{
+        id: layer_id,
+        label: layer_label(layer_id),
+        summary: layer_summary(layer_id),
+        rows: rows
+      }
+    end)
+    |> Enum.reject(&(&1.rows == []))
+  end
+
+  defp to_layer_package(id, package_map) do
+    case Map.get(package_map, id) do
+      nil ->
+        nil
+
+      pkg ->
+        %{
+          id: pkg.id,
+          name: pkg.name,
+          path: "/ecosystem/#{pkg.id}",
+          desc: pkg.tagline,
+          layer: Layering.layer_for(pkg),
+          dep_ids: pkg.ecosystem_deps || []
+        }
+    end
+  end
+
+  defp row_grid_class(size) when size <= 1, do: "grid grid-cols-1 gap-3"
+  defp row_grid_class(2), do: "grid grid-cols-1 md:grid-cols-2 gap-3"
+  defp row_grid_class(_), do: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"
+
+  defp layer_label(:foundation), do: "FOUNDATION LAYER"
+  defp layer_label(:core), do: "CORE LAYER"
+  defp layer_label(:ai), do: "AI LAYER"
+  defp layer_label(:app), do: "APPLICATION LAYER"
+  defp layer_label(_), do: "LAYER"
+
+  defp layer_summary(:foundation), do: "Shared primitives for actions, signals, and model access"
+  defp layer_summary(:core), do: "Agent lifecycle runtime and orchestration"
+  defp layer_summary(:ai), do: "Reasoning, memory, and strategy packages"
+  defp layer_summary(:app), do: "Integrations, delivery channels, and operator tooling"
+  defp layer_summary(_), do: ""
+
+  defp layer_title_class(:foundation), do: "text-accent-cyan"
+  defp layer_title_class(:core), do: "text-accent-green"
+  defp layer_title_class(:ai), do: "text-accent-yellow"
+  defp layer_title_class(:app), do: "text-accent-red"
+  defp layer_title_class(_), do: "text-primary"
 end

@@ -3,10 +3,12 @@ defmodule AgentJidoWeb.ErrorHTMLTest do
 
   # Bring render_to_string/4 for testing custom views
   import Phoenix.Template
-  @moduletag :skip
 
   test "renders 404.html" do
-    assert render_to_string(AgentJidoWeb.ErrorHTML, "404", "html", []) == "Not Found"
+    body = render_to_string(AgentJidoWeb.ErrorHTML, "404", "html", [])
+
+    assert body =~ "Page not found"
+    assert body =~ "GET BUILDING"
   end
 
   test "renders 500.html" do
