@@ -82,17 +82,15 @@ defmodule AgentJido.MixProject do
 
       # AI / Jido
       {:jido, "~> 2.0.0-rc.5", override: true},
-      {:jido_action, github: "agentjido/jido_action", branch: "main", override: true},
-      {:jido_signal, github: "agentjido/jido_signal", branch: "main", override: true},
-      # CI fix: use a local patched jido_ai copy for Elixir 1.18 compatibility.
-      {:jido_ai, path: "vendor/jido_ai", override: true},
-      # CI fix: use a local patched telegex copy for Elixir 1.18 compatibility.
-      {:telegex, path: "vendor/telegex", override: true, env: :test},
+      {:jido_action, "~> 2.0.0-rc.5", override: true},
+      {:jido_signal, "~> 2.0.0-rc.5", override: true},
+      {:jido_ai, github: "agentjido/jido_ai", branch: "main", override: true},
       {:jido_runic, github: "agentjido/jido_runic", branch: "main"},
       {:jido_live_dashboard, github: "agentjido/jido_live_dashboard", branch: "main"},
       {:libgraph, github: "zblanco/libgraph", branch: "zw/multigraph-indexes", override: true},
       {:jido_studio, github: "agentjido/jido_studio", branch: "main"},
       {:jido_messaging, github: "agentjido/jido_messaging", branch: "main"},
+      {:telegex, "~> 1.8"},
       {:req_llm, github: "agentjido/req_llm", branch: "main", override: true},
       {:llm_db, github: "agentjido/llm_db", branch: "main", override: true},
       {:timex, "~> 3.7", override: true},
