@@ -90,7 +90,7 @@ defmodule AgentJido.MixProject do
       {:libgraph, github: "zblanco/libgraph", branch: "zw/multigraph-indexes", override: true},
       {:jido_studio, github: "agentjido/jido_studio", branch: "main"},
       {:jido_messaging, github: "agentjido/jido_messaging", branch: "main"},
-      {:telegex, "~> 1.8"},
+      {:telegex, github: "mikehostetler/telegex", ref: "a07f4e1", override: true},
       {:req_llm, github: "agentjido/req_llm", branch: "main", override: true},
       {:llm_db, github: "agentjido/llm_db", branch: "main", override: true},
       {:timex, "~> 3.7", override: true},
