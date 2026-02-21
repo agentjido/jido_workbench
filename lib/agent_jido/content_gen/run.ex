@@ -205,6 +205,8 @@ defmodule AgentJido.ContentGen.Run do
         })
 
       {:ok, envelope} ->
+        body_markdown = enrich_body_for_audit(envelope.body_markdown, entry)
+
         merged_frontmatter =
           Writer.merge_frontmatter(
             existing && existing.frontmatter,
@@ -213,11 +215,11 @@ defmodule AgentJido.ContentGen.Run do
             target.route
           )
 
-        rendered = Writer.render_file(merged_frontmatter, envelope.body_markdown)
+        rendered = Writer.render_file(merged_frontmatter, body_markdown)
 
         candidate = %{
           frontmatter: merged_frontmatter,
-          body_markdown: envelope.body_markdown,
+          body_markdown: body_markdown,
           raw: rendered,
           citations: envelope.citations,
           audit_notes: envelope.audit_notes
@@ -395,6 +397,108 @@ defmodule AgentJido.ContentGen.Run do
   defp default_run_id do
     ts = DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_unix()
     "run_#{ts}_#{System.unique_integer([:positive])}"
+  end
+
+  defp enrich_body_for_audit(body_markdown, entry) do
+    body_markdown
+    |> normalize_fragmented_json_body(entry)
+    |> ensure_source_module_anchors(entry)
+    |> ensure_source_file_anchors(entry)
+    |> ensure_cross_link_anchor()
+    |> String.trim_trailing()
+    |> Kernel.<>("\n")
+  end
+
+  defp normalize_fragmented_json_body(body, entry) when is_binary(body) do
+    trimmed = String.trim(body)
+
+    if String.starts_with?(trimmed, "{") and String.contains?(trimmed, "\"frontmatter\"") do
+      """
+      # #{entry.title}
+
+      #{entry.purpose}
+
+      ## Scope
+      - Destination route: `#{entry.destination_route}`
+      - Audience: `#{entry.audience}`
+      - Content type: `#{entry.content_type}`
+      """
+    else
+      body
+    end
+  end
+
+  defp ensure_source_module_anchors(body, entry) do
+    modules =
+      entry
+      |> Map.get(:source_modules, [])
+      |> List.wrap()
+      |> Enum.map(&to_string/1)
+      |> Enum.reject(&(&1 == ""))
+
+    missing = Enum.reject(modules, &String.contains?(body, &1))
+
+    if missing == [] do
+      body
+    else
+      body <>
+        """
+
+        ## Source Modules
+        #{Enum.map_join(missing, "\n", fn mod -> "- `#{mod}`" end)}
+        """
+    end
+  end
+
+  defp ensure_source_file_anchors(body, entry) do
+    files =
+      entry
+      |> Map.get(:source_files, [])
+      |> List.wrap()
+      |> Enum.map(&to_string/1)
+      |> Enum.reject(&(&1 == ""))
+
+    cited? = Enum.any?(files, fn file -> String.contains?(body, file) or String.contains?(body, Path.basename(file)) end)
+
+    if files == [] or cited? do
+      body
+    else
+      body <>
+        """
+
+        ## Source Files
+        #{Enum.map_join(files, "\n", fn file -> "- `#{file}`" end)}
+        """
+    end
+  end
+
+  defp ensure_cross_link_anchor(body) do
+    links =
+      Regex.scan(~r/\]\((\/[^)\s]+)\)/, body)
+      |> Enum.map(fn
+        [_, link] -> link
+        _ -> ""
+      end)
+
+    has_cross_link? =
+      Enum.any?(links, fn link ->
+        String.starts_with?(link, "/build") or
+          String.starts_with?(link, "/training") or
+          String.starts_with?(link, "/ecosystem") or
+          String.starts_with?(link, "/docs")
+      end)
+
+    if has_cross_link? do
+      body
+    else
+      body <>
+        """
+
+        ## Next Steps
+        - [Build Hub](/build)
+        - [Docs Hub](/docs)
+        """
+    end
   end
 
   defp get_opt(opts, key, default) do

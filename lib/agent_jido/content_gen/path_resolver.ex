@@ -23,7 +23,7 @@ defmodule AgentJido.ContentGen.PathResolver do
       {:skip, :skipped_non_file_target, %{id: entry.id, route: route}}
     else
       page_index = Keyword.get(opts, :page_index, page_index())
-      existing_path = Map.get(page_index, route)
+      existing_path = normalize_existing_path(Map.get(page_index, route))
       format = format_for(entry, existing_path)
       target_path = existing_path || target_path_for_route(route, format)
 
@@ -55,10 +55,27 @@ defmodule AgentJido.ContentGen.PathResolver do
 
   defp workspace_relative(path) do
     cwd = File.cwd!()
+    source_tree_path = source_tree_path(path, cwd)
 
-    case Path.relative_to(path, cwd) do
+    case source_tree_path || Path.relative_to(path, cwd) do
       relative ->
         if String.starts_with?(relative, "../"), do: path, else: relative
+    end
+  end
+
+  defp normalize_existing_path(path) when is_binary(path), do: workspace_relative(path)
+  defp normalize_existing_path(_path), do: nil
+
+  defp source_tree_path(path, cwd) do
+    relative = Path.relative_to(path, cwd)
+
+    case String.split(relative, "/priv/pages/", parts: 2) do
+      [_prefix, page_suffix] when page_suffix != "" ->
+        source_path = Path.join("priv/pages", page_suffix)
+        if File.exists?(source_path), do: source_path, else: nil
+
+      _other ->
+        nil
     end
   end
 

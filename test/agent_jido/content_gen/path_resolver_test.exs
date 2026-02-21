@@ -56,5 +56,33 @@ defmodule AgentJido.ContentGen.PathResolverTest do
       assert target.target_path == "priv/pages/docs/concepts/actions.livemd"
       refute target.exists?
     end
+
+    test "maps build output page paths back to source tree paths" do
+      entry = %{
+        id: "docs/agents",
+        destination_route: "/docs/concepts/agents",
+        section: "docs",
+        tags: [:format_markdown]
+      }
+
+      build_path =
+        Path.join([
+          "_build",
+          "dev",
+          "lib",
+          "agent_jido",
+          "priv",
+          "pages",
+          "docs",
+          "concepts",
+          "agents.md"
+        ])
+
+      assert {:ok, target} =
+               PathResolver.resolve(entry, page_index: %{"/docs/concepts/agents" => build_path})
+
+      assert target.target_path == "priv/pages/docs/concepts/agents.md"
+      assert target.exists?
+    end
   end
 end

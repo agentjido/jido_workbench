@@ -45,6 +45,7 @@ defmodule Mix.Tasks.Content.Plan.Generate do
     end
 
     run_opts = normalize_opts(opts)
+    ensure_backend_runtime!(run_opts)
 
     case Run.run(run_opts) do
       {:ok, report} ->
@@ -164,4 +165,13 @@ defmodule Mix.Tasks.Content.Plan.Generate do
     Mix.shell().info("Parse failed: #{stats.parse_failed || 0}")
     Mix.shell().info("Churn blocked: #{stats.churn_blocked || 0}")
   end
+
+  defp ensure_backend_runtime!(%{backend: backend}) when backend in [:req_llm, :auto] do
+    case Application.ensure_all_started(:req_llm) do
+      {:ok, _apps} -> :ok
+      {:error, reason} -> Mix.raise("failed to start req_llm runtime: #{inspect(reason)}")
+    end
+  end
+
+  defp ensure_backend_runtime!(_run_opts), do: :ok
 end

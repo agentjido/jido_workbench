@@ -14,6 +14,7 @@ defmodule AgentJido.ContentGen.Audit.SourceIndexTest do
       source_file,
       """
       defmodule Jido.Worker do
+        @callback cmd(term(), map(), keyword()) :: {:ok, term()}
         def run(input), do: {:ok, input}
         defmacro demo(value), do: value
       end
@@ -26,6 +27,7 @@ defmodule AgentJido.ContentGen.Audit.SourceIndexTest do
     assert SourceIndex.module_exists?(index, "Jido.Worker")
     assert SourceIndex.export_exists?(index, "Jido.Worker", "run", 1)
     assert SourceIndex.export_exists?(index, "Jido.Worker", "demo", 1)
+    assert SourceIndex.export_exists?(index, "Jido.Worker", "cmd", 3)
     refute SourceIndex.export_exists?(index, "Jido.Worker", "missing", 0)
   end
 

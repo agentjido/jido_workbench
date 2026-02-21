@@ -14,7 +14,8 @@ defmodule AgentJido.ContentGen.Audit.ContentAuditor do
     ~r/lorem ipsum/i
   ]
 
-  @module_fun_arity ~r/\b([A-Z][A-Za-z0-9_.]+)\.([a-z][A-Za-z0-9_!?]*)\/(\d+)\b/
+  @module_fun_arity ~r/\b([A-Z][A-Za-z0-9_]*(?:\.[A-Z][A-Za-z0-9_]*)+)\.([a-z][A-Za-z0-9_!?]*)\/(\d+)\b/
+  @local_defmodule ~r/\bdefmodule\s+([A-Z][A-Za-z0-9_.]+)\b/
   @internal_link ~r/\]\((\/[^)\s]+)\)/
   @cross_link_prefixes ["/build", "/training", "/ecosystem", "/docs"]
 
@@ -58,10 +59,12 @@ defmodule AgentJido.ContentGen.Audit.ContentAuditor do
   end
 
   defp check_module_refs(body, source_index) do
+    local_modules = extract_local_modules(body)
+
     body
     |> extract_module_refs()
     |> Enum.reduce([], fn {module_name, function_name, arity}, acc ->
-      if SourceIndex.export_exists?(source_index, module_name, function_name, arity) do
+      if module_name in local_modules or SourceIndex.export_exists?(source_index, module_name, function_name, arity) do
         acc
       else
         [
@@ -134,6 +137,16 @@ defmodule AgentJido.ContentGen.Audit.ContentAuditor do
   defp extract_module_refs(body) do
     Regex.scan(@module_fun_arity, body)
     |> Enum.map(fn [_, mod, fun, arity] -> {mod, fun, String.to_integer(arity)} end)
+    |> Enum.uniq()
+  end
+
+  defp extract_local_modules(body) do
+    Regex.scan(@local_defmodule, body)
+    |> Enum.map(fn
+      [_, module_name] -> module_name
+      _ -> nil
+    end)
+    |> Enum.reject(&is_nil/1)
     |> Enum.uniq()
   end
 

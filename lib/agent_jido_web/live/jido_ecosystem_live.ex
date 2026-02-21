@@ -65,7 +65,7 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
           </p>
 
           <%!-- Quick Stats --%>
-          <div class="flex gap-6 mb-8">
+          <div class="flex flex-wrap items-center gap-6 mb-8">
             <div class="flex items-baseline gap-2">
               <span class="text-primary text-2xl font-bold">{@package_count}</span>
               <span class="text-muted-foreground text-xs">packages</span>
@@ -74,6 +74,12 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
               <span class="text-primary text-2xl font-bold">{@layer_count}</span>
               <span class="text-muted-foreground text-xs">layers</span>
             </div>
+            <.link
+              navigate="/ecosystem/package-matrix"
+              class="text-xs text-primary hover:text-primary/80 transition-colors font-semibold"
+            >
+              VIEW PACKAGE MATRIX →
+            </.link>
           </div>
         </section>
 

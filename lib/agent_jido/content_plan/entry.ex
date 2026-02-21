@@ -71,6 +71,11 @@ defmodule AgentJido.ContentPlan.Entry do
               # Tags
               tags: Zoi.any(description: "List of tag atoms for filtering") |> Zoi.default([]),
 
+              # Prompt controls
+              prompt_overrides:
+                Zoi.any(description: "Optional map of per-entry prompt constraints for content generation")
+                |> Zoi.default(%{}),
+
               # Parsed content
               body: Zoi.string(description: "Rendered HTML content brief") |> Zoi.default(""),
               path: Zoi.string(description: "Source file path") |> Zoi.default("")

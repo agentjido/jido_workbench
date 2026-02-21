@@ -110,6 +110,20 @@ defmodule AgentJido.ContentGen.Audit.SourceIndex do
     recurse(ast, current_module, modules, exports)
   end
 
+  defp collect({:@, _meta, [{attr, _attr_meta, [spec_ast]}]} = ast, current_module, modules, exports)
+       when attr in [:callback, :macrocallback] do
+    exports =
+      case callback_signature(spec_ast) do
+        {name, arity} when is_binary(current_module) ->
+          MapSet.put(exports, {current_module, name, arity})
+
+        _ ->
+          exports
+      end
+
+    recurse(ast, current_module, modules, exports)
+  end
+
   defp collect(ast, current_module, modules, exports), do: recurse(ast, current_module, modules, exports)
 
   defp recurse(list, current_module, modules, exports) when is_list(list) do
@@ -131,6 +145,15 @@ defmodule AgentJido.ContentGen.Audit.SourceIndex do
   defp arity(nil), do: 0
   defp arity(args) when is_list(args), do: length(args)
   defp arity(_args), do: 0
+
+  defp callback_signature({:"::", _meta, [head | _rest]}), do: callback_signature(head)
+  defp callback_signature({:when, _meta, [head | _rest]}), do: callback_signature(head)
+
+  defp callback_signature({name, _meta, args}) when is_atom(name) do
+    {Atom.to_string(name), arity(args)}
+  end
+
+  defp callback_signature(_other), do: nil
 
   defp module_ast_to_string({:__aliases__, _meta, parts}) when is_list(parts) do
     parts

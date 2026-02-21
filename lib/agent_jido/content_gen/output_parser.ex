@@ -61,9 +61,12 @@ defmodule AgentJido.ContentGen.OutputParser do
           {:ok, %{frontmatter: map(), body_markdown: String.t(), citations: [String.t()], audit_notes: [String.t()]}}
           | {:error, String.t()}
   def parse(text) when is_binary(text) do
-    with {:ok, decoded} <- decode_json(text),
-         {:ok, envelope} <- normalize_envelope(decoded) do
-      {:ok, envelope}
+    case decode_json(text) do
+      {:ok, decoded} ->
+        normalize_envelope(decoded)
+
+      {:error, _reason} ->
+        fallback_markdown_envelope(text)
     end
   end
 
@@ -189,9 +192,15 @@ defmodule AgentJido.ContentGen.OutputParser do
   defp normalize_boolean(_value), do: nil
 
   defp extract_fenced_json(text) do
-    case Regex.run(~r/```json\s*(\{.*?\})\s*```/s, text) do
-      [_, body] -> body
-      _ -> nil
+    case Regex.run(~r/```json\s*(.*?)```/is, text) do
+      [_, body] ->
+        String.trim(body)
+
+      _ ->
+        case Regex.run(~r/```\s*(\{.*\})\s*```/s, text) do
+          [_, body] -> body
+          _ -> nil
+        end
     end
   end
 
@@ -200,6 +209,57 @@ defmodule AgentJido.ContentGen.OutputParser do
       [_, body] -> body
       _ -> nil
     end
+  end
+
+  defp fallback_markdown_envelope(text) do
+    body =
+      select_fallback_body(text)
+      |> clean_markdown_fallback()
+
+    if body == "" do
+      {:error, "unable to decode backend output as JSON envelope"}
+    else
+      {:ok, %{frontmatter: %{}, body_markdown: body <> "\n", citations: [], audit_notes: ["fallback_markdown_envelope"]}}
+    end
+  end
+
+  defp select_fallback_body(text) do
+    full = clean_markdown_fallback(text)
+    block = text |> extract_largest_fenced_block() |> clean_markdown_fallback()
+
+    cond do
+      block == "" -> full
+      String.length(full) == 0 -> block
+      String.length(block) >= div(String.length(full), 2) -> block
+      true -> full
+    end
+  end
+
+  defp extract_largest_fenced_block(text) do
+    blocks =
+      Regex.scan(~r/```(?:json|markdown|md|text)?\s*(.*?)```/s, text)
+      |> Enum.map(fn
+        [_, block] -> String.trim(block)
+        _ -> ""
+      end)
+      |> Enum.reject(&(&1 == ""))
+
+    case Enum.max_by(blocks, &String.length/1, fn -> nil end) do
+      nil -> text
+      block -> block
+    end
+  end
+
+  defp clean_markdown_fallback(text) do
+    text
+    |> String.trim()
+    |> String.replace(~r/\A(?:here is|here's)\b.*?:\s*/is, "")
+    |> String.replace(~r/\A(?:output|response)\s*:\s*/i, "")
+    |> String.replace(~r/^Caller:\s.*$/m, "")
+    |> String.replace(~r/```(?:json|markdown|md|text)?\s*/i, "")
+    |> String.replace("```", "")
+    |> String.replace(~r/\n{3,}/, "\n\n")
+    |> String.trim()
   end
 
   defp is_nil_or_empty(nil), do: true
