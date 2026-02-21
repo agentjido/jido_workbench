@@ -4,6 +4,25 @@ defmodule AgentJidoWeb.AdminDashboardLive do
   """
   use AgentJidoWeb, :live_view
 
+  alias AgentJido.ContentIngest.Inventory
+
+  @task_supervisor_key :dashboard_ingest_task_supervisor
+  @task_ref_key :dashboard_ingest_task_ref
+  @running_key :dashboard_ingest_running
+  @preview_summary_key :dashboard_ingest_preview_summary
+  @apply_summary_key :dashboard_ingest_apply_summary
+
+  @impl true
+  def mount(_params, _session, socket) do
+    {:ok,
+     socket
+     |> assign(@running_key, false)
+     |> assign(@task_ref_key, nil)
+     |> assign(@task_supervisor_key, nil)
+     |> assign(@preview_summary_key, nil)
+     |> assign(@apply_summary_key, nil)}
+  end
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -72,8 +91,330 @@ defmodule AgentJidoWeb.AdminDashboardLive do
             Open Content Generator
           </.link>
         </article>
+
+        <article id="dashboard-content-ingest" class="space-y-4 rounded-lg border border-border bg-card p-6 md:col-span-2">
+          <div class="space-y-2">
+            <h2 class="text-lg font-semibold text-foreground">Content Ingestion</h2>
+            <p class="text-sm text-muted-foreground">
+              Run idempotent Arcana sync from the dashboard. Preview computes pending insert/update/delete work without writing. Apply performs the sync.
+            </p>
+            <p class="text-xs text-muted-foreground">
+              Dashboard runs use `graph: false` for predictable cost and runtime.
+            </p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              phx-click="preview_ingest"
+              disabled={@dashboard_ingest_running}
+              class="rounded-md border border-border bg-background px-3 py-2 text-sm font-semibold text-foreground hover:border-primary/50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {if @dashboard_ingest_running, do: "Working…", else: "Preview ingest changes"}
+            </button>
+
+            <button
+              type="button"
+              phx-click="run_ingest"
+              disabled={@dashboard_ingest_running}
+              class="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {if @dashboard_ingest_running, do: "Working…", else: "Run ingest now"}
+            </button>
+
+            <button
+              type="button"
+              phx-click="run_ingest_one"
+              disabled={@dashboard_ingest_running}
+              class="rounded-md border border-border bg-background px-3 py-2 text-sm font-semibold text-foreground hover:border-primary/50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {if @dashboard_ingest_running, do: "Working…", else: "Ingest 1"}
+            </button>
+          </div>
+
+          <section :if={@dashboard_ingest_preview_summary} class="space-y-2 rounded-md border border-border bg-background p-4">
+            <h3 class="text-sm font-semibold text-foreground">Last preview</h3>
+            <div class="grid grid-cols-2 gap-2 text-xs text-muted-foreground md:grid-cols-6">
+              <span>sources: {@dashboard_ingest_preview_summary.total_sources}</span>
+              <span>inserted: {@dashboard_ingest_preview_summary.inserted}</span>
+              <span>updated: {@dashboard_ingest_preview_summary.updated}</span>
+              <span>deleted: {@dashboard_ingest_preview_summary.deleted}</span>
+              <span>skipped: {@dashboard_ingest_preview_summary.skipped}</span>
+              <span>failed: {@dashboard_ingest_preview_summary.failed_count}</span>
+            </div>
+            <p class={preview_status_class(@dashboard_ingest_preview_summary)}>
+              {preview_status_text(@dashboard_ingest_preview_summary)}
+            </p>
+          </section>
+
+          <section :if={@dashboard_ingest_apply_summary} class="space-y-2 rounded-md border border-border bg-background p-4">
+            <h3 class="text-sm font-semibold text-foreground">Last apply run</h3>
+            <div class="grid grid-cols-2 gap-2 text-xs text-muted-foreground md:grid-cols-6">
+              <span>sources: {@dashboard_ingest_apply_summary.total_sources}</span>
+              <span>inserted: {@dashboard_ingest_apply_summary.inserted}</span>
+              <span>updated: {@dashboard_ingest_apply_summary.updated}</span>
+              <span>deleted: {@dashboard_ingest_apply_summary.deleted}</span>
+              <span>skipped: {@dashboard_ingest_apply_summary.skipped}</span>
+              <span>failed: {@dashboard_ingest_apply_summary.failed_count}</span>
+            </div>
+            <p class={apply_status_class(@dashboard_ingest_apply_summary)}>
+              {apply_status_text(@dashboard_ingest_apply_summary)}
+            </p>
+          </section>
+        </article>
       </section>
     </div>
     """
+  end
+
+  @impl true
+  def handle_event("preview_ingest", _params, socket) do
+    trigger_ingest(socket, :preview)
+  end
+
+  @impl true
+  def handle_event("run_ingest", _params, socket) do
+    trigger_ingest(socket, :apply)
+  end
+
+  @impl true
+  def handle_event("run_ingest_one", _params, socket) do
+    trigger_ingest(socket, :apply_one)
+  end
+
+  @impl true
+  def handle_info({ref, {:ok, mode, summary}}, socket) do
+    if ref == socket.assigns[@task_ref_key] do
+      Process.demonitor(ref, [:flush])
+      normalized = normalize_summary(summary)
+
+      socket =
+        socket
+        |> assign(@running_key, false)
+        |> assign(@task_ref_key, nil)
+        |> assign(summary_assign_key(mode), normalized)
+
+      message =
+        case mode do
+          :preview -> "Ingestion preview complete."
+          :apply -> "Ingestion run complete."
+          :apply_one -> "Single-source ingestion run complete."
+        end
+
+      flash_type = if normalized.failed_count > 0, do: :error, else: :info
+      {:noreply, put_flash(socket, flash_type, message)}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  def handle_info({ref, {:error, mode, reason}}, socket) do
+    if ref == socket.assigns[@task_ref_key] do
+      Process.demonitor(ref, [:flush])
+
+      label =
+        case mode do
+          :preview -> "preview"
+          :apply -> "apply"
+          :apply_one -> "single-source apply"
+        end
+
+      {:noreply,
+       socket
+       |> assign(@running_key, false)
+       |> assign(@task_ref_key, nil)
+       |> put_flash(:error, "Ingestion #{label} failed: #{reason}")}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  def handle_info({:DOWN, ref, :process, _pid, reason}, socket) do
+    if ref == socket.assigns[@task_ref_key] do
+      {:noreply,
+       socket
+       |> assign(@running_key, false)
+       |> assign(@task_ref_key, nil)
+       |> put_flash(:error, "Ingestion task crashed: #{inspect(reason)}")}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  def handle_info(_msg, socket), do: {:noreply, socket}
+
+  defp trigger_ingest(socket, mode) do
+    cond do
+      socket.assigns[@running_key] ->
+        {:noreply, put_flash(socket, :error, "An ingestion task is already running.")}
+
+      true ->
+        with {:ok, socket} <- ensure_task_supervisor(socket),
+             {:ok, ref} <- start_ingest_task(socket, mode) do
+          label =
+            case mode do
+              :preview -> "Ingestion preview started."
+              :apply -> "Ingestion run started."
+              :apply_one -> "Single-source ingestion run started."
+            end
+
+          {:noreply,
+           socket
+           |> assign(@running_key, true)
+           |> assign(@task_ref_key, ref)
+           |> put_flash(:info, label)}
+        else
+          {:error, reason} ->
+            {:noreply, put_flash(socket, :error, reason)}
+        end
+    end
+  end
+
+  defp ensure_task_supervisor(socket) do
+    case socket.assigns[@task_supervisor_key] do
+      pid when is_pid(pid) ->
+        if Process.alive?(pid), do: {:ok, socket}, else: start_task_supervisor(socket)
+
+      _other ->
+        start_task_supervisor(socket)
+    end
+  end
+
+  defp start_task_supervisor(socket) do
+    case Task.Supervisor.start_link() do
+      {:ok, pid} -> {:ok, assign(socket, @task_supervisor_key, pid)}
+      {:error, reason} -> {:error, "Could not start ingestion task supervisor: #{inspect(reason)}"}
+    end
+  end
+
+  defp start_ingest_task(socket, mode) do
+    supervisor = socket.assigns[@task_supervisor_key]
+    ingest_module = ingest_module()
+
+    with {:ok, opts} <- ingest_opts(mode) do
+      task =
+        Task.Supervisor.async_nolink(supervisor, fn ->
+          try do
+            {:ok, mode, ingest_module.sync(opts)}
+          rescue
+            error -> {:error, mode, Exception.message(error)}
+          catch
+            kind, reason -> {:error, mode, "#{kind}: #{inspect(reason)}"}
+          end
+        end)
+
+      {:ok, task.ref}
+    end
+  rescue
+    error ->
+      {:error, "Failed to start ingestion task: #{Exception.message(error)}"}
+  end
+
+  defp ingest_opts(:preview), do: {:ok, [dry_run: true, graph: false]}
+  defp ingest_opts(:apply), do: {:ok, [dry_run: false, graph: false]}
+
+  defp ingest_opts(:apply_one) do
+    case first_inventory_source() do
+      {:ok, source} ->
+        {:ok,
+         [
+           dry_run: false,
+           graph: false,
+           reconcile_stale: false,
+           sources: [source],
+           managed_collections: [source.collection]
+         ]}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp ingest_opts(_), do: {:ok, [dry_run: true, graph: false]}
+
+  defp ingest_module do
+    Application.get_env(:agent_jido, :dashboard_ingest_module, AgentJido.ContentIngest)
+  end
+
+  defp summary_assign_key(:preview), do: @preview_summary_key
+  defp summary_assign_key(:apply), do: @apply_summary_key
+  defp summary_assign_key(:apply_one), do: @apply_summary_key
+
+  defp normalize_summary(summary) when is_map(summary) do
+    failed = Map.get(summary, :failed, [])
+
+    %{
+      total_sources: Map.get(summary, :total_sources, 0),
+      inserted: Map.get(summary, :inserted, 0),
+      updated: Map.get(summary, :updated, 0),
+      deleted: Map.get(summary, :deleted, 0),
+      skipped: Map.get(summary, :skipped, 0),
+      failed_count: Map.get(summary, :failed_count, if(is_list(failed), do: length(failed), else: 0))
+    }
+  end
+
+  defp normalize_summary(_summary) do
+    %{total_sources: 0, inserted: 0, updated: 0, deleted: 0, skipped: 0, failed_count: 0}
+  end
+
+  defp pending_changes(summary), do: summary.inserted + summary.updated + summary.deleted
+
+  defp preview_status_text(summary) do
+    pending = pending_changes(summary)
+
+    cond do
+      summary.failed_count > 0 ->
+        "Preview completed with failures. Review logs before applying."
+
+      pending > 0 ->
+        "Pending ingestion changes detected (#{pending}). Run ingest now to apply."
+
+      true ->
+        "No ingestion changes detected. Arcana content is up to date."
+    end
+  end
+
+  defp preview_status_class(summary) do
+    pending = pending_changes(summary)
+
+    cond do
+      summary.failed_count > 0 -> "text-xs font-semibold text-red-400"
+      pending > 0 -> "text-xs font-semibold text-amber-300"
+      true -> "text-xs font-semibold text-emerald-300"
+    end
+  end
+
+  defp apply_status_text(summary) do
+    cond do
+      summary.failed_count > 0 ->
+        "Ingestion apply completed with failures. Check logs and retry."
+
+      true ->
+        "Ingestion apply completed successfully."
+    end
+  end
+
+  defp apply_status_class(summary) do
+    if summary.failed_count > 0 do
+      "text-xs font-semibold text-red-400"
+    else
+      "text-xs font-semibold text-emerald-300"
+    end
+  end
+
+  defp first_inventory_source do
+    source =
+      Inventory.build()
+      |> Enum.sort_by(&{&1.collection, &1.source_id})
+      |> List.first()
+
+    if source do
+      {:ok, source}
+    else
+      {:error, "No ingestible sources found in local inventory."}
+    end
+  rescue
+    error ->
+      {:error, "Failed to build local inventory: #{Exception.message(error)}"}
   end
 end

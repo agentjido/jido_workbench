@@ -17,6 +17,7 @@ defmodule AgentJido.ContentIngest.Ingestor do
 
     * `:repo` - Ecto repo (defaults to Arcana `:repo` config)
     * `:dry_run` - If true, computes actions without writing
+    * `:reconcile_stale` - If true, deletes managed docs not present in sources (default: true)
     * `:graph` - Toggle Arcana graph extraction (default: auto from config + LLM availability)
     * `:graph_concurrency` - Arcana graph extraction concurrency (default: `:agent_jido, :arcana_graph_ingest_concurrency`)
     * `:only` - Scope list from `Inventory.valid_scopes/0`
@@ -29,6 +30,7 @@ defmodule AgentJido.ContentIngest.Ingestor do
   def sync(opts \\ []) do
     repo = require_repo!(opts)
     dry_run = Keyword.get(opts, :dry_run, false)
+    reconcile_stale = resolve_reconcile_stale_option(opts)
     graph = resolve_graph_option(opts)
     graph_concurrency = resolve_graph_concurrency(opts)
     sources = Keyword.get(opts, :sources, Inventory.build(only: Keyword.get(opts, :only)))
@@ -56,22 +58,26 @@ defmodule AgentJido.ContentIngest.Ingestor do
     summary =
       Enum.reduce(
         sources,
-        base_summary(sources, collection_names, dry_run, graph, graph_concurrency),
+        base_summary(sources, collection_names, dry_run, reconcile_stale, graph, graph_concurrency),
         fn source, acc ->
           docs = Map.get(existing_by_source, source.source_id, [])
           sync_source(repo, source, docs, acc)
         end
       )
 
-    stale_docs = Enum.reject(existing_docs, &MapSet.member?(source_ids, &1.source_id))
-    stale_ids = Enum.map(stale_docs, & &1.id)
-
     summary =
-      if stale_ids == [] do
-        summary
+      if reconcile_stale do
+        stale_docs = Enum.reject(existing_docs, &MapSet.member?(source_ids, &1.source_id))
+        stale_ids = Enum.map(stale_docs, & &1.id)
+
+        if stale_ids == [] do
+          summary
+        else
+          maybe_delete_documents(repo, stale_ids, dry_run)
+          Map.update!(summary, :deleted, &(&1 + length(stale_ids)))
+        end
       else
-        maybe_delete_documents(repo, stale_ids, dry_run)
-        Map.update!(summary, :deleted, &(&1 + length(stale_ids)))
+        summary
       end
 
     Map.put(summary, :failed_count, length(summary.failed))
@@ -206,10 +212,11 @@ defmodule AgentJido.ContentIngest.Ingestor do
     repo.all(query)
   end
 
-  defp base_summary(sources, collection_names, dry_run, graph, graph_concurrency) do
+  defp base_summary(sources, collection_names, dry_run, reconcile_stale, graph, graph_concurrency) do
     %{
       mode: if(dry_run, do: :dry_run, else: :apply),
       dry_run: dry_run,
+      reconcile_stale: reconcile_stale,
       graph: graph,
       graph_concurrency: graph_concurrency,
       total_sources: length(sources),
@@ -220,6 +227,17 @@ defmodule AgentJido.ContentIngest.Ingestor do
       deleted: 0,
       failed: []
     }
+  end
+
+  defp resolve_reconcile_stale_option(opts) do
+    case Keyword.get(opts, :reconcile_stale, true) do
+      value when is_boolean(value) ->
+        value
+
+      other ->
+        raise ArgumentError,
+              "invalid reconcile_stale option: #{inspect(other)} (expected boolean)"
+    end
   end
 
   defp resolve_graph_option(opts) do

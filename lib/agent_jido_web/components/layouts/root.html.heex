@@ -25,6 +25,21 @@
     <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
     </script>
 
+    <% turnstile_cfg = Application.get_env(:agent_jido, AgentJido.AskAi, [])
+
+    turnstile_site_key =
+      case turnstile_cfg do
+        cfg when is_list(cfg) -> Keyword.get(cfg, :turnstile_site_key)
+        cfg when is_map(cfg) -> Map.get(cfg, :turnstile_site_key)
+        _ -> nil
+      end %>
+
+    <%= if is_binary(turnstile_site_key) and String.trim(turnstile_site_key) != "" do %>
+      <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer>
+      </script>
+      <meta name="turnstile-site-key" content={turnstile_site_key} />
+    <% end %>
+
     <%= if Application.get_env(:agent_jido, :enable_analytics) do %>
       <script
         defer

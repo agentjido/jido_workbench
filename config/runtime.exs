@@ -131,6 +131,51 @@ if arcana_llm do
   config :arcana, llm: arcana_llm
 end
 
+ask_ai_config =
+  case Application.get_env(:agent_jido, AgentJido.AskAi, []) do
+    cfg when is_map(cfg) -> Map.to_list(cfg)
+    cfg when is_list(cfg) -> cfg
+    _other -> []
+  end
+
+ask_ai_require_turnstile_default = if(config_env() == :prod, do: true, else: false)
+
+ask_ai_require_turnstile =
+  env!(
+    "ASK_AI_REQUIRE_TURNSTILE",
+    :boolean,
+    Keyword.get(ask_ai_config, :require_turnstile, ask_ai_require_turnstile_default)
+  )
+
+turnstile_site_key =
+  env!(
+    "TURNSTILE_SITE_KEY",
+    :string,
+    Keyword.get(ask_ai_config, :turnstile_site_key, nil)
+  )
+
+turnstile_secret_key =
+  env!(
+    "TURNSTILE_SECRET_KEY",
+    :string,
+    Keyword.get(ask_ai_config, :turnstile_secret_key, nil)
+  )
+
+ask_ai_config =
+  ask_ai_config
+  |> Keyword.put(:require_turnstile, ask_ai_require_turnstile)
+  |> Keyword.put(:turnstile_site_key, turnstile_site_key)
+  |> Keyword.put(:turnstile_secret_key, turnstile_secret_key)
+
+config :agent_jido, AgentJido.AskAi, ask_ai_config
+
+if ask_ai_require_turnstile and (is_nil(turnstile_site_key) or is_nil(turnstile_secret_key)) do
+  IO.warn("""
+  ASK_AI_REQUIRE_TURNSTILE is enabled, but TURNSTILE_SITE_KEY or TURNSTILE_SECRET_KEY is missing.
+  Ask AI Turnstile verification will fail closed until both keys are configured.
+  """)
+end
+
 if is_binary(arcana_llm) and String.starts_with?(arcana_llm, "openai:") and is_nil(openai_api_key) do
   raise """
   ARCANA_LLM is configured to use OpenAI (#{inspect(arcana_llm)}) but OPENAI_API_KEY is missing.

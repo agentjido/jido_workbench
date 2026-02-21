@@ -76,6 +76,26 @@ defmodule AgentJido.ContentIngest.IngestorTest do
       assert managed_doc_count("test_docs_dry") == 1
     end
 
+    test "subset sync can skip stale reconciliation" do
+      alpha = source("docs:/subset-alpha", "test_docs_subset", "Subset alpha")
+      beta = source("docs:/subset-beta", "test_docs_subset", "Subset beta")
+
+      initial = Ingestor.sync(repo: Repo, sources: [alpha, beta])
+      assert initial.inserted == 2
+      assert managed_doc_count("test_docs_subset") == 2
+
+      subset =
+        Ingestor.sync(
+          repo: Repo,
+          sources: [alpha],
+          reconcile_stale: false
+        )
+
+      assert subset.skipped == 1
+      assert subset.deleted == 0
+      assert managed_doc_count("test_docs_subset") == 2
+    end
+
     test "ingested content is searchable with fulltext mode" do
       alpha = source("docs:/search-alpha", "test_docs_search", "alpha search token")
       beta = source("docs:/search-beta", "test_docs_search", "beta search token")
