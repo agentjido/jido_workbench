@@ -1,35 +1,25 @@
 %{
+  priority: :high,
+  status: :outline,
   title: "Long-Running Agent Workflows",
-  order: 20,
-  purpose: "Guide teams through designing durable workflows that run for minutes to days with safe recovery behavior",
+  repos: ["jido", "agent_jido"],
+  tags: [:operate, :workflows, :recovery, :resilience, :hub_guides, :format_livebook, :wave_2],
   audience: :advanced,
   content_type: :guide,
-  learning_outcomes: [
-    "Design resumable workflow state and checkpoints",
-    "Set timeout, retry, and compensation boundaries",
-    "Recover cleanly from process and node interruptions"
-  ],
-  repos: ["jido", "agent_jido"],
-  source_modules: ["Jido.AgentServer", "Jido.Agent.Directive"],
-  source_files: [
-    "lib/agent_jido/demos/demand/demand_tracker_agent.ex",
-    "lib/agent_jido/demos/demand/actions/decay_action.ex",
-    "lib/agent_jido_web/examples/demand_tracker_agent_live.ex",
-    "lib/agent_jido/application.ex"
-  ],
-  status: :outline,
-  priority: :high,
-  prerequisites: ["docs/agent-server", "docs/signals", "docs/directives"],
-  related: [
-    "build/multi-agent-workflows",
-    "build/demand-tracker-agent",
-    "training/directives-scheduling",
-    "docs/incident-playbooks"
-  ],
-  ecosystem_packages: ["jido", "agent_jido"],
-  destination_route: "/docs/long-running-agent-workflows",
   destination_collection: :pages,
-  tags: [:operate, :workflows, :recovery, :resilience]
+  destination_route: "/docs/guides/long-running-agent-workflows",
+  ecosystem_packages: ["jido", "agent_jido"],
+  learning_outcomes: ["Design resumable workflow state and checkpoints",
+   "Set timeout, retry, and compensation boundaries", "Recover cleanly from process and node interruptions"],
+  order: 170,
+  prerequisites: ["docs/agent-server", "docs/signals", "docs/directives"],
+  purpose: "Guide teams through designing durable workflows that run for minutes to days with safe recovery behavior",
+  related: ["build/multi-agent-workflows", "build/demand-tracker-agent", "training/directives-scheduling",
+   "docs/incident-playbooks"],
+  source_files: ["lib/agent_jido/demos/demand/demand_tracker_agent.ex",
+   "lib/agent_jido/demos/demand/actions/decay_action.ex", "lib/agent_jido_web/examples/demand_tracker_agent_live.ex",
+   "lib/agent_jido/application.ex"],
+  source_modules: ["Jido.AgentServer", "Jido.Agent.Directive"]
 }
 ---
 ## Content Brief

@@ -1,0 +1,12 @@
+%{
+  description: "Practical persistence architecture for state and retrieval.",
+  title: "Persistence, Memory, and Vector Search",
+  category: :docs,
+  legacy_paths: ["/docs/persistence-memory-and-vector-search"],
+  tags: [:docs, :guides, :livebook],
+  order: 180
+}
+---
+# Persistence, Memory, and Vector Search
+
+Persistence patterns for state, memory, and retrieval workloads.

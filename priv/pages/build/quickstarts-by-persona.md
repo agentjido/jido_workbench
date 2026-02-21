@@ -31,28 +31,28 @@ Pick the persona path that matches your current bottleneck, finish one milestone
 - First milestone: ship one user-facing workflow backed by explicit actions.
 - Start: [Demand Tracker Agent example](/examples/demand-tracker-agent)
 - Next training: [Actions and Validation](/training/actions-validation)
-- Ops/reference follow-up: [Production Readiness Checklist](/docs/reference/production-readiness-checklist)
+- Ops/reference follow-up: [Production Readiness Checklist](/docs/operations/production-readiness-checklist)
 
 ### Python AI engineer
 
 - First milestone: understand where BEAM runtime boundaries improve reliability and orchestration.
 - Start: [BEAM for AI Builders](/features/beam-for-ai-builders)
 - Next training: [LiveView + Jido Integration Patterns](/training/liveview-integration)
-- Ops/reference follow-up: [Security and Governance](/docs/reference/security-and-governance)
+- Ops/reference follow-up: [Security and Governance](/docs/operations/security-and-governance)
 
 ### TypeScript fullstack engineer
 
 - First milestone: model one multi-step workflow with clear signal boundaries.
 - Start: [Multi-Agent Coordination](/features/multi-agent-coordination)
 - Next training: [Signals and Routing](/training/signals-routing)
-- Ops/reference follow-up: [Guides](/docs/getting-started/guides)
+- Ops/reference follow-up: [Guides](/docs/guides)
 
 ### Platform and SRE engineer
 
 - First milestone: define runtime health checks and incident response expectations before launch.
 - Start: [Operations and Observability](/features/operations-observability)
 - Next training: [Production Readiness: Supervision, Telemetry, and Failure Modes](/training/production-readiness)
-- Ops/reference follow-up: [Incident Playbooks](/docs/reference/incident-playbooks)
+- Ops/reference follow-up: [Incident Playbooks](/docs/operations/incident-playbooks)
 
 ## Proof check: first value in one command loop
 

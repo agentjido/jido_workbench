@@ -8,7 +8,7 @@ defmodule AgentJidoWeb.JidoEcosystemPackageMatrixLiveTest do
     assert html =~ "Ecosystem Package Matrix"
     assert html =~ "ADOPTION ORDER"
     assert html =~ ~s(href="/ecosystem/jido")
-    assert html =~ ~s(href="/ecosystem/jido_ai")
+    refute html =~ ~s(href="/ecosystem/jido_ai")
   end
 
   test "static package-matrix path wins over /ecosystem/:id route", %{conn: conn} do
@@ -19,7 +19,7 @@ defmodule AgentJidoWeb.JidoEcosystemPackageMatrixLiveTest do
   end
 
   test "representative package detail pages still resolve via /ecosystem/:id", %{conn: conn} do
-    Enum.each(~w(jido jido_ai), fn package_id ->
+    Enum.each(~w(jido jido_action), fn package_id ->
       {:ok, _view, html} = live(recycle(conn), "/ecosystem/#{package_id}")
 
       assert html =~ "FULL OVERVIEW"

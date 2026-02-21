@@ -17,7 +17,7 @@ Jido treats reliability as a runtime design concern, not an afterthought. The co
 | Best for | Elixir platform engineers, SRE/platform teams, and architects reviewing failure boundaries |
 | Core packages | [jido](/ecosystem/jido), [jido_action](/ecosystem/jido_action), [jido_signal](/ecosystem/jido_signal) |
 | Package status | `jido` (Beta), `jido_action` (Beta), `jido_signal` (Beta) |
-| First proof path | [Counter Agent](/examples/counter-agent) -> [Production readiness checklist](/docs/reference/production-readiness-checklist) |
+| First proof path | [Counter Agent](/examples/counter-agent) -> [Production readiness checklist](/docs/operations/production-readiness-checklist) |
 | Adoption stance | Start with one supervised workflow, then expand scope |
 
 ## Where reliability breaks in agent systems
@@ -75,8 +75,8 @@ This verifies a supervised runtime process with inspectable Agent state before a
 - **Coordination contracts:** [Multi-agent coordination](/features/multi-agent-coordination)
 - **Operations checks:** [Operations and observability](/features/operations-observability)
 - **Hands-on training:** [Agent fundamentals](/training/agent-fundamentals), [Production readiness](/training/production-readiness)
-- **Reference docs:** [Architecture](/docs/reference/architecture), [Incident playbooks](/docs/reference/incident-playbooks)
+- **Reference docs:** [Architecture](/docs/reference/architecture), [Incident playbooks](/docs/operations/incident-playbooks)
 
 ## Get Building
 
-Start with [Counter Agent](/examples/counter-agent), then run the [production readiness checklist](/docs/reference/production-readiness-checklist) against your first supervised workflow.
+Start with [Counter Agent](/examples/counter-agent), then run the [production readiness checklist](/docs/operations/production-readiness-checklist) against your first supervised workflow.

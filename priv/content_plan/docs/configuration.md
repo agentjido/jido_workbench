@@ -1,31 +1,23 @@
 %{
+  priority: :critical,
+  status: :draft,
   title: "Configuration Reference",
-  order: 10,
-  purpose: "Centralize runtime and compile-time configuration across Jido ecosystem packages",
+  repos: ["jido", "jido_ai", "agent_jido"],
+  tags: [:reference, :configuration, :runtime, :hub_reference, :format_markdown, :wave_1],
   audience: :intermediate,
   content_type: :reference,
-  learning_outcomes: [
-    "Configure Jido core and AI provider settings",
-    "Separate runtime secrets from compile-time settings",
-    "Apply environment-specific configuration safely"
-  ],
-  repos: ["jido", "jido_ai", "agent_jido"],
-  source_modules: [],
-  source_files: ["config/config.exs", "config/runtime.exs"],
-  status: :draft,
-  priority: :critical,
-  prerequisites: ["build/installation"],
-  related: [
-    "docs/data-storage-and-pgvector",
-    "docs/telemetry-and-observability",
-    "docs/migrations-and-upgrade-paths",
-    "docs/persistence-memory-and-vector-search",
-    "docs/security-and-governance"
-  ],
-  ecosystem_packages: ["jido", "jido_ai", "req_llm", "agent_jido"],
-  destination_route: "/docs/configuration",
   destination_collection: :pages,
-  tags: [:reference, :configuration, :runtime]
+  destination_route: "/docs/reference/configuration",
+  ecosystem_packages: ["jido", "jido_ai", "req_llm", "agent_jido"],
+  learning_outcomes: ["Configure Jido core and AI provider settings",
+   "Separate runtime secrets from compile-time settings", "Apply environment-specific configuration safely"],
+  order: 260,
+  prerequisites: ["build/installation"],
+  purpose: "Centralize runtime and compile-time configuration across Jido ecosystem packages",
+  related: ["docs/data-storage-and-pgvector", "docs/telemetry-and-observability", "docs/migrations-and-upgrade-paths",
+   "docs/persistence-memory-and-vector-search", "docs/security-and-governance"],
+  source_files: ["config/config.exs", "config/runtime.exs"],
+  source_modules: []
 }
 ---
 ## Content Brief

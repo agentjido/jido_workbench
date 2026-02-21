@@ -583,28 +583,28 @@ defmodule AgentJidoWeb.JidoFeaturesLive do
         question: "How do we ship tool-using workflows without brittle behavior?",
         start: %{label: "Multi-agent coordination", href: "/features/multi-agent-coordination"},
         proof: %{label: "Demand Tracker example", href: "/examples/demand-tracker-agent"},
-        docs: %{label: "Guides", href: "/docs/getting-started/guides"}
+        docs: %{label: "Guides", href: "/docs/guides"}
       },
       %{
         title: "Staff architect / tech lead",
         question: "Can we adopt this incrementally with governance and rollback paths?",
         start: %{label: "Incremental adoption", href: "/features/incremental-adoption"},
         proof: %{label: "Reference architectures", href: "/build/reference-architectures"},
-        docs: %{label: "Security and governance", href: "/docs/reference/security-and-governance"}
+        docs: %{label: "Security and governance", href: "/docs/operations/security-and-governance"}
       },
       %{
         title: "Python or TypeScript evaluator",
         question: "Why this runtime without committing to a full Elixir rewrite?",
         start: %{label: "BEAM for AI builders", href: "/features/beam-for-ai-builders"},
         proof: %{label: "Mixed-stack integration", href: "/build/mixed-stack-integration"},
-        docs: %{label: "Core concepts", href: "/docs/getting-started/core-concepts"}
+        docs: %{label: "Core concepts", href: "/docs/concepts"}
       },
       %{
         title: "Platform / SRE engineer",
         question: "Can we observe failures and enforce readiness criteria?",
         start: %{label: "Operations and observability", href: "/features/operations-observability"},
         proof: %{label: "Telemetry SLO sentinel", href: "/examples/telemetry-slo-budget-sentinel"},
-        docs: %{label: "Production readiness checklist", href: "/docs/reference/production-readiness-checklist"}
+        docs: %{label: "Production readiness checklist", href: "/docs/operations/production-readiness-checklist"}
       },
       %{
         title: "Engineering manager / CTO",
@@ -636,14 +636,14 @@ defmodule AgentJidoWeb.JidoFeaturesLive do
         title: "Operations proof",
         goal: "Check readiness and incident response behavior before rollout.",
         example: %{label: "Telemetry SLO budget sentinel", href: "/examples/telemetry-slo-budget-sentinel"},
-        docs: %{label: "Incident playbooks", href: "/docs/reference/incident-playbooks"},
+        docs: %{label: "Incident playbooks", href: "/docs/operations/incident-playbooks"},
         package: %{label: "jido_otel", href: "/ecosystem/jido_otel"}
       },
       %{
         title: "LLM add-on proof",
         goal: "Add model-powered behavior without rewriting runtime boundaries.",
         example: %{label: "Document-grounded policy Q&A", href: "/examples/document-grounded-policy-qna-agent"},
-        docs: %{label: "Tool response cookbook", href: "/docs/cookbook/tool-response"},
+        docs: %{label: "Tool response cookbook", href: "/docs/guides/cookbook/tool-response"},
         package: %{label: "jido_ai", href: "/ecosystem/jido_ai"}
       }
     ]

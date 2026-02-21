@@ -22,7 +22,7 @@ Use this section when your team has moved past first experiments and needs a sha
 Community guidance in this section is grounded in assets that ship with this repository:
 
 - Runnable examples in [Counter Agent](/examples/counter-agent) and [Demand Tracker Agent](/examples/demand-tracker-agent).
-- Operational and release process docs in [Production Readiness Checklist](/docs/reference/production-readiness-checklist) and [Incident Playbooks](/docs/reference/incident-playbooks).
+- Operational and release process docs in [Production Readiness Checklist](/docs/operations/production-readiness-checklist) and [Incident Playbooks](/docs/operations/incident-playbooks).
 - Governance requirements in `specs/content-governance.md` (ST-CONT-001).
 
 We do not publish anonymous usage numbers or unsupported adoption claims on these pages.

@@ -32,5 +32,7 @@ defmodule AgentJidoWeb.AdminDashboardLiveTest do
              "a[href='/dev/contentops/github']",
              "Open ContentOps GitHub dashboard"
            )
+
+    assert has_element?(view, "a[href='/dashboard/content-generator']", "Open Content Generator")
   end
 end

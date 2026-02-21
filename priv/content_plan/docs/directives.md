@@ -1,25 +1,22 @@
 %{
+  priority: :high,
+  status: :outline,
   title: "Directives",
-  order: 90,
-  purpose: "Explain how agents describe side effects declaratively and how runtime execution handles those requests",
+  repos: ["jido"],
+  tags: [:docs, :core, :directives, :effects, :hub_concepts, :format_livebook, :wave_1],
   audience: :intermediate,
   content_type: :guide,
-  learning_outcomes: [
-    "Return directives instead of side effects",
-    "Use built-in directive types safely",
-    "Reason about directive execution and ordering"
-  ],
-  repos: ["jido"],
-  source_modules: ["Jido.Agent.Directive"],
-  source_files: ["lib/jido/agent/directive.ex"],
-  status: :outline,
-  priority: :high,
-  prerequisites: ["docs/agents", "docs/actions"],
-  related: ["docs/signals", "docs/agent-server", "training/directives-scheduling"],
-  ecosystem_packages: ["jido"],
-  destination_route: "/docs/directives",
   destination_collection: :pages,
-  tags: [:docs, :core, :directives, :effects]
+  destination_route: "/docs/concepts/directives",
+  ecosystem_packages: ["jido"],
+  learning_outcomes: ["Return directives instead of side effects", "Use built-in directive types safely",
+   "Reason about directive execution and ordering"],
+  order: 90,
+  prerequisites: ["docs/agents", "docs/actions"],
+  purpose: "Explain how agents describe side effects declaratively and how runtime execution handles those requests",
+  related: ["docs/signals", "docs/agent-server", "training/directives-scheduling"],
+  source_files: ["lib/jido/agent/directive.ex"],
+  source_modules: ["Jido.Agent.Directive"]
 }
 ---
 ## Content Brief

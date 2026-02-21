@@ -5,20 +5,10 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLiveTest do
 
   alias AgentJido.Ecosystem
 
-  test "renders enriched landing sections for jido_ai", %{conn: conn} do
-    {:ok, _view, html} = live(conn, "/ecosystem/jido_ai")
-
-    assert html =~ "AT A GLANCE"
-    assert html =~ "IMPORTANT PACKAGES"
-    assert html =~ "HOW MODULES FIT TOGETHER"
-    assert html =~ "Start with a single ask/await workflow"
-    assert html =~ "Ask/Await API"
-    assert html =~ "select strategy"
-
-    assert html =~ ~s(href="/ecosystem/jido")
-    assert html =~ ~s(href="/ecosystem/req_llm")
-    assert html =~ ~s(href="https://hexdocs.pm/jido")
-    assert html =~ "back to ecosystem"
+  test "private packages are not accessible from public ecosystem routes", %{conn: conn} do
+    assert_raise AgentJido.Ecosystem.NotFoundError, fn ->
+      live(conn, "/ecosystem/jido_ai")
+    end
   end
 
   test "falls back to key features and deps for package without landing metadata", %{conn: conn} do

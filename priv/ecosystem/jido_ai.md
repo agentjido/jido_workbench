@@ -1,11 +1,11 @@
 %{
   name: "jido_ai",
   title: "Jido AI",
-  version: "2.0.0",
+  version: "2.0.0-beta",
   tagline: "LLM orchestration, reasoning strategies, and accuracy improvement for Jido agents",
   graph_label: "agent intelligence",
   license: "Apache-2.0",
-  visibility: :public,
+  visibility: :private,
   category: :ai,
   tier: 1,
   tags: [:ai, :llm, :reasoning, :agents],
@@ -21,9 +21,9 @@
   stub: false,
   support: :maintained,
   limitations: [
-    "Published Hex version (0.5.2) is significantly behind the current GitHub main branch",
-    "Reasoning strategies are implemented but not all have production-grade test coverage",
-    "Accuracy pipeline presets are experimental and may change"
+    "Elixir floor remains `~> 1.17`, which creates matrix skew with `~> 1.18` runtime packages",
+    "Broad AI feature scope expands debugging surface area for CLI-runtime-focused stacks",
+    "Published Hex version (0.5.2) is significantly behind the current GitHub main branch"
   ],
   ecosystem_deps: ["jido", "jido_browser", "req_llm"],
   landing_summary: "Jido AI turns raw LLM calls into structured agent intelligence with strategy-driven reasoning, tool use, and accuracy controls.",
@@ -97,7 +97,13 @@ Jido AI is the AI integration layer for the Jido ecosystem, providing LLM orches
 
 ## Purpose
 
-Jido AI serves as the intelligence layer of the Jido ecosystem. It bridges the gap between raw LLM API calls and structured, reliable agent reasoning.
+Jido AI is the general AI strategy/action ecosystem adjacent to the CLI-agent runtime stack.
+
+## Boundary Lines
+
+- Owns LLM reasoning, strategy selection, and accuracy improvement capabilities.
+- Provides reusable intelligence primitives for higher-level orchestration packages.
+- Does not own CLI provider adapter parity, runtime preflight policy, or shell/filesystem substrate concerns.
 
 ## Major Components
 

@@ -1,0 +1,12 @@
+%{
+  description: "Validated, composable actions for deterministic execution.",
+  title: "Actions",
+  category: :docs,
+  legacy_paths: ["/docs/actions"],
+  tags: [:docs, :concepts, :livebook],
+  order: 80
+}
+---
+# Actions
+
+Actions define validated execution units that can be composed safely.

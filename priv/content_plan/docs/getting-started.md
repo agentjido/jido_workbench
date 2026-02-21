@@ -1,25 +1,22 @@
 %{
+  priority: :high,
+  status: :outline,
   title: "Getting Started Docs Hub",
-  order: 10,
-  purpose: "Consolidate first-step docs paths and reduce new-user confusion",
+  repos: ["agent_jido"],
+  tags: [:docs, :getting_started, :navigation, :hub_getting_started, :format_livebook, :wave_1],
   audience: :beginner,
   content_type: :guide,
-  learning_outcomes: [
-    "Complete the fastest safe onboarding path",
-    "Understand required prerequisites before advanced guides",
-    "Transition into hands-on Build and Training flows"
-  ],
-  repos: ["agent_jido"],
-  source_modules: ["AgentJido.ContentPlan"],
-  source_files: ["marketing/content-outline.md", "marketing/persona-journeys.md"],
-  status: :outline,
-  priority: :high,
-  prerequisites: ["docs/overview"],
-  related: ["build/installation", "build/first-agent", "training/agent-fundamentals"],
-  ecosystem_packages: ["agent_jido"],
-  destination_route: "/docs/getting-started",
   destination_collection: :pages,
-  tags: [:docs, :getting_started, :navigation]
+  destination_route: "/docs/getting-started",
+  ecosystem_packages: ["agent_jido"],
+  learning_outcomes: ["Complete the fastest safe onboarding path",
+   "Understand required prerequisites before advanced guides", "Transition into hands-on Build and Training flows"],
+  order: 10,
+  prerequisites: ["docs/overview"],
+  purpose: "Consolidate first-step docs paths and reduce new-user confusion",
+  related: ["build/installation", "build/first-agent", "training/agent-fundamentals"],
+  source_files: ["marketing/content-outline.md", "marketing/persona-journeys.md"],
+  source_modules: ["AgentJido.ContentPlan"]
 }
 ---
 ## Content Brief

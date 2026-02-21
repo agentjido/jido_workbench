@@ -1,0 +1,12 @@
+%{
+  description: "Minimal tool-calling response recipe.",
+  title: "Tool Response",
+  category: :docs,
+  legacy_paths: ["/docs/tool-response", "/docs/cookbook/tool-response"],
+  tags: [:docs, :guides, :cookbook, :livebook],
+  order: 162
+}
+---
+# Tool Response
+
+A minimal recipe for tool-calling and response shaping.

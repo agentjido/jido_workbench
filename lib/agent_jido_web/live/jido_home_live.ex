@@ -61,23 +61,28 @@ defmodule AgentJidoWeb.JidoHomeLive do
         <span class="text-primary">multi-agent systems.</span>
       </h1>
 
-      <p class="text-secondary-foreground text-[15px] leading-relaxed mb-8 max-w-xl mx-auto">
-        Design, coordinate, and operate agent workflows that stay stable in production
-        — built on Elixir/OTP for fault isolation, concurrency, and uptime.
+      <p class="text-secondary-foreground text-[15px] leading-relaxed mb-6 max-w-lg mx-auto">
+        Build supervised agents that crash safely and recover automatically.
       </p>
 
-      <div class="flex gap-3 justify-center mb-12">
+      <div class="flex items-center justify-center mb-8">
+        <code class="bg-muted/50 border border-border text-muted-foreground text-[13px] px-5 py-2.5 rounded font-mono">
+          $ mix add jido jido_ai
+        </code>
+      </div>
+
+      <div class="flex items-center gap-4 justify-center mb-12">
         <.link
-          navigate="/docs/getting-started"
+          navigate="/getting-started"
           class="bg-primary text-primary-foreground hover:bg-primary/90 text-[13px] font-bold px-7 py-5 rounded transition-colors"
         >
           GET BUILDING →
         </.link>
         <.link
           navigate="/features"
-          class="border-2 border-accent-yellow text-accent-yellow hover:bg-accent-yellow/10 text-[13px] font-semibold px-6 py-5 rounded transition-colors"
+          class="text-muted-foreground hover:text-foreground text-[13px] font-medium transition-colors"
         >
-          EXPLORE FEATURES
+          explore features →
         </.link>
       </div>
     </section>

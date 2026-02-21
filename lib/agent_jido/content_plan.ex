@@ -41,6 +41,55 @@ defmodule AgentJido.ContentPlan do
            |> Enum.reject(fn item -> item.slug == "_section" end)
            |> Enum.sort_by(fn e -> {e.section, e.order, e.slug} end)
 
+  @docs_entries Enum.filter(@entries, &(&1.section == "docs"))
+  @docs_hub_tags [:hub_getting_started, :hub_concepts, :hub_guides, :hub_reference, :hub_operations]
+  @docs_format_tags [:format_markdown, :format_livebook]
+  @docs_wave_tags [:wave_1, :wave_2, :wave_3]
+
+  for entry <- @docs_entries do
+    tags = entry.tags || []
+    hub_count = Enum.count(tags, &(&1 in @docs_hub_tags))
+    format_count = Enum.count(tags, &(&1 in @docs_format_tags))
+    wave_count = Enum.count(tags, &(&1 in @docs_wave_tags))
+
+    if hub_count != 1 do
+      raise ArgumentError,
+            "Docs entry #{entry.id} must define exactly one hub tag from #{inspect(@docs_hub_tags)}"
+    end
+
+    if format_count != 1 do
+      raise ArgumentError,
+            "Docs entry #{entry.id} must define exactly one format tag from #{inspect(@docs_format_tags)}"
+    end
+
+    if wave_count != 1 do
+      raise ArgumentError,
+            "Docs entry #{entry.id} must define exactly one wave tag from #{inspect(@docs_wave_tags)}"
+    end
+
+    route = to_string(entry.destination_route || "")
+
+    if route == "" or not String.starts_with?(route, "/docs") do
+      raise ArgumentError, "Docs entry #{entry.id} must define a /docs destination_route"
+    end
+
+    cross_links = (entry.related || []) ++ (entry.prerequisites || [])
+
+    has_required_cross_link? =
+      Enum.any?(cross_links, fn ref ->
+        ref = to_string(ref)
+
+        String.starts_with?(ref, "build/") or
+          String.starts_with?(ref, "training/") or
+          String.starts_with?(ref, "ecosystem/")
+      end)
+
+    if not has_required_cross_link? do
+      raise ArgumentError,
+            "Docs entry #{entry.id} must include at least one build/, training/, or ecosystem/ related/prerequisite link"
+    end
+  end
+
   @entries_by_id Map.new(@entries, &{&1.id, &1})
 
   @entries_by_section @entries

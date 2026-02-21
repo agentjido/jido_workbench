@@ -1,0 +1,12 @@
+%{
+  description: "Weather response recipe with external-provider guardrails.",
+  title: "Weather Tool Response",
+  category: :docs,
+  legacy_paths: ["/docs/weather-tool-response", "/docs/cookbook/weather-tool-response"],
+  tags: [:docs, :guides, :cookbook, :livebook],
+  order: 163
+}
+---
+# Weather Tool Response
+
+A minimal recipe for weather-style tool interaction patterns.

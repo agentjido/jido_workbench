@@ -23,6 +23,10 @@ defmodule AgentJido.ContentPlanTest do
     "features/operations-observability"
   ]
 
+  @docs_hub_tags [:hub_getting_started, :hub_concepts, :hub_guides, :hub_reference, :hub_operations]
+  @docs_format_tags [:format_markdown, :format_livebook]
+  @docs_wave_tags [:wave_1, :wave_2, :wave_3]
+
   test "content plan includes training and features sections" do
     section_ids = Enum.map(ContentPlan.all_sections(), & &1.id)
 
@@ -40,5 +44,38 @@ defmodule AgentJido.ContentPlanTest do
     for id <- @feature_entries do
       assert id in entry_ids
     end
+  end
+
+  test "docs entries define canonical destination route and standard tags" do
+    entries = ContentPlan.entries_by_section("docs")
+
+    assert entries != []
+
+    Enum.each(entries, fn entry ->
+      assert is_binary(entry.destination_route)
+      assert String.starts_with?(entry.destination_route, "/docs")
+
+      tags = entry.tags || []
+
+      assert Enum.count(tags, &(&1 in @docs_hub_tags)) == 1
+      assert Enum.count(tags, &(&1 in @docs_format_tags)) == 1
+      assert Enum.count(tags, &(&1 in @docs_wave_tags)) == 1
+    end)
+  end
+
+  test "docs entries include cross-links to build, training, or ecosystem" do
+    entries = ContentPlan.entries_by_section("docs")
+
+    Enum.each(entries, fn entry ->
+      refs = (entry.related || []) ++ (entry.prerequisites || [])
+
+      assert Enum.any?(refs, fn ref ->
+               ref = to_string(ref)
+
+               String.starts_with?(ref, "build/") or
+                 String.starts_with?(ref, "training/") or
+                 String.starts_with?(ref, "ecosystem/")
+             end)
+    end)
   end
 end

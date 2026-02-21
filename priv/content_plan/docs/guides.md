@@ -1,25 +1,23 @@
 %{
+  priority: :medium,
+  status: :outline,
   title: "Guides Docs Hub",
-  order: 30,
-  purpose: "Aggregate implementation and operations guides in one routeable hub",
+  repos: ["agent_jido"],
+  tags: [:docs, :guides, :navigation, :hub_guides, :format_markdown, :wave_1],
   audience: :intermediate,
   content_type: :guide,
-  learning_outcomes: [
-    "Find guides by implementation or operations intent",
-    "Progress from concept understanding to execution",
-    "Identify when to switch from Build to Operate guidance"
-  ],
-  repos: ["agent_jido"],
-  source_modules: ["AgentJido.ContentPlan"],
-  source_files: ["marketing/content-outline.md", "priv/content_plan/build/**/*.md", "priv/content_plan/docs/**/*.md"],
-  status: :outline,
-  priority: :medium,
-  prerequisites: ["docs/overview"],
-  related: ["build/ai-chat-agent", "build/multi-agent-workflows", "docs/agent-server", "docs/troubleshooting-and-debugging-playbook"],
-  ecosystem_packages: ["agent_jido"],
-  destination_route: "/docs/getting-started/guides",
   destination_collection: :pages,
-  tags: [:docs, :guides, :navigation]
+  destination_route: "/docs/guides",
+  ecosystem_packages: ["agent_jido"],
+  learning_outcomes: ["Find guides by implementation or operations intent",
+   "Progress from concept understanding to execution", "Identify when to switch from Build to Operate guidance"],
+  order: 30,
+  prerequisites: ["docs/overview"],
+  purpose: "Aggregate implementation and operations guides in one routeable hub",
+  related: ["build/ai-chat-agent", "build/multi-agent-workflows", "docs/agent-server",
+   "docs/troubleshooting-and-debugging-playbook"],
+  source_files: ["marketing/content-outline.md", "priv/content_plan/build/**/*.md", "priv/content_plan/docs/**/*.md"],
+  source_modules: ["AgentJido.ContentPlan"]
 }
 ---
 ## Content Brief

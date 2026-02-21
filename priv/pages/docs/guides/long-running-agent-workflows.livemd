@@ -1,0 +1,12 @@
+%{
+  description: "Durable workflows with suspend/resume and safe recovery.",
+  title: "Long-Running Agent Workflows",
+  category: :docs,
+  legacy_paths: ["/docs/long-running-agent-workflows"],
+  tags: [:docs, :guides, :livebook],
+  order: 190
+}
+---
+# Long-Running Agent Workflows
+
+Durability and recovery patterns for multi-step, long-lived workflows.

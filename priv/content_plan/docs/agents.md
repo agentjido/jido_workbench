@@ -1,25 +1,23 @@
 %{
+  priority: :high,
+  status: :draft,
   title: "Agents",
-  order: 60,
-  purpose: "Define how to model agents, state schemas, lifecycle hooks, and command handling",
+  related: ["docs/actions", "docs/directives", "docs/plugins", "docs/agent-server", "docs/testing-agents-and-actions",
+   "build/first-agent"],
+  repos: ["jido"],
+  tags: [:docs, :core, :agents, :hub_concepts, :format_markdown, :wave_1],
   audience: :intermediate,
   content_type: :guide,
-  learning_outcomes: [
-    "Define agents with validation-friendly schemas",
-    "Use lifecycle hooks correctly",
-    "Choose execution strategy by workload profile"
-  ],
-  repos: ["jido"],
-  source_modules: ["Jido.Agent", "Jido.Agent.Cmd", "Jido.Agent.Strategy"],
-  source_files: ["lib/jido/agent.ex", "lib/jido/agent/cmd.ex", "lib/jido/agent/strategy.ex"],
-  status: :draft,
-  priority: :high,
-  prerequisites: ["docs/key-concepts"],
-  related: ["docs/actions", "docs/directives", "docs/plugins", "docs/agent-server", "docs/testing-agents-and-actions"],
-  ecosystem_packages: ["jido"],
-  destination_route: "/docs/agents",
   destination_collection: :pages,
-  tags: [:docs, :core, :agents]
+  destination_route: "/docs/concepts/agents",
+  ecosystem_packages: ["jido"],
+  learning_outcomes: ["Define agents with validation-friendly schemas", "Use lifecycle hooks correctly",
+   "Choose execution strategy by workload profile"],
+  order: 60,
+  prerequisites: ["docs/key-concepts"],
+  purpose: "Define how to model agents, state schemas, lifecycle hooks, and command handling",
+  source_files: ["lib/jido/agent.ex", "lib/jido/agent/cmd.ex", "lib/jido/agent/strategy.ex"],
+  source_modules: ["Jido.Agent", "Jido.Agent.Cmd", "Jido.Agent.Strategy"]
 }
 ---
 ## Content Brief

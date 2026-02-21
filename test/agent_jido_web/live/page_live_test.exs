@@ -46,7 +46,11 @@ defmodule AgentJidoWeb.PageLiveTest do
     test "docs footer includes legal/version row and edit link", %{conn: conn} do
       page =
         Pages.pages_by_category(:docs)
-        |> Enum.find(fn doc -> not is_nil(doc.github_url) end)
+        |> Enum.find(fn doc ->
+          not is_nil(doc.github_url) and
+            doc.path != "/docs" and
+            not String.ends_with?(doc.path, "/getting-started")
+        end)
 
       assert page != nil
 
@@ -79,13 +83,18 @@ defmodule AgentJidoWeb.PageLiveTest do
 
     test "smoke routes for required docs IA stubs", %{conn: conn} do
       required_paths = [
-        "/docs/getting-started/core-concepts",
-        "/docs/getting-started/guides",
+        "/docs/getting-started",
+        "/docs/concepts",
+        "/docs/guides",
         "/docs/reference",
+        "/docs/operations",
         "/docs/reference/architecture",
-        "/docs/reference/production-readiness-checklist",
-        "/docs/reference/security-and-governance",
-        "/docs/reference/incident-playbooks"
+        "/docs/reference/configuration",
+        "/docs/reference/packages/jido",
+        "/docs/operations/production-readiness-checklist",
+        "/docs/operations/security-and-governance",
+        "/docs/operations/incident-playbooks",
+        "/docs/guides/cookbook/chat-response"
       ]
 
       Enum.each(required_paths, fn path ->
@@ -99,16 +108,22 @@ defmodule AgentJidoWeb.PageLiveTest do
 
     test "legacy docs routes redirect permanently to canonical section routes", %{conn: conn} do
       legacy_to_canonical = %{
-        "/docs/cookbook-index" => "/docs/cookbook",
-        "/docs/core-concepts" => "/docs/getting-started/core-concepts",
-        "/docs/guides" => "/docs/getting-started/guides",
-        "/docs/chat-response" => "/docs/cookbook/chat-response",
-        "/docs/tool-response" => "/docs/cookbook/tool-response",
-        "/docs/weather-tool-response" => "/docs/cookbook/weather-tool-response",
+        "/docs/cookbook-index" => "/docs/guides/cookbook",
+        "/docs/core-concepts" => "/docs/concepts",
+        "/docs/getting-started/core-concepts" => "/docs/concepts",
+        "/docs/getting-started/guides" => "/docs/guides",
+        "/docs/chat-response" => "/docs/guides/cookbook/chat-response",
+        "/docs/tool-response" => "/docs/guides/cookbook/tool-response",
+        "/docs/weather-tool-response" => "/docs/guides/cookbook/weather-tool-response",
         "/docs/architecture" => "/docs/reference/architecture",
-        "/docs/production-readiness-checklist" => "/docs/reference/production-readiness-checklist",
-        "/docs/security-and-governance" => "/docs/reference/security-and-governance",
-        "/docs/incident-playbooks" => "/docs/reference/incident-playbooks"
+        "/docs/configuration" => "/docs/reference/configuration",
+        "/docs/glossary" => "/docs/reference/glossary",
+        "/docs/production-readiness-checklist" => "/docs/operations/production-readiness-checklist",
+        "/docs/reference/production-readiness-checklist" => "/docs/operations/production-readiness-checklist",
+        "/docs/security-and-governance" => "/docs/operations/security-and-governance",
+        "/docs/reference/security-and-governance" => "/docs/operations/security-and-governance",
+        "/docs/incident-playbooks" => "/docs/operations/incident-playbooks",
+        "/docs/reference/incident-playbooks" => "/docs/operations/incident-playbooks"
       }
 
       Enum.each(legacy_to_canonical, fn {legacy, canonical} ->

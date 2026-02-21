@@ -2,7 +2,7 @@
   name: "jido_codex",
   title: "Jido Codex",
   version: "0.1.0",
-  tagline: "OpenAI Codex CLI adapter implementing the Jido Harness protocol",
+  tagline: "OpenAI Codex adapter for Jido Harness with deep runtime capability coverage",
   license: "Apache-2.0",
   visibility: :private,
   category: :integrations,
@@ -12,7 +12,7 @@
   github_org: "agentjido",
   github_repo: "jido_codex",
   elixir: "~> 1.18",
-  maturity: :experimental,
+  maturity: :beta,
   hex_status: "unreleased",
   api_stability: "unstable - adapter protocol still evolving",
   stub: false,
@@ -20,25 +20,31 @@
   limitations: [
     "Not published to Hex - available via GitHub dependency",
     "Requires Codex CLI installed and authenticated",
-    "Behavior can vary with Codex CLI and codex_sdk version changes"
+    "Rich feature depth increases parity drift risk versus simpler adapters"
   ],
   ecosystem_deps: ["jido_harness"],
   key_features: [
     "Implements `Jido.Harness.Adapter` for Codex-backed execution",
+    "Most complete provider capability surface including resume/cancel handling",
     "Streaming event normalization into Harness-compatible envelopes",
     "Exec transport by default with optional app-server transport",
-    "Session-aware cancellation support",
     "Validation and smoke-test mix tasks for local setup"
   ]
 }
 ---
 ## Overview
 
-Jido Codex adapts OpenAI Codex CLI into the Jido Harness protocol so coding-agent workflows can run through a unified interface.
+Jido Codex adapts OpenAI Codex CLI into the Jido Harness protocol so coding-agent workflows can run through a unified provider interface.
 
 ## Purpose
 
-Jido Codex provides the Codex-specific provider layer for Jido Harness.
+Jido Codex is the Codex-specific provider adapter in the CLI-agent stack.
+
+## Boundary Lines
+
+- Owns Codex-specific request mapping, runtime contract wiring, and event normalization.
+- Implements provider capabilities within the shared Harness contract.
+- Does not define cross-provider policy, contract governance, or app-level workflow logic.
 
 ## Major Components
 

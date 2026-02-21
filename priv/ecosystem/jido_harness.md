@@ -2,53 +2,63 @@
   name: "jido_harness",
   title: "Jido Harness",
   version: "0.1.0",
-  tagline: "Unified Elixir protocol for CLI AI coding agent providers",
+  tagline: "Provider-neutral contract and runtime policy layer for CLI coding agents",
   license: "Apache-2.0",
   visibility: :private,
   category: :core,
   tier: 2,
-  tags: [:harness, :protocol, :coding, :adapters],
+  tags: [:harness, :protocol, :runtime, :cli, :adapters],
   github_url: "https://github.com/agentjido/jido_harness",
   github_org: "agentjido",
   github_repo: "jido_harness",
   elixir: "~> 1.18",
-  maturity: :experimental,
+  maturity: :beta,
   hex_status: "unreleased",
-  api_stability: "unstable - protocol surface is still maturing",
+  api_stability: "evolving - protocol and runtime surfaces are consolidating",
   stub: false,
   support: :best_effort,
   limitations: [
     "Not published to Hex - available via GitHub dependency",
-    "Provider behavior depends on external CLIs and adapter maturity",
-    "Streaming/event standards may evolve before a stable release"
+    "Owns both adapter protocol and runtime execution concerns, so boundaries are still being consolidated",
+    "Current design is coupled to shell and sprites runtime policy concerns"
   ],
-  ecosystem_deps: [],
+  ecosystem_deps: ["jido_shell", "jido_vfs"],
   key_features: [
-    "Provider-agnostic behavior contract for CLI coding agents",
-    "Normalized run/stream/cancel lifecycle abstractions",
-    "Schema-validated request and event payload models",
-    "Configurable provider registry and default-provider selection",
-    "Foundation package for Codex, Gemini, and Amp adapter packages"
+    "Provider-agnostic `Jido.Harness.Adapter` contract for CLI coding agents",
+    "Normalized run, stream, and cancel lifecycle abstractions",
+    "Runtime execution modules under `Jido.Harness.Exec.*`",
+    "Schema-validated request, event, and runtime contract models",
+    "Architectural center for multi-provider adapter packages"
   ]
 }
 ---
 ## Overview
 
-Jido Harness standardizes how Elixir applications interact with CLI-based coding agents. It defines the core protocol, schemas, and error model that provider adapters implement.
+Jido Harness standardizes how Elixir applications interact with CLI coding agents across providers. It defines the contract adapters implement and provides runtime execution modules for preflight, provider runtime, workspace, and streaming orchestration.
 
 ## Purpose
 
-Jido Harness is the common interoperability layer for multi-provider coding-agent workflows in the ecosystem.
+Jido Harness is the provider-neutral contract and runtime orchestration center for the CLI-agent ecosystem.
+
+## Boundary Lines
+
+- Owns the adapter behavior, request/event contracts, and runtime contract model.
+- Provides shared runtime orchestration policy through `Jido.Harness.Exec.*`.
+- Does not own provider-specific UX/session semantics or domain-specific workflow logic.
 
 ## Major Components
 
 ### Adapter Behavior
 
-Defines the required callbacks and contracts for provider implementations.
+Defines required callbacks and interoperability contracts for provider implementations.
 
 ### Schemas and Errors
 
 Provides consistent request/event structures and normalized error types.
+
+### Runtime Execution
+
+Implements shared preflight, provider runtime, workspace, and stream orchestration modules.
 
 ### Provider Registry
 

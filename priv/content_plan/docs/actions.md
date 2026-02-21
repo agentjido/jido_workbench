@@ -1,25 +1,22 @@
 %{
+  priority: :high,
+  status: :draft,
   title: "Actions",
-  order: 70,
-  purpose: "Explain how to define, validate, compose, and test reusable action modules",
+  repos: ["jido_action", "jido"],
+  tags: [:docs, :core, :actions, :hub_concepts, :format_livebook, :wave_1],
   audience: :intermediate,
   content_type: :guide,
-  learning_outcomes: [
-    "Define actions with robust parameter schemas",
-    "Compose actions safely in command pipelines",
-    "Test actions in isolation and in agent flows"
-  ],
-  repos: ["jido_action", "jido"],
-  source_modules: ["Jido.Action"],
-  source_files: ["lib/jido/action.ex"],
-  status: :draft,
-  priority: :high,
-  prerequisites: ["docs/key-concepts"],
-  related: ["docs/agents", "docs/directives", "training/actions-validation", "build/tool-use"],
-  ecosystem_packages: ["jido_action", "jido"],
-  destination_route: "/docs/actions",
   destination_collection: :pages,
-  tags: [:docs, :core, :actions]
+  destination_route: "/docs/concepts/actions",
+  ecosystem_packages: ["jido_action", "jido"],
+  learning_outcomes: ["Define actions with robust parameter schemas", "Compose actions safely in command pipelines",
+   "Test actions in isolation and in agent flows"],
+  order: 70,
+  prerequisites: ["docs/key-concepts"],
+  purpose: "Explain how to define, validate, compose, and test reusable action modules",
+  related: ["docs/agents", "docs/directives", "training/actions-validation", "build/tool-use"],
+  source_files: ["lib/jido/action.ex"],
+  source_modules: ["Jido.Action"]
 }
 ---
 ## Content Brief

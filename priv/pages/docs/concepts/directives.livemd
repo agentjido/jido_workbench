@@ -1,0 +1,12 @@
+%{
+  description: "Declarative side-effect requests executed by the runtime.",
+  title: "Directives",
+  category: :docs,
+  legacy_paths: ["/docs/directives"],
+  tags: [:docs, :concepts, :livebook],
+  order: 100
+}
+---
+# Directives
+
+Directives keep decision logic pure while the runtime executes side effects.

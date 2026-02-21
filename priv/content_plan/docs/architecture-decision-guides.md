@@ -1,25 +1,24 @@
 %{
+  priority: :medium,
+  status: :outline,
   title: "Architecture Decision Guides",
-  order: 50,
-  purpose: "Provide ADR-style decision frameworks for common runtime, integration, and operations tradeoffs",
+  repos: ["agent_jido", "jido"],
+  tags: [:reference, :architecture, :decision, :hub_reference, :format_markdown, :wave_3],
   audience: :advanced,
   content_type: :guide,
-  learning_outcomes: [
-    "Evaluate architecture options with explicit tradeoff criteria",
-    "Document decisions consistently using reusable templates",
-    "Align package and runtime choices with reliability goals"
-  ],
-  repos: ["agent_jido", "jido"],
-  source_modules: ["AgentJido.ContentPlan", "AgentJido.Ecosystem"],
-  source_files: ["marketing/content-outline.md", "marketing/persona-journeys.md", "lib/agent_jido/ecosystem.ex"],
-  status: :outline,
-  priority: :medium,
-  prerequisites: ["ecosystem/package-matrix", "build/reference-architectures"],
-  related: ["ecosystem/package-selection-by-use-case", "docs/production-readiness-checklist", "community/adoption-playbooks"],
-  ecosystem_packages: ["jido", "agent_jido"],
-  destination_route: "/docs/reference/architecture-decision-guides",
   destination_collection: :pages,
-  tags: [:reference, :architecture, :decision]
+  destination_route: "/docs/reference/architecture-decision-guides",
+  ecosystem_packages: ["jido", "agent_jido"],
+  learning_outcomes: ["Evaluate architecture options with explicit tradeoff criteria",
+   "Document decisions consistently using reusable templates",
+   "Align package and runtime choices with reliability goals"],
+  order: 310,
+  prerequisites: ["ecosystem/package-matrix", "build/reference-architectures"],
+  purpose: "Provide ADR-style decision frameworks for common runtime, integration, and operations tradeoffs",
+  related: ["ecosystem/package-selection-by-use-case", "docs/production-readiness-checklist",
+   "community/adoption-playbooks"],
+  source_files: ["marketing/content-outline.md", "marketing/persona-journeys.md", "lib/agent_jido/ecosystem.ex"],
+  source_modules: ["AgentJido.ContentPlan", "AgentJido.Ecosystem"]
 }
 ---
 ## Content Brief

@@ -1,21 +1,26 @@
 %{
+  description: "Exact APIs, configuration contracts, and package-level reference guides.",
   title: "Reference",
-  description: "Reference index for APIs, schemas, and operational behavior.",
   category: :docs,
-  order: 40,
-  tags: [:reference]
+  legacy_paths: [],
+  tags: [:docs, :reference],
+  order: 40
 }
 ---
 # Reference
 
-Reference pages provide precise behavior definitions for interfaces and runtime contracts.
+## What this solves
+Reference pages capture exact contracts: APIs, config, schemas, and maturity constraints.
 
-## Scope
+## When to use it
+Use these pages when implementation correctness matters more than narrative walkthroughs.
 
-- API surfaces and schema expectations
-- System behavior and constraints
-- Links to package-level technical documentation
-
-## Status
-
-This is a docs IA stub page that reserves route and navigation structure for expanded content.
+## Reference pages
+- [Architecture](/docs/reference/architecture)
+- [Configuration](/docs/reference/configuration)
+- [Glossary](/docs/reference/glossary)
+- [Telemetry and observability](/docs/reference/telemetry-and-observability)
+- [Data storage and pgvector](/docs/reference/data-storage-and-pgvector)
+- [Migrations and upgrade paths](/docs/reference/migrations-and-upgrade-paths)
+- [Architecture decision guides](/docs/reference/architecture-decision-guides)
+- [Content governance and drift detection](/docs/reference/content-governance-and-drift-detection)

@@ -2,7 +2,7 @@
   name: "jido_gemini",
   title: "Jido Gemini",
   version: "0.1.0",
-  tagline: "Google Gemini CLI adapter implementing the Jido Harness protocol",
+  tagline: "Google Gemini adapter for Jido Harness with early-stage parity coverage",
   license: "Apache-2.0",
   visibility: :private,
   category: :integrations,
@@ -20,12 +20,13 @@
   limitations: [
     "Not published to Hex - available via GitHub dependency",
     "Requires Gemini CLI tooling and local auth setup",
-    "Current package is explicitly marked early development"
+    "Smallest current adapter surface and least hardened parity profile"
   ],
   ecosystem_deps: ["jido_harness"],
   key_features: [
     "Provider adapter for running Gemini CLI through Jido Harness",
     "Normalized request and response mapping into Harness event streams",
+    "Baseline streaming and tool-event support for provider interoperability",
     "Shared operational patterns with other CLI coding adapters",
     "Project aliases for quality checks and compatibility verification",
     "Designed for multi-provider composition alongside Codex and Amp adapters"
@@ -38,7 +39,13 @@ Jido Gemini bridges Google Gemini CLI workflows into the Jido Harness protocol s
 
 ## Purpose
 
-Jido Gemini is the Gemini-specific integration layer for Harness-based coding agents.
+Jido Gemini is the Gemini-specific provider adapter for Harness-based coding agents.
+
+## Boundary Lines
+
+- Owns Gemini-specific request mapping and event normalization.
+- Implements only the provider-facing adapter layer for Harness interoperability.
+- Does not own cross-provider policy, parity governance, or app workflow orchestration.
 
 ## Major Components
 

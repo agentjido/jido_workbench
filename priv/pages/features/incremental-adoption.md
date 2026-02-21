@@ -73,7 +73,7 @@ This proves bounded runtime adoption without changing the rest of your applicati
 - **Architectural framing:** [Reference architectures](/build/reference-architectures)
 - **Mixed-stack boundary design:** [Mixed-stack integration](/build/mixed-stack-integration)
 - **Decision support:** [Executive brief](/features/executive-brief)
-- **Readiness docs:** [Production readiness checklist](/docs/reference/production-readiness-checklist), [Security and governance](/docs/reference/security-and-governance)
+- **Readiness docs:** [Production readiness checklist](/docs/operations/production-readiness-checklist), [Security and governance](/docs/operations/security-and-governance)
 
 ## Get Building
 

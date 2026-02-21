@@ -48,7 +48,7 @@ If any link or module moves, update this page in the same release window.
 
 - Primary goal: establish observability, incident response, and review cadence.
 - Start module: [Signals and Routing](/training/signals-routing)
-- Proof checkpoint: [Incident Playbooks](/docs/reference/incident-playbooks)
+- Proof checkpoint: [Incident Playbooks](/docs/operations/incident-playbooks)
 - Next step: [Case Studies](/community/case-studies)
 
 ## Completion criteria

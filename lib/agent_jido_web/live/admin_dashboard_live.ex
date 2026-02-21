@@ -59,6 +59,19 @@ defmodule AgentJidoWeb.AdminDashboardLive do
             Open ContentOps GitHub dashboard
           </.link>
         </article>
+
+        <article class="space-y-2 rounded-lg border border-border bg-card p-6 md:col-span-2">
+          <h2 class="text-lg font-semibold text-foreground">Content Generator</h2>
+          <p class="text-sm text-muted-foreground">
+            Run `content.plan.generate` with admin controls and queue shortcuts.
+          </p>
+          <.link
+            href="/dashboard/content-generator"
+            class="text-sm font-semibold text-primary hover:text-primary/80"
+          >
+            Open Content Generator
+          </.link>
+        </article>
       </section>
     </div>
     """

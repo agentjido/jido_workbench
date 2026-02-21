@@ -1,22 +1,12 @@
 %{
+  description: "System-level architecture model and ownership boundaries.",
   title: "Architecture",
-  description: "High-level architecture model and system responsibilities.",
   category: :docs,
-  order: 50,
-  legacy_paths: ["/docs/architecture"],
-  tags: [:architecture]
+  legacy_paths: ["/docs/architecture", "/docs/reference/architecture-overview"],
+  tags: [:docs, :reference],
+  order: 260
 }
 ---
 # Architecture
 
-This page captures the system-level architecture model behind Jido applications.
-
-## Scope
-
-- Package boundaries and responsibility split
-- Supervision topology and process isolation
-- Execution flow from directive intake to action output
-
-## Status
-
-This is a docs IA stub page that reserves route and navigation structure for expanded content.
+System-level architecture boundaries and ownership guidance.

@@ -54,8 +54,10 @@ defmodule AgentJido.PagesTest do
 
       assert Enum.map(sections, &Pages.route_for/1) == [
                "/docs/getting-started",
-               "/docs/cookbook",
-               "/docs/reference"
+               "/docs/concepts",
+               "/docs/guides",
+               "/docs/reference",
+               "/docs/operations"
              ]
     end
 
@@ -65,16 +67,16 @@ defmodule AgentJido.PagesTest do
 
       assert "/docs/reference" in routes
       assert "/docs/reference/architecture" in routes
-      assert "/docs/reference/production-readiness-checklist" in routes
-      assert "/docs/reference/security-and-governance" in routes
-      assert "/docs/reference/incident-playbooks" in routes
+      assert "/docs/reference/configuration" in routes
+      assert "/docs/reference/glossary" in routes
+      assert "/docs/reference/packages/jido" in routes
       refute "/docs/getting-started" in routes
     end
 
     test "extracts section slug from docs path" do
       assert Pages.docs_section_for_path("/docs") == nil
       assert Pages.docs_section_for_path("/docs/getting-started") == "getting-started"
-      assert Pages.docs_section_for_path("/docs/getting-started/core-concepts") == "getting-started"
+      assert Pages.docs_section_for_path("/docs/concepts/key-concepts") == "concepts"
     end
   end
 
@@ -254,13 +256,18 @@ defmodule AgentJido.PagesTest do
   describe "docs IA stubs" do
     test "required docs IA pages exist and are routable" do
       required_paths = [
-        "/docs/getting-started/core-concepts",
-        "/docs/getting-started/guides",
+        "/docs/getting-started",
+        "/docs/concepts",
+        "/docs/guides",
         "/docs/reference",
+        "/docs/operations",
         "/docs/reference/architecture",
-        "/docs/reference/production-readiness-checklist",
-        "/docs/reference/security-and-governance",
-        "/docs/reference/incident-playbooks"
+        "/docs/reference/configuration",
+        "/docs/reference/packages/jido",
+        "/docs/operations/production-readiness-checklist",
+        "/docs/operations/security-and-governance",
+        "/docs/operations/incident-playbooks",
+        "/docs/guides/cookbook/chat-response"
       ]
 
       Enum.each(required_paths, fn path ->
@@ -274,16 +281,22 @@ defmodule AgentJido.PagesTest do
 
     test "legacy docs paths resolve to canonical docs pages" do
       legacy_to_canonical = %{
-        "/docs/cookbook-index" => "/docs/cookbook",
-        "/docs/core-concepts" => "/docs/getting-started/core-concepts",
-        "/docs/guides" => "/docs/getting-started/guides",
-        "/docs/chat-response" => "/docs/cookbook/chat-response",
-        "/docs/tool-response" => "/docs/cookbook/tool-response",
-        "/docs/weather-tool-response" => "/docs/cookbook/weather-tool-response",
+        "/docs/cookbook-index" => "/docs/guides/cookbook",
+        "/docs/core-concepts" => "/docs/concepts",
+        "/docs/getting-started/core-concepts" => "/docs/concepts",
+        "/docs/getting-started/guides" => "/docs/guides",
+        "/docs/chat-response" => "/docs/guides/cookbook/chat-response",
+        "/docs/tool-response" => "/docs/guides/cookbook/tool-response",
+        "/docs/weather-tool-response" => "/docs/guides/cookbook/weather-tool-response",
         "/docs/architecture" => "/docs/reference/architecture",
-        "/docs/production-readiness-checklist" => "/docs/reference/production-readiness-checklist",
-        "/docs/security-and-governance" => "/docs/reference/security-and-governance",
-        "/docs/incident-playbooks" => "/docs/reference/incident-playbooks"
+        "/docs/configuration" => "/docs/reference/configuration",
+        "/docs/glossary" => "/docs/reference/glossary",
+        "/docs/production-readiness-checklist" => "/docs/operations/production-readiness-checklist",
+        "/docs/reference/production-readiness-checklist" => "/docs/operations/production-readiness-checklist",
+        "/docs/security-and-governance" => "/docs/operations/security-and-governance",
+        "/docs/reference/security-and-governance" => "/docs/operations/security-and-governance",
+        "/docs/incident-playbooks" => "/docs/operations/incident-playbooks",
+        "/docs/reference/incident-playbooks" => "/docs/operations/incident-playbooks"
       }
 
       Enum.each(legacy_to_canonical, fn {legacy_path, canonical_path} ->

@@ -1,0 +1,12 @@
+%{
+  description: "Running agents under OTP supervision with explicit recovery behavior.",
+  title: "Agent Runtime",
+  category: :docs,
+  legacy_paths: ["/docs/agent-server"],
+  tags: [:docs, :concepts, :livebook],
+  order: 110
+}
+---
+# Agent Runtime
+
+Agent Runtime applies supervision and recovery behavior to agent execution.

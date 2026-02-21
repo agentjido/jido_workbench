@@ -2,7 +2,7 @@
   name: "jido_workspace",
   title: "Jido Workspace",
   version: "0.1.0",
-  tagline: "Unified artifact workspace for agent sessions on top of jido_shell and jido_vfs",
+  tagline: "Workspace state and artifact lifecycle library for agent sessions",
   license: "Apache-2.0",
   visibility: :private,
   category: :tools,
@@ -19,10 +19,11 @@
   support: :best_effort,
   limitations: [
     "Not published to Hex - available via GitHub dependency",
-    "Relies on jido_shell and jido_vfs integration maturity",
-    "Current snapshot and execution semantics are still evolving"
+    "Branch-based dependencies remain in current repo wiring",
+    "Canonical ownership overlap with `Jido.Harness.Exec.Workspace` is still unresolved",
+    "Snapshot and execution semantics are still evolving"
   ],
-  ecosystem_deps: ["jido_shell", "jido_vfs"],
+  ecosystem_deps: ["jido_shell", "jido_vfs", "jido_harness"],
   key_features: [
     "Unified workspace abstraction for file artifacts and command execution",
     "In-memory VFS-backed workspace creation and lifecycle operations",
@@ -38,7 +39,13 @@ Jido Workspace provides a unified artifact workspace abstraction for agent sessi
 
 ## Purpose
 
-Jido Workspace gives higher-level agent systems a consistent place to stage files, run commands, and checkpoint state.
+Jido Workspace is the workspace state and artifact lifecycle layer for higher-level agent systems.
+
+## Boundary Lines
+
+- Owns workspace creation, artifact APIs, and snapshot lifecycle operations.
+- Provides workspace-local execution composition using shell and VFS primitives.
+- Long-term canonical ownership is still open versus `Jido.Harness.Exec.Workspace`.
 
 ## Major Components
 

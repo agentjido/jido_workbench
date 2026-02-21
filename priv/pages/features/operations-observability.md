@@ -18,7 +18,7 @@ Jido is designed for teams that need to run agents after launch. The runtime sur
 | Core packages | [jido](/ecosystem/jido), [jido_otel](/ecosystem/jido_otel) |
 | Integration support | [jido_messaging](/ecosystem/jido_messaging) for channel-level workflows |
 | Package status | `jido` (Beta), `jido_otel` (Experimental), `jido_messaging` (Experimental) |
-| First proof path | [Telemetry SLO budget sentinel](/examples/telemetry-slo-budget-sentinel) -> [Production readiness checklist](/docs/reference/production-readiness-checklist) |
+| First proof path | [Telemetry SLO budget sentinel](/examples/telemetry-slo-budget-sentinel) -> [Production readiness checklist](/docs/operations/production-readiness-checklist) |
 
 ## What operations teams need from day one
 
@@ -37,7 +37,7 @@ Jido supports this by making runtime behavior observable through telemetry and e
 | Telemetry event emission | Runtime emits operational measurements and metadata | [jido](/ecosystem/jido) | Beta |
 | Trace bridge integration | OpenTelemetry bridge for centralized tracing stacks | [jido_otel](/ecosystem/jido_otel) | Experimental |
 | Channel workflow visibility | Messaging workflows expose telemetry + Signal events | [jido_messaging](/ecosystem/jido_messaging) | Experimental |
-| Incident readiness flow | Checklist + playbooks map runtime symptoms to actions | [Production readiness checklist](/docs/reference/production-readiness-checklist), [Incident playbooks](/docs/reference/incident-playbooks) | Reference docs |
+| Incident readiness flow | Checklist + playbooks map runtime symptoms to actions | [Production readiness checklist](/docs/operations/production-readiness-checklist), [Incident playbooks](/docs/operations/incident-playbooks) | Reference docs |
 
 ## Proof: dashboard wiring for runtime visibility
 
@@ -68,8 +68,8 @@ Pair this with [Demand Tracker Agent](/examples/demand-tracker-agent) to inspect
 - **Failure boundaries:** [Reliability by architecture](/features/reliability-by-architecture)
 - **Coordination traces:** [Multi-agent coordination](/features/multi-agent-coordination)
 - **Training:** [Production readiness](/training/production-readiness)
-- **Reference docs:** [Production readiness checklist](/docs/reference/production-readiness-checklist), [Incident playbooks](/docs/reference/incident-playbooks), [Security and governance](/docs/reference/security-and-governance)
+- **Reference docs:** [Production readiness checklist](/docs/operations/production-readiness-checklist), [Incident playbooks](/docs/operations/incident-playbooks), [Security and governance](/docs/operations/security-and-governance)
 
 ## Get Building
 
-Run [Telemetry SLO budget sentinel](/examples/telemetry-slo-budget-sentinel), then complete one pass of the [production readiness checklist](/docs/reference/production-readiness-checklist).
+Run [Telemetry SLO budget sentinel](/examples/telemetry-slo-budget-sentinel), then complete one pass of the [production readiness checklist](/docs/operations/production-readiness-checklist).

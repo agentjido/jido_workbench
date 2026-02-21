@@ -2,7 +2,7 @@
   name: "jido_amp",
   title: "Jido Amp",
   version: "0.1.0",
-  tagline: "Amp CLI adapter for Jido agents with streaming session lifecycle management",
+  tagline: "Amp CLI adapter for Jido Harness with runtime compatibility checks",
   license: "Apache-2.0",
   visibility: :private,
   category: :integrations,
@@ -12,7 +12,7 @@
   github_org: "agentjido",
   github_repo: "jido_amp",
   elixir: "~> 1.18",
-  maturity: :experimental,
+  maturity: :beta,
   hex_status: "unreleased",
   api_stability: "unstable - expect breaking changes",
   stub: false,
@@ -20,13 +20,13 @@
   limitations: [
     "Not published to Hex - available via GitHub dependency",
     "Requires Amp CLI installed and authenticated",
-    "Streaming compatibility depends on amp_sdk and CLI flag support"
+    "Upstream amp_sdk dependency is currently branch-pinned"
   ],
-  ecosystem_deps: ["jido"],
+  ecosystem_deps: ["jido_harness"],
   key_features: [
-    "Jido agent wrapper for Amp session lifecycle and streaming event routing",
-    "Fail-fast compatibility checks for CLI streaming mode",
-    "Top-level API plus namespaced modules for threads and tools",
+    "Implements `Jido.Harness.Adapter` for Amp-backed execution",
+    "Runtime contract and compatibility checks for local CLI readiness",
+    "Streaming event routing into Harness-compatible envelopes",
     "Session cancellation and structured signal mapping",
     "Operational mix tasks for install, compatibility, and smoke testing"
   ]
@@ -34,21 +34,27 @@
 ---
 ## Overview
 
-Jido Amp integrates the Amp CLI SDK with the Jido ecosystem so agents can run Amp-powered coding workflows through a structured Elixir API. It focuses on reliable session lifecycle control and streaming event normalization.
+Jido Amp integrates Amp CLI workflows into the Harness-based provider stack so Amp can run as a first-class coding provider.
 
 ## Purpose
 
-Jido Amp provides a bridge between Amp CLI workflows and Jido agent orchestration patterns.
+Jido Amp is the Amp-specific provider adapter for Harness-driven coding workflows.
+
+## Boundary Lines
+
+- Owns Amp-specific adapter mapping, compatibility checks, and stream normalization.
+- Implements capabilities through the shared Harness contract model.
+- Does not own provider-neutral runtime policy, contract governance, or domain orchestration.
 
 ## Major Components
 
-### `Jido.Amp.Agent`
+### Adapter
 
-Manages Amp session lifecycle and routes stream events into agent-friendly state transitions.
+Manages Amp execution lifecycle and maps run requests into provider-specific commands.
 
-### API Modules
+### Event Mapping
 
-Provides top-level orchestration helpers and namespaced modules for threads and tool operations.
+Routes streamed provider output into normalized Harness event envelopes.
 
 ### Operational Tasks
 

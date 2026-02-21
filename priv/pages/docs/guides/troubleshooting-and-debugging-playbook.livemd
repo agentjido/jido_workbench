@@ -1,0 +1,12 @@
+%{
+  description: "Structured diagnostic workflow for runtime issues.",
+  title: "Troubleshooting and Debugging Playbook",
+  category: :docs,
+  legacy_paths: ["/docs/troubleshooting-and-debugging-playbook"],
+  tags: [:docs, :guides, :livebook],
+  order: 220
+}
+---
+# Troubleshooting and Debugging Playbook
+
+A repeatable diagnostic workflow for production issues.

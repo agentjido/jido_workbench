@@ -1,25 +1,22 @@
 %{
+  priority: :medium,
+  status: :outline,
   title: "Plugins",
-  order: 100,
-  purpose: "Describe plugin-based extension patterns for reusable capabilities and runtime composition",
+  repos: ["jido"],
+  tags: [:docs, :plugins, :extensibility, :hub_concepts, :format_markdown, :wave_2],
   audience: :intermediate,
   content_type: :guide,
-  learning_outcomes: [
-    "Define plugin modules with clear boundaries",
-    "Attach plugins to agents safely",
-    "Understand plugin lifecycle and routing implications"
-  ],
-  repos: ["jido"],
-  source_modules: ["Jido.Plugin"],
-  source_files: ["lib/jido/plugin.ex"],
-  status: :outline,
-  priority: :medium,
-  prerequisites: ["docs/agents", "docs/actions"],
-  related: ["docs/agent-server", "build/reference-architectures", "ecosystem/package-selection-by-use-case"],
-  ecosystem_packages: ["jido"],
-  destination_route: "/docs/plugins",
   destination_collection: :pages,
-  tags: [:docs, :plugins, :extensibility]
+  destination_route: "/docs/concepts/plugins",
+  ecosystem_packages: ["jido"],
+  learning_outcomes: ["Define plugin modules with clear boundaries", "Attach plugins to agents safely",
+   "Understand plugin lifecycle and routing implications"],
+  order: 110,
+  prerequisites: ["docs/agents", "docs/actions"],
+  purpose: "Describe plugin-based extension patterns for reusable capabilities and runtime composition",
+  related: ["docs/agent-server", "build/reference-architectures", "ecosystem/package-selection-by-use-case"],
+  source_files: ["lib/jido/plugin.ex"],
+  source_modules: ["Jido.Plugin"]
 }
 ---
 ## Content Brief

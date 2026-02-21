@@ -11,7 +11,7 @@ defmodule AgentJido.LivebookCase do
   Optional external env gating:
 
       use AgentJido.LivebookCase,
-        livebook: "priv/pages/docs/cookbook/weather-tool-response.livemd",
+        livebook: "priv/pages/docs/guides/cookbook/weather-tool-response.livemd",
         timeout: 120_000,
         external: true,
         required_any_env: ["OPENAI_API_KEY", "LB_OPENAI_API_KEY"]

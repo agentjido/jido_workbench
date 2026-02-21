@@ -1,0 +1,12 @@
+%{
+  description: "Resilience patterns for overloaded runtime paths.",
+  title: "Retries, Backpressure, and Failure Recovery",
+  category: :docs,
+  legacy_paths: ["/docs/retries-backpressure-and-failure-recovery"],
+  tags: [:docs, :guides, :livebook],
+  order: 210
+}
+---
+# Retries, Backpressure, and Failure Recovery
+
+Operational resilience patterns for degraded runtime conditions.

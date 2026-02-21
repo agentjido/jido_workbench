@@ -1,0 +1,12 @@
+%{
+  description: "Typed envelopes and routing patterns for multi-agent coordination.",
+  title: "Signals",
+  category: :docs,
+  legacy_paths: ["/docs/signals"],
+  tags: [:docs, :concepts, :livebook],
+  order: 90
+}
+---
+# Signals
+
+Signals provide typed contracts for inter-agent coordination and routing.

@@ -1,0 +1,12 @@
+%{
+  description: "Minimal conversational response recipe.",
+  title: "Chat Response",
+  category: :docs,
+  legacy_paths: ["/docs/chat-response", "/docs/cookbook/chat-response"],
+  tags: [:docs, :guides, :cookbook, :livebook],
+  order: 161
+}
+---
+# Chat Response
+
+A minimal recipe for conversational response flow.

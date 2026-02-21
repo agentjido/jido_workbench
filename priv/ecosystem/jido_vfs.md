@@ -1,42 +1,62 @@
 %{
   name: "jido_vfs",
   title: "Jido VFS",
-  version: "0.1.0",
-  tagline: "Virtual filesystem primitives for safe agent execution",
+  version: "1.0.0",
+  tagline: "Backend-agnostic filesystem contract for agent runtimes and sandbox adapters",
   graph_label: "virtual fs",
   license: "Apache-2.0",
   visibility: :private,
   category: :tools,
   tier: 2,
-  tags: [:vfs, :filesystem, :sandbox, :tools],
+  tags: [:vfs, :filesystem, :runtime, :sandbox, :tools],
   github_url: "https://github.com/agentjido/jido_vfs",
   github_org: "agentjido",
   github_repo: "jido_vfs",
-  maturity: :planned,
+  elixir: "~> 1.11",
+  maturity: :stable,
   hex_status: "unreleased",
-  api_stability: "not yet defined",
-  stub: true,
-  support: :best_effort,
+  api_stability: "stable core contract; adapter surface evolves with backend support",
+  stub: false,
+  support: :maintained,
   limitations: [
-    "Stub package — no usable code yet",
-    "Not published to Hex",
-    "Renamed from the former kodo project; scope and API not yet defined"
+    "Not published to Hex - available via GitHub dependency",
+    "Elixir floor remains `~> 1.11`, creating matrix skew with newer runtime packages",
+    "Still carries optional git-pinned sprites dependency in some integration paths"
   ],
   ecosystem_deps: [],
   key_features: [
-    "Initial package stub (details to be expanded)",
-    "Renamed from the former kodo project"
+    "Backend-agnostic filesystem behavior contract",
+    "Broad adapter coverage across local and virtual backends",
+    "Stable substrate for higher-level shell and workspace runtimes",
+    "Safe file operations suitable for autonomous agent workflows",
+    "Clear separation between filesystem primitives and provider orchestration"
   ]
 }
 ---
 ## Overview
 
-`jido_vfs` provides virtual filesystem capabilities for sandboxed agent tools
-and execution environments. This page is intentionally lightweight and will be
-filled out with full package documentation shortly.
+Jido VFS is the runtime filesystem substrate for the CLI-agent ecosystem. It provides a stable, backend-agnostic contract that higher-level packages build on for safe read/write/list/mutation workflows.
 
-## Status
+## Purpose
 
-- Public ecosystem listing enabled
-- Repository: `agentjido/jido_vfs`
-- Origin: renamed from `kodo`
+Jido VFS provides the backend-agnostic filesystem contract used by shell, workspace, and harness runtime layers.
+
+## Boundary Lines
+
+- Owns filesystem abstractions, adapter behavior, and safe file-operation primitives.
+- Supports multiple backends and execution environments without prescribing agent strategy.
+- Does not own CLI session orchestration, provider contracts, or app-level workflow policy.
+
+## Major Components
+
+### Filesystem Contract
+
+Defines the core behavior and data model for backend-agnostic file operations.
+
+### Backend Adapters
+
+Implements concrete adapters that satisfy the contract across local and virtual backends.
+
+### Runtime Safety Primitives
+
+Provides predictable operations used by shell/workspace layers to support autonomous execution.

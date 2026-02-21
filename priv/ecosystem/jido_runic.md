@@ -2,9 +2,9 @@
   name: "jido_runic",
   title: "Jido Runic",
   version: "0.1.0",
-  tagline: "DAG-based durable workflow engine bridging Runic with Jido's signal-driven agents",
+  tagline: "Workflow composition and execution substrate for DAG-based agent orchestration",
   license: "Apache-2.0",
-  visibility: :public,
+  visibility: :private,
   category: :tools,
   tier: 2,
   tags: [:workflow, :dag, :pipeline, :orchestration, :durable],
@@ -13,17 +13,17 @@
   github_url: "https://github.com/agentjido/jido_runic",
   github_org: "agentjido",
   github_repo: "jido_runic",
-  maturity: :experimental,
+  maturity: :beta,
   hex_status: "unreleased",
   api_stability: "unstable — expect breaking changes",
   stub: false,
   support: :best_effort,
   limitations: [
     "Not published to Hex — available only via GitHub dependency",
-    "Requires the Runic library as a foundation",
-    "Limited production usage and test coverage"
+    "Branch-pinned `runic` and `libgraph` dependencies increase release reproducibility risk",
+    "Focuses on workflow execution substrate rather than provider/runtime provisioning concerns"
   ],
-  ecosystem_deps: ["jido", "jido_ai"],
+  ecosystem_deps: ["jido_ai"],
   key_features: [
     "Action-as-Node composition — wrap any Jido Action as a Runic DAG node",
     "Stable content-addressed identity surviving recompiles",
@@ -46,7 +46,13 @@ The package solves a critical gap in agent design: how to express complex, multi
 
 ## Purpose
 
-Jido Runic is the durable workflow strategy layer of the Jido ecosystem. It allows any Jido Agent to execute complex multi-step pipelines as Runic DAG workflows — turning signal-driven agents into orchestrators of deterministic, traceable, and parallelizable execution graphs.
+Jido Runic is the workflow composition and execution substrate for durable DAG-based orchestration.
+
+## Boundary Lines
+
+- Owns DAG workflow composition, scheduling, and provenance-aware execution semantics.
+- Serves as orchestration substrate consumed by higher-level workflow packages.
+- Does not own CLI provider adapters, runtime preflight/bootstrap policy, or session provisioning.
 
 ## Major Components
 

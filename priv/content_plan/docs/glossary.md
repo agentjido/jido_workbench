@@ -1,56 +1,28 @@
 %{
+  priority: :high,
+  status: :draft,
   title: "Glossary",
-  order: 40,
-  purpose: "Establish canonical definitions for every Jido-specific term so that docs, marketing, and code all use consistent language",
+  related: ["docs/key-concepts", "docs/agents", "docs/actions", "docs/signals", "docs/directives", "docs/plugins",
+   "ecosystem/package-matrix"],
+  repos: ["jido", "jido_action", "jido_signal"],
+  tags: [:docs, :foundation, :terminology, :reference, :hub_reference, :format_markdown, :wave_1],
   audience: :beginner,
   content_type: :reference,
-  learning_outcomes: [
-    "Use Jido terminology accurately and consistently",
-    "Distinguish between similar concepts (e.g., Action vs Instruction, Signal vs Directive)",
-    "Apply correct capitalization rules for Jido terms in prose and code"
-  ],
-  repos: ["jido", "jido_action", "jido_signal"],
-  source_modules: [
-    "Jido.Agent",
-    "Jido.Action",
-    "Jido.Signal",
-    "Jido.Agent.Directive",
-    "Jido.Agent.Strategy",
-    "Jido.AgentServer",
-    "Jido.Plugin",
-    "Jido.Sensor",
-    "Jido.Instruction",
-    "Jido.Plan",
-    "Jido.Scheduler",
-    "Jido.Observe",
-    "Jido.Discovery"
-  ],
-  source_files: [
-    "lib/jido/agent.ex",
-    "lib/jido/action.ex",
-    "lib/jido/signal.ex",
-    "lib/jido/agent/directive.ex",
-    "lib/jido/agent/strategy.ex",
-    "lib/jido/agent_server.ex",
-    "lib/jido/plugin.ex",
-    "lib/jido/sensor.ex",
-    "lib/jido/agent/schema.ex"
-  ],
-  status: :draft,
-  priority: :high,
-  prerequisites: [],
-  related: [
-    "docs/key-concepts",
-    "docs/agents",
-    "docs/actions",
-    "docs/signals",
-    "docs/directives",
-    "docs/plugins"
-  ],
-  ecosystem_packages: ["jido", "jido_action", "jido_signal"],
-  destination_route: "/docs/glossary",
   destination_collection: :pages,
-  tags: [:docs, :foundation, :terminology, :reference]
+  destination_route: "/docs/reference/glossary",
+  ecosystem_packages: ["jido", "jido_action", "jido_signal"],
+  learning_outcomes: ["Use Jido terminology accurately and consistently",
+   "Distinguish between similar concepts (e.g., Action vs Instruction, Signal vs Directive)",
+   "Apply correct capitalization rules for Jido terms in prose and code"],
+  order: 270,
+  prerequisites: [],
+  purpose: "Establish canonical definitions for every Jido-specific term so that docs, marketing, and code all use consistent language",
+  source_files: ["lib/jido/agent.ex", "lib/jido/action.ex", "lib/jido/signal.ex", "lib/jido/agent/directive.ex",
+   "lib/jido/agent/strategy.ex", "lib/jido/agent_server.ex", "lib/jido/plugin.ex", "lib/jido/sensor.ex",
+   "lib/jido/agent/schema.ex"],
+  source_modules: ["Jido.Agent", "Jido.Action", "Jido.Signal", "Jido.Agent.Directive", "Jido.Agent.Strategy",
+   "Jido.AgentServer", "Jido.Plugin", "Jido.Sensor", "Jido.Instruction", "Jido.Plan", "Jido.Scheduler", "Jido.Observe",
+   "Jido.Discovery"]
 }
 ---
 ## Canonical glossary

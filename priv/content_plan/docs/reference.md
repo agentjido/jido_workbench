@@ -1,25 +1,24 @@
 %{
+  priority: :medium,
+  status: :outline,
   title: "Reference Docs Hub",
-  order: 40,
-  purpose: "Route users to exact configuration, telemetry, and migration references",
+  related: ["docs/configuration", "docs/telemetry-and-observability", "docs/migrations-and-upgrade-paths",
+   "ecosystem/package-matrix"],
+  repos: ["agent_jido"],
+  tags: [:docs, :reference, :navigation, :hub_reference, :format_markdown, :wave_1],
   audience: :intermediate,
   content_type: :reference,
-  learning_outcomes: [
-    "Find authoritative implementation details quickly",
-    "Understand which reference docs are required pre-launch",
-    "Use reference content alongside build and operate guidance"
-  ],
-  repos: ["agent_jido"],
-  source_modules: ["AgentJido.ContentPlan"],
-  source_files: ["priv/content_plan/docs/**/*.md", "marketing/content-outline.md"],
-  status: :outline,
-  priority: :medium,
-  prerequisites: ["docs/overview"],
-  related: ["docs/configuration", "docs/telemetry-and-observability", "docs/migrations-and-upgrade-paths"],
-  ecosystem_packages: ["agent_jido"],
-  destination_route: "/docs/reference",
   destination_collection: :pages,
-  tags: [:docs, :reference, :navigation]
+  destination_route: "/docs/reference",
+  ecosystem_packages: ["agent_jido"],
+  learning_outcomes: ["Find authoritative implementation details quickly",
+   "Understand which reference docs are required pre-launch",
+   "Use reference content alongside build and operate guidance"],
+  order: 40,
+  prerequisites: ["docs/overview"],
+  purpose: "Route users to exact configuration, telemetry, and migration references",
+  source_files: ["priv/content_plan/docs/**/*.md", "marketing/content-outline.md"],
+  source_modules: ["AgentJido.ContentPlan"]
 }
 ---
 ## Content Brief

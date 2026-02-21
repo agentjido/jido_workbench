@@ -75,7 +75,7 @@ This proves a concrete route mapping and an explicit emitted side effect using t
 - **Reliability boundary design:** [Reliability by architecture](/features/reliability-by-architecture)
 - **Operational posture:** [Operations and observability](/features/operations-observability)
 - **Training paths:** [Signals routing](/training/signals-routing), [Directives scheduling](/training/directives-scheduling)
-- **Reference docs:** [Architecture](/docs/reference/architecture), [Guides](/docs/getting-started/guides)
+- **Reference docs:** [Architecture](/docs/reference/architecture), [Guides](/docs/guides)
 
 ## Get Building
 

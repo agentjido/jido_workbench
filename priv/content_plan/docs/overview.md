@@ -1,31 +1,23 @@
 %{
+  priority: :high,
+  status: :outline,
   title: "Docs Overview",
-  order: 1,
-  purpose: "Provide a self-serve map of canonical docs paths and how they connect to Build, Training, Operate, and Reference",
+  repos: ["agent_jido"],
+  tags: [:docs, :navigation, :self_serve, :hub_getting_started, :format_markdown, :wave_1],
   audience: :beginner,
   content_type: :guide,
-  learning_outcomes: [
-    "Navigate the Jido docs structure effectively",
-    "Choose the right docs path for current intent",
-    "Find next-step implementation and operations guidance quickly"
-  ],
-  repos: ["agent_jido"],
-  source_modules: ["AgentJido.ContentPlan"],
-  source_files: ["marketing/content-outline.md", "priv/content_plan/**/*.md"],
-  status: :outline,
-  priority: :high,
-  prerequisites: [],
-  related: [
-    "docs/getting-started",
-    "docs/core-concepts",
-    "docs/guides",
-    "docs/reference",
-    "build/quickstarts-by-persona"
-  ],
-  ecosystem_packages: ["agent_jido"],
-  destination_route: "/docs/overview",
   destination_collection: :pages,
-  tags: [:docs, :navigation, :self_serve]
+  destination_route: "/docs",
+  ecosystem_packages: ["agent_jido"],
+  learning_outcomes: ["Navigate the Jido docs structure effectively", "Choose the right docs path for current intent",
+   "Find next-step implementation and operations guidance quickly"],
+  order: 1,
+  prerequisites: [],
+  purpose: "Provide a self-serve map of canonical docs paths and how they connect to Build, Training, Operate, and Reference",
+  related: ["docs/getting-started", "docs/core-concepts", "docs/guides", "docs/reference",
+   "build/quickstarts-by-persona"],
+  source_files: ["marketing/content-outline.md", "priv/content_plan/**/*.md"],
+  source_modules: ["AgentJido.ContentPlan"]
 }
 ---
 ## Content Brief

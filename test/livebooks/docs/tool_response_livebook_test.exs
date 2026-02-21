@@ -1,6 +1,6 @@
 defmodule AgentJido.Livebooks.Docs.ToolResponseLivebookTest do
   use AgentJido.LivebookCase,
-    livebook: "priv/pages/docs/cookbook/tool-response.livemd",
+    livebook: "priv/pages/docs/guides/cookbook/tool-response.livemd",
     timeout: 60_000
 
   test "runs cleanly" do

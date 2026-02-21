@@ -1,0 +1,12 @@
+%{
+  description: "Deterministic testing for agent workflows.",
+  title: "Testing Agents and Actions",
+  category: :docs,
+  legacy_paths: ["/docs/testing-agents-and-actions"],
+  tags: [:docs, :guides, :livebook],
+  order: 170
+}
+---
+# Testing Agents and Actions
+
+Testing patterns for action contracts, agent flows, and deterministic behavior.

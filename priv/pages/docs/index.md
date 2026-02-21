@@ -1,21 +1,26 @@
 %{
-title: "Documentation",
-description: "Welcome to the Documentation",
-category: :docs,
-tags: [:documentation, :getting_started]
+  description: "Canonical docs for building and operating reliable multi-agent systems with Jido.",
+  title: "Documentation",
+  category: :docs,
+  legacy_paths: ["/docs/overview"],
+  tags: [:docs, :navigation],
+  order: 1
 }
-
 ---
+# Documentation
 
-## Jido Workbench Documentation
+## What this solves
+Documentation gives you one stable path from first implementation to production operations.
 
-This site is a work in progress.  The intent is to serve as a reference for the entire Jido ecosystem.  
+## When to use it
+Use this index when you need the fastest route to the next practical step.
 
-You can still find a lot of documentation in HexDocs - this site will never replace those docs.
+## Hubs
+- [Getting started](/docs/getting-started)
+- [Concepts](/docs/concepts)
+- [Guides](/docs/guides)
+- [Reference](/docs/reference)
+- [Operations](/docs/operations)
 
-- [Jido](https://hexdocs.pm/jido/)
-- [Jido AI](https://hexdocs.pm/jido_ai/)
-- [Jido Tools](https://hexdocs.pm/jido_tools/)
-
-
-
+## Get Building
+[Get Building](/build)
