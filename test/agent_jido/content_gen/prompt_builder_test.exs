@@ -22,6 +22,7 @@ defmodule AgentJido.ContentGen.PromptBuilderTest do
     assert prompt =~ "Definition and Mental Model"
     assert prompt =~ "Progressive Examples"
     assert prompt =~ "minimum_code_blocks"
+    assert prompt =~ "max_paragraph_sentences"
   end
 
   test "build/3 applies prompt_overrides from content-plan metadata" do
@@ -32,6 +33,9 @@ defmodule AgentJido.ContentGen.PromptBuilderTest do
           "required_sections" => ["Custom Section"],
           "must_include" => ["Explain command semantics deeply"],
           "min_words" => 1200,
+          "max_words" => 1800,
+          "max_paragraph_sentences" => 3,
+          "section_density" => "highly_scannable",
           "document_intent" => "Authoritative agent semantics page"
         }
       })
@@ -46,6 +50,8 @@ defmodule AgentJido.ContentGen.PromptBuilderTest do
     assert prompt =~ "Authoritative agent semantics page"
     assert prompt =~ "Explain command semantics deeply"
     assert prompt =~ "word_range: 1200-1800"
+    assert prompt =~ "section_density: highly_scannable"
+    assert prompt =~ "max_paragraph_sentences: 3"
   end
 
   test "build/3 normalizes html brief content before including it in prompt" do

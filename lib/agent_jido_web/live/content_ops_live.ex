@@ -57,7 +57,8 @@ defmodule AgentJidoWeb.ContentOpsLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="container max-w-5xl mx-auto px-6 py-12 space-y-6">
+    <AgentJidoWeb.Jido.AdminNav.admin_shell current_path="/dashboard/contentops">
+      <div class="container max-w-5xl mx-auto px-6 py-12 space-y-6">
       <%!-- Header --%>
       <div class="flex items-center justify-between">
         <div>
@@ -67,7 +68,7 @@ defmodule AgentJidoWeb.ContentOpsLive do
           </p>
         </div>
         <div class="flex items-center gap-3">
-          <.link navigate="/dev/contentops/github" class="text-sm text-primary hover:text-primary/80 transition-colors">
+          <.link navigate="/dashboard/contentops/github" class="text-sm text-primary hover:text-primary/80 transition-colors">
             GitHub Issues &amp; PRs →
           </.link>
           <div :if={@running} class="flex items-center gap-2 text-sm text-amber-400">
@@ -96,7 +97,8 @@ defmodule AgentJidoWeb.ContentOpsLive do
 
       <%!-- Run History Card --%>
       <.run_history_card runs={@runs} expanded_run_ids={@expanded_run_ids} />
-    </div>
+      </div>
+    </AgentJidoWeb.Jido.AdminNav.admin_shell>
     """
   end
 

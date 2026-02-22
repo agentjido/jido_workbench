@@ -37,6 +37,26 @@ defmodule AgentJido.ContentGen.SelectionTest do
       assert Enum.map(selected, & &1.id) == ["docs/two"]
     end
 
+    test "explicit entry ignores section/status filters so one-entry iteration stays deterministic" do
+      entries = [
+        entry(%{id: "build/installation", section: "build", status: :review}),
+        entry(%{id: "docs/intro", section: "docs", status: :outline})
+      ]
+
+      selected =
+        Selection.select(
+          %{
+            entry: "build/installation",
+            sections: ["docs"],
+            statuses: [:outline, :draft],
+            max: 10
+          },
+          entries
+        )
+
+      assert Enum.map(selected, & &1.id) == ["build/installation"]
+    end
+
     test "applies max limit" do
       entries =
         Enum.map(1..5, fn idx ->

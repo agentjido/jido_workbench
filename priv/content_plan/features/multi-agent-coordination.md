@@ -14,7 +14,7 @@
   source_files: ["lib/agent_jido_web/live/jido_features_live.ex", "priv/training/signals-routing.md", "lib/jido/signal.ex"],
   status: :published,
   priority: :high,
-  prerequisites: ["features/schema-validated-actions"],
+  prerequisites: ["features/beam-native-agent-model"],
   related: ["training/signals-routing", "docs/signals", "build/multi-agent-workflows"],
   ecosystem_packages: ["jido_signal", "jido", "agent_jido"],
   destination_route: "/features/multi-agent-coordination",

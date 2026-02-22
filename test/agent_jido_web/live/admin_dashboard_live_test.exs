@@ -6,57 +6,8 @@ defmodule AgentJidoWeb.AdminDashboardLiveTest do
 
   alias AgentJido.QueryLogs
 
-  defmodule DashboardIngestStub do
-    def sync(opts) do
-      dry_run? = Keyword.get(opts, :dry_run, false)
-      single_source? = length(Keyword.get(opts, :sources, [])) == 1
-
-      if single_source? and Keyword.get(opts, :reconcile_stale, true) do
-        raise "single-source ingest must set reconcile_stale: false"
-      end
-
-      if dry_run? do
-        %{
-          mode: :dry_run,
-          dry_run: true,
-          total_sources: 7,
-          inserted: 2,
-          updated: 1,
-          skipped: 4,
-          deleted: 0,
-          failed: [],
-          failed_count: 0
-        }
-      else
-        %{
-          mode: :apply,
-          dry_run: false,
-          total_sources: if(single_source?, do: 1, else: 7),
-          inserted: if(single_source?, do: 1, else: 2),
-          updated: if(single_source?, do: 0, else: 1),
-          skipped: if(single_source?, do: 0, else: 4),
-          deleted: 0,
-          failed: [],
-          failed_count: 0
-        }
-      end
-    end
-  end
-
   setup %{conn: conn} do
-    original_ingest_module = Application.get_env(:agent_jido, :dashboard_ingest_module)
-    Application.put_env(:agent_jido, :dashboard_ingest_module, DashboardIngestStub)
-
     admin_conn = log_in_user(conn, admin_user_fixture())
-
-    on_exit(fn ->
-      if original_ingest_module do
-        Application.put_env(:agent_jido, :dashboard_ingest_module, original_ingest_module)
-      else
-        Application.delete_env(:agent_jido, :dashboard_ingest_module)
-      end
-    end)
-
     %{admin_conn: admin_conn}
   end
 
@@ -74,22 +25,50 @@ defmodule AgentJidoWeb.AdminDashboardLiveTest do
     {:ok, view, html} = live(admin_conn, "/dashboard")
 
     assert html =~ "Admin Control Plane"
+    assert has_element?(view, "#admin-shell")
+    assert has_element?(view, "#admin-sidebar")
+    assert has_element?(view, "a[data-admin-nav-path='/dashboard'][data-admin-nav-active='true']", "Dashboard")
+    assert has_element?(view, "a[data-admin-nav-path='/dashboard/analytics']", "Analytics")
+    assert has_element?(view, "a[data-admin-nav-path='/dashboard/content-ingestion']", "Content Ingestion")
+    assert has_element?(view, "a[data-admin-nav-path='/dashboard/contentops']", "ContentOps")
+    assert has_element?(view, "a[data-admin-nav-path='/dashboard/contentops/github']", "ContentOps GitHub")
+    assert has_element?(view, "a[data-admin-nav-path='/dashboard/content-generator']", "Content Generator")
+    assert has_element?(view, "a[data-admin-nav-path='/dashboard/chatops']", "ChatOps")
+    assert has_element?(view, "a[data-admin-nav-path='/arcana']", "Arcana")
     assert has_element?(view, "a[href='/arcana']", "Open Arcana dashboard")
     assert has_element?(view, "a[href='/dev/jido']", "Open Jido Studio")
-    assert has_element?(view, "a[href='/dev/contentops']", "Open ContentOps dashboard")
+    assert has_element?(view, "a[href='/dashboard/contentops']", "Open ContentOps dashboard")
 
     assert has_element?(
              view,
-             "a[href='/dev/contentops/github']",
+             "a[href='/dashboard/contentops/github']",
              "Open ContentOps GitHub dashboard"
            )
 
+    assert has_element?(view, "a[href='/dashboard/content-ingestion']", "Open Content Ingestion")
     assert has_element?(view, "a[href='/dashboard/content-generator']", "Open Content Generator")
+    assert has_element?(view, "a[href='/dashboard/analytics']", "Open analytics dashboard")
+    assert has_element?(view, "#dashboard-live-presence", "Live Presence")
     assert has_element?(view, "#dashboard-query-tracking", "Query Tracking")
+    assert has_element?(view, "#dashboard-analytics-summary", "Learning Analytics")
     assert has_element?(view, "#dashboard-content-ingest", "Content Ingestion")
-    assert has_element?(view, "button[phx-click='preview_ingest']", "Preview ingest changes")
-    assert has_element?(view, "button[phx-click='run_ingest']", "Run ingest now")
-    assert has_element?(view, "button[phx-click='run_ingest_one']", "Ingest 1")
+  end
+
+  test "updates live presence counts when another visitor connects", %{admin_conn: admin_conn} do
+    {:ok, dashboard_view, _html} = live(admin_conn, "/dashboard")
+    {initial_visitors, initial_sessions} = live_presence_counts(dashboard_view)
+
+    assert initial_visitors >= 1
+    assert initial_sessions >= 1
+
+    {:ok, other_view, _html} = live(build_conn(), "/")
+
+    assert_eventually(fn ->
+      {next_visitors, next_sessions} = live_presence_counts(dashboard_view)
+      next_visitors >= initial_visitors + 1 and next_sessions >= initial_sessions + 1
+    end)
+
+    close_browser(other_view)
   end
 
   test "shows tracked search and Ask AI queries", %{admin_conn: admin_conn} do
@@ -119,57 +98,43 @@ defmodule AgentJidoWeb.AdminDashboardLiveTest do
     assert has_element?(view, "button[phx-click='refresh_query_tracking']", "Refresh query logs")
   end
 
-  test "preview suggests pending ingestion work", %{admin_conn: admin_conn} do
-    {:ok, view, _html} = live(admin_conn, "/dashboard")
-
-    view
-    |> element("button[phx-click='preview_ingest']")
-    |> render_click()
-
-    assert_eventually(fn ->
-      html = render(view)
-      html =~ "Last preview" and html =~ "inserted: 2" and html =~ "Pending ingestion changes detected (3)"
-    end)
+  defp close_browser(view) do
+    GenServer.stop(view.pid)
+  rescue
+    _ -> :ok
   end
 
-  test "apply ingestion reports completion summary", %{admin_conn: admin_conn} do
-    {:ok, view, _html} = live(admin_conn, "/dashboard")
+  defp live_presence_counts(view) do
+    html = render(view)
+    {:ok, document} = Floki.parse_document(html)
 
-    view
-    |> element("button[phx-click='run_ingest']")
-    |> render_click()
+    [presence_node] = Floki.find(document, "#dashboard-live-presence")
 
-    assert_eventually(fn ->
-      html = render(view)
-      html =~ "Last apply run" and html =~ "inserted: 2" and html =~ "Ingestion apply completed successfully."
-    end)
+    visitors =
+      presence_node
+      |> Floki.attribute("data-active-visitors")
+      |> List.first()
+      |> String.to_integer()
+
+    sessions =
+      presence_node
+      |> Floki.attribute("data-active-sessions")
+      |> List.first()
+      |> String.to_integer()
+
+    {visitors, sessions}
   end
 
-  test "single-source ingest applies exactly one source", %{admin_conn: admin_conn} do
-    {:ok, view, _html} = live(admin_conn, "/dashboard")
-
-    view
-    |> element("button[phx-click='run_ingest_one']")
-    |> render_click()
-
-    assert_eventually(fn ->
-      html = render(view)
-      html =~ "Last apply run" and html =~ "sources: 1" and html =~ "inserted: 1"
-    end)
-  end
-
-  defp assert_eventually(fun, attempts \\ 20)
+  defp assert_eventually(fun, attempts \\ 30)
 
   defp assert_eventually(fun, attempts) when attempts > 0 do
     if fun.() do
       :ok
     else
-      Process.sleep(25)
+      Process.sleep(40)
       assert_eventually(fun, attempts - 1)
     end
   end
 
-  defp assert_eventually(_fun, 0) do
-    flunk("expected condition to become true")
-  end
+  defp assert_eventually(_fun, 0), do: flunk("expected condition to become true")
 end

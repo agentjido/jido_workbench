@@ -9,9 +9,11 @@ defmodule AgentJido.ContentGen.PathResolver do
   @type target :: %{
           route: String.t(),
           target_path: String.t(),
+          read_path: String.t(),
           format: :md | :livemd,
           exists?: boolean(),
           existing_path: String.t() | nil,
+          conversion_source_path: String.t() | nil,
           non_file_backed?: boolean()
         }
 
@@ -23,17 +25,22 @@ defmodule AgentJido.ContentGen.PathResolver do
       {:skip, :skipped_non_file_target, %{id: entry.id, route: route}}
     else
       page_index = Keyword.get(opts, :page_index, page_index())
+      docs_format = Keyword.get(opts, :docs_format, :tag)
       existing_path = normalize_existing_path(Map.get(page_index, route))
-      format = format_for(entry, existing_path)
-      target_path = existing_path || target_path_for_route(route, format)
+      format = format_for(entry, existing_path, docs_format)
+      target_path = target_path(entry, route, existing_path, format, docs_format)
+      read_path = read_path_for(target_path, existing_path)
+      conversion_source_path = conversion_source_path(entry, target_path, existing_path, docs_format)
 
       {:ok,
        %{
          route: route,
          target_path: target_path,
+         read_path: read_path,
          format: format,
-         exists?: not is_nil(existing_path),
+         exists?: File.exists?(read_path),
          existing_path: existing_path,
+         conversion_source_path: conversion_source_path,
          non_file_backed?: false
        }}
     end
@@ -69,21 +76,62 @@ defmodule AgentJido.ContentGen.PathResolver do
   defp source_tree_path(path, cwd) do
     relative = Path.relative_to(path, cwd)
 
-    case String.split(relative, "/priv/pages/", parts: 2) do
-      [_prefix, page_suffix] when page_suffix != "" ->
-        source_path = Path.join("priv/pages", page_suffix)
-        if File.exists?(source_path), do: source_path, else: nil
+    cond do
+      String.starts_with?(relative, "priv/pages/") ->
+        preferred_source_variant(relative)
 
-      _other ->
-        nil
+      true ->
+        case String.split(relative, "/priv/pages/", parts: 2) do
+          [_prefix, page_suffix] when page_suffix != "" ->
+            Path.join("priv/pages", page_suffix)
+            |> preferred_source_variant()
+
+          _other ->
+            nil
+        end
     end
   end
 
-  defp format_for(_entry, existing_path) when is_binary(existing_path) do
-    if String.ends_with?(existing_path, ".livemd"), do: :livemd, else: :md
+  defp preferred_source_variant(candidate) do
+    alt = alternate_extension(candidate)
+
+    cond do
+      File.exists?(candidate) ->
+        candidate
+
+      is_binary(alt) and File.exists?(alt) ->
+        alt
+
+      true ->
+        candidate
+    end
   end
 
-  defp format_for(entry, nil) do
+  defp alternate_extension(path) when is_binary(path) do
+    cond do
+      String.ends_with?(path, ".md") -> String.replace_suffix(path, ".md", ".livemd")
+      String.ends_with?(path, ".livemd") -> String.replace_suffix(path, ".livemd", ".md")
+      true -> nil
+    end
+  end
+
+  defp format_for(entry, existing_path, docs_format) when is_binary(existing_path) do
+    cond do
+      docs_format == :livemd and entry.section == "docs" -> :livemd
+      String.ends_with?(existing_path, ".livemd") -> :livemd
+      true -> :md
+    end
+  end
+
+  defp format_for(entry, nil, docs_format) do
+    if docs_format == :livemd and entry.section == "docs" do
+      :livemd
+    else
+      format_for_entry_tags(entry)
+    end
+  end
+
+  defp format_for_entry_tags(entry) do
     tags = Map.get(entry, :tags, []) || []
 
     cond do
@@ -92,6 +140,48 @@ defmodule AgentJido.ContentGen.PathResolver do
       true -> :md
     end
   end
+
+  defp target_path(entry, route, existing_path, format, docs_format) do
+    cond do
+      docs_format == :livemd and entry.section == "docs" ->
+        target_path_for_route(route, :livemd)
+
+      is_binary(existing_path) ->
+        existing_path
+
+      true ->
+        target_path_for_route(route, format)
+    end
+  end
+
+  defp read_path_for(target_path, existing_path) when is_binary(target_path) do
+    cond do
+      File.exists?(target_path) ->
+        target_path
+
+      is_binary(existing_path) and File.exists?(existing_path) ->
+        existing_path
+
+      true ->
+        target_path
+    end
+  end
+
+  defp conversion_source_path(entry, target_path, existing_path, docs_format)
+       when docs_format == :livemd and entry.section == "docs" and is_binary(existing_path) do
+    cond do
+      existing_path == target_path ->
+        nil
+
+      String.ends_with?(existing_path, ".md") and String.ends_with?(target_path, ".livemd") and File.exists?(existing_path) ->
+        existing_path
+
+      true ->
+        nil
+    end
+  end
+
+  defp conversion_source_path(_entry, _target_path, _existing_path, _docs_format), do: nil
 
   @spec target_path_for_route(String.t(), :md | :livemd) :: String.t()
   def target_path_for_route(route, format) do

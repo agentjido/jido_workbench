@@ -122,6 +122,64 @@ liveSocket.connect();
 
 window.liveSocket = liveSocket;
 
+function normalizePath(path) {
+  if (typeof path === "string" && path.startsWith("/")) {
+    return path;
+  }
+
+  return window.location.pathname || "/";
+}
+
+function parsePositiveInt(value) {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+}
+
+function trackAnalyticsEvent(eventName, properties = {}) {
+  if (!eventName || typeof eventName !== "string") {
+    return;
+  }
+
+  const payload = {
+    event: eventName,
+    properties: {
+      ...properties,
+      path: normalizePath(properties.path),
+    },
+  };
+
+  fetch("/analytics/events", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-csrf-token": csrfToken,
+    },
+    credentials: "same-origin",
+    keepalive: true,
+    body: JSON.stringify(payload),
+  }).catch(() => {});
+}
+
+window.__agentJidoTrackEvent = trackAnalyticsEvent;
+
+function trackDatasetAnalyticsEvent(target) {
+  const analyticsNode = target.closest("[data-analytics-event]");
+
+  if (!analyticsNode) {
+    return;
+  }
+
+  trackAnalyticsEvent(analyticsNode.dataset.analyticsEvent, {
+    source: analyticsNode.dataset.analyticsSource,
+    channel: analyticsNode.dataset.analyticsChannel,
+    section_id: analyticsNode.dataset.analyticsSectionId,
+    target_url: analyticsNode.dataset.analyticsTargetUrl,
+    query_log_id: analyticsNode.dataset.analyticsQueryLogId,
+    rank: parsePositiveInt(analyticsNode.dataset.analyticsRank),
+    path: window.location.pathname,
+  });
+}
+
 function isEditableTarget(target) {
   if (!target) return false;
   if (target.isContentEditable) return true;
@@ -159,6 +217,19 @@ document.addEventListener("keydown", (event) => {
 });
 
 document.addEventListener("click", (e) => {
+  trackDatasetAnalyticsEvent(e.target);
+
+  const livebookLink = e.target.closest("[data-livebook-run='true']");
+  if (livebookLink) {
+    trackAnalyticsEvent("livebook_run_clicked", {
+      source: livebookLink.dataset.analyticsSource || "docs",
+      channel: livebookLink.dataset.analyticsChannel || "quick_links",
+      target_url: livebookLink.dataset.analyticsTargetUrl || livebookLink.getAttribute("href"),
+      path: window.location.pathname,
+      metadata: { surface: "docs_page" },
+    });
+  }
+
   if (e.target.closest("[data-copy-button]")) {
     const button = e.target.closest("[data-copy-button]");
     const content = button.getAttribute("data-content");
@@ -173,6 +244,16 @@ document.addEventListener("click", (e) => {
       setTimeout(() => {
         button.innerHTML = originalIcon;
       }, 2000);
+
+      trackAnalyticsEvent("code_copied", {
+        source: "docs",
+        channel: "copy_button",
+        path: window.location.pathname,
+        metadata: {
+          surface: "docs_page",
+          content_length: content ? content.length : 0,
+        },
+      });
     });
   }
 });

@@ -1,0 +1,198 @@
+%{
+  title: "Agents",
+  description: "The runtime contract for state transitions, command handling, and directives in Jido.",
+  category: :docs,
+  legacy_paths: ["/docs/agents"],
+  order: 70,
+  in_menu: true,
+  draft: false,
+  tags: [:docs, :concepts, :livebook]
+}
+---
+## What This Solves
+
+Most agent systems fail in production for one reason: state transitions and side effects are coupled.
+
+When one function both mutates state and performs external work, failures become hard to isolate. You get partial updates, retry ambiguity, and brittle tests. Jido solves this by making the command boundary explicit:
+
+- State transitions happen through `cmd/2`
+- Side effects are emitted as directives
+- Runtime execution of directives is separate from state mutation
+
+The result is a system you can reason about under load.
+
+## When to Use It
+
+Use a Jido Agent when you need long-lived state plus predictable transitions.
+
+A plain function is enough if your workflow is single-step and stateless. Reach for a Jido Agent when you need:
+
+- Multi-step workflows where each step depends on prior state
+- Validation of state shape over time
+- Runtime-level failure isolation via OTP processes
+- Clear effect boundaries for emits, scheduling, spawning, and retries
+
+## What an Agent Is (and Is Not)
+
+An Agent is an immutable struct plus a command interface.
+
+It is not a process by itself. If you want a long-running process with supervision, run the agent inside an `AgentServer`.
+
+It is also not an unbounded AI loop. You can use LLM-backed actions, but the agent contract remains explicit and testable: pass in an agent and action, get back a new agent and directives.
+
+## Quick Start
+
+Define an agent with schema-backed state, then execute an action through `cmd/2`.
+
+```elixir
+defmodule MyApp.CounterAgent do
+  use Jido.Agent,
+    name: "counter_agent",
+    description: "Tracks command executions",
+    schema: [
+      count: [type: :integer, default: 0],
+      status: [type: :atom, default: :idle]
+    ]
+end
+
+defmodule MyApp.Increment do
+  use Jido.Action,
+    name: "increment",
+    schema: [by: [type: :integer, default: 1]]
+
+  @impl true
+  def run(ctx, params) do
+    agent = Map.get(ctx, :agent) || Map.get(ctx, "agent") || ctx
+    by = Map.get(params, :by) || Map.get(params, "by") || 1
+    {:ok, %{count: agent.state.count + by, status: :active}}
+  end
+end
+
+# Example invocation:
+# agent = MyApp.CounterAgent.new()
+# {updated_agent, directives} = MyApp.CounterAgent.cmd(agent, {MyApp.Increment, %{by: 2}})
+# updated_agent.state.count
+# # => 2
+# directives
+# # => []
+```
+
+## How `cmd/2` Works
+
+`cmd/2` is the core contract for agent evolution.
+
+At a high level:
+
+1. `on_before_cmd/2` runs (optional hook)
+2. action input is normalized into instructions
+3. the configured strategy executes instructions
+4. `on_after_cmd/3` runs (optional hook)
+5. result returns as `{agent, directives}`
+
+Two invariants matter:
+
+- The returned `agent` is already complete; there is no "apply directives to state" step
+- Directives are outbound runtime instructions, not state mutators
+
+## Module Boundaries
+
+| Module | Responsibility |
+| --- | --- |
+| `Jido.Agent` | Defines the agent struct and public API (`new/1`, `set/2`, `validate/2`, `cmd/2`) |
+| `Jido.Agent.Strategy` | Behavior for how instructions execute (`cmd/3`, optional `init/2`, `tick/2`, `snapshot/2`) |
+| `Jido.Agent.Strategy.Direct` | Default sequential strategy; runs instructions immediately and returns external directives |
+| `Jido.Agent.Directive` | Typed effect payloads (`Emit`, `Schedule`, `RunInstruction`, `SpawnAgent`, `Stop`, etc.) |
+
+This split is the practical boundary between decision logic and operational effects.
+
+## Progressive Example
+
+This example updates agent state and emits a signal directive for the runtime.
+
+```elixir
+defmodule MyApp.RegistrationAgent do
+  use Jido.Agent,
+    name: "registration_agent",
+    schema: [
+      processed: [type: :integer, default: 0],
+      last_user_id: [type: :string, required: false]
+    ]
+end
+
+defmodule MyApp.ProcessRegistration do
+  use Jido.Action,
+    name: "process_registration",
+    schema: [user_id: [type: :string, required: true]]
+
+  alias Jido.Agent.Directive
+
+  @impl true
+  def run(ctx, params) do
+    agent = Map.get(ctx, :agent) || Map.get(ctx, "agent") || ctx
+    user_id = Map.get(params, :user_id) || Map.get(params, "user_id")
+
+    signal = %Jido.Signal{
+      id: "sig_registration_processed",
+      type: "registration.processed",
+      source: "my_app.registration",
+      data: %{user_id: user_id}
+    }
+
+    {:ok,
+     %{processed: agent.state.processed + 1, last_user_id: user_id},
+     %Directive.Emit{signal: signal}}
+  end
+end
+
+# Example invocation:
+# agent = MyApp.RegistrationAgent.new()
+# {agent, directives} =
+#   MyApp.RegistrationAgent.cmd(agent, {MyApp.ProcessRegistration, %{user_id: "usr_123"}})
+# agent.state
+# # => %{processed: 1, last_user_id: "usr_123"}
+# directives
+# # => [%Jido.Agent.Directive.Emit{...}]
+```
+
+In production, the runtime handles the directive dispatch; your state transition logic stays pure.
+
+## Strategy Selection Guidance
+
+| Strategy | Best for | Tradeoff |
+| --- | --- | --- |
+| `Jido.Agent.Strategy.Direct` | Deterministic workflows and most business-state transitions | Single-pass execution; no built-in tick loop |
+| Custom strategy implementing `Jido.Agent.Strategy` | Multi-step planners, staged execution, or domain-specific orchestration | More control, but you own strategy semantics and testing |
+
+Start with `Direct` unless you can name the specific runtime behavior you need from a custom strategy.
+
+## Failure Modes and Operational Boundaries
+
+The most common failures are normalization errors, action execution failures, and schema violations.
+
+Jido keeps those failures bounded:
+
+- Invalid action input is surfaced as a validation-style error directive
+- Instruction failures are represented as typed error directives
+- Agent state updates remain explicit and inspectable
+
+Operationally, this is where `AgentServer` and supervision matter. Supervisors handle process lifecycle; your agent contract handles state correctness and effect intent.
+
+## API Surface Map
+
+Key functions you should expect to use most:
+
+- `MyAgent.new/1`
+- `MyAgent.cmd/2` and `MyAgent.cmd/3`
+- `MyAgent.set/2`
+- `MyAgent.validate/2`
+- `MyAgent.strategy_snapshot/1`
+
+For custom strategies, implement `Jido.Agent.Strategy.cmd/3` first, then add `init/2` or `tick/2` only if your runtime model requires them.
+
+## Reference and Next Steps
+
+- Learn action design in [Actions](/docs/concepts/actions)
+- See event flow patterns in [Signals](/docs/concepts/signals)
+- Understand effect payloads in [Directives](/docs/concepts/directives)
+- Review rollout guardrails in [Production Readiness Checklist](/docs/operations/production-readiness-checklist)
+- Browse API-level details in [Jido package reference](/docs/reference/packages/jido)

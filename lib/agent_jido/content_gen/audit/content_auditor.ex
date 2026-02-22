@@ -4,6 +4,7 @@ defmodule AgentJido.ContentGen.Audit.ContentAuditor do
   """
 
   alias AgentJido.ContentGen.Audit.SourceIndex
+  alias AgentJido.ContentGen.Contract
   alias AgentJido.Release.LinkAudit
 
   @placeholder_patterns [
@@ -23,17 +24,24 @@ defmodule AgentJido.ContentGen.Audit.ContentAuditor do
   def audit(entry, target, candidate, opts \\ []) do
     source_index = Keyword.get(opts, :source_index, SourceIndex.build())
     route_patterns = Keyword.get(opts, :route_patterns, LinkAudit.route_patterns())
+    planned_routes = Keyword.get(opts, :planned_routes, [])
 
     body = candidate.body_markdown || ""
     full_text = candidate.raw || body
+    contract = Contract.contract(entry, target)
 
     errors =
       []
       |> append(check_placeholders(full_text))
+      |> append(check_contract_required_sections(body, contract))
+      |> append(check_contract_required_links(body, contract))
+      |> append(check_contract_word_count(body, contract))
+      |> append(check_contract_code_blocks(body, contract))
+      |> append(check_contract_fun_refs(body, contract))
       |> append(check_module_refs(body, source_index))
       |> append(check_source_modules(body, entry))
       |> append(check_source_files(body, entry))
-      |> append(check_internal_links(body, route_patterns))
+      |> append(check_internal_links(body, route_patterns, planned_routes))
       |> append(check_cross_links(body))
 
     warnings = []
@@ -44,10 +52,117 @@ defmodule AgentJido.ContentGen.Audit.ContentAuditor do
       score: score(errors, warnings),
       summary: %{
         route: target.route,
+        contract_profile: contract.profile,
+        word_count: word_count(body),
         checked_module_refs: length(extract_module_refs(body)),
         checked_internal_links: length(extract_internal_links(body))
       }
     }
+  end
+
+  defp check_contract_required_sections(body, contract) do
+    headings = extract_headings(body)
+
+    contract.required_sections
+    |> Enum.reduce([], fn section, acc ->
+      normalized_required = normalize_heading(section)
+
+      has_heading? =
+        Enum.any?(headings, fn heading ->
+          heading == normalized_required or
+            String.starts_with?(heading, normalized_required <> ":") or
+            String.starts_with?(heading, normalized_required <> " -")
+        end)
+
+      if has_heading? do
+        acc
+      else
+        [
+          %{
+            code: :contract_missing_required_section,
+            message: "missing required section heading: #{section}"
+          }
+          | acc
+        ]
+      end
+    end)
+    |> Enum.reverse()
+  end
+
+  defp check_contract_required_links(body, contract) do
+    links = extract_internal_links(body)
+
+    contract.required_links
+    |> Enum.reduce([], fn required_link, acc ->
+      required = normalize_link(required_link)
+
+      has_link? =
+        Enum.any?(links, fn link ->
+          link == required or String.starts_with?(link, required <> "/")
+        end)
+
+      if has_link? do
+        acc
+      else
+        [%{code: :contract_missing_required_link, message: "missing required internal link: #{required_link}"} | acc]
+      end
+    end)
+    |> Enum.reverse()
+  end
+
+  defp check_contract_word_count(body, contract) do
+    words = word_count(body)
+
+    cond do
+      words < contract.min_words ->
+        [
+          %{
+            code: :contract_word_count_below_min,
+            message: "word count #{words} is below minimum #{contract.min_words}"
+          }
+        ]
+
+      words > contract.max_words ->
+        [
+          %{
+            code: :contract_word_count_above_max,
+            message: "word count #{words} exceeds maximum #{contract.max_words}"
+          }
+        ]
+
+      true ->
+        []
+    end
+  end
+
+  defp check_contract_code_blocks(body, contract) do
+    code_blocks = code_block_count(body)
+
+    if code_blocks < contract.minimum_code_blocks do
+      [
+        %{
+          code: :contract_insufficient_code_blocks,
+          message: "code blocks #{code_blocks} below required minimum #{contract.minimum_code_blocks}"
+        }
+      ]
+    else
+      []
+    end
+  end
+
+  defp check_contract_fun_refs(body, contract) do
+    fun_refs = body |> extract_module_refs() |> length()
+
+    if fun_refs < contract.minimum_fun_refs do
+      [
+        %{
+          code: :contract_insufficient_fun_refs,
+          message: "module/function refs #{fun_refs} below required minimum #{contract.minimum_fun_refs}"
+        }
+      ]
+    else
+      []
+    end
   end
 
   defp check_placeholders(text) do
@@ -111,11 +226,11 @@ defmodule AgentJido.ContentGen.Audit.ContentAuditor do
     end
   end
 
-  defp check_internal_links(body, route_patterns) do
+  defp check_internal_links(body, route_patterns, planned_routes) do
     body
     |> extract_internal_links()
     |> Enum.reduce([], fn link, acc ->
-      if link_valid?(link, route_patterns) do
+      if link_valid?(link, route_patterns, planned_routes) do
         acc
       else
         [%{code: :broken_internal_link, message: "internal link does not resolve: #{link}"} | acc]
@@ -156,6 +271,38 @@ defmodule AgentJido.ContentGen.Audit.ContentAuditor do
     |> Enum.uniq()
   end
 
+  defp extract_headings(body) do
+    Regex.scan(~r/^\#{1,6}\s+(.+)$/m, body)
+    |> Enum.map(fn
+      [_, heading] -> normalize_heading(heading)
+      _ -> nil
+    end)
+    |> Enum.reject(&is_nil/1)
+    |> Enum.uniq()
+  end
+
+  defp normalize_heading(heading) do
+    heading
+    |> to_string()
+    |> String.trim()
+    |> String.replace(~r/\s+/, " ")
+    |> String.downcase()
+  end
+
+  defp word_count(body) do
+    cleaned =
+      body
+      |> String.replace(~r/```.*?```/s, " ")
+
+    Regex.scan(~r/[A-Za-z0-9][A-Za-z0-9'_-]*/, cleaned)
+    |> length()
+  end
+
+  defp code_block_count(body) do
+    Regex.scan(~r/```[a-zA-Z0-9_-]*\n.*?```/s, body)
+    |> length()
+  end
+
   defp normalize_link(link) do
     route =
       link
@@ -169,8 +316,10 @@ defmodule AgentJido.ContentGen.Audit.ContentAuditor do
     end
   end
 
-  defp link_valid?(link, route_patterns) do
-    Enum.any?(route_patterns, &route_matches?(link, &1))
+  defp link_valid?(link, route_patterns, planned_routes) do
+    route_match? = Enum.any?(route_patterns, &route_matches?(link, &1))
+    planned_route? = Enum.any?(planned_routes, &(normalize_link(&1) == normalize_link(link)))
+    route_match? or planned_route?
   end
 
   defp route_matches?(path, route_pattern) do

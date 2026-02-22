@@ -90,10 +90,11 @@ defmodule AgentJidoWeb.ContentOpsGithubLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="container max-w-5xl mx-auto px-6 py-12 space-y-6">
+    <AgentJidoWeb.Jido.AdminNav.admin_shell current_path="/dashboard/contentops/github">
+      <div class="container max-w-5xl mx-auto px-6 py-12 space-y-6">
       <%!-- Nav strip --%>
       <div class="flex items-center gap-3 text-sm">
-        <.link navigate="/dev/contentops" class="text-primary hover:text-primary/80 transition-colors">
+        <.link navigate="/dashboard/contentops" class="text-primary hover:text-primary/80 transition-colors">
           ← Dashboard
         </.link>
       </div>
@@ -135,7 +136,8 @@ defmodule AgentJidoWeb.ContentOpsGithubLive do
 
       <%!-- PRs --%>
       <.prs_card :if={@prs} prs={@prs} />
-    </div>
+      </div>
+    </AgentJidoWeb.Jido.AdminNav.admin_shell>
     """
   end
 

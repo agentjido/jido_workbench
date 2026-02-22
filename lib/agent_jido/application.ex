@@ -10,6 +10,7 @@ defmodule AgentJido.Application do
         AgentJido.Repo,
         AgentJidoWeb.Telemetry,
         {Phoenix.PubSub, name: AgentJido.PubSub},
+        AgentJidoWeb.Presence,
         {Finch, name: AgentJido.Finch},
         Arcana.TaskSupervisor
       ] ++

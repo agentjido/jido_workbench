@@ -18,8 +18,8 @@
     "lib/agent_jido/ecosystem.ex",
     "lib/agent_jido_web/router.ex"
   ],
-  status: :outline,
-  priority: :high,
+  status: :published,
+  priority: :none,
   prerequisites: ["features/overview"],
   related: [
     "ecosystem/package-matrix",

@@ -1,6 +1,9 @@
 defmodule AgentJido.QueryLogsTest do
   use AgentJido.DataCase, async: true
 
+  import AgentJido.AccountsFixtures
+
+  alias AgentJido.Accounts.Scope
   alias AgentJido.QueryLogs
 
   describe "query tracking" do
@@ -61,6 +64,34 @@ defmodule AgentJido.QueryLogsTest do
       assert Enum.any?(top_queries, fn query ->
                query.query == repeated_query and query.count >= 2
              end)
+    end
+
+    test "enriches query logs with identity and scope fields" do
+      admin = admin_user_fixture()
+      scope = Scope.for_user(admin)
+
+      identity = %{
+        visitor_id: "visitor-enriched",
+        session_id: "session-enriched",
+        path: "/docs/concepts/agents",
+        referrer_host: "agentjido.xyz"
+      }
+
+      assert {:ok, query_log} =
+               QueryLogs.create_query_log(scope, identity, %{
+                 source: "ask_ai",
+                 channel: "ask_ai_modal",
+                 query: "Contact me at owner@example.com",
+                 status: "submitted"
+               })
+
+      assert query_log.user_id == admin.id
+      assert query_log.visitor_id == "visitor-enriched"
+      assert query_log.session_id == "session-enriched"
+      assert query_log.path == "/docs/concepts/agents"
+      assert query_log.referrer_host == "agentjido.xyz"
+      assert is_binary(query_log.query_hash)
+      assert query_log.query =~ "[email]"
     end
   end
 end

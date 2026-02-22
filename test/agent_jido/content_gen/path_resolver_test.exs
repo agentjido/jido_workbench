@@ -45,15 +45,15 @@ defmodule AgentJido.ContentGen.PathResolverTest do
 
     test "chooses livebook format from docs tag when file missing" do
       entry = %{
-        id: "docs/actions",
-        destination_route: "/docs/concepts/actions",
+        id: "docs/path-resolver-missing",
+        destination_route: "/docs/concepts/path-resolver-missing",
         section: "docs",
         tags: [:format_livebook]
       }
 
       assert {:ok, target} = PathResolver.resolve(entry, page_index: %{})
       assert target.format == :livemd
-      assert target.target_path == "priv/pages/docs/concepts/actions.livemd"
+      assert target.target_path == "priv/pages/docs/concepts/path-resolver-missing.livemd"
       refute target.exists?
     end
 
@@ -81,7 +81,36 @@ defmodule AgentJido.ContentGen.PathResolverTest do
       assert {:ok, target} =
                PathResolver.resolve(entry, page_index: %{"/docs/concepts/agents" => build_path})
 
-      assert target.target_path == "priv/pages/docs/concepts/agents.md"
+      assert target.target_path == "priv/pages/docs/concepts/agents.livemd"
+      assert target.read_path == "priv/pages/docs/concepts/agents.livemd"
+      assert target.format == :livemd
+      assert target.exists?
+    end
+
+    test "docs_format livemd converts existing markdown target safely" do
+      existing_md = "priv/pages/docs/tmp/format-switch.md"
+      :ok = File.mkdir_p(Path.dirname(existing_md))
+      :ok = File.write(existing_md, "%{}\n---\n## Overview\n")
+
+      on_exit(fn -> File.rm(existing_md) end)
+
+      entry = %{
+        id: "docs/format-switch",
+        destination_route: "/docs/tmp/format-switch",
+        section: "docs",
+        tags: [:format_markdown]
+      }
+
+      assert {:ok, target} =
+               PathResolver.resolve(entry,
+                 page_index: %{"/docs/tmp/format-switch" => existing_md},
+                 docs_format: :livemd
+               )
+
+      assert target.target_path == "priv/pages/docs/tmp/format-switch.livemd"
+      assert target.read_path == existing_md
+      assert target.conversion_source_path == existing_md
+      assert target.format == :livemd
       assert target.exists?
     end
   end

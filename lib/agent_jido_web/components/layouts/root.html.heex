@@ -140,6 +140,7 @@
     <meta name="twitter:image" content={og_image} />
   </head>
   <body class="antialiased font-mono">
+    <AgentJidoWeb.Jido.AdminNav.utility_top_bar current_scope={@conn.assigns[:current_scope]} />
     {@inner_content}
   </body>
 </html>

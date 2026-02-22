@@ -308,6 +308,9 @@ defmodule AgentJidoWeb.Jido.Nav do
   end
 
   @doc "Site-global modals controlled by primary nav actions."
+  attr(:current_scope, :any, default: nil)
+  attr(:analytics_identity, :any, default: nil)
+
   @spec primary_nav_modals(map()) :: Phoenix.LiveView.Rendered.t()
   def primary_nav_modals(assigns) do
     assigns =
@@ -317,8 +320,18 @@ defmodule AgentJidoWeb.Jido.Nav do
 
     ~H"""
     <div id="primary-nav-modal-root">
-      <.live_component module={AgentJidoWeb.NavSearchModalComponent} id={@search_modal_id} />
-      <.live_component module={AgentJidoWeb.NavAskAiModalComponent} id={@ask_ai_modal_id} />
+      <.live_component
+        module={AgentJidoWeb.NavSearchModalComponent}
+        id={@search_modal_id}
+        current_scope={@current_scope}
+        analytics_identity={@analytics_identity}
+      />
+      <.live_component
+        module={AgentJidoWeb.NavAskAiModalComponent}
+        id={@ask_ai_modal_id}
+        current_scope={@current_scope}
+        analytics_identity={@analytics_identity}
+      />
     </div>
     """
   end

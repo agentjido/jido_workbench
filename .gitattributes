@@ -1,0 +1,10 @@
+# Content generation policy
+# Source of truth is hand-authored briefs in `priv/content_plan/**`.
+# Only generated docs output under `priv/pages/docs/**` is marked as generated.
+# Other `priv/pages/**` content remains human-authored unless explicitly added here.
+
+priv/pages/docs/**/*.md linguist-generated=true
+priv/pages/docs/**/*.livemd linguist-generated=true
+
+# Keep plan briefs explicitly human-authored.
+priv/content_plan/** -linguist-generated

@@ -10,6 +10,7 @@ defmodule AgentJido.ContentGen.OutputParserTest do
     assert parsed.frontmatter.title == "T"
     assert parsed.body_markdown =~ "# Body"
     assert parsed.citations == ["x"]
+    assert parsed.parse_mode == :json
   end
 
   test "falls back to markdown envelope when model returns non-json chatter" do
@@ -26,6 +27,7 @@ defmodule AgentJido.ContentGen.OutputParserTest do
     assert parsed.frontmatter == %{}
     assert parsed.body_markdown =~ "# Agents"
     assert "fallback_markdown_envelope" in parsed.audit_notes
+    assert parsed.parse_mode == :fallback_markdown
   end
 
   test "parses fenced json envelope with nested braces in body_markdown" do
@@ -45,6 +47,7 @@ defmodule AgentJido.ContentGen.OutputParserTest do
     assert parsed.body_markdown =~ "%{count: 1}"
     assert parsed.citations == ["Jido.Agent"]
     assert parsed.audit_notes == ["ok"]
+    assert parsed.parse_mode == :json
   end
 
   test "fallback prefers fuller body when fenced block is too small" do
@@ -64,6 +67,7 @@ defmodule AgentJido.ContentGen.OutputParserTest do
     assert parsed.body_markdown =~ "# Agents Guide"
     assert parsed.body_markdown =~ "long paragraph"
     refute parsed.body_markdown =~ "Caller:"
+    assert parsed.parse_mode == :fallback_markdown
   end
 
   test "returns error for empty output" do

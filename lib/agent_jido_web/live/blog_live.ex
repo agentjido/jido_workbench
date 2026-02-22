@@ -30,7 +30,11 @@ defmodule AgentJidoWeb.BlogLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <.marketing_layout current_path="/blog">
+    <.marketing_layout
+      current_path="/blog"
+      current_scope={@current_scope}
+      analytics_identity={@analytics_identity}
+    >
       <%= case @live_action do %>
         <% :index -> %>
           <.blog_index posts={@posts} tags={@tags} />

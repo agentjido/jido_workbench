@@ -4,6 +4,7 @@ defmodule AgentJidoWeb.SearchLive do
   """
   use AgentJidoWeb, :live_view
 
+  alias AgentJido.Analytics
   alias AgentJido.QueryLogs
   alias AgentJido.Search
 
@@ -21,6 +22,9 @@ defmodule AgentJidoWeb.SearchLive do
      |> assign(:status, :no_query)
      |> assign(:search_ref, nil)
      |> assign(:search_log_ids, %{})
+     |> assign(:last_query_log_id, nil)
+     |> assign(:feedback_note, "")
+     |> assign(:feedback_submitted, false)
      |> assign(:search_module, resolve_search_module(session))
      |> assign(:search_opts, resolve_search_opts(session))}
   end
@@ -81,13 +85,22 @@ defmodule AgentJidoWeb.SearchLive do
         >
           <h2 class="text-lg font-semibold text-foreground">Results</h2>
           <ul class="space-y-3">
-            <li :for={result <- @results} class="rounded-2xl border border-border bg-card p-5 shadow-sm">
+            <li
+              :for={{result, rank} <- Enum.with_index(@results, 1)}
+              class="rounded-2xl border border-border bg-card p-5 shadow-sm"
+            >
               <div class="flex items-center justify-between gap-3">
                 <p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                   {source_type_label(result.source_type)}
                 </p>
                 <a
                   href={result.url}
+                  data-analytics-event="search_result_clicked"
+                  data-analytics-source="search"
+                  data-analytics-channel="search_page"
+                  data-analytics-rank={rank}
+                  data-analytics-target-url={result.url}
+                  data-analytics-query-log-id={@last_query_log_id}
                   class="text-xs font-semibold uppercase tracking-[0.16em] text-primary hover:text-primary/80"
                 >
                   Open result
@@ -102,9 +115,31 @@ defmodule AgentJidoWeb.SearchLive do
         <section
           :if={@status == :no_results}
           id="search-no-results-state"
-          class="mt-6 rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground"
+          class="mt-6 space-y-3 rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground"
         >
-          No results found for "<span class="font-semibold text-foreground">{@query}</span>".
+          <p>No results found for "<span class="font-semibold text-foreground">{@query}</span>".</p>
+
+          <.form id="search-no-results-feedback-form" for={%{}} as={:feedback} phx-submit="submit_no_results_feedback">
+            <div class="space-y-2">
+              <textarea
+                name="feedback[note]"
+                rows="2"
+                maxlength="500"
+                placeholder="Optional: what were you trying to find?"
+                class="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground"
+              >{@feedback_note}</textarea>
+              <button
+                type="submit"
+                class="rounded-md border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground hover:border-primary/50"
+              >
+                Submit feedback
+              </button>
+            </div>
+          </.form>
+
+          <p :if={@feedback_submitted} class="text-xs font-semibold text-emerald-300">
+            Thanks. We logged this gap.
+          </p>
         </section>
 
         <section
@@ -124,10 +159,19 @@ defmodule AgentJidoWeb.SearchLive do
     query = normalize_query(raw_query)
 
     if query == "" do
-      {:noreply, assign(socket, query: "", results: [], status: :no_query, search_ref: nil)}
+      {:noreply,
+       assign(socket,
+         query: "",
+         results: [],
+         status: :no_query,
+         search_ref: nil,
+         last_query_log_id: nil,
+         feedback_note: "",
+         feedback_submitted: false
+       )}
     else
       search_ref = System.unique_integer([:monotonic, :positive])
-      query_log_id = track_query_id(query)
+      query_log_id = track_query_id(query, socket)
       started_at = System.monotonic_time()
       emit_query_issued(query)
       send(self(), {:run_search, search_ref, query, started_at})
@@ -139,8 +183,38 @@ defmodule AgentJidoWeb.SearchLive do
           socket.assigns.search_log_ids
         end
 
-      {:noreply, assign(socket, query: query, results: [], status: :loading, search_ref: search_ref, search_log_ids: search_log_ids)}
+      {:noreply,
+       assign(socket,
+         query: query,
+         results: [],
+         status: :loading,
+         search_ref: search_ref,
+         search_log_ids: search_log_ids,
+         last_query_log_id: nil,
+         feedback_note: "",
+         feedback_submitted: false
+       )}
     end
+  end
+
+  @impl true
+  def handle_event("submit_no_results_feedback", %{"feedback" => feedback_params}, socket) do
+    feedback_note = normalize_feedback_note(Map.get(feedback_params, "note"))
+
+    analytics_module().track_feedback_safe(socket.assigns.current_scope, %{
+      event: "feedback_submitted",
+      source: "search",
+      channel: "search_page_no_results",
+      path: socket.assigns.analytics_identity[:path] || "/search",
+      feedback_value: "not_helpful",
+      feedback_note: feedback_note,
+      query_log_id: socket.assigns.last_query_log_id,
+      visitor_id: socket.assigns.analytics_identity[:visitor_id],
+      session_id: socket.assigns.analytics_identity[:session_id],
+      metadata: %{surface: "search"}
+    })
+
+    {:noreply, assign(socket, feedback_note: "", feedback_submitted: true)}
   end
 
   @impl true
@@ -149,16 +223,31 @@ defmodule AgentJidoWeb.SearchLive do
     {query_log_id, search_log_ids} = Map.pop(socket.assigns.search_log_ids, search_ref)
     latency_ms = query_latency_ms(started_at)
     emit_query_outcome(outcome, query, results, latency_ms)
-    finalize_search_log(query_log_id, outcome, results)
+    finalize_search_log(query_log_id, outcome, results, latency_ms)
 
     if socket.assigns.search_ref == search_ref do
       case outcome do
         :success ->
           status = if results == [], do: :no_results, else: :results
-          {:noreply, assign(socket, status: status, results: results, search_ref: nil, search_log_ids: search_log_ids)}
+
+          {:noreply,
+           assign(socket,
+             status: status,
+             results: results,
+             search_ref: nil,
+             search_log_ids: search_log_ids,
+             last_query_log_id: query_log_id
+           )}
 
         :failure ->
-          {:noreply, assign(socket, status: :error, results: [], search_ref: nil, search_log_ids: search_log_ids)}
+          {:noreply,
+           assign(socket,
+             status: :error,
+             results: [],
+             search_ref: nil,
+             search_log_ids: search_log_ids,
+             last_query_log_id: query_log_id
+           )}
       end
     else
       {:noreply, assign(socket, :search_log_ids, search_log_ids)}
@@ -208,28 +297,45 @@ defmodule AgentJidoWeb.SearchLive do
   defp normalize_query(query) when is_binary(query), do: String.trim(query)
   defp normalize_query(_query), do: ""
 
-  defp track_query_id(query) when is_binary(query) do
-    case QueryLogs.track_query_safe(%{
-           source: "search",
-           channel: "search_page",
-           query: query,
-           status: "submitted",
-           metadata: %{surface: "search_live"}
-         }) do
-      %{id: id} -> id
-      _ -> nil
-    end
+  defp track_query_id(query, socket) when is_binary(query) do
+    query_log_id =
+      case QueryLogs.track_query_safe(socket.assigns.current_scope, socket.assigns.analytics_identity, %{
+             source: "search",
+             channel: "search_page",
+             query: query,
+             status: "submitted",
+             path: socket.assigns.analytics_identity[:path] || "/search",
+             referrer_host: socket.assigns.analytics_identity[:referrer_host],
+             metadata: %{surface: "search_live"}
+           }) do
+        %{id: id} -> id
+        _ -> nil
+      end
+
+    analytics_module().track_event_safe(socket.assigns.current_scope, %{
+      event: "search_submitted",
+      source: "search",
+      channel: "search_page",
+      path: socket.assigns.analytics_identity[:path] || "/search",
+      query_log_id: query_log_id,
+      visitor_id: socket.assigns.analytics_identity[:visitor_id],
+      session_id: socket.assigns.analytics_identity[:session_id],
+      metadata: %{surface: "search_live", query: query}
+    })
+
+    query_log_id
   end
 
-  defp finalize_search_log(query_log_id, :success, results) when is_list(results) do
+  defp finalize_search_log(query_log_id, :success, results, latency_ms) when is_list(results) do
     QueryLogs.finalize_query_safe(query_log_id, %{
       status: if(results == [], do: "no_results", else: "success"),
-      results_count: length(results)
+      results_count: length(results),
+      latency_ms: max(latency_ms, 0)
     })
   end
 
-  defp finalize_search_log(query_log_id, :failure, _results) do
-    QueryLogs.finalize_query_safe(query_log_id, %{status: "error", results_count: 0})
+  defp finalize_search_log(query_log_id, :failure, _results, latency_ms) do
+    QueryLogs.finalize_query_safe(query_log_id, %{status: "error", results_count: 0, latency_ms: max(latency_ms, 0)})
   end
 
   defp query_latency_ms(started_at) when is_integer(started_at) do
@@ -270,4 +376,16 @@ defmodule AgentJidoWeb.SearchLive do
   defp source_type_label(:blog), do: "Blog"
   defp source_type_label(:ecosystem), do: "Ecosystem"
   defp source_type_label(source_type), do: source_type |> to_string() |> Phoenix.Naming.humanize()
+
+  defp normalize_feedback_note(value) when is_binary(value) do
+    value
+    |> String.trim()
+    |> String.slice(0, 500)
+  end
+
+  defp normalize_feedback_note(_value), do: nil
+
+  defp analytics_module do
+    Application.get_env(:agent_jido, :analytics_module, Analytics)
+  end
 end

@@ -62,6 +62,21 @@ Expected result:
 
 This proves bounded runtime adoption without changing the rest of your application architecture.
 
+## Composable package adoption
+
+Jido's package architecture is designed for incremental scope expansion. Each package adds a specific capability layer without requiring the others:
+
+| Adoption phase | Package baseline | What it adds |
+|---|---|---|
+| Core runtime | `jido`, `jido_action`, `jido_signal` | Supervised agents, typed actions, event routing |
+| Intelligence layer | + `jido_ai`, `req_llm`, `llm_db` | Model integration, provider abstraction |
+| Advanced orchestration | + `jido_behaviortree`, `jido_runic` | Strategy-driven decision control |
+| Integration bridges | + `ash_jido`, `jido_messaging` | Data resource and messaging system bridges |
+
+Start with the core runtime packages. Add layers only after the previous layer is stable and operationally validated.
+
+See the [package matrix](/ecosystem/package-matrix) for full package inventory and maturity status.
+
 ## Tradeoffs and non-goals
 
 - Incremental rollout is slower than all-at-once rebuilds but lowers operational risk.
@@ -70,6 +85,7 @@ This proves bounded runtime adoption without changing the rest of your applicati
 
 ## What to explore next
 
+- **Agent model foundations:** [BEAM-native agent model](/features/beam-native-agent-model)
 - **Architectural framing:** [Reference architectures](/build/reference-architectures)
 - **Mixed-stack boundary design:** [Mixed-stack integration](/build/mixed-stack-integration)
 - **Decision support:** [Executive brief](/features/executive-brief)

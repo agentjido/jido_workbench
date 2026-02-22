@@ -62,302 +62,304 @@ defmodule AgentJidoWeb.ChatOpsLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="container mx-auto max-w-6xl space-y-8 px-6 py-12">
-      <header class="space-y-2">
-        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Admin Control Plane</p>
-        <h1 class="text-3xl font-semibold text-foreground">ChatOps Console</h1>
-        <p class="max-w-3xl text-sm text-muted-foreground">
-          Operational shell for monitoring room state, chat activity, and execution safeguards.
-        </p>
-      </header>
+    <AgentJidoWeb.Jido.AdminNav.admin_shell current_path="/dashboard/chatops">
+      <div class="container mx-auto max-w-6xl space-y-8 px-6 py-12">
+        <header class="space-y-2">
+          <p class="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Admin Control Plane</p>
+          <h1 class="text-3xl font-semibold text-foreground">ChatOps Console</h1>
+          <p class="max-w-3xl text-sm text-muted-foreground">
+            Operational shell for monitoring room state, chat activity, and execution safeguards.
+          </p>
+        </header>
 
-      <section class="grid gap-4 lg:grid-cols-2">
-        <article id="chatops-room-inventory-panel" class="space-y-4 rounded-lg border border-border bg-card p-6">
-          <div class="flex items-start justify-between gap-4">
-            <div class="space-y-1">
-              <h2 class="text-lg font-semibold text-foreground">Room Inventory</h2>
-              <p class="text-sm text-muted-foreground">
-                Current room-to-channel bindings for Telegram and Discord.
-              </p>
-            </div>
-            <div class="flex items-center gap-3">
-              <span :if={@inventory_refreshed_at} class="text-[10px] font-mono text-muted-foreground">
-                refreshed {format_refreshed_at(@inventory_refreshed_at)}
-              </span>
-              <button
-                id="chatops-room-inventory-refresh"
-                phx-click="refresh_inventory"
-                class="text-xs text-muted-foreground transition-colors hover:text-foreground"
-              >
-                ↻ Refresh
-              </button>
-            </div>
-          </div>
-
-          <div :if={@inventory_error} id="chatops-room-inventory-error" class="text-xs font-mono text-red-400">
-            ⚠ Unable to load room inventory: {@inventory_error}
-          </div>
-
-          <div
-            :if={@room_inventory == []}
-            id="chatops-room-inventory-empty"
-            class="rounded-md border border-dashed border-border bg-elevated/40 p-4 text-sm text-muted-foreground"
-          >
-            No room bindings are currently available.
-          </div>
-
-          <div :if={@room_inventory != []} id="chatops-room-inventory-list" class="space-y-3">
-            <div :for={room <- @room_inventory} class="space-y-3 rounded-md border border-border bg-elevated/50 p-4">
-              <div class="flex items-start justify-between gap-3">
-                <div class="space-y-1">
-                  <h3 class="text-sm font-semibold text-foreground">{room.room_name}</h3>
-                  <p class="text-xs font-mono text-muted-foreground">{room.room_id}</p>
-                </div>
-                <span class="text-[10px] uppercase tracking-wider text-muted-foreground">
-                  {length(room.bindings)} binding(s)
-                </span>
-              </div>
-
-              <div :if={room.bindings == []} class="text-xs text-muted-foreground">
-                No channel bindings configured.
-              </div>
-
-              <ul :if={room.bindings != []} class="space-y-2">
-                <li :for={binding <- room.bindings} class="flex flex-wrap items-center gap-2 text-xs">
-                  <span class="rounded-full border border-border bg-card px-2 py-0.5 font-semibold text-foreground">
-                    {binding_channel_label(binding.channel)}
-                  </span>
-                  <span class="font-mono text-foreground">{binding.external_room_id || "—"}</span>
-                  <span class="text-muted-foreground">
-                    instance: <span class="font-mono text-foreground">{binding.instance_id || "—"}</span>
-                  </span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </article>
-
-        <article id="chatops-message-timeline-panel" class="space-y-4 rounded-lg border border-border bg-card p-6">
-          <div class="flex items-start justify-between gap-4">
-            <div class="space-y-1">
-              <h2 class="text-lg font-semibold text-foreground">Recent Messages</h2>
-              <p class="text-sm text-muted-foreground">
-                Recent chat activity across bound room channels.
-              </p>
-              <p class="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
-                showing latest {@message_timeline_limit} messages
-              </p>
-            </div>
-            <div class="flex items-center gap-3">
-              <span :if={@message_refreshed_at} class="text-[10px] font-mono text-muted-foreground">
-                refreshed {format_refreshed_at(@message_refreshed_at)}
-              </span>
-              <button
-                id="chatops-message-timeline-refresh"
-                phx-click="refresh_messages"
-                class="text-xs text-muted-foreground transition-colors hover:text-foreground"
-              >
-                ↻ Refresh
-              </button>
-            </div>
-          </div>
-
-          <div :if={@message_error} id="chatops-message-timeline-error" class="text-xs font-mono text-red-400">
-            ⚠ Unable to load recent messages: {@message_error}
-          </div>
-
-          <div
-            :if={@recent_messages == []}
-            id="chatops-message-timeline-empty"
-            class="rounded-md border border-dashed border-border bg-elevated/40 p-4 text-sm text-muted-foreground"
-          >
-            No recent messages are available.
-          </div>
-
-          <ol :if={@recent_messages != []} id="chatops-message-timeline-list" class="space-y-3">
-            <li
-              :for={{message, index} <- Enum.with_index(@recent_messages)}
-              id={"chatops-message-row-#{index}"}
-              class="space-y-2 rounded-md border border-border bg-elevated/50 p-4"
-            >
-              <div class="flex items-start justify-between gap-3">
-                <span class="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
-                  {format_message_timestamp(message)}
-                </span>
-                <span class="rounded-full border border-border bg-card px-2 py-0.5 text-[10px] font-semibold text-foreground">
-                  {message_channel_label(message)}
-                </span>
-              </div>
-
-              <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                <p>
-                  room: <span class="font-mono text-foreground">{message_room_id(message)}</span>
-                </p>
-                <p>
-                  actor: <span class="font-mono text-foreground">{message_actor(message)}</span>
+        <section class="grid gap-4 lg:grid-cols-2">
+          <article id="chatops-room-inventory-panel" class="space-y-4 rounded-lg border border-border bg-card p-6">
+            <div class="flex items-start justify-between gap-4">
+              <div class="space-y-1">
+                <h2 class="text-lg font-semibold text-foreground">Room Inventory</h2>
+                <p class="text-sm text-muted-foreground">
+                  Current room-to-channel bindings for Telegram and Discord.
                 </p>
               </div>
-
-              <p class="text-sm leading-relaxed text-foreground">{message_snippet(message)}</p>
-            </li>
-          </ol>
-        </article>
-
-        <article id="chatops-action-timeline-panel" class="space-y-4 rounded-lg border border-border bg-card p-6">
-          <div class="flex items-start justify-between gap-4">
-            <div class="space-y-1">
-              <h2 class="text-lg font-semibold text-foreground">Action/Run Timeline</h2>
-              <p class="text-sm text-muted-foreground">
-                Run requests, policy outcomes, and completed ContentOps runs.
-              </p>
-              <p class="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
-                showing latest {@action_timeline_limit} events
-              </p>
-            </div>
-            <div class="flex items-center gap-3">
-              <span :if={@action_timeline_refreshed_at} class="text-[10px] font-mono text-muted-foreground">
-                refreshed {format_refreshed_at(@action_timeline_refreshed_at)}
-              </span>
-              <button
-                id="chatops-action-timeline-refresh"
-                phx-click="refresh_action_timeline"
-                class="text-xs text-muted-foreground transition-colors hover:text-foreground"
-              >
-                ↻ Refresh
-              </button>
-            </div>
-          </div>
-
-          <div :if={@action_timeline_error} id="chatops-action-timeline-error" class="text-xs font-mono text-red-400">
-            ⚠ Unable to load action timeline: {@action_timeline_error}
-          </div>
-
-          <div
-            :if={@action_timeline == []}
-            id="chatops-action-timeline-empty"
-            class="rounded-md border border-dashed border-border bg-elevated/40 p-4 text-sm text-muted-foreground"
-          >
-            No ChatOps actions or runs have been recorded yet.
-          </div>
-
-          <ol :if={@action_timeline != []} id="chatops-action-timeline-list" class="space-y-3">
-            <li
-              :for={{entry, index} <- Enum.with_index(@action_timeline)}
-              id={"chatops-action-row-#{index}"}
-              class={action_timeline_row_class(entry)}
-            >
-              <div class="flex flex-wrap items-center justify-between gap-2">
-                <span class="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
-                  {format_action_timestamp(entry)}
+              <div class="flex items-center gap-3">
+                <span :if={@inventory_refreshed_at} class="text-[10px] font-mono text-muted-foreground">
+                  refreshed {format_refreshed_at(@inventory_refreshed_at)}
                 </span>
-                <div class="flex items-center gap-2">
-                  <span class={entry_type_badge_class(entry)}>
-                    {action_entry_type_label(entry)}
-                  </span>
-                  <span class={entry_outcome_badge_class(entry)}>
-                    {action_entry_outcome_label(entry)}
+                <button
+                  id="chatops-room-inventory-refresh"
+                  phx-click="refresh_inventory"
+                  class="text-xs text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  ↻ Refresh
+                </button>
+              </div>
+            </div>
+
+            <div :if={@inventory_error} id="chatops-room-inventory-error" class="text-xs font-mono text-red-400">
+              ⚠ Unable to load room inventory: {@inventory_error}
+            </div>
+
+            <div
+              :if={@room_inventory == []}
+              id="chatops-room-inventory-empty"
+              class="rounded-md border border-dashed border-border bg-elevated/40 p-4 text-sm text-muted-foreground"
+            >
+              No room bindings are currently available.
+            </div>
+
+            <div :if={@room_inventory != []} id="chatops-room-inventory-list" class="space-y-3">
+              <div :for={room <- @room_inventory} class="space-y-3 rounded-md border border-border bg-elevated/50 p-4">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="space-y-1">
+                    <h3 class="text-sm font-semibold text-foreground">{room.room_name}</h3>
+                    <p class="text-xs font-mono text-muted-foreground">{room.room_id}</p>
+                  </div>
+                  <span class="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    {length(room.bindings)} binding(s)
                   </span>
                 </div>
+
+                <div :if={room.bindings == []} class="text-xs text-muted-foreground">
+                  No channel bindings configured.
+                </div>
+
+                <ul :if={room.bindings != []} class="space-y-2">
+                  <li :for={binding <- room.bindings} class="flex flex-wrap items-center gap-2 text-xs">
+                    <span class="rounded-full border border-border bg-card px-2 py-0.5 font-semibold text-foreground">
+                      {binding_channel_label(binding.channel)}
+                    </span>
+                    <span class="font-mono text-foreground">{binding.external_room_id || "—"}</span>
+                    <span class="text-muted-foreground">
+                      instance: <span class="font-mono text-foreground">{binding.instance_id || "—"}</span>
+                    </span>
+                  </li>
+                </ul>
               </div>
-
-              <p class="text-sm font-semibold text-foreground">{action_entry_label(entry)}</p>
-
-              <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                <p>
-                  actor: <span class="font-mono text-foreground">{action_entry_actor(entry)}</span>
-                </p>
-                <p>
-                  authz:
-                  <span class={action_entry_authz_class(entry)}>
-                    {action_entry_authz_label(entry)}
-                  </span>
-                </p>
-                <p>
-                  mutation-enabled:
-                  <span class={action_entry_mutation_class(entry)}>
-                    {action_entry_mutation_label(entry)}
-                  </span>
-                </p>
-              </div>
-
-              <p :if={action_entry_details(entry)} class="text-xs text-muted-foreground">
-                {action_entry_details(entry)}
-              </p>
-            </li>
-          </ol>
-        </article>
-
-        <article id="chatops-guardrails-panel" class="space-y-4 rounded-lg border border-border bg-card p-6">
-          <div class="flex items-start justify-between gap-4">
-            <div class="space-y-1">
-              <h2 class="text-lg font-semibold text-foreground">Guardrails</h2>
-              <p class="text-sm text-muted-foreground">
-                Mutation safety and actor authorization outcomes.
-              </p>
             </div>
-            <div class="flex items-center gap-3">
-              <span :if={@guardrail_refreshed_at} class="text-[10px] font-mono text-muted-foreground">
-                refreshed {format_refreshed_at(@guardrail_refreshed_at)}
-              </span>
-              <button
-                id="chatops-guardrails-refresh"
-                phx-click="refresh_guardrails"
-                class="text-xs text-muted-foreground transition-colors hover:text-foreground"
+          </article>
+
+          <article id="chatops-message-timeline-panel" class="space-y-4 rounded-lg border border-border bg-card p-6">
+            <div class="flex items-start justify-between gap-4">
+              <div class="space-y-1">
+                <h2 class="text-lg font-semibold text-foreground">Recent Messages</h2>
+                <p class="text-sm text-muted-foreground">
+                  Recent chat activity across bound room channels.
+                </p>
+                <p class="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+                  showing latest {@message_timeline_limit} messages
+                </p>
+              </div>
+              <div class="flex items-center gap-3">
+                <span :if={@message_refreshed_at} class="text-[10px] font-mono text-muted-foreground">
+                  refreshed {format_refreshed_at(@message_refreshed_at)}
+                </span>
+                <button
+                  id="chatops-message-timeline-refresh"
+                  phx-click="refresh_messages"
+                  class="text-xs text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  ↻ Refresh
+                </button>
+              </div>
+            </div>
+
+            <div :if={@message_error} id="chatops-message-timeline-error" class="text-xs font-mono text-red-400">
+              ⚠ Unable to load recent messages: {@message_error}
+            </div>
+
+            <div
+              :if={@recent_messages == []}
+              id="chatops-message-timeline-empty"
+              class="rounded-md border border-dashed border-border bg-elevated/40 p-4 text-sm text-muted-foreground"
+            >
+              No recent messages are available.
+            </div>
+
+            <ol :if={@recent_messages != []} id="chatops-message-timeline-list" class="space-y-3">
+              <li
+                :for={{message, index} <- Enum.with_index(@recent_messages)}
+                id={"chatops-message-row-#{index}"}
+                class="space-y-2 rounded-md border border-border bg-elevated/50 p-4"
               >
-                ↻ Refresh
-              </button>
-            </div>
-          </div>
+                <div class="flex items-start justify-between gap-3">
+                  <span class="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+                    {format_message_timestamp(message)}
+                  </span>
+                  <span class="rounded-full border border-border bg-card px-2 py-0.5 text-[10px] font-semibold text-foreground">
+                    {message_channel_label(message)}
+                  </span>
+                </div>
 
-          <div :if={@guardrail_error} id="chatops-guardrails-error" class="text-xs font-mono text-red-400">
-            ⚠ Unable to load guardrails: {@guardrail_error}
-          </div>
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                  <p>
+                    room: <span class="font-mono text-foreground">{message_room_id(message)}</span>
+                  </p>
+                  <p>
+                    actor: <span class="font-mono text-foreground">{message_actor(message)}</span>
+                  </p>
+                </div>
 
-          <div class="grid gap-3 sm:grid-cols-2">
-            <div class="space-y-1 rounded-md border border-border bg-elevated/40 p-4">
-              <p class="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Mutation Tools</p>
-              <p id="chatops-guardrail-mutation-state" class={guardrail_mutation_class(@guardrails)}>
-                {guardrail_mutation_label(@guardrails)}
-              </p>
+                <p class="text-sm leading-relaxed text-foreground">{message_snippet(message)}</p>
+              </li>
+            </ol>
+          </article>
+
+          <article id="chatops-action-timeline-panel" class="space-y-4 rounded-lg border border-border bg-card p-6">
+            <div class="flex items-start justify-between gap-4">
+              <div class="space-y-1">
+                <h2 class="text-lg font-semibold text-foreground">Action/Run Timeline</h2>
+                <p class="text-sm text-muted-foreground">
+                  Run requests, policy outcomes, and completed ContentOps runs.
+                </p>
+                <p class="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+                  showing latest {@action_timeline_limit} events
+                </p>
+              </div>
+              <div class="flex items-center gap-3">
+                <span :if={@action_timeline_refreshed_at} class="text-[10px] font-mono text-muted-foreground">
+                  refreshed {format_refreshed_at(@action_timeline_refreshed_at)}
+                </span>
+                <button
+                  id="chatops-action-timeline-refresh"
+                  phx-click="refresh_action_timeline"
+                  class="text-xs text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  ↻ Refresh
+                </button>
+              </div>
             </div>
 
-            <div class="space-y-1 rounded-md border border-border bg-elevated/40 p-4">
-              <p class="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Latest Actor Authz Outcome</p>
-              <p id="chatops-guardrail-authz-status" class={guardrail_authz_class(@guardrails)}>
-                {guardrail_authz_label(@guardrails)}
-              </p>
+            <div :if={@action_timeline_error} id="chatops-action-timeline-error" class="text-xs font-mono text-red-400">
+              ⚠ Unable to load action timeline: {@action_timeline_error}
             </div>
-          </div>
 
-          <div class="grid gap-3 sm:grid-cols-4 text-xs">
-            <div class="rounded-md border border-border bg-elevated/40 p-3">
-              <p class="text-[10px] uppercase tracking-wider text-muted-foreground">Authorized</p>
-              <p id="chatops-guardrail-count-authorized" class="font-mono text-foreground">
-                {guardrail_count(@guardrails, :authorized)}
-              </p>
+            <div
+              :if={@action_timeline == []}
+              id="chatops-action-timeline-empty"
+              class="rounded-md border border-dashed border-border bg-elevated/40 p-4 text-sm text-muted-foreground"
+            >
+              No ChatOps actions or runs have been recorded yet.
             </div>
-            <div class="rounded-md border border-border bg-elevated/40 p-3">
-              <p class="text-[10px] uppercase tracking-wider text-muted-foreground">Unauthorized</p>
-              <p id="chatops-guardrail-count-unauthorized" class="font-mono text-red-300">
-                {guardrail_count(@guardrails, :unauthorized)}
-              </p>
+
+            <ol :if={@action_timeline != []} id="chatops-action-timeline-list" class="space-y-3">
+              <li
+                :for={{entry, index} <- Enum.with_index(@action_timeline)}
+                id={"chatops-action-row-#{index}"}
+                class={action_timeline_row_class(entry)}
+              >
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <span class="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+                    {format_action_timestamp(entry)}
+                  </span>
+                  <div class="flex items-center gap-2">
+                    <span class={entry_type_badge_class(entry)}>
+                      {action_entry_type_label(entry)}
+                    </span>
+                    <span class={entry_outcome_badge_class(entry)}>
+                      {action_entry_outcome_label(entry)}
+                    </span>
+                  </div>
+                </div>
+
+                <p class="text-sm font-semibold text-foreground">{action_entry_label(entry)}</p>
+
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                  <p>
+                    actor: <span class="font-mono text-foreground">{action_entry_actor(entry)}</span>
+                  </p>
+                  <p>
+                    authz:
+                    <span class={action_entry_authz_class(entry)}>
+                      {action_entry_authz_label(entry)}
+                    </span>
+                  </p>
+                  <p>
+                    mutation-enabled:
+                    <span class={action_entry_mutation_class(entry)}>
+                      {action_entry_mutation_label(entry)}
+                    </span>
+                  </p>
+                </div>
+
+                <p :if={action_entry_details(entry)} class="text-xs text-muted-foreground">
+                  {action_entry_details(entry)}
+                </p>
+              </li>
+            </ol>
+          </article>
+
+          <article id="chatops-guardrails-panel" class="space-y-4 rounded-lg border border-border bg-card p-6">
+            <div class="flex items-start justify-between gap-4">
+              <div class="space-y-1">
+                <h2 class="text-lg font-semibold text-foreground">Guardrails</h2>
+                <p class="text-sm text-muted-foreground">
+                  Mutation safety and actor authorization outcomes.
+                </p>
+              </div>
+              <div class="flex items-center gap-3">
+                <span :if={@guardrail_refreshed_at} class="text-[10px] font-mono text-muted-foreground">
+                  refreshed {format_refreshed_at(@guardrail_refreshed_at)}
+                </span>
+                <button
+                  id="chatops-guardrails-refresh"
+                  phx-click="refresh_guardrails"
+                  class="text-xs text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  ↻ Refresh
+                </button>
+              </div>
             </div>
-            <div class="rounded-md border border-border bg-elevated/40 p-3">
-              <p class="text-[10px] uppercase tracking-wider text-muted-foreground">Mutations Disabled</p>
-              <p id="chatops-guardrail-count-mutations-disabled" class="font-mono text-amber-300">
-                {guardrail_count(@guardrails, :mutations_disabled)}
-              </p>
+
+            <div :if={@guardrail_error} id="chatops-guardrails-error" class="text-xs font-mono text-red-400">
+              ⚠ Unable to load guardrails: {@guardrail_error}
             </div>
-            <div class="rounded-md border border-border bg-elevated/40 p-3">
-              <p class="text-[10px] uppercase tracking-wider text-muted-foreground">Blocked Actions</p>
-              <p id="chatops-guardrail-count-blocked-actions" class="font-mono text-foreground">
-                {guardrail_blocked_actions(@guardrails)}
-              </p>
+
+            <div class="grid gap-3 sm:grid-cols-2">
+              <div class="space-y-1 rounded-md border border-border bg-elevated/40 p-4">
+                <p class="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Mutation Tools</p>
+                <p id="chatops-guardrail-mutation-state" class={guardrail_mutation_class(@guardrails)}>
+                  {guardrail_mutation_label(@guardrails)}
+                </p>
+              </div>
+
+              <div class="space-y-1 rounded-md border border-border bg-elevated/40 p-4">
+                <p class="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Latest Actor Authz Outcome</p>
+                <p id="chatops-guardrail-authz-status" class={guardrail_authz_class(@guardrails)}>
+                  {guardrail_authz_label(@guardrails)}
+                </p>
+              </div>
             </div>
-          </div>
-        </article>
-      </section>
-    </div>
+
+            <div class="grid gap-3 sm:grid-cols-4 text-xs">
+              <div class="rounded-md border border-border bg-elevated/40 p-3">
+                <p class="text-[10px] uppercase tracking-wider text-muted-foreground">Authorized</p>
+                <p id="chatops-guardrail-count-authorized" class="font-mono text-foreground">
+                  {guardrail_count(@guardrails, :authorized)}
+                </p>
+              </div>
+              <div class="rounded-md border border-border bg-elevated/40 p-3">
+                <p class="text-[10px] uppercase tracking-wider text-muted-foreground">Unauthorized</p>
+                <p id="chatops-guardrail-count-unauthorized" class="font-mono text-red-300">
+                  {guardrail_count(@guardrails, :unauthorized)}
+                </p>
+              </div>
+              <div class="rounded-md border border-border bg-elevated/40 p-3">
+                <p class="text-[10px] uppercase tracking-wider text-muted-foreground">Mutations Disabled</p>
+                <p id="chatops-guardrail-count-mutations-disabled" class="font-mono text-amber-300">
+                  {guardrail_count(@guardrails, :mutations_disabled)}
+                </p>
+              </div>
+              <div class="rounded-md border border-border bg-elevated/40 p-3">
+                <p class="text-[10px] uppercase tracking-wider text-muted-foreground">Blocked Actions</p>
+                <p id="chatops-guardrail-count-blocked-actions" class="font-mono text-foreground">
+                  {guardrail_blocked_actions(@guardrails)}
+                </p>
+              </div>
+            </div>
+          </article>
+        </section>
+      </div>
+    </AgentJidoWeb.Jido.AdminNav.admin_shell>
     """
   end
 

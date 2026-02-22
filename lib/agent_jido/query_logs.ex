@@ -28,8 +28,18 @@ defmodule AgentJido.QueryLogs do
   Creates a query log entry.
   """
   @spec create_query_log(map() | keyword()) :: {:ok, QueryLog.t()} | {:error, Ecto.Changeset.t()}
-  def create_query_log(attrs) do
-    attrs = normalize_attrs(attrs)
+  def create_query_log(attrs), do: create_query_log(nil, nil, attrs)
+
+  @doc """
+  Creates a query log entry enriched with scope and analytics identity.
+  """
+  @spec create_query_log(term(), map() | nil, map() | keyword()) ::
+          {:ok, QueryLog.t()} | {:error, Ecto.Changeset.t()}
+  def create_query_log(current_scope, analytics_identity, attrs) do
+    attrs =
+      attrs
+      |> normalize_attrs()
+      |> enrich_attrs(current_scope, analytics_identity)
 
     %QueryLog{}
     |> QueryLog.changeset(attrs)
@@ -40,8 +50,14 @@ defmodule AgentJido.QueryLogs do
   Best-effort query logging that never raises and returns the inserted record or `nil`.
   """
   @spec track_query_safe(map() | keyword()) :: QueryLog.t() | nil
-  def track_query_safe(attrs) do
-    case create_query_log(attrs) do
+  def track_query_safe(attrs), do: track_query_safe(nil, nil, attrs)
+
+  @doc """
+  Best-effort query logging with optional scope and analytics identity context.
+  """
+  @spec track_query_safe(term(), map() | nil, map() | keyword()) :: QueryLog.t() | nil
+  def track_query_safe(current_scope, analytics_identity, attrs) do
+    case create_query_log(current_scope, analytics_identity, attrs) do
       {:ok, query_log} -> query_log
       {:error, _changeset} -> nil
     end
@@ -190,9 +206,90 @@ defmodule AgentJido.QueryLogs do
 
   defp apply_filters(query, [_unknown | rest]), do: apply_filters(query, rest)
 
-  defp normalize_attrs(attrs) when is_map(attrs), do: attrs
-  defp normalize_attrs(attrs) when is_list(attrs), do: Map.new(attrs)
+  defp enrich_attrs(attrs, current_scope, analytics_identity) do
+    identity = normalize_identity(analytics_identity)
+
+    metadata =
+      attrs
+      |> fetch_value("metadata")
+      |> case do
+        value when is_map(value) -> value
+        _ -> %{}
+      end
+
+    attrs
+    |> Map.put_new("metadata", metadata)
+    |> put_if_present("visitor_id", attrs |> fetch_value("visitor_id") || identity.visitor_id)
+    |> put_if_present("session_id", attrs |> fetch_value("session_id") || identity.session_id)
+    |> put_if_present("path", attrs |> fetch_value("path") || identity.path)
+    |> put_if_present("referrer_host", attrs |> fetch_value("referrer_host") || identity.referrer_host)
+    |> put_if_present("user_id", current_user_id(current_scope))
+  end
+
+  defp normalize_identity(identity) when is_map(identity) do
+    %{
+      visitor_id: fetch_value(identity, "visitor_id") |> normalize_string(),
+      session_id: fetch_value(identity, "session_id") |> normalize_string(),
+      path: fetch_value(identity, "path") |> normalize_path(),
+      referrer_host: fetch_value(identity, "referrer_host") |> normalize_string()
+    }
+  end
+
+  defp normalize_identity(_identity), do: %{visitor_id: nil, session_id: nil, path: nil, referrer_host: nil}
+
+  defp put_if_present(map, _key, nil), do: map
+
+  defp put_if_present(map, key, value) when is_binary(key) do
+    Map.put(map, key, value)
+  end
+
+  defp current_user_id(%{user: %{id: user_id}}) when is_binary(user_id), do: user_id
+  defp current_user_id(%{assigns: %{current_scope: %{user: %{id: user_id}}}}) when is_binary(user_id), do: user_id
+  defp current_user_id(_scope), do: nil
+
+  defp fetch_value(map, key) when is_map(map) and is_binary(key) do
+    Map.get(map, key) || Map.get(map, String.to_atom(key))
+  rescue
+    ArgumentError -> Map.get(map, key)
+  end
+
+  defp normalize_string(value) when is_binary(value) do
+    case String.trim(value) do
+      "" -> nil
+      trimmed -> trimmed
+    end
+  end
+
+  defp normalize_string(value) when is_atom(value), do: value |> Atom.to_string() |> normalize_string()
+  defp normalize_string(value) when is_number(value), do: value |> to_string() |> normalize_string()
+  defp normalize_string(_value), do: nil
+
+  defp normalize_path(value) do
+    case normalize_string(value) do
+      nil ->
+        nil
+
+      path ->
+        if String.starts_with?(path, "/"), do: path, else: nil
+    end
+  end
+
+  defp normalize_attrs(attrs) when is_map(attrs), do: stringify_keys(attrs)
+  defp normalize_attrs(attrs) when is_list(attrs), do: attrs |> Map.new() |> normalize_attrs()
   defp normalize_attrs(_attrs), do: %{}
+
+  defp stringify_keys(map) when is_map(map) do
+    Enum.reduce(map, %{}, fn {key, value}, acc ->
+      string_key =
+        case key do
+          atom when is_atom(atom) -> Atom.to_string(atom)
+          binary when is_binary(binary) -> binary
+          other -> to_string(other)
+        end
+
+      Map.put(acc, string_key, value)
+    end)
+  end
 
   defp since_naive(days) do
     NaiveDateTime.utc_now()

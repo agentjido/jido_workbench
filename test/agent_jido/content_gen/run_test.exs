@@ -7,6 +7,19 @@ defmodule AgentJido.ContentGen.RunTest do
   defmodule TestBackend do
     @behaviour AgentJido.ContentGen.Backends.Backend
 
+    def generate_object(_prompt, _opts) do
+      {:ok,
+       %{
+         object: %{
+           section_order: ["Overview"],
+           section_briefs: "Overview: explain usage and constraints.",
+           citation_plan: ["Jido.Worker.run/1"],
+           consistency_rules: ["Short paragraphs", "Concrete examples"]
+         },
+         meta: %{backend: :test, mode: :structured_object}
+       }}
+    end
+
     @impl true
     def generate(_prompt, _opts) do
       envelope = %{
@@ -15,8 +28,15 @@ defmodule AgentJido.ContentGen.RunTest do
           "description" => "Generated description"
         },
         body_markdown: """
-        # Generated
+        ## Overview
 
+        Use `Jido.Worker.run/1` for execution.
+
+        ```elixir
+        Jido.Worker.run(%{})
+        ```
+
+        Link to docs: [Docs Hub](/docs)
         Link to build: [Build Quickstarts](/build/quickstarts-by-persona)
         """,
         citations: ["Jido.Worker"],
@@ -27,10 +47,57 @@ defmodule AgentJido.ContentGen.RunTest do
     end
   end
 
+  defmodule MarkdownFallbackBackend do
+    @behaviour AgentJido.ContentGen.Backends.Backend
+
+    def generate_object(_prompt, _opts) do
+      {:ok,
+       %{
+         object: %{
+           section_order: ["Overview"],
+           section_briefs: "Overview: execute one runnable example."
+         },
+         meta: %{backend: :fallback, mode: :structured_object}
+       }}
+    end
+
+    @impl true
+    def generate(_prompt, _opts) do
+      {:ok,
+       %{
+         text: """
+         ## Overview
+
+         Use `Jido.Worker.run/1` for execution.
+
+         ```elixir
+         Jido.Worker.run(:ok)
+         ```
+
+         Link to docs: [Docs Hub](/docs)
+         Link to build: [Build Quickstarts](/build/quickstarts-by-persona)
+         """,
+         meta: %{backend: :fallback}
+       }}
+    end
+  end
+
+  defmodule PassingVerifier do
+    def verify(_entry, _target, _candidate, _audit, _opts) do
+      %{
+        status: "passed",
+        checks: ["audit_only", "route_render", "livebook_test"],
+        check_results: %{audit_only: "passed", route_render: "passed", livebook_test: "passed"},
+        livebook_test_file: "test/livebooks/docs/concepts_agents_livebook_test.exs",
+        command_output_excerpt: nil
+      }
+    end
+  end
+
   test "dry-run creates report and candidate artifacts without writing target file" do
     tmp_dir = tmp_dir!("content_gen_run_dry")
     route = "/docs/unit-test-dry-run"
-    target_path = Path.join(tmp_dir, "unit-test-dry-run.md")
+    target_path = repo_target_path!("unit-test-dry-run.md")
     report_path = Path.join(tmp_dir, "report.json")
 
     opts =
@@ -60,7 +127,7 @@ defmodule AgentJido.ContentGen.RunTest do
   test "apply writes valid page content to target path" do
     tmp_dir = tmp_dir!("content_gen_run_apply")
     route = "/docs/unit-test-apply"
-    target_path = Path.join(tmp_dir, "unit-test-apply.md")
+    target_path = repo_target_path!("unit-test-apply.md")
     report_path = Path.join(tmp_dir, "report.json")
 
     opts =
@@ -103,7 +170,7 @@ defmodule AgentJido.ContentGen.RunTest do
         statuses: [:outline],
         run_id: "skip_#{System.unique_integer([:positive])}",
         report: report_path,
-        backend: :codex,
+        backend: :req_llm,
         backend_modules: %{codex: TestBackend, req_llm: TestBackend},
         source_index: source_index(),
         route_patterns: ["/docs/:slug", "/build/:slug"],
@@ -115,6 +182,83 @@ defmodule AgentJido.ContentGen.RunTest do
 
     [entry_result] = report.entries
     assert entry_result.status == :skipped_non_file_target
+  end
+
+  test "strict parse gate rejects markdown fallback when apply is enabled" do
+    tmp_dir = tmp_dir!("content_gen_run_strict_parse")
+    route = "/docs/unit-test-strict-parse"
+    target_path = repo_target_path!("unit-test-strict-parse.md")
+    report_path = Path.join(tmp_dir, "report.json")
+
+    opts =
+      run_opts(
+        route,
+        target_path,
+        %{
+          apply: true,
+          run_id: "strict_parse_#{System.unique_integer([:positive])}",
+          report: report_path,
+          backend_modules: %{codex: MarkdownFallbackBackend, req_llm: MarkdownFallbackBackend}
+        }
+      )
+
+    assert {:error, report} = Run.run(opts)
+    [entry] = report.entries
+    assert entry.status == :parse_failed
+    assert entry.reason =~ "strict mode requires JSON envelope output"
+    refute File.exists?(target_path)
+  end
+
+  test "markdown fallback can proceed in dry-run when strict mode is off" do
+    tmp_dir = tmp_dir!("content_gen_run_fallback_dry")
+    route = "/docs/unit-test-fallback-dry"
+    target_path = repo_target_path!("unit-test-fallback-dry.md")
+    report_path = Path.join(tmp_dir, "report.json")
+
+    opts =
+      run_opts(
+        route,
+        target_path,
+        %{
+          apply: false,
+          run_id: "fallback_dry_#{System.unique_integer([:positive])}",
+          report: report_path,
+          backend_modules: %{codex: MarkdownFallbackBackend, req_llm: MarkdownFallbackBackend}
+        }
+      )
+
+    assert {:ok, report} = Run.run(opts)
+    [entry] = report.entries
+    assert entry.status == :dry_run_candidate
+    assert entry.parse_mode == :fallback_markdown
+  end
+
+  test "verify metadata is attached when verifier passes" do
+    tmp_dir = tmp_dir!("content_gen_run_verify")
+    route = "/docs/unit-test-verify"
+    target_path = repo_target_path!("unit-test-verify.md")
+    report_path = Path.join(tmp_dir, "report.json")
+
+    opts =
+      run_opts(
+        route,
+        target_path,
+        %{
+          apply: true,
+          verify: true,
+          docs_format: :tag,
+          verifier: PassingVerifier,
+          run_id: "verify_#{System.unique_integer([:positive])}",
+          report: report_path
+        }
+      )
+
+    assert {:ok, report} = Run.run(opts)
+    [entry] = report.entries
+    assert entry.status == :written
+    assert entry.verification.status == "passed"
+    assert entry.verification.check_results.livebook_test == "passed"
+    assert entry.verification.livebook_test_file =~ "_livebook_test.exs"
   end
 
   defp run_opts(route, target_path, overrides) do
@@ -130,12 +274,14 @@ defmodule AgentJido.ContentGen.RunTest do
         apply: false,
         max: 10,
         statuses: [:outline],
-        backend: :codex,
+        backend: :req_llm,
         update_mode: :improve,
         fail_on_audit: true,
+        verify: false,
+        docs_format: :tag,
         backend_modules: %{codex: TestBackend, req_llm: TestBackend},
         source_index: source_index(),
-        route_patterns: ["/docs/:slug", "/build/:slug", "/training/:slug", "/ecosystem/:slug"],
+        route_patterns: ["/docs", "/docs/:slug", "/build/:slug", "/training/:slug", "/ecosystem/:slug"],
         page_index: %{route => target_path}
       },
       overrides
@@ -171,7 +317,16 @@ defmodule AgentJido.ContentGen.RunTest do
         prerequisites: [],
         related: [],
         ecosystem_packages: [],
-        tags: [:format_markdown]
+        tags: [:format_markdown],
+        prompt_overrides: %{
+          "replace_required_sections" => true,
+          "required_sections" => ["Overview"],
+          "required_links" => ["/build/quickstarts-by-persona"],
+          "min_words" => 1,
+          "max_words" => 2_000,
+          "minimum_code_blocks" => 0,
+          "minimum_fun_refs" => 0
+        }
       },
       attrs
     )
@@ -181,6 +336,19 @@ defmodule AgentJido.ContentGen.RunTest do
     path = Path.join(System.tmp_dir!(), "#{prefix}_#{System.unique_integer([:positive])}")
     :ok = File.mkdir_p(path)
     on_exit(fn -> File.rm_rf(path) end)
+    path
+  end
+
+  defp repo_target_path!(filename) do
+    unique_name = "#{System.unique_integer([:positive])}_#{filename}"
+    path = Path.join(["priv", "pages", "tmp_content_gen_test", unique_name])
+    :ok = File.mkdir_p(Path.dirname(path))
+
+    on_exit(fn ->
+      File.rm(path)
+      File.rm(String.replace_suffix(path, ".md", ".livemd"))
+    end)
+
     path
   end
 end

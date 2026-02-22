@@ -1,62 +1,60 @@
 defmodule AgentJido.ContentGen.ModelRouter do
   @moduledoc """
-  Rule-based backend/model routing for content generation.
+  Fixed ReqLLM planner/writer model policy for content generation.
   """
 
-  @default_req_llm_model "google:gemini-2.5-pro"
+  @default_planner_model "anthropic:claude-sonnet-4-5"
+  @default_writer_model "google:gemini-2.5-pro"
 
-  @spec choose(struct(), map(), map()) :: %{backend: :codex | :req_llm, model: String.t() | nil, reason: String.t()}
-  def choose(entry, target, opts) do
-    forced_backend = Map.get(opts, :backend, :auto)
-    forced_model = Map.get(opts, :model)
+  # Compatibility aliases for previously configured values that are not present
+  # in the current ReqLLM model registry.
+  @legacy_model_aliases %{
+    "anthropic:claude-sonnet-4.6" => "anthropic:claude-sonnet-4-5",
+    "google:gemini-3.1-pro" => "google:gemini-2.5-pro"
+  }
 
-    backend =
-      case forced_backend do
-        :codex -> :codex
-        :req_llm -> :req_llm
-        _other -> auto_backend(entry, target)
-      end
+  @spec choose(struct(), map(), map()) :: %{
+          backend: :req_llm,
+          model: String.t(),
+          planner_model: String.t(),
+          writer_model: String.t(),
+          pipeline: :two_pass,
+          reason: String.t()
+        }
+  def choose(_entry, _target, opts) do
+    forced_backend = Map.get(opts, :backend, :req_llm)
 
-    model =
-      cond do
-        is_binary(forced_model) and forced_model != "" -> forced_model
-        backend == :req_llm -> @default_req_llm_model
-        true -> nil
-      end
+    planner_model =
+      Application.get_env(:agent_jido, :content_gen_planner_model, @default_planner_model)
+      |> normalize_model()
 
-    %{backend: backend, model: model, reason: decision_reason(entry, target, forced_backend, backend)}
+    writer_model =
+      Application.get_env(:agent_jido, :content_gen_writer_model, @default_writer_model)
+      |> normalize_model()
+
+    %{
+      backend: :req_llm,
+      model: writer_model,
+      planner_model: planner_model,
+      writer_model: writer_model,
+      pipeline: :two_pass,
+      reason: decision_reason(forced_backend)
+    }
   end
 
-  defp auto_backend(entry, target) do
-    cond do
-      target.format == :livemd ->
-        :codex
+  defp decision_reason(:req_llm), do: "forced_backend_req_llm_two_pass"
+  defp decision_reason(:auto), do: "auto_normalized_to_req_llm_two_pass"
+  defp decision_reason(:codex), do: "codex_requested_but_req_llm_enforced_two_pass"
+  defp decision_reason(other), do: "backend_#{inspect(other)}_normalized_to_req_llm_two_pass"
 
-      String.starts_with?(target.route, "/docs/reference") ->
-        :req_llm
-
-      String.starts_with?(target.route, "/docs/guides") ->
-        :codex
-
-      entry.section in ["build", "training"] ->
-        :codex
-
-      true ->
-        :req_llm
+  defp normalize_model(model) when is_binary(model) do
+    model
+    |> String.trim()
+    |> case do
+      "" -> nil
+      normalized -> Map.get(@legacy_model_aliases, normalized, normalized)
     end
   end
 
-  defp decision_reason(_entry, _target, forced_backend, backend) when forced_backend in [:codex, :req_llm] do
-    "forced_backend_#{backend}"
-  end
-
-  defp decision_reason(entry, target, _forced_backend, _backend) do
-    cond do
-      target.format == :livemd -> "livemd_prefers_codex"
-      String.starts_with?(target.route, "/docs/reference") -> "reference_prefers_req_llm"
-      String.starts_with?(target.route, "/docs/guides") -> "guides_prefers_codex"
-      entry.section in ["build", "training"] -> "section_prefers_codex"
-      true -> "fallback_req_llm"
-    end
-  end
+  defp normalize_model(_), do: nil
 end

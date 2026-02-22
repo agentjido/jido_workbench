@@ -4,6 +4,7 @@ defmodule AgentJidoWeb.BlogController do
   """
   use AgentJidoWeb, :controller
 
+  alias AgentJido.Analytics
   alias AgentJido.Blog
   alias AgentJido.QueryLogs
 
@@ -11,12 +12,26 @@ defmodule AgentJidoWeb.BlogController do
     normalized_query = String.trim(to_string(query || ""))
 
     if normalized_query != "" do
-      QueryLogs.track_query_safe(%{
+      query_log =
+        QueryLogs.track_query_safe(conn.assigns[:current_scope], conn.assigns[:analytics_identity], %{
+          source: "search",
+          channel: "blog_duckduckgo",
+          query: normalized_query,
+          status: "submitted",
+          path: conn.request_path,
+          referrer_host: get_in(conn.assigns, [:analytics_identity, :referrer_host]),
+          metadata: %{surface: "blog"}
+        })
+
+      Analytics.track_event_safe(conn.assigns[:current_scope], %{
+        event: "search_submitted",
         source: "search",
         channel: "blog_duckduckgo",
-        query: normalized_query,
-        status: "submitted",
-        metadata: %{surface: "blog"}
+        path: conn.request_path,
+        query_log_id: if(query_log, do: query_log.id, else: nil),
+        visitor_id: get_in(conn.assigns, [:analytics_identity, :visitor_id]),
+        session_id: get_in(conn.assigns, [:analytics_identity, :session_id]),
+        metadata: %{surface: "blog", query: normalized_query}
       })
     end
 

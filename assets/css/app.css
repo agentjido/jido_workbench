@@ -544,6 +544,38 @@
 }
 
 @layer utilities {
+  .docs-shell {
+    background:
+      radial-gradient(90rem 40rem at -10% -25%, hsl(var(--accent-cyan) / 0.12), transparent 70%),
+      radial-gradient(85rem 38rem at 115% -20%, hsl(var(--accent-green) / 0.1), transparent 72%),
+      hsl(var(--background));
+  }
+
+  .light .docs-shell {
+    background:
+      radial-gradient(90rem 40rem at -10% -25%, hsl(var(--accent-cyan) / 0.09), transparent 70%),
+      radial-gradient(85rem 38rem at 115% -20%, hsl(var(--accent-green) / 0.08), transparent 72%),
+      hsl(var(--background));
+  }
+
+  .docs-main {
+    background: linear-gradient(
+      180deg,
+      hsl(var(--background) / 0.88) 0%,
+      hsl(var(--background) / 0.98) 22%,
+      hsl(var(--background)) 100%
+    );
+  }
+
+  .docs-page-header {
+    padding: 0.1rem 0 1.25rem;
+    border-bottom: 1px solid hsl(var(--border));
+  }
+
+  .docs-document {
+    animation: fade-in 0.35s ease-out;
+  }
+
   .docs-prose.prose {
     --tw-prose-body: hsl(var(--secondary-foreground));
     --tw-prose-headings: hsl(var(--foreground));
@@ -561,6 +593,112 @@
     --tw-prose-pre-bg: hsl(var(--code-bg));
     --tw-prose-th-borders: hsl(var(--border));
     --tw-prose-td-borders: hsl(var(--border));
+    font-size: 1rem;
+    line-height: 1.8;
+  }
+
+  .docs-prose.prose :where(h2, h3) {
+    scroll-margin-top: 6rem;
+  }
+
+  .docs-prose.prose h2 {
+    margin-top: 3.1rem;
+    margin-bottom: 0.95rem;
+    padding-top: 1.05rem;
+    border-top: 1px solid hsl(var(--border) / 0.85);
+    font-size: 1.45rem;
+    line-height: 1.35;
+    letter-spacing: -0.01em;
+  }
+
+  .docs-prose.prose h3 {
+    margin-top: 2rem;
+    margin-bottom: 0.7rem;
+    font-size: 1.15rem;
+    line-height: 1.45;
+    color: hsl(var(--secondary-foreground));
+  }
+
+  .docs-prose.prose > :first-child:is(h2, h3) {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .docs-prose.prose p,
+  .docs-prose.prose ul,
+  .docs-prose.prose ol {
+    max-width: 72ch;
+  }
+
+  .docs-prose.prose p {
+    margin-top: 0.9rem;
+    margin-bottom: 1rem;
+  }
+
+  .docs-prose.prose li {
+    margin-top: 0.35rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .docs-prose.prose pre {
+    border: 1px solid hsl(var(--code-border));
+    border-radius: 0.65rem;
+    padding: 1rem 1.1rem;
+    font-size: 0.92rem;
+    line-height: 1.65;
+    box-shadow: inset 0 1px 0 hsl(var(--foreground) / 0.03);
+  }
+
+  .docs-prose.prose :where(code):not(:where(pre code)) {
+    font-size: 0.9em;
+    font-weight: 600;
+    color: hsl(var(--accent-cyan));
+    background: hsl(var(--accent-cyan) / 0.1);
+    border: 1px solid hsl(var(--accent-cyan) / 0.25);
+    border-radius: 0.35rem;
+    padding: 0.08rem 0.3rem;
+  }
+
+  .docs-prose.prose :where(code):not(:where(pre code))::before,
+  .docs-prose.prose :where(code):not(:where(pre code))::after {
+    content: none;
+  }
+
+  .docs-prose.prose table {
+    width: 100%;
+    margin-top: 1.45rem;
+    margin-bottom: 1.45rem;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.92rem;
+  }
+
+  .docs-prose.prose :where(th, td) {
+    border: 1px solid hsl(var(--border));
+    padding: 0.62rem 0.75rem;
+    vertical-align: top;
+  }
+
+  .docs-prose.prose thead th {
+    font-size: 0.73rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+    background: hsl(var(--surface));
+  }
+
+  .docs-prose.prose tbody tr:nth-child(even) td {
+    background: hsl(var(--surface) / 0.55);
+  }
+
+  .docs-toc-link {
+    overflow-wrap: anywhere;
+    text-wrap: pretty;
+  }
+
+  .docs-toc-link.text-primary {
+    font-weight: 600;
   }
 
   .docs-scrollbar {

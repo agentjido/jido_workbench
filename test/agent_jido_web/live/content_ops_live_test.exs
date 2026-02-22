@@ -10,21 +10,22 @@ defmodule AgentJidoWeb.ContentOpsLiveTest do
   end
 
   test "redirects unauthenticated users to log in", %{conn: conn} do
-    assert {:error, {:redirect, %{to: "/users/log-in"}}} = live(conn, "/dev/contentops")
+    assert {:error, {:redirect, %{to: "/users/log-in"}}} = live(conn, "/dashboard/contentops")
   end
 
   test "blocks authenticated non-admin users", %{conn: conn} do
     conn = conn |> log_in_user(user_fixture())
-    assert {:error, {:redirect, %{to: "/"}}} = live(conn, "/dev/contentops")
+    assert {:error, {:redirect, %{to: "/"}}} = live(conn, "/dashboard/contentops")
   end
 
   test "renders dashboard for authenticated admins", %{admin_conn: admin_conn} do
-    {:ok, _view, html} = live(admin_conn, "/dev/contentops")
+    {:ok, _view, html} = live(admin_conn, "/dashboard/contentops")
 
     assert html =~ "ContentOps Dashboard"
     assert html =~ "Workflow Pipeline"
     assert html =~ "Trigger Run"
     assert html =~ "mix agentjido.signal"
+    assert html =~ ~s(data-admin-nav-path="/dashboard/contentops")
   end
 
   test "public contentops route is not available", %{admin_conn: admin_conn} do

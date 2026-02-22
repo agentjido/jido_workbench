@@ -13,7 +13,7 @@
   source_modules: ["Jido.Agent", "AgentJidoWeb.JidoFeaturesLive"],
   source_files: ["lib/agent_jido_web/live/jido_features_live.ex", "priv/training/agent-fundamentals.md", "marketing/positioning.md"],
   status: :published,
-  priority: :high,
+  priority: :none,
   prerequisites: ["features/overview"],
   related: ["training/agent-fundamentals", "docs/key-concepts", "build/first-agent"],
   ecosystem_packages: ["jido", "agent_jido"],

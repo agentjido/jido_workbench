@@ -25,7 +25,11 @@ defmodule AgentJidoWeb.JidoFeaturesLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <.marketing_layout current_path="/features">
+    <.marketing_layout
+      current_path="/features"
+      current_scope={@current_scope}
+      analytics_identity={@analytics_identity}
+    >
       <div class="container max-w-[1000px] mx-auto px-6 py-12">
         <section class="text-center mb-16 animate-fade-in">
           <div class="inline-block px-4 py-2 rounded mb-5 bg-primary/10 border border-primary/30">
@@ -46,7 +50,7 @@ defmodule AgentJidoWeb.JidoFeaturesLive do
               <div class="text-[10px] uppercase tracking-wider text-muted-foreground">feature categories</div>
             </div>
             <div class="feature-card text-center py-4">
-              <div class="text-lg font-bold text-accent-cyan">7</div>
+              <div class="text-lg font-bold text-accent-cyan">8</div>
               <div class="text-[10px] uppercase tracking-wider text-muted-foreground">deep-dive pages</div>
             </div>
             <div class="feature-card text-center py-4">
@@ -99,6 +103,9 @@ defmodule AgentJidoWeb.JidoFeaturesLive do
                 </.link>
                 <.link navigate="/features/jido-vs-framework-first-stacks" class="block text-xs text-primary hover:underline">
                   Runtime-first vs framework-first ->
+                </.link>
+                <.link navigate="/features/beam-native-agent-model" class="block text-xs text-primary hover:underline">
+                  BEAM-native agent model ->
                 </.link>
               </div>
             </article>
@@ -463,7 +470,7 @@ defmodule AgentJidoWeb.JidoFeaturesLive do
           %{id: "jido_action", label: "jido_action", status: :beta}
         ],
         audience: "AI product engineers, Elixir teams",
-        deep_dive: "/features/reliability-by-architecture"
+        deep_dive: "/features/beam-native-agent-model"
       },
       %{
         title: "Signal routing and multi-agent coordination",

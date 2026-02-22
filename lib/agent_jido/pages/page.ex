@@ -366,7 +366,12 @@ defmodule AgentJido.Pages.Page do
   end
 
   defp build_livebook_url(github_url, true = _is_livebook) do
-    "https://livebook.dev/run?url=#{github_url}"
+    raw_github_url =
+      github_url
+      |> String.replace("https://github.com/", "https://raw.githubusercontent.com/")
+      |> String.replace("/blob/", "/")
+
+    "https://livebook.dev/run?url=#{URI.encode_www_form(raw_github_url)}"
   end
 
   defp build_livebook_url(_github_url, false = _is_livebook), do: nil

@@ -37,6 +37,7 @@ Jido supports this by making runtime behavior observable through telemetry and e
 | Telemetry event emission | Runtime emits operational measurements and metadata | [jido](/ecosystem/jido) | Beta |
 | Trace bridge integration | OpenTelemetry bridge for centralized tracing stacks | [jido_otel](/ecosystem/jido_otel) | Experimental |
 | Channel workflow visibility | Messaging workflows expose telemetry + Signal events | [jido_messaging](/ecosystem/jido_messaging) | Experimental |
+| Directive-driven scheduling | Recurring agent work surfaces as observable runtime events | [jido](/ecosystem/jido) | Beta |
 | Incident readiness flow | Checklist + playbooks map runtime symptoms to actions | [Production readiness checklist](/docs/operations/production-readiness-checklist), [Incident playbooks](/docs/operations/incident-playbooks) | Reference docs |
 
 ## Proof: dashboard wiring for runtime visibility
@@ -65,6 +66,7 @@ Pair this with [Demand Tracker Agent](/examples/demand-tracker-agent) to inspect
 
 ## What to explore next
 
+- **Agent model foundations:** [BEAM-native agent model](/features/beam-native-agent-model)
 - **Failure boundaries:** [Reliability by architecture](/features/reliability-by-architecture)
 - **Coordination traces:** [Multi-agent coordination](/features/multi-agent-coordination)
 - **Training:** [Production readiness](/training/production-readiness)

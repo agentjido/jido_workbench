@@ -17,7 +17,16 @@ defmodule AgentJidoWeb.BlogControllerTest do
 
     assert redirected_to(conn, 302) =~ "https://duckduckgo.com/?q=weather+agent+site:"
 
-    query_log = AgentJido.Repo.one(from(q in QueryLog, order_by: [desc: q.inserted_at], limit: 1))
+    query_log =
+      AgentJido.Repo.one(
+        from(q in QueryLog,
+          where: q.channel == "blog_duckduckgo",
+          order_by: [desc: q.inserted_at],
+          limit: 1
+        )
+      )
+
+    assert query_log
     assert query_log.source == "search"
     assert query_log.channel == "blog_duckduckgo"
     assert query_log.query == "weather agent"

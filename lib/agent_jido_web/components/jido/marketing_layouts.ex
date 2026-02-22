@@ -9,13 +9,19 @@ defmodule AgentJidoWeb.Jido.MarketingLayouts do
   attr :title, :string, default: "Jido"
   attr :current_path, :string, default: "/"
   attr :show_nav_modals, :boolean, default: true
+  attr :current_scope, :any, default: nil
+  attr :analytics_identity, :any, default: nil
   slot :inner_block, required: true
 
   def marketing_layout(assigns) do
     ~H"""
     <div class="min-h-screen flex flex-col bg-background text-foreground">
       <.marketing_header current_path={@current_path} />
-      <Nav.primary_nav_modals :if={@show_nav_modals} />
+      <Nav.primary_nav_modals
+        :if={@show_nav_modals}
+        current_scope={@current_scope}
+        analytics_identity={@analytics_identity}
+      />
       <main class="flex-1">
         {render_slot(@inner_block)}
       </main>

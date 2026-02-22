@@ -51,6 +51,11 @@ config :agent_jido, AgentJido.Jido,
   max_tasks: 1000,
   agent_pools: []
 
+config :agent_jido,
+  content_gen_planner_model: "anthropic:claude-sonnet-4-5",
+  content_gen_writer_model: "google:gemini-2.5-pro",
+  content_gen_prompt_root: "priv/prompts/content_gen"
+
 config :agent_jido, AgentJidoWeb.ContentOpsGithubLive,
   owner: "agentjido",
   repo: "agentjido_xyz",

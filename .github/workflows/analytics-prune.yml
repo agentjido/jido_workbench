@@ -1,0 +1,19 @@
+name: Analytics Prune
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+jobs:
+  prune:
+    name: Prune analytics retention
+    runs-on: ubuntu-latest
+    steps:
+      - uses: superfly/flyctl-actions@master
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        with:
+          args: >-
+            ssh console -a agentjido-prod
+            -C '/app/bin/agent_jido eval "IO.inspect(AgentJido.Analytics.prune_older_than(180))"'

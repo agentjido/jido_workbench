@@ -68,6 +68,10 @@ This is a focused, testable contract path rather than hidden orchestration behav
 - Runtime-first structure can feel heavier early but reduces long-term ambiguity.
 - Experimental strategy/integration packages should not be default choices for production rollouts.
 
+## What to explore next
+
+- **Agent model foundations:** [BEAM-native agent model](/features/beam-native-agent-model)
+
 ## How to choose quickly
 
 Use Jido when your primary constraints are:

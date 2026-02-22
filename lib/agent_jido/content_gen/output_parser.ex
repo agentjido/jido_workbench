@@ -58,7 +58,14 @@ defmodule AgentJido.ContentGen.OutputParser do
   }
 
   @spec parse(String.t()) ::
-          {:ok, %{frontmatter: map(), body_markdown: String.t(), citations: [String.t()], audit_notes: [String.t()]}}
+          {:ok,
+           %{
+             frontmatter: map(),
+             body_markdown: String.t(),
+             citations: [String.t()],
+             audit_notes: [String.t()],
+             parse_mode: :json | :fallback_markdown
+           }}
           | {:error, String.t()}
   def parse(text) when is_binary(text) do
     case decode_json(text) do
@@ -97,7 +104,8 @@ defmodule AgentJido.ContentGen.OutputParser do
        frontmatter: normalize_frontmatter(frontmatter),
        body_markdown: String.trim_trailing(body) <> "\n",
        citations: citations,
-       audit_notes: audit_notes
+       audit_notes: audit_notes,
+       parse_mode: :json
      }}
   end
 
@@ -111,7 +119,8 @@ defmodule AgentJido.ContentGen.OutputParser do
        frontmatter: normalize_frontmatter(frontmatter),
        body_markdown: String.trim_trailing(body) <> "\n",
        citations: citations,
-       audit_notes: audit_notes
+       audit_notes: audit_notes,
+       parse_mode: :json
      }}
   end
 
@@ -220,6 +229,7 @@ defmodule AgentJido.ContentGen.OutputParser do
       {:error, "unable to decode backend output as JSON envelope"}
     else
       {:ok, %{frontmatter: %{}, body_markdown: body <> "\n", citations: [], audit_notes: ["fallback_markdown_envelope"]}}
+      |> then(fn {:ok, envelope} -> {:ok, Map.put(envelope, :parse_mode, :fallback_markdown)} end)
     end
   end
 

@@ -4,6 +4,7 @@ defmodule AgentJidoWeb.NavSearchModalComponent do
   """
   use AgentJidoWeb, :live_component
 
+  alias AgentJido.Analytics
   alias AgentJido.QueryLogs
   alias AgentJido.Search
   alias AgentJido.Search.Result
@@ -23,6 +24,12 @@ defmodule AgentJidoWeb.NavSearchModalComponent do
       |> assign_new(:results, fn -> [] end)
       |> assign_new(:search_ref, fn -> nil end)
       |> assign_new(:query_log_id, fn -> nil end)
+      |> assign_new(:last_query_log_id, fn -> nil end)
+      |> assign_new(:search_started_at, fn -> nil end)
+      |> assign_new(:feedback_note, fn -> "" end)
+      |> assign_new(:feedback_submitted, fn -> false end)
+      |> assign_new(:current_scope, fn -> nil end)
+      |> assign_new(:analytics_identity, fn -> %{visitor_id: nil, session_id: nil, referrer_host: nil} end)
       |> assign(Map.drop(assigns, [:search_complete]))
       |> maybe_apply_search_complete(assigns)
 
@@ -36,15 +43,28 @@ defmodule AgentJidoWeb.NavSearchModalComponent do
     query = normalize_query(raw_query)
 
     if query == "" do
-      {:noreply, assign(socket, query: "", status: :idle, results: [], search_ref: nil, query_log_id: nil)}
+      {:noreply,
+       assign(socket,
+         query: "",
+         status: :idle,
+         results: [],
+         search_ref: nil,
+         query_log_id: nil,
+         last_query_log_id: nil,
+         search_started_at: nil,
+         feedback_note: "",
+         feedback_submitted: false
+       )}
     else
       search_ref = System.unique_integer([:positive, :monotonic])
       component_id = socket.assigns.id
       live_view_pid = socket.root_pid || self()
-      query_log_id = track_query_id(query)
+      query_log_id = track_query_id(query, socket)
+      started_at = System.monotonic_time()
+      search_module = search_module()
 
       Task.start(fn ->
-        response = Search.query_with_status(query, limit: @default_limit)
+        response = run_search(search_module, query)
         send_update(live_view_pid, __MODULE__, id: component_id, search_complete: {search_ref, query, response})
       end)
 
@@ -54,13 +74,67 @@ defmodule AgentJidoWeb.NavSearchModalComponent do
          status: :loading,
          results: [],
          search_ref: search_ref,
-         query_log_id: query_log_id
+         query_log_id: query_log_id,
+         last_query_log_id: nil,
+         search_started_at: started_at,
+         feedback_note: "",
+         feedback_submitted: false
        )}
     end
   end
 
+  def handle_event("result_click", params, socket) do
+    rank = normalize_rank(Map.get(params, "rank"))
+    target_url = normalize_query(Map.get(params, "url"))
+
+    analytics_module().track_event_safe(socket.assigns.current_scope, %{
+      event: "search_result_clicked",
+      source: "search",
+      channel: "nav_modal",
+      path: socket.assigns.analytics_identity[:path] || "/",
+      target_url: target_url,
+      rank: rank,
+      query_log_id: socket.assigns.last_query_log_id,
+      visitor_id: socket.assigns.analytics_identity[:visitor_id],
+      session_id: socket.assigns.analytics_identity[:session_id],
+      metadata: %{surface: "search_modal"}
+    })
+
+    {:noreply, socket}
+  end
+
+  def handle_event("submit_feedback", %{"feedback" => feedback_params}, socket) do
+    feedback_note = normalize_feedback_note(Map.get(feedback_params, "note"))
+
+    analytics_module().track_feedback_safe(socket.assigns.current_scope, %{
+      event: "feedback_submitted",
+      source: "search",
+      channel: "nav_modal_no_results",
+      path: socket.assigns.analytics_identity[:path] || "/",
+      feedback_value: "not_helpful",
+      feedback_note: feedback_note,
+      query_log_id: socket.assigns.last_query_log_id,
+      visitor_id: socket.assigns.analytics_identity[:visitor_id],
+      session_id: socket.assigns.analytics_identity[:session_id],
+      metadata: %{surface: "search"}
+    })
+
+    {:noreply, assign(socket, feedback_note: "", feedback_submitted: true)}
+  end
+
   def handle_event("reset", _params, socket) do
-    {:noreply, assign(socket, query: "", status: :idle, results: [], search_ref: nil, query_log_id: nil)}
+    {:noreply,
+     assign(socket,
+       query: "",
+       status: :idle,
+       results: [],
+       search_ref: nil,
+       query_log_id: nil,
+       last_query_log_id: nil,
+       search_started_at: nil,
+       feedback_note: "",
+       feedback_submitted: false
+     )}
   end
 
   @impl true
@@ -119,10 +193,10 @@ defmodule AgentJidoWeb.NavSearchModalComponent do
             </p>
 
             <div class="max-h-[52vh] overflow-y-auto pr-1 space-y-3">
-              <%= for result <- @results do %>
+              <%= for {result, rank} <- Enum.with_index(@results, 1) do %>
                 <a
                   href={result.url}
-                  phx-click={hide_modal(@id)}
+                  phx-click={JS.push("result_click", target: @myself, value: %{url: result.url, rank: rank}) |> hide_modal(@id)}
                   class="block rounded-xl border border-border bg-background/70 p-4 transition hover:border-primary/50"
                 >
                   <div class="mb-2 flex items-center justify-between gap-2">
@@ -138,8 +212,28 @@ defmodule AgentJidoWeb.NavSearchModalComponent do
             </div>
           </div>
 
-          <div :if={@status == :empty} id={"#{@id}-empty"} class="text-sm text-muted-foreground">
-            No results found for "<span class="font-semibold">{@query}</span>".
+          <div :if={@status == :empty} id={"#{@id}-empty"} class="space-y-3 text-sm text-muted-foreground">
+            <p>No results found for "<span class="font-semibold">{@query}</span>".</p>
+
+            <.form for={%{}} as={:feedback} phx-submit="submit_feedback" phx-target={@myself} class="space-y-2">
+              <textarea
+                name="feedback[note]"
+                rows="2"
+                maxlength="500"
+                placeholder="Optional: what were you trying to find?"
+                class="w-full resize-y rounded border border-border bg-background px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground"
+              >{@feedback_note}</textarea>
+              <button
+                type="submit"
+                class="rounded-md border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground hover:border-primary/50"
+              >
+                Submit feedback
+              </button>
+            </.form>
+
+            <p :if={@feedback_submitted} class="text-xs font-semibold text-emerald-300">
+              Thanks. We logged this search gap.
+            </p>
           </div>
 
           <div :if={@status == :error} id={"#{@id}-error"} class="text-sm text-destructive">
@@ -164,34 +258,93 @@ defmodule AgentJidoWeb.NavSearchModalComponent do
 
   @spec apply_search_response(Phoenix.LiveView.Socket.t(), String.t(), term()) :: Phoenix.LiveView.Socket.t()
   defp apply_search_response(socket, query, {:ok, results, status}) when is_list(results) do
+    latency_ms = query_latency_ms(socket.assigns.search_started_at)
+
     cond do
       results != [] ->
-        finalize_query_log(socket.assigns.query_log_id, "success", length(results))
-        assign(socket, query: query, status: :results, results: results, search_ref: nil, query_log_id: nil)
+        finalize_query_log(socket.assigns.query_log_id, "success", length(results), latency_ms)
+
+        assign(socket,
+          query: query,
+          status: :results,
+          results: results,
+          search_ref: nil,
+          query_log_id: nil,
+          last_query_log_id: socket.assigns.query_log_id,
+          search_started_at: nil
+        )
 
       status == :success ->
-        finalize_query_log(socket.assigns.query_log_id, "no_results", 0)
-        assign(socket, query: query, status: :empty, results: [], search_ref: nil, query_log_id: nil)
+        finalize_query_log(socket.assigns.query_log_id, "no_results", 0, latency_ms)
+
+        assign(socket,
+          query: query,
+          status: :empty,
+          results: [],
+          search_ref: nil,
+          query_log_id: nil,
+          last_query_log_id: socket.assigns.query_log_id,
+          search_started_at: nil
+        )
 
       true ->
-        finalize_query_log(socket.assigns.query_log_id, "error", 0)
-        assign(socket, query: query, status: :error, results: [], search_ref: nil, query_log_id: nil)
+        finalize_query_log(socket.assigns.query_log_id, "error", 0, latency_ms)
+
+        assign(socket,
+          query: query,
+          status: :error,
+          results: [],
+          search_ref: nil,
+          query_log_id: nil,
+          last_query_log_id: socket.assigns.query_log_id,
+          search_started_at: nil
+        )
     end
   end
 
   defp apply_search_response(socket, query, {:ok, results}) when is_list(results) do
+    latency_ms = query_latency_ms(socket.assigns.search_started_at)
+
     if results == [] do
-      finalize_query_log(socket.assigns.query_log_id, "no_results", 0)
-      assign(socket, query: query, status: :empty, results: [], search_ref: nil, query_log_id: nil)
+      finalize_query_log(socket.assigns.query_log_id, "no_results", 0, latency_ms)
+
+      assign(socket,
+        query: query,
+        status: :empty,
+        results: [],
+        search_ref: nil,
+        query_log_id: nil,
+        last_query_log_id: socket.assigns.query_log_id,
+        search_started_at: nil
+      )
     else
-      finalize_query_log(socket.assigns.query_log_id, "success", length(results))
-      assign(socket, query: query, status: :results, results: results, search_ref: nil, query_log_id: nil)
+      finalize_query_log(socket.assigns.query_log_id, "success", length(results), latency_ms)
+
+      assign(socket,
+        query: query,
+        status: :results,
+        results: results,
+        search_ref: nil,
+        query_log_id: nil,
+        last_query_log_id: socket.assigns.query_log_id,
+        search_started_at: nil
+      )
     end
   end
 
   defp apply_search_response(socket, query, _response) do
-    finalize_query_log(socket.assigns.query_log_id, "error", 0)
-    assign(socket, query: query, status: :error, results: [], search_ref: nil, query_log_id: nil)
+    latency_ms = query_latency_ms(socket.assigns.search_started_at)
+    finalize_query_log(socket.assigns.query_log_id, "error", 0, latency_ms)
+
+    assign(socket,
+      query: query,
+      status: :error,
+      results: [],
+      search_ref: nil,
+      query_log_id: nil,
+      last_query_log_id: socket.assigns.query_log_id,
+      search_started_at: nil
+    )
   end
 
   @spec result_source_label(Result.t()) :: String.t()
@@ -204,24 +357,92 @@ defmodule AgentJidoWeb.NavSearchModalComponent do
   defp normalize_query(query) when is_binary(query), do: String.trim(query)
   defp normalize_query(_query), do: ""
 
-  defp track_query_id(query) when is_binary(query) do
-    case QueryLogs.track_query_safe(%{
-           source: "search",
-           channel: "nav_modal",
-           query: query,
-           status: "submitted",
-           metadata: %{surface: "primary_nav"}
-         }) do
-      %{id: id} -> id
+  defp normalize_feedback_note(value) when is_binary(value) do
+    value
+    |> String.trim()
+    |> String.slice(0, 500)
+  end
+
+  defp normalize_feedback_note(_value), do: nil
+
+  defp normalize_rank(value) when is_integer(value) and value > 0, do: value
+
+  defp normalize_rank(value) when is_binary(value) do
+    case Integer.parse(value) do
+      {rank, ""} when rank > 0 -> rank
       _ -> nil
     end
   end
 
-  defp finalize_query_log(query_log_id, status, results_count)
+  defp normalize_rank(_value), do: nil
+
+  defp run_search(search_module, query) do
+    cond do
+      function_exported?(search_module, :query_with_status, 2) ->
+        search_module.query_with_status(query, limit: @default_limit)
+
+      function_exported?(search_module, :query, 2) ->
+        case search_module.query(query, limit: @default_limit) do
+          {:ok, rows} when is_list(rows) -> {:ok, rows, :success}
+          other -> other
+        end
+
+      true ->
+        {:error, :invalid_search_module}
+    end
+  end
+
+  defp track_query_id(query, socket) when is_binary(query) do
+    query_log_id =
+      case QueryLogs.track_query_safe(socket.assigns.current_scope, socket.assigns.analytics_identity, %{
+             source: "search",
+             channel: "nav_modal",
+             query: query,
+             status: "submitted",
+             path: socket.assigns.analytics_identity[:path],
+             referrer_host: socket.assigns.analytics_identity[:referrer_host],
+             metadata: %{surface: "primary_nav"}
+           }) do
+        %{id: id} -> id
+        _ -> nil
+      end
+
+    analytics_module().track_event_safe(socket.assigns.current_scope, %{
+      event: "search_submitted",
+      source: "search",
+      channel: "nav_modal",
+      path: socket.assigns.analytics_identity[:path] || "/",
+      query_log_id: query_log_id,
+      visitor_id: socket.assigns.analytics_identity[:visitor_id],
+      session_id: socket.assigns.analytics_identity[:session_id],
+      metadata: %{surface: "primary_nav", query: query}
+    })
+
+    query_log_id
+  end
+
+  defp finalize_query_log(query_log_id, status, results_count, latency_ms)
        when is_binary(status) and is_integer(results_count) do
     QueryLogs.finalize_query_safe(query_log_id, %{
       status: status,
-      results_count: max(results_count, 0)
+      results_count: max(results_count, 0),
+      latency_ms: max(latency_ms, 0)
     })
+  end
+
+  defp query_latency_ms(started_at) when is_integer(started_at) do
+    System.monotonic_time()
+    |> Kernel.-(started_at)
+    |> System.convert_time_unit(:native, :millisecond)
+  end
+
+  defp query_latency_ms(_started_at), do: 0
+
+  defp analytics_module do
+    Application.get_env(:agent_jido, :analytics_module, Analytics)
+  end
+
+  defp search_module do
+    Application.get_env(:agent_jido, :nav_search_module, Search)
   end
 end

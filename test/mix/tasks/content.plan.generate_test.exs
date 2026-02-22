@@ -44,4 +44,54 @@ defmodule Mix.Tasks.Content.Plan.GenerateTest do
       end)
     end
   end
+
+  test "rejects --model flag" do
+    assert_raise Mix.Error, ~r/Invalid options/, fn ->
+      capture_io(fn ->
+        Mix.Tasks.Content.Plan.Generate.run(["--model", "anthropic:claude-sonnet-4.6"])
+      end)
+    end
+  end
+
+  test "--verify requires --entry" do
+    assert_raise Mix.Error, ~r/--verify requires --entry docs\/<id>/, fn ->
+      capture_io(fn ->
+        Mix.Tasks.Content.Plan.Generate.run(["--verify"])
+      end)
+    end
+  end
+
+  test "--verify rejects non-docs entries" do
+    assert_raise Mix.Error, ~r/--verify is docs-only/, fn ->
+      capture_io(fn ->
+        Mix.Tasks.Content.Plan.Generate.run([
+          "--entry",
+          "features/overview",
+          "--verify"
+        ])
+      end)
+    end
+  end
+
+  test "defaults docs format to livemd for docs entry", %{report_path: report_path} do
+    capture_io(fn ->
+      Mix.Tasks.Content.Plan.Generate.run([
+        "--entry",
+        "docs/getting-started",
+        "--update-mode",
+        "audit_only",
+        "--max",
+        "1",
+        "--report",
+        report_path
+      ])
+    end)
+
+    report =
+      report_path
+      |> File.read!()
+      |> Jason.decode!()
+
+    assert report["options"]["docs_format"] == "livemd"
+  end
 end

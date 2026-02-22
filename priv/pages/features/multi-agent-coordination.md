@@ -64,6 +64,18 @@ true
 
 This proves a concrete route mapping and an explicit emitted side effect using the same primitives you use in production.
 
+## Directives: explicit side-effect control
+
+When an Agent processes a command via `cmd/2`, side effects are not executed inline. Instead, `cmd/2` returns Directives — structured instructions the runtime evaluates separately:
+
+- `%Directive.Emit{}` — publish a Signal to other agents or systems.
+- `%Directive.EnqueueAction{}` — schedule follow-up work.
+- Custom directives for domain-specific effects.
+
+This separation means coordination logic is deterministic and testable. You can assert what Directives an Agent produces without triggering any external side effects.
+
+For scheduling and recurring behaviors, Directives also model time-based orchestration — agents can declare periodic work through plugin schedules without custom cron infrastructure.
+
 ## Tradeoffs and non-goals
 
 - Explicit route and action design is slower up front than prompt-only choreography.
@@ -72,6 +84,7 @@ This proves a concrete route mapping and an explicit emitted side effect using t
 
 ## What to explore next
 
+- **Agent model foundations:** [BEAM-native agent model](/features/beam-native-agent-model)
 - **Reliability boundary design:** [Reliability by architecture](/features/reliability-by-architecture)
 - **Operational posture:** [Operations and observability](/features/operations-observability)
 - **Training paths:** [Signals routing](/training/signals-routing), [Directives scheduling](/training/directives-scheduling)

@@ -9,6 +9,7 @@ defmodule AgentJidoWeb.PageLive do
   """
   use AgentJidoWeb, :live_view
 
+  alias AgentJido.Analytics
   alias AgentJido.Pages
 
   import AgentJidoWeb.Jido.DocsComponents
@@ -16,7 +17,10 @@ defmodule AgentJidoWeb.PageLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, sidebar_open: true)}
+    {:ok,
+     socket
+     |> assign(sidebar_open: true)
+     |> assign(:docs_feedback, empty_docs_feedback())}
   end
 
   @impl true
@@ -125,6 +129,8 @@ defmodule AgentJidoWeb.PageLive do
          |> push_navigate(to: fallback_path(path))}
 
       page ->
+        body_with_heading_ids = ensure_heading_ids(page.body)
+        page = %{page | body: body_with_heading_ids}
         toc = build_toc(page.body)
         layout_type = layout_for(page.category)
         page_seo = page_seo(page)
@@ -151,7 +157,9 @@ defmodule AgentJidoWeb.PageLive do
               documents = Pages.pages_by_category(:docs)
               secondary_tabs = docs_secondary_tabs()
               sidebar = sidebar_nav(path)
-              assigns ++ [documents: documents, docs_secondary_tabs: secondary_tabs, docs_sidebar_nav: sidebar]
+
+              assigns ++
+                [documents: documents, docs_secondary_tabs: secondary_tabs, docs_sidebar_nav: sidebar, docs_feedback: empty_docs_feedback()]
 
             :training ->
               {prev, next} = Pages.neighbors(page.id)
@@ -224,6 +232,113 @@ defmodule AgentJidoWeb.PageLive do
   defp layout_for(:community), do: :marketing_shell
 
   # --- TOC building ---
+
+  defp ensure_heading_ids(html_content) when is_binary(html_content) do
+    {placeholder_html, pre_blocks} = extract_pre_blocks(html_content)
+
+    normalized_html =
+      case Floki.parse_fragment(placeholder_html) do
+        {:ok, nodes} ->
+          {nodes_with_ids, _used_ids} = add_heading_ids(nodes, MapSet.new())
+          Floki.raw_html(nodes_with_ids)
+
+        {:error, _} ->
+          placeholder_html
+      end
+
+    restore_pre_blocks(normalized_html, pre_blocks)
+  end
+
+  defp ensure_heading_ids(html_content), do: to_string(html_content || "")
+
+  @pre_block_pattern ~r/<pre\b[^>]*>.*?<\/pre>/is
+
+  defp extract_pre_blocks(html) when is_binary(html) do
+    @pre_block_pattern
+    |> Regex.scan(html)
+    |> Enum.map(&hd/1)
+    |> Enum.with_index()
+    |> Enum.reduce({html, []}, fn {block, index}, {acc_html, acc_blocks} ->
+      token = "__JIDO_PRE_BLOCK_#{index}__"
+      replaced = String.replace(acc_html, block, token, global: false)
+      {replaced, [{token, block} | acc_blocks]}
+    end)
+  end
+
+  defp restore_pre_blocks(html, blocks) when is_binary(html) and is_list(blocks) do
+    Enum.reduce(blocks, html, fn {token, block}, acc ->
+      String.replace(acc, token, block)
+    end)
+  end
+
+  defp add_heading_ids(nodes, used_ids) when is_list(nodes) do
+    Enum.map_reduce(nodes, used_ids, &add_heading_ids/2)
+  end
+
+  defp add_heading_ids({tag, attrs, children}, used_ids) when tag in ["h1", "h2", "h3"] do
+    existing_id =
+      attrs
+      |> Enum.find_value(fn
+        {"id", id} -> id
+        _ -> nil
+      end)
+      |> normalize_heading_id()
+
+    {children_with_ids, used_after_children} = add_heading_ids(children, used_ids)
+
+    candidate_base =
+      existing_id ||
+        {tag, attrs, children_with_ids}
+        |> Floki.text()
+        |> slugify()
+
+    {id, used_after_id} = reserve_unique_id(candidate_base, used_after_children)
+    attrs = [{"id", id} | Enum.reject(attrs, fn {key, _value} -> key == "id" end)]
+
+    {{tag, attrs, children_with_ids}, used_after_id}
+  end
+
+  defp add_heading_ids({tag, attrs, children}, used_ids) do
+    {children_with_ids, used_after_children} = add_heading_ids(children, used_ids)
+    {{tag, attrs, children_with_ids}, used_after_children}
+  end
+
+  defp add_heading_ids(other, used_ids), do: {other, used_ids}
+
+  defp normalize_heading_id(id) when is_binary(id) do
+    case String.trim(id) do
+      "" -> nil
+      trimmed -> trimmed
+    end
+  end
+
+  defp normalize_heading_id(_id), do: nil
+
+  defp reserve_unique_id(base, used_ids) do
+    base =
+      case normalize_heading_id(base) do
+        nil -> "section"
+        normalized -> normalized
+      end
+
+    unique_id = unique_id(base, used_ids, 1)
+    {unique_id, MapSet.put(used_ids, unique_id)}
+  end
+
+  defp unique_id(base, used_ids, attempt) do
+    candidate =
+      if attempt == 1 do
+        base
+      else
+        "#{base}-#{attempt}"
+      end
+
+    if MapSet.member?(used_ids, candidate) do
+      unique_id(base, used_ids, attempt + 1)
+    else
+      candidate
+    end
+  end
 
   defp build_toc(html_content) do
     case Floki.parse_fragment(html_content) do
@@ -350,7 +465,65 @@ defmodule AgentJidoWeb.PageLive do
   # --- Events ---
 
   @impl true
+  def handle_event("submit_docs_feedback", %{"feedback" => feedback_params}, socket) do
+    feedback_value = normalize_feedback_value(Map.get(feedback_params, "value"))
+    feedback_note = normalize_feedback_note(Map.get(feedback_params, "note"))
+
+    if feedback_value in ["helpful", "not_helpful"] do
+      analytics_module().track_feedback_safe(socket.assigns.current_scope, %{
+        event: "feedback_submitted",
+        source: "docs",
+        channel: "docs_footer",
+        path: socket.assigns.request_path || "/",
+        feedback_value: feedback_value,
+        feedback_note: feedback_note,
+        visitor_id: get_in(socket.assigns, [:analytics_identity, :visitor_id]),
+        session_id: get_in(socket.assigns, [:analytics_identity, :session_id]),
+        metadata: %{
+          surface: "docs_page",
+          page_id: Map.get(socket.assigns.selected_document || %{}, :id)
+        }
+      })
+
+      {:noreply,
+       assign(socket, :docs_feedback, %{
+         submitted: true,
+         value: feedback_value,
+         note: feedback_note
+       })}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  @impl true
   def handle_event("toggle_sidebar", _, socket) do
     {:noreply, update(socket, :sidebar_open, &(!&1))}
+  end
+
+  defp normalize_feedback_value(value) when is_binary(value) do
+    case String.trim(value) do
+      "helpful" -> "helpful"
+      "not_helpful" -> "not_helpful"
+      _ -> nil
+    end
+  end
+
+  defp normalize_feedback_value(_value), do: nil
+
+  defp normalize_feedback_note(value) when is_binary(value) do
+    value
+    |> String.trim()
+    |> String.slice(0, 500)
+  end
+
+  defp normalize_feedback_note(_value), do: nil
+
+  defp empty_docs_feedback do
+    %{submitted: false, value: nil, note: nil}
+  end
+
+  defp analytics_module do
+    Application.get_env(:agent_jido, :analytics_module, Analytics)
   end
 end

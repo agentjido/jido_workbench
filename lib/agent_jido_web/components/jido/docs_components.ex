@@ -168,20 +168,31 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
 
   # Right Sidebar Component
   attr(:toc, :list, default: nil)
+  attr(:selected_document, :map, default: nil)
 
   def docs_right_sidebar(assigns) do
     ~H"""
-    <aside class="hidden xl:flex h-full w-[200px] shrink-0 flex-col border-l border-border bg-background/40 px-5 py-12">
+    <aside class="hidden xl:flex h-full w-[260px] shrink-0 flex-col border-l border-border bg-background/55 px-5 py-8">
       <%= if @toc && @toc != [] do %>
-        <div class="mb-8 flex min-h-0 flex-1 flex-col">
-          <div class="text-[10px] font-bold tracking-[0.1em] uppercase text-muted-foreground mb-4">
+        <div class="mb-6 flex min-h-0 flex-1 flex-col rounded-md border border-border/80 bg-card/60 p-3">
+          <div class="mb-3 px-1 text-[10px] font-bold tracking-[0.11em] uppercase text-muted-foreground">
             ON THIS PAGE
           </div>
-          <nav class="docs-scrollbar min-h-0 flex-1 space-y-0 overflow-y-auto pr-1">
+          <nav
+            id="docs-right-toc"
+            phx-hook="ScrollSpy"
+            data-scroll-spy-target="#docs-content"
+            class="docs-scrollbar min-h-0 flex-1 space-y-0.5 overflow-y-auto pr-1"
+          >
             <%= for item <- @toc do %>
               <a
                 href={"##{item.id}"}
-                class="block text-[11px] py-1.5 transition-colors border-l-2 pl-3 -ml-px text-muted-foreground border-l-transparent hover:text-foreground hover:border-l-muted-foreground"
+                data-toc-link
+                data-level={item.level}
+                class={
+                  "docs-toc-link block -ml-px border-l-2 py-1.5 pr-2 leading-5 transition-colors " <>
+                    toc_level_class(item.level)
+                }
               >
                 {item.title}
               </a>
@@ -193,23 +204,23 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
       <% end %>
       
     <!-- Quick Links -->
-      <div class="shrink-0 p-4 rounded-md bg-card border border-border">
-        <div class="text-[10px] font-semibold text-muted-foreground mb-2">
+      <div class="shrink-0 rounded-md border border-border/80 bg-card/75 p-4 shadow-[0_10px_24px_hsl(var(--background)/0.2)]">
+        <div class="mb-2 text-[10px] font-semibold tracking-[0.08em] text-muted-foreground">
           QUICK LINKS
         </div>
-        <div class="flex flex-col gap-2">
-          <%= for {label, icon, href} <- [
-            {"HexDocs", "◇", Nav.hexdocs_url()},
-            {"GitHub", "◈", Nav.github_url()},
-            {"Hex.pm", "⬡", Nav.hex_url()}
-          ] do %>
+        <div class="flex flex-col gap-2.5">
+          <%= for {label, icon, href} <- quick_links(@selected_document) do %>
             <a
               href={href}
               target="_blank"
               rel="noopener noreferrer"
-              class="text-[11px] text-muted-foreground flex items-center gap-1.5 hover:text-primary transition-colors"
+              data-livebook-run={if label == "Run this in Livebook", do: "true", else: nil}
+              data-analytics-source="docs"
+              data-analytics-channel="quick_links"
+              data-analytics-target-url={href}
+              class="group flex items-center gap-2 text-[12px] leading-5 text-muted-foreground transition-colors hover:text-primary"
             >
-              <span>{icon}</span>
+              <span class="text-[11px]">{icon}</span>
               <span>{label}</span>
             </a>
           <% end %>
@@ -217,6 +228,30 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
       </div>
     </aside>
     """
+  end
+
+  defp quick_links(selected_document) do
+    base_links = [
+      {"HexDocs", "◇", Nav.hexdocs_url()},
+      {"GitHub", "◈", Nav.github_url()},
+      {"Hex.pm", "⬡", Nav.hex_url()}
+    ]
+
+    case Map.get(selected_document || %{}, :livebook_url) do
+      url when is_binary(url) and url != "" ->
+        [{"Run this in Livebook", "▶", url} | base_links]
+
+      _ ->
+        base_links
+    end
+  end
+
+  defp toc_level_class(level) when is_integer(level) and level >= 3 do
+    "pl-5 text-[11px] text-muted-foreground border-l-transparent hover:text-foreground hover:border-l-muted-foreground"
+  end
+
+  defp toc_level_class(_level) do
+    "pl-3 text-[12px] font-medium text-muted-foreground border-l-transparent hover:text-foreground hover:border-l-muted-foreground"
   end
 
   # Numbered Card Component

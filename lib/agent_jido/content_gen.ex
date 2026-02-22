@@ -6,7 +6,7 @@ defmodule AgentJido.ContentGen do
   review-first with dry-run defaults.
   """
 
-  @type backend_id :: :auto | :codex | :req_llm
+  @type backend_id :: :auto | :req_llm
   @type update_mode :: :improve | :regenerate | :audit_only
 
   @default_statuses [:outline, :draft]

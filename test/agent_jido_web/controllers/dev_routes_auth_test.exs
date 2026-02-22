@@ -67,6 +67,102 @@ defmodule AgentJidoWeb.DevRoutesAuthTest do
     end
   end
 
+  describe "GET /dashboard/contentops" do
+    test "redirects unauthenticated users to log in", %{conn: conn} do
+      conn = get(conn, ~p"/dashboard/contentops")
+
+      assert redirected_to(conn) == ~p"/users/log-in"
+      assert Phoenix.Flash.get(conn.assigns.flash, :error) =~ "You must log in"
+    end
+
+    test "blocks authenticated non-admin users", %{conn: conn} do
+      user = user_fixture()
+
+      conn =
+        conn
+        |> log_in_user(user)
+        |> get(~p"/dashboard/contentops")
+
+      assert redirected_to(conn) == ~p"/"
+      assert Phoenix.Flash.get(conn.assigns.flash, :error) =~ "You must be an admin"
+    end
+
+    test "allows authenticated admin users", %{conn: conn} do
+      admin_user = admin_user_fixture()
+
+      conn =
+        conn
+        |> log_in_user(admin_user)
+        |> get(~p"/dashboard/contentops")
+
+      assert html_response(conn, 200) =~ "ContentOps Dashboard"
+    end
+  end
+
+  describe "GET /dashboard/contentops/github" do
+    test "redirects unauthenticated users to log in", %{conn: conn} do
+      conn = get(conn, ~p"/dashboard/contentops/github")
+
+      assert redirected_to(conn) == ~p"/users/log-in"
+      assert Phoenix.Flash.get(conn.assigns.flash, :error) =~ "You must log in"
+    end
+
+    test "blocks authenticated non-admin users", %{conn: conn} do
+      user = user_fixture()
+
+      conn =
+        conn
+        |> log_in_user(user)
+        |> get(~p"/dashboard/contentops/github")
+
+      assert redirected_to(conn) == ~p"/"
+      assert Phoenix.Flash.get(conn.assigns.flash, :error) =~ "You must be an admin"
+    end
+
+    test "allows authenticated admin users", %{conn: conn} do
+      admin_user = admin_user_fixture()
+
+      conn =
+        conn
+        |> log_in_user(admin_user)
+        |> get(~p"/dashboard/contentops/github")
+
+      assert html_response(conn, 200) =~ "GitHub Issues"
+    end
+  end
+
+  describe "GET /dashboard/content-ingestion" do
+    test "redirects unauthenticated users to log in", %{conn: conn} do
+      conn = get(conn, ~p"/dashboard/content-ingestion")
+
+      assert redirected_to(conn) == ~p"/users/log-in"
+      assert Phoenix.Flash.get(conn.assigns.flash, :error) =~ "You must log in"
+    end
+
+    test "blocks authenticated non-admin users", %{conn: conn} do
+      user = user_fixture()
+
+      conn =
+        conn
+        |> log_in_user(user)
+        |> get(~p"/dashboard/content-ingestion")
+
+      assert redirected_to(conn) == ~p"/"
+      assert Phoenix.Flash.get(conn.assigns.flash, :error) =~ "You must be an admin"
+    end
+
+    test "allows authenticated admin users", %{conn: conn} do
+      admin_user = admin_user_fixture()
+
+      conn =
+        conn
+        |> log_in_user(admin_user)
+        |> get(~p"/dashboard/content-ingestion")
+
+      assert html_response(conn, 200) =~ "Content Ingestion"
+    end
+  end
+
   describe "GET /dev/jido" do
     test "redirects unauthenticated users to log in", %{conn: conn} do
       conn = get(conn, ~p"/dev/jido")

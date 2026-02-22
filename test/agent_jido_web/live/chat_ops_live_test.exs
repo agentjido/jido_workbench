@@ -200,6 +200,10 @@ defmodule AgentJidoWeb.ChatOpsLiveTest do
 
     {:ok, _view, html} = live_isolated(conn, AgentJidoWeb.ChatOpsLive, session: session)
 
+    assert html =~ ~s(id="admin-shell")
+    assert html =~ ~s(id="admin-sidebar")
+    assert html =~ ~s(data-admin-nav-path="/dashboard/chatops")
+    assert html =~ ~s(data-admin-nav-active="true")
     assert html =~ "ChatOps Console"
     assert html =~ "Room Inventory"
     assert html =~ "contentops:lobby"

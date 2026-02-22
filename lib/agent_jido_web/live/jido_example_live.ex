@@ -56,7 +56,11 @@ defmodule AgentJidoWeb.JidoExampleLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <.marketing_layout current_path="/examples">
+    <.marketing_layout
+      current_path="/examples"
+      current_scope={@current_scope}
+      analytics_identity={@analytics_identity}
+    >
       <div class="container max-w-[1000px] mx-auto px-6 py-12">
         <%!-- Back link --%>
         <div class="mb-8">

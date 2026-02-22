@@ -16,8 +16,8 @@
     "marketing/content-outline.md",
     "lib/agent_jido_web/live/jido_features_live.ex"
   ],
-  status: :outline,
-  priority: :high,
+  status: :published,
+  priority: :none,
   prerequisites: ["features/overview"],
   related: [
     "features/executive-brief",

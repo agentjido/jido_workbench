@@ -1,9 +1,12 @@
 <%= case @layout_type do %>
   <% :docs_shell -> %>
     <%!-- Docs layout (sidebar + TOC) --%>
-    <div class="h-dvh min-h-screen bg-background flex flex-col overflow-hidden">
+    <div class="docs-shell h-dvh min-h-screen bg-background flex flex-col overflow-hidden">
       <.docs_header current_path={@request_path} />
-      <AgentJidoWeb.Jido.Nav.primary_nav_modals />
+      <AgentJidoWeb.Jido.Nav.primary_nav_modals
+        current_scope={@current_scope}
+        analytics_identity={@analytics_identity}
+      />
       <.docs_secondary_nav current_path={@request_path} tabs={@docs_secondary_tabs || []} />
 
       <div class="flex flex-1 min-h-0">
@@ -13,19 +16,38 @@
           open={@sidebar_open}
         />
 
-        <main class="docs-scrollbar flex-1 min-h-0 min-w-0 overflow-y-auto">
-          <div class="mx-auto w-full max-w-[900px] px-8 py-12 lg:px-16">
+        <main class="docs-scrollbar docs-main flex-1 min-h-0 min-w-0 overflow-y-auto">
+          <div class="mx-auto w-full max-w-[1040px] px-6 py-10 lg:px-10 xl:px-14">
             <%= if @selected_document do %>
-              <div class="space-y-8">
-                <div class="space-y-4">
+              <div class="space-y-10">
+                <div class="docs-page-header space-y-4">
                   <h1 class="text-3xl font-bold tracking-tight text-foreground">
                     {@selected_document.title}
                   </h1>
-                  <p class="text-[15px] text-muted-foreground leading-relaxed">
+                  <p class="max-w-[78ch] text-[15px] leading-relaxed text-muted-foreground">
                     {@selected_document.description}
                   </p>
                 </div>
-                <div class="docs-prose prose prose-sm max-w-none">
+
+                <section :if={@toc && @toc != []} class="xl:hidden">
+                  <div class="rounded-md border border-border bg-card/60 p-3">
+                    <div class="mb-2 text-[10px] font-bold tracking-[0.1em] uppercase text-muted-foreground">
+                      Jump To Section
+                    </div>
+                    <div class="docs-scrollbar flex gap-2 overflow-x-auto pb-1">
+                      <%= for heading <- @toc |> Enum.filter(&(&1.level <= 2)) |> Enum.take(10) do %>
+                        <a
+                          href={"##{heading.id}"}
+                          class="whitespace-nowrap rounded border border-border bg-background/60 px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
+                        >
+                          {heading.title}
+                        </a>
+                      <% end %>
+                    </div>
+                  </div>
+                </section>
+
+                <div id="docs-content" class="docs-prose prose docs-document max-w-none">
                   {raw(@selected_document.body)}
                 </div>
               </div>
@@ -285,7 +307,7 @@ sup = Jido.Supervisor.start_link()
 
           <%= if @selected_document do %>
             <footer class="border-t border-border py-6 px-8 lg:px-16 w-full">
-              <div class="flex flex-col items-end gap-3 text-[11px] text-muted-foreground">
+              <div class="flex flex-col items-end gap-4 text-[11px] text-muted-foreground">
                 <div class="flex items-center justify-end">
                   <%= if @selected_document.github_url do %>
                     <a
@@ -298,6 +320,42 @@ sup = Jido.Supervisor.start_link()
                     </a>
                   <% end %>
                 </div>
+                <div class="w-full max-w-md rounded-md border border-border bg-card/60 p-4 text-xs">
+                  <p class="mb-2 font-semibold text-foreground">Was this page helpful?</p>
+                  <.form for={%{}} as={:feedback} phx-submit="submit_docs_feedback" class="space-y-2">
+                    <div class="flex items-center gap-4">
+                      <label class="inline-flex items-center gap-2">
+                        <input type="radio" name="feedback[value]" value="helpful" checked={@docs_feedback.value == "helpful"} />
+                        <span>Helpful</span>
+                      </label>
+                      <label class="inline-flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name="feedback[value]"
+                          value="not_helpful"
+                          checked={@docs_feedback.value == "not_helpful"}
+                        />
+                        <span>Not helpful</span>
+                      </label>
+                    </div>
+                    <textarea
+                      name="feedback[note]"
+                      rows="2"
+                      maxlength="500"
+                      placeholder="Optional note (what were you trying to learn?)"
+                      class="w-full rounded border border-border bg-background px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground"
+                    >{if @docs_feedback.submitted, do: @docs_feedback.note || "", else: ""}</textarea>
+                    <div class="flex items-center justify-between gap-2">
+                      <button
+                        type="submit"
+                        class="rounded-md border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground hover:border-primary/50"
+                      >
+                        Submit feedback
+                      </button>
+                      <span :if={@docs_feedback.submitted} class="text-emerald-300">Thanks for the feedback.</span>
+                    </div>
+                  </.form>
+                </div>
                 <div class="flex flex-wrap items-center justify-end gap-4">
                   <span>Apache License 2.0</span>
                   <span>Copyright © 2025-{Date.utc_today().year} Mike Hostetler</span>
@@ -309,13 +367,17 @@ sup = Jido.Supervisor.start_link()
         </main>
 
         <%= if @toc && @toc != [] do %>
-          <.docs_right_sidebar toc={@toc} />
+          <.docs_right_sidebar toc={@toc} selected_document={@selected_document} />
         <% end %>
       </div>
     </div>
   <% :training_index -> %>
     <%!-- Training index --%>
-    <.marketing_layout current_path="/training">
+    <.marketing_layout
+      current_path="/training"
+      current_scope={@current_scope}
+      analytics_identity={@analytics_identity}
+    >
       <div class="container max-w-[1000px] mx-auto px-6 py-12">
         <section class="text-center mb-16">
           <div class="inline-block px-4 py-2 rounded mb-5 bg-primary/10 border border-primary/30">
@@ -382,7 +444,11 @@ sup = Jido.Supervisor.start_link()
     </.marketing_layout>
   <% :training_shell -> %>
     <%!-- Training module detail --%>
-    <.marketing_layout current_path="/training">
+    <.marketing_layout
+      current_path="/training"
+      current_scope={@current_scope}
+      analytics_identity={@analytics_identity}
+    >
       <div class="container max-w-[1000px] mx-auto px-6 py-12">
         <div class="mb-8">
           <.link navigate="/training" class="text-xs text-muted-foreground hover:text-primary transition-colors">
@@ -449,7 +515,11 @@ sup = Jido.Supervisor.start_link()
     </.marketing_layout>
   <% :marketing_shell -> %>
     <%!-- Marketing/generic layout --%>
-    <.marketing_layout current_path={@request_path}>
+    <.marketing_layout
+      current_path={@request_path}
+      current_scope={@current_scope}
+      analytics_identity={@analytics_identity}
+    >
       <div class="container max-w-[1000px] mx-auto px-6 py-12">
         <%= if @page do %>
           <div class="mb-8">

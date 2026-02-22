@@ -54,6 +54,10 @@ defmodule AgentJidoWeb do
       use Phoenix.LiveView,
         layout: {AgentJidoWeb.Layouts, :app}
 
+      on_mount {AgentJidoWeb.UserAuth, :mount_current_scope}
+      on_mount {AgentJidoWeb.AnalyticsOnMount, :mount_analytics_identity}
+      on_mount {AgentJidoWeb.LivePresenceOnMount, :track_live_presence}
+
       unquote(html_helpers())
     end
   end

@@ -21,7 +21,8 @@ defmodule AgentJido.ContentGen.Report do
         audit_failed: 0,
         generation_failed: 0,
         parse_failed: 0,
-        churn_blocked: 0
+        churn_blocked: 0,
+        verification_failed: 0
       },
       change_requests: []
     }
@@ -61,11 +62,12 @@ defmodule AgentJido.ContentGen.Report do
       :entry,
       :statuses,
       :backend,
-      :model,
       :update_mode,
       :source_root,
       :report,
-      :fail_on_audit
+      :fail_on_audit,
+      :verify,
+      :docs_format
     ])
   end
 
@@ -82,6 +84,7 @@ defmodule AgentJido.ContentGen.Report do
         :generation_failed -> :generation_failed
         :parse_failed -> :parse_failed
         :churn_blocked -> :churn_blocked
+        :verification_failed -> :verification_failed
         _other -> nil
       end
 

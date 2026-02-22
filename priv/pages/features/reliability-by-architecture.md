@@ -40,6 +40,18 @@ Jido addresses this by separating concerns: pure decision logic in Agents, runti
 | Explicit coordination signals | Named Signals prevent hidden coupling | [jido_signal](/ecosystem/jido_signal) | Beta |
 | Trace export bridge | Telemetry can be bridged to OTel | [jido_otel](/ecosystem/jido_otel) | Experimental |
 
+## Schema-validated Actions
+
+Actions are the typed capability boundaries that make reliability claims testable. Each Action declares input and output schemas validated before execution — invalid data fails at the boundary, not deep in business logic.
+
+This fail-fast contract means:
+
+- Action behavior is independently testable without running a full agent.
+- Teams can review an Agent's capability surface by inspecting its registered Actions.
+- Schema violations produce clear, traceable errors instead of silent state corruption.
+
+See [BEAM-native agent model](/features/beam-native-agent-model) for how Actions fit into the overall Agent contract.
+
 ## Proof: supervise one Agent and inspect state
 
 ```elixir
@@ -72,6 +84,7 @@ This verifies a supervised runtime process with inspectable Agent state before a
 
 ## What to explore next
 
+- **Agent model foundations:** [BEAM-native agent model](/features/beam-native-agent-model)
 - **Coordination contracts:** [Multi-agent coordination](/features/multi-agent-coordination)
 - **Operations checks:** [Operations and observability](/features/operations-observability)
 - **Hands-on training:** [Agent fundamentals](/training/agent-fundamentals), [Production readiness](/training/production-readiness)

@@ -79,6 +79,7 @@ This is the same runtime model used for larger adoption phases.
 
 - Build one pilot scope in [Quickstarts by persona](/build/quickstarts-by-persona).
 - Review package choices in [Package matrix](/ecosystem/package-matrix).
+- **Agent model foundations:** [BEAM-native agent model](/features/beam-native-agent-model)
 - Validate rollout criteria with [Production readiness checklist](/docs/operations/production-readiness-checklist).
 
 ## Get Building

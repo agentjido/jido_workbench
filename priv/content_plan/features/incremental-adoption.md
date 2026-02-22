@@ -17,8 +17,8 @@
     "lib/agent_jido/ecosystem.ex",
     "lib/agent_jido/content_plan.ex"
   ],
-  status: :outline,
-  priority: :high,
+  status: :published,
+  priority: :none,
   prerequisites: ["ecosystem/package-matrix"],
   related: [
     "features/executive-brief",

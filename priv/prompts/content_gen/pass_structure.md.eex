@@ -1,0 +1,13 @@
+<%= base_prompt %>
+
+=== PASS 1: STRUCTURE PLANNING ===
+You are producing only the page structure plan.
+
+Requirements:
+- Build a section order that satisfies the authoring contract exactly.
+- Plan where code blocks will appear and what they prove.
+- Plan internal links and source citations required for audit gates.
+- Include consistency rules so pass 2 keeps a stable voice and style.
+
+Do not write the final page prose in this pass.
+Return only structured object fields requested by the schema.

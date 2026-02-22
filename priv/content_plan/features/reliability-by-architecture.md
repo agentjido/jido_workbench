@@ -14,7 +14,7 @@
   source_files: ["lib/agent_jido_web/live/jido_features_live.ex", "priv/training/production-readiness.md", "lib/jido/agent_server.ex"],
   status: :published,
   priority: :critical,
-  prerequisites: ["features/directives-and-scheduling"],
+  prerequisites: ["features/beam-native-agent-model"],
   related: ["training/production-readiness", "docs/production-readiness-checklist", "docs/incident-playbooks"],
   ecosystem_packages: ["jido", "agent_jido"],
   destination_route: "/features/reliability-by-architecture",

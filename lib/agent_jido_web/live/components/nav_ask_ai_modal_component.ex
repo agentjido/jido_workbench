@@ -4,6 +4,7 @@ defmodule AgentJidoWeb.NavAskAiModalComponent do
   """
   use AgentJidoWeb, :live_component
 
+  alias AgentJido.Analytics
   alias AgentJido.AskAi
   alias AgentJido.AskAi.Turnstile
   alias AgentJido.QueryLogs
@@ -26,9 +27,16 @@ defmodule AgentJidoWeb.NavAskAiModalComponent do
       |> assign_new(:answer_mode, fn -> nil end)
       |> assign_new(:citations, fn -> [] end)
       |> assign_new(:ask_ref, fn -> nil end)
+      |> assign_new(:ask_started_at, fn -> nil end)
       |> assign_new(:query_log_id, fn -> nil end)
+      |> assign_new(:last_query_log_id, fn -> nil end)
       |> assign_new(:turnstile_error, fn -> nil end)
       |> assign_new(:turnstile_token, fn -> "" end)
+      |> assign_new(:feedback_value, fn -> nil end)
+      |> assign_new(:feedback_note, fn -> "" end)
+      |> assign_new(:feedback_submitted, fn -> false end)
+      |> assign_new(:current_scope, fn -> nil end)
+      |> assign_new(:analytics_identity, fn -> %{visitor_id: nil, session_id: nil, referrer_host: nil, path: nil} end)
       |> assign(Map.drop(assigns, [:ask_complete]))
       |> assign(:turnstile_required, require_turnstile?())
       |> assign(:turnstile_site_key, turnstile_site_key())
@@ -57,12 +65,17 @@ defmodule AgentJidoWeb.NavAskAiModalComponent do
          answer_mode: nil,
          citations: [],
          ask_ref: nil,
+         ask_started_at: nil,
          query_log_id: nil,
+         last_query_log_id: nil,
          turnstile_error: nil,
-         turnstile_token: ""
+         turnstile_token: "",
+         feedback_value: nil,
+         feedback_note: "",
+         feedback_submitted: false
        )}
     else
-      query_log_id = track_query_id(query)
+      query_log_id = track_query_id(query, socket)
 
       case verify_turnstile(socket, turnstile_token) do
         {:ok, socket} ->
@@ -85,11 +98,16 @@ defmodule AgentJidoWeb.NavAskAiModalComponent do
              answer_mode: nil,
              citations: [],
              ask_ref: ask_ref,
-             query_log_id: query_log_id
+             ask_started_at: System.monotonic_time(),
+             query_log_id: query_log_id,
+             last_query_log_id: nil,
+             feedback_value: nil,
+             feedback_note: "",
+             feedback_submitted: false
            )}
 
         {:error, socket} ->
-          finalize_query_log(query_log_id, "challenge", 0)
+          finalize_query_log(query_log_id, "challenge", 0, 0)
           {:noreply, assign(socket, :query_log_id, nil)}
       end
     end
@@ -107,6 +125,55 @@ defmodule AgentJidoWeb.NavAskAiModalComponent do
     {:noreply, socket}
   end
 
+  def handle_event("citation_click", params, socket) do
+    rank = normalize_rank(Map.get(params, "rank"))
+    target_url = normalize_query(Map.get(params, "url"))
+
+    analytics_module().track_event_safe(socket.assigns.current_scope, %{
+      event: "ask_ai_citation_clicked",
+      source: "ask_ai",
+      channel: "ask_ai_modal",
+      path: socket.assigns.analytics_identity[:path] || "/",
+      target_url: target_url,
+      rank: rank,
+      query_log_id: socket.assigns.last_query_log_id,
+      visitor_id: socket.assigns.analytics_identity[:visitor_id],
+      session_id: socket.assigns.analytics_identity[:session_id],
+      metadata: %{surface: "ask_ai_modal"}
+    })
+
+    {:noreply, socket}
+  end
+
+  def handle_event("submit_feedback", %{"feedback" => feedback_params}, socket) do
+    feedback_value = normalize_feedback_value(Map.get(feedback_params, "value"))
+    feedback_note = normalize_feedback_note(Map.get(feedback_params, "note"))
+
+    if feedback_value in ["helpful", "not_helpful"] do
+      analytics_module().track_feedback_safe(socket.assigns.current_scope, %{
+        event: "feedback_submitted",
+        source: "ask_ai",
+        channel: "ask_ai_modal",
+        path: socket.assigns.analytics_identity[:path] || "/",
+        feedback_value: feedback_value,
+        feedback_note: feedback_note,
+        query_log_id: socket.assigns.last_query_log_id,
+        visitor_id: socket.assigns.analytics_identity[:visitor_id],
+        session_id: socket.assigns.analytics_identity[:session_id],
+        metadata: %{surface: "ask_ai", answer_mode: socket.assigns.answer_mode}
+      })
+
+      {:noreply,
+       assign(socket,
+         feedback_value: feedback_value,
+         feedback_note: "",
+         feedback_submitted: true
+       )}
+    else
+      {:noreply, socket}
+    end
+  end
+
   def handle_event("reset", _params, socket) do
     socket =
       socket
@@ -118,9 +185,14 @@ defmodule AgentJidoWeb.NavAskAiModalComponent do
         answer_mode: nil,
         citations: [],
         ask_ref: nil,
+        ask_started_at: nil,
         query_log_id: nil,
+        last_query_log_id: nil,
         turnstile_error: nil,
-        turnstile_token: ""
+        turnstile_token: "",
+        feedback_value: nil,
+        feedback_note: "",
+        feedback_submitted: false
       )
       |> reset_turnstile_widget()
 
@@ -212,16 +284,53 @@ defmodule AgentJidoWeb.NavAskAiModalComponent do
 
             <div class="space-y-2">
               <p class="text-xs font-semibold uppercase tracking-wide text-primary">Citations</p>
-              <%= for citation <- @citations do %>
+              <%= for {citation, rank} <- Enum.with_index(@citations, 1) do %>
                 <a
                   href={citation.url}
-                  phx-click={hide_modal(@id)}
+                  phx-click={JS.push("citation_click", target: @myself, value: %{url: citation.url, rank: rank}) |> hide_modal(@id)}
                   class="block rounded-lg border border-border bg-background/70 p-3 transition hover:border-primary/50"
                 >
                   <p class="text-sm font-medium text-foreground">{citation.title}</p>
                   <p class="mt-1 text-xs text-muted-foreground">{citation.snippet}</p>
                 </a>
               <% end %>
+            </div>
+
+            <div class="rounded-md border border-border bg-background p-3 text-xs">
+              <p class="mb-2 font-semibold text-foreground">Was this answer helpful?</p>
+              <.form for={%{}} as={:feedback} phx-submit="submit_feedback" phx-target={@myself} class="space-y-2">
+                <div class="flex items-center gap-4">
+                  <label class="inline-flex items-center gap-2">
+                    <input type="radio" name="feedback[value]" value="helpful" checked={@feedback_value == "helpful"} />
+                    <span>Helpful</span>
+                  </label>
+                  <label class="inline-flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="feedback[value]"
+                      value="not_helpful"
+                      checked={@feedback_value == "not_helpful"}
+                    />
+                    <span>Not helpful</span>
+                  </label>
+                </div>
+                <textarea
+                  name="feedback[note]"
+                  rows="2"
+                  maxlength="500"
+                  placeholder="Optional note"
+                  class="w-full resize-y rounded border border-border bg-background px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground"
+                >{@feedback_note}</textarea>
+                <div class="flex items-center justify-between gap-2">
+                  <button
+                    type="submit"
+                    class="rounded-md border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground hover:border-primary/50"
+                  >
+                    Submit feedback
+                  </button>
+                  <span :if={@feedback_submitted} class="text-emerald-300">Thanks for the feedback.</span>
+                </div>
+              </.form>
             </div>
           </div>
 
@@ -256,9 +365,10 @@ defmodule AgentJidoWeb.NavAskAiModalComponent do
   @spec apply_ask_response(Phoenix.LiveView.Socket.t(), String.t(), term()) :: Phoenix.LiveView.Socket.t()
   defp apply_ask_response(socket, query, {:ok, results, _status}) when is_list(results) do
     citations = Enum.take(results, 4)
+    latency_ms = query_latency_ms(socket.assigns.ask_started_at)
 
     if citations == [] do
-      finalize_query_log(socket.assigns.query_log_id, "no_results", 0)
+      finalize_query_log(socket.assigns.query_log_id, "no_results", 0, latency_ms)
 
       assign(socket,
         query: query,
@@ -268,7 +378,9 @@ defmodule AgentJidoWeb.NavAskAiModalComponent do
         answer_mode: nil,
         citations: [],
         ask_ref: nil,
-        query_log_id: nil
+        ask_started_at: nil,
+        query_log_id: nil,
+        last_query_log_id: socket.assigns.query_log_id
       )
     else
       {answer, status, mode} =
@@ -280,7 +392,8 @@ defmodule AgentJidoWeb.NavAskAiModalComponent do
       finalize_query_log(
         socket.assigns.query_log_id,
         if(status == :answer, do: "success", else: "error"),
-        if(status == :answer, do: length(citations), else: 0)
+        if(status == :answer, do: length(citations), else: 0),
+        latency_ms
       )
 
       assign(socket,
@@ -291,14 +404,17 @@ defmodule AgentJidoWeb.NavAskAiModalComponent do
         answer_mode: mode,
         citations: citations,
         ask_ref: nil,
+        ask_started_at: nil,
         query_log_id: nil,
+        last_query_log_id: socket.assigns.query_log_id,
         turnstile_error: nil
       )
     end
   end
 
   defp apply_ask_response(socket, query, _response) do
-    finalize_query_log(socket.assigns.query_log_id, "error", 0)
+    latency_ms = query_latency_ms(socket.assigns.ask_started_at)
+    finalize_query_log(socket.assigns.query_log_id, "error", 0, latency_ms)
 
     assign(socket,
       query: query,
@@ -308,7 +424,9 @@ defmodule AgentJidoWeb.NavAskAiModalComponent do
       answer_mode: nil,
       citations: [],
       ask_ref: nil,
-      query_log_id: nil
+      ask_started_at: nil,
+      query_log_id: nil,
+      last_query_log_id: socket.assigns.query_log_id
     )
   end
 
@@ -331,26 +449,80 @@ defmodule AgentJidoWeb.NavAskAiModalComponent do
   defp normalize_query(query) when is_binary(query), do: String.trim(query)
   defp normalize_query(_query), do: ""
 
-  defp track_query_id(query) when is_binary(query) do
-    case QueryLogs.track_query_safe(%{
-           source: "ask_ai",
-           channel: "ask_ai_modal",
-           query: query,
-           status: "submitted",
-           metadata: %{surface: "primary_nav"}
-         }) do
-      %{id: id} -> id
+  defp normalize_feedback_value(value) when is_binary(value) do
+    case String.trim(value) do
+      "helpful" -> "helpful"
+      "not_helpful" -> "not_helpful"
       _ -> nil
     end
   end
 
-  defp finalize_query_log(query_log_id, status, results_count)
+  defp normalize_feedback_value(_value), do: nil
+
+  defp normalize_feedback_note(value) when is_binary(value) do
+    value
+    |> String.trim()
+    |> String.slice(0, 500)
+  end
+
+  defp normalize_feedback_note(_value), do: nil
+
+  defp normalize_rank(value) when is_integer(value) and value > 0, do: value
+
+  defp normalize_rank(value) when is_binary(value) do
+    case Integer.parse(value) do
+      {rank, ""} when rank > 0 -> rank
+      _ -> nil
+    end
+  end
+
+  defp normalize_rank(_value), do: nil
+
+  defp track_query_id(query, socket) when is_binary(query) do
+    query_log_id =
+      case QueryLogs.track_query_safe(socket.assigns.current_scope, socket.assigns.analytics_identity, %{
+             source: "ask_ai",
+             channel: "ask_ai_modal",
+             query: query,
+             status: "submitted",
+             path: socket.assigns.analytics_identity[:path],
+             referrer_host: socket.assigns.analytics_identity[:referrer_host],
+             metadata: %{surface: "primary_nav"}
+           }) do
+        %{id: id} -> id
+        _ -> nil
+      end
+
+    analytics_module().track_event_safe(socket.assigns.current_scope, %{
+      event: "ask_ai_submitted",
+      source: "ask_ai",
+      channel: "ask_ai_modal",
+      path: socket.assigns.analytics_identity[:path] || "/",
+      query_log_id: query_log_id,
+      visitor_id: socket.assigns.analytics_identity[:visitor_id],
+      session_id: socket.assigns.analytics_identity[:session_id],
+      metadata: %{surface: "primary_nav", query: query}
+    })
+
+    query_log_id
+  end
+
+  defp finalize_query_log(query_log_id, status, results_count, latency_ms)
        when is_binary(status) and is_integer(results_count) do
     QueryLogs.finalize_query_safe(query_log_id, %{
       status: status,
-      results_count: max(results_count, 0)
+      results_count: max(results_count, 0),
+      latency_ms: max(latency_ms, 0)
     })
   end
+
+  defp query_latency_ms(started_at) when is_integer(started_at) do
+    System.monotonic_time()
+    |> Kernel.-(started_at)
+    |> System.convert_time_unit(:native, :millisecond)
+  end
+
+  defp query_latency_ms(_started_at), do: 0
 
   defp run_search(search_module, query) do
     cond do
@@ -387,6 +559,7 @@ defmodule AgentJidoWeb.NavAskAiModalComponent do
              answer_mode: nil,
              citations: [],
              ask_ref: nil,
+             ask_started_at: nil,
              turnstile_error: turnstile_error_message(reason),
              turnstile_token: ""
            )
@@ -461,4 +634,8 @@ defmodule AgentJidoWeb.NavAskAiModalComponent do
 
   @spec truthy?(term()) :: boolean()
   defp truthy?(value), do: value in [true, "true", 1, "1", "on"]
+
+  defp analytics_module do
+    Application.get_env(:agent_jido, :analytics_module, Analytics)
+  end
 end

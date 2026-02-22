@@ -20,13 +20,14 @@ defmodule AgentJidoWeb.Router do
   ]
 
   pipeline :browser do
-    plug(:accepts, ["html"])
+    plug(:accepts, ["html", "json"])
     plug(:fetch_session)
     plug(:fetch_live_flash)
     plug(:put_root_layout, {AgentJidoWeb.Layouts, :root})
     plug(:protect_from_forgery)
     plug(:put_secure_browser_headers)
     plug(:fetch_current_scope_for_user)
+    plug(AgentJidoWeb.Plugs.AnalyticsIdentity)
   end
 
   pipeline :api do
@@ -69,6 +70,7 @@ defmodule AgentJidoWeb.Router do
     live "/blog/tags/:tag", BlogLive, :tag
     get("/blog/search", BlogController, :search)
     live "/blog/:slug", BlogLive, :show
+    post "/analytics/events", AnalyticsEventController, :create
     get("/feed", BlogController, :feed)
     get("/sitemap.xml", SitemapController, :index)
   end
@@ -82,12 +84,6 @@ defmodule AgentJidoWeb.Router do
 
   scope "/dev" do
     pipe_through([:browser, :require_authenticated_user, :require_admin_user])
-
-    live_session :require_admin_user,
-      on_mount: @admin_on_mount do
-      live "/contentops", AgentJidoWeb.ContentOpsLive, :index
-      live "/contentops/github", AgentJidoWeb.ContentOpsGithubLive, :index
-    end
 
     live_dashboard("/dashboard",
       metrics: AgentJidoWeb.Telemetry,
@@ -107,9 +103,19 @@ defmodule AgentJidoWeb.Router do
     live_session :admin_control_plane,
       on_mount: @admin_on_mount do
       live "/dashboard", AdminDashboardLive, :index
-      live "/dashboard/content-generator", AdminContentGeneratorLive, :index
+      live "/dashboard/analytics", AdminAnalyticsLive, :index
+      live "/dashboard/content-ingestion", AdminContentIngestionLive, :index
+      live "/dashboard/contentops", ContentOpsLive, :index
+      live "/dashboard/contentops/github", ContentOpsGithubLive, :index
+      live "/dashboard/content-generator", AdminContentGeneratorLive, :plan
+      live "/dashboard/content-generator/runs", AdminContentGeneratorLive, :runs
+      live "/dashboard/content-generator/runs/:run_id", AdminContentGeneratorLive, :run
+      live "/dashboard/content-generator/entries/:entry_id", AdminContentGeneratorLive, :entry
       live "/dashboard/chatops", ChatOpsLive, :index
     end
+
+    get "/dashboard/analytics/export/gaps.csv", AdminAnalyticsExportController, :gaps
+    get "/dashboard/analytics/export/feedback.csv", AdminAnalyticsExportController, :feedback
   end
 
   scope "/" do

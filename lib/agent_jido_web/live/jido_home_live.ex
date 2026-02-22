@@ -33,7 +33,11 @@ defmodule AgentJidoWeb.JidoHomeLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <.marketing_layout current_path="/">
+    <.marketing_layout
+      current_path="/"
+      current_scope={@current_scope}
+      analytics_identity={@analytics_identity}
+    >
       <div class="container max-w-[1000px] mx-auto px-6">
         <.hero_section />
         <.pillars_section />
@@ -367,7 +371,13 @@ defmodule AgentJidoWeb.JidoHomeLive do
         <% end %>
       </div>
 
-      <div class="text-center mt-6">
+      <div class="flex justify-center gap-6 mt-6">
+        <.link
+          navigate="/features/beam-native-agent-model"
+          class="text-primary text-sm hover:underline"
+        >
+          The BEAM-native agent model →
+        </.link>
         <.link
           navigate="/features/beam-for-ai-builders"
           class="text-primary text-sm hover:underline"

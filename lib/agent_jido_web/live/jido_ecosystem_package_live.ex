@@ -37,7 +37,11 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <.marketing_layout current_path="/ecosystem">
+    <.marketing_layout
+      current_path="/ecosystem"
+      current_scope={@current_scope}
+      analytics_identity={@analytics_identity}
+    >
       <div class="container max-w-[1000px] mx-auto px-6 py-12">
         <div class="mb-8">
           <.link navigate="/ecosystem" class="text-xs text-muted-foreground hover:text-primary transition-colors">

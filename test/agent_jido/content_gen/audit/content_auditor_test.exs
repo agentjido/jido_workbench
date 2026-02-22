@@ -5,11 +5,13 @@ defmodule AgentJido.ContentGen.Audit.ContentAuditorTest do
 
   test "flags placeholders, unknown exports, broken links, and missing evidence" do
     entry = %{
+      section: "docs",
       source_modules: ["Jido.Worker"],
-      source_files: ["lib/jido/worker.ex"]
+      source_files: ["lib/jido/worker.ex"],
+      prompt_overrides: relaxed_contract_overrides()
     }
 
-    target = %{route: "/docs/reference/example"}
+    target = %{route: "/docs/reference/example", format: :md}
 
     candidate = %{
       body_markdown: """
@@ -40,25 +42,40 @@ defmodule AgentJido.ContentGen.Audit.ContentAuditorTest do
     assert :missing_source_module_mention in codes
     assert :missing_source_file_citation in codes
     assert :broken_internal_link in codes
+    assert :contract_missing_required_section in codes
   end
 
   test "passes when references and cross-links are valid" do
     entry = %{
+      section: "docs",
       source_modules: ["Jido.Worker"],
-      source_files: ["lib/jido/worker.ex"]
+      source_files: ["lib/jido/worker.ex"],
+      prompt_overrides: relaxed_contract_overrides()
     }
 
-    target = %{route: "/docs/reference/example"}
+    target = %{route: "/docs/reference/example", format: :md}
 
     candidate = %{
       body_markdown: """
+      ## Overview
+
       Use `Jido.Worker.run/1` for execution.
+      Docs hub: [Docs](/docs/reference).
       Source file: `lib/jido/worker.ex`.
+      ```elixir
+      Jido.Worker.run(:ok)
+      ```
       Next steps: [Build quickstart](/build/quickstarts-by-persona).
       """,
       raw: """
+      ## Overview
+
       Use `Jido.Worker.run/1` for execution.
+      Docs hub: [Docs](/docs/reference).
       Source file: `lib/jido/worker.ex`.
+      ```elixir
+      Jido.Worker.run(:ok)
+      ```
       Next steps: [Build quickstart](/build/quickstarts-by-persona).
       """
     }
@@ -78,16 +95,59 @@ defmodule AgentJido.ContentGen.Audit.ContentAuditorTest do
     assert audit.score > 0.9
   end
 
-  test "does not flag example-local modules as unknown exports" do
+  test "accepts planned internal links that are not yet in route patterns" do
     entry = %{
-      source_modules: ["Jido.Worker"],
-      source_files: ["lib/jido/worker.ex"]
+      section: "build",
+      source_modules: ["AgentJido.Application"],
+      source_files: ["config/runtime.exs"],
+      prompt_overrides: relaxed_contract_overrides()
     }
 
-    target = %{route: "/docs/reference/example"}
+    target = %{route: "/build/installation", format: :md}
 
     candidate = %{
       body_markdown: """
+      ## Overview
+
+      Setup details live here.
+      Next: [Build Your First Agent](/build/first-agent)
+      Source file: `config/runtime.exs`.
+      """,
+      raw: """
+      ## Overview
+
+      Setup details live here.
+      Next: [Build Your First Agent](/build/first-agent)
+      Source file: `config/runtime.exs`.
+      """
+    }
+
+    source_index = %{modules: MapSet.new(["AgentJido.Application"]), exports: MapSet.new()}
+
+    audit =
+      ContentAuditor.audit(entry, target, candidate,
+        source_index: source_index,
+        route_patterns: ["/build", "/docs"],
+        planned_routes: ["/build/first-agent"]
+      )
+
+    refute Enum.any?(audit.errors, &(&1.code == :broken_internal_link))
+  end
+
+  test "does not flag example-local modules as unknown exports" do
+    entry = %{
+      section: "docs",
+      source_modules: ["Jido.Worker"],
+      source_files: ["lib/jido/worker.ex"],
+      prompt_overrides: relaxed_contract_overrides()
+    }
+
+    target = %{route: "/docs/reference/example", format: :md}
+
+    candidate = %{
+      body_markdown: """
+      ## Overview
+
       ```elixir
       defmodule MyApp.WorkerAgent do
         def run(input), do: input
@@ -102,6 +162,8 @@ defmodule AgentJido.ContentGen.Audit.ContentAuditorTest do
       Jido module call: `Jido.Worker.run/1`.
       """,
       raw: """
+      ## Overview
+
       Source file: `lib/jido/worker.ex`.
       Next steps: [Build quickstart](/build/quickstarts-by-persona).
       """
@@ -122,15 +184,19 @@ defmodule AgentJido.ContentGen.Audit.ContentAuditorTest do
   end
 
   test "ignores alias-style references without full module path" do
-    entry = %{source_modules: [], source_files: []}
-    target = %{route: "/docs/reference/example"}
+    entry = %{section: "docs", source_modules: [], source_files: [], prompt_overrides: relaxed_contract_overrides()}
+    target = %{route: "/docs/reference/example", format: :md}
 
     candidate = %{
       body_markdown: """
+      ## Overview
+
       Strategy.init/2 can be called from the wrapper.
       Next steps: [Build quickstart](/build/quickstarts-by-persona).
       """,
       raw: """
+      ## Overview
+
       Strategy.init/2 can be called from the wrapper.
       Next steps: [Build quickstart](/build/quickstarts-by-persona).
       """
@@ -145,5 +211,17 @@ defmodule AgentJido.ContentGen.Audit.ContentAuditorTest do
       )
 
     refute Enum.any?(audit.errors, &(&1.code == :unknown_module_export))
+  end
+
+  defp relaxed_contract_overrides do
+    %{
+      "replace_required_sections" => true,
+      "required_sections" => ["Overview"],
+      "required_links" => ["/build/quickstarts-by-persona"],
+      "min_words" => 1,
+      "max_words" => 3_000,
+      "minimum_code_blocks" => 0,
+      "minimum_fun_refs" => 0
+    }
   end
 end

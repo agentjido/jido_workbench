@@ -1,0 +1,16 @@
+<%= base_prompt %>
+
+=== PASS 2: FINAL WRITING ===
+Use this approved structure plan and keep its section order.
+
+<%= structure_json %>
+
+Writing constraints:
+- Preserve section order and intent from the structure plan.
+- Preserve contract-required links/headings/code density.
+- Keep citations and audit_notes grounded in source modules/files.
+- Produce final publication-ready content (not an outline).
+- Use these exact required section headings (do not rename or merge):
+<%= Enum.map_join(required_sections, "\n", fn heading -> "- " <> heading end) %>
+- Target <%= min_words %>-<%= max_words %> words in `body_markdown`.
+- If draft is short, expand with concrete examples, troubleshooting, and verification details from source snippets.

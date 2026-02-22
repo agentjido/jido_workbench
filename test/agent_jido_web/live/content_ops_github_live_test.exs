@@ -22,23 +22,24 @@ defmodule AgentJidoWeb.ContentOpsGithubLiveTest do
   end
 
   test "redirects unauthenticated users to log in", %{conn: conn} do
-    assert {:error, {:redirect, %{to: "/users/log-in"}}} = live(conn, "/dev/contentops/github")
+    assert {:error, {:redirect, %{to: "/users/log-in"}}} = live(conn, "/dashboard/contentops/github")
   end
 
   test "blocks authenticated non-admin users", %{conn: conn} do
     conn = conn |> log_in_user(user_fixture())
-    assert {:error, {:redirect, %{to: "/"}}} = live(conn, "/dev/contentops/github")
+    assert {:error, {:redirect, %{to: "/"}}} = live(conn, "/dashboard/contentops/github")
   end
 
-  test "renders github dashboard on dev route", %{admin_conn: admin_conn} do
-    {:ok, _view, html} = live(admin_conn, "/dev/contentops/github")
+  test "renders github dashboard on control-plane route", %{admin_conn: admin_conn} do
+    {:ok, _view, html} = live(admin_conn, "/dashboard/contentops/github")
 
     assert html =~ "GitHub Issues &amp; PRs"
     assert html =~ "GITHUB_TOKEN environment variable is not set."
+    assert html =~ ~s(data-admin-nav-path="/dashboard/contentops/github")
   end
 
   test "blocks mutating events when github mutations are disabled", %{admin_conn: admin_conn} do
-    {:ok, view, _html} = live(admin_conn, "/dev/contentops/github")
+    {:ok, view, _html} = live(admin_conn, "/dashboard/contentops/github")
 
     html =
       render_hook(view, "solve_issue", %{

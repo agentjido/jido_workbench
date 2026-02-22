@@ -81,6 +81,27 @@ defmodule AgentJidoWeb.PageLiveTest do
       assert html =~ page.title
     end
 
+    test "docs right rail includes Livebook run link for livebook-backed docs pages", %{conn: conn} do
+      page = Pages.get_page_by_path("/docs/concepts/agents")
+      assert page != nil
+      assert page.is_livebook
+      assert is_binary(page.livebook_url)
+
+      {:ok, _view, html} = live(conn, "/docs/concepts/agents")
+
+      assert html =~ "Run this in Livebook"
+      assert html =~ page.livebook_url
+      assert html =~ ~s(id="what-this-solves")
+    end
+
+    test "docs code blocks preserve syntax highlighter whitespace tokens", %{conn: conn} do
+      conn = get(conn, "/docs/concepts/agents")
+      html = response(conn, 200)
+
+      assert html =~ ~s(<pre><code class="makeup elixir">)
+      refute html =~ ~s(<span class="w"></span>)
+    end
+
     test "smoke routes for required docs IA stubs", %{conn: conn} do
       required_paths = [
         "/docs/getting-started",

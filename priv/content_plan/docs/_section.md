@@ -1,9 +1,9 @@
 %{
   title: "Docs",
   order: 6,
-  purpose: "Canonical self-serve documentation hubs for conceptual understanding and implementation support",
+  purpose: "Canonical self-serve documentation covering concepts, tutorials, guides, operations, and reference material",
   icon: "hero-book-open",
   tags: [:docs]
 }
 ---
-Documentation hubs and foundational deep dives. This section organizes concept explainers and docs navigation pages that keep builders moving without direct support.
+Documentation root for all content under `/docs`. Organized into sections: Getting Started, Learn, Concepts, Guides, Operations, Reference, and Community.

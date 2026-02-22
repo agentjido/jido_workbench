@@ -4,6 +4,7 @@ defmodule AgentJidoWeb.NavAskAiModalComponentTest do
   import Ecto.Query
   import Phoenix.LiveViewTest
 
+  alias AgentJido.Analytics.AnalyticsEvent
   alias AgentJido.QueryLogs.QueryLog
   alias AgentJido.Search.Result
 
@@ -41,7 +42,18 @@ defmodule AgentJidoWeb.NavAskAiModalComponentTest do
     @impl true
     def render(assigns) do
       ~H"""
-      <.live_component module={AgentJidoWeb.NavAskAiModalComponent} id="primary-nav-ask-ai-modal" />
+      <.live_component
+        module={AgentJidoWeb.NavAskAiModalComponent}
+        id="primary-nav-ask-ai-modal"
+        analytics_identity={
+          %{
+            visitor_id: "askai-test-visitor",
+            session_id: "askai-test-session",
+            path: "/docs/concepts/agents",
+            referrer_host: "agentjido.xyz"
+          }
+        }
+      />
       """
     end
   end
@@ -130,6 +142,36 @@ defmodule AgentJidoWeb.NavAskAiModalComponentTest do
     end)
   end
 
+  test "tracks citation clicks and inline feedback events", %{conn: conn} do
+    {:ok, view, _html} = live_isolated(conn, ModalHarnessLive)
+
+    view
+    |> form("form[phx-submit='ask']", ask: %{q: "What is an agent?", turnstile_token: "good-token"})
+    |> render_submit()
+
+    assert_eventually(fn ->
+      html = render(view)
+      html =~ ~s(id="primary-nav-ask-ai-modal-answer")
+    end)
+
+    view
+    |> element("a[href='/docs/concepts/agents']")
+    |> render_click()
+
+    view
+    |> form("form[phx-submit='submit_feedback']", feedback: %{value: "helpful", note: "Great answer"})
+    |> render_submit()
+
+    assert_eventually(fn ->
+      event = latest_analytics_event("feedback_submitted")
+      event && event.event == "feedback_submitted" && event.source == "ask_ai"
+    end)
+
+    assert_eventually(fn ->
+      AgentJido.Repo.exists?(from(e in AnalyticsEvent, where: e.event == "ask_ai_citation_clicked" and e.source == "ask_ai"))
+    end)
+  end
+
   defp assert_eventually(fun, attempts \\ 20)
 
   defp assert_eventually(fun, attempts) when attempts > 0 do
@@ -147,6 +189,16 @@ defmodule AgentJidoWeb.NavAskAiModalComponentTest do
   defp restore_env(key, value), do: Application.put_env(:agent_jido, key, value)
 
   defp latest_query_log do
-    AgentJido.Repo.one(from(q in QueryLog, order_by: [desc: q.inserted_at], limit: 1))
+    AgentJido.Repo.one(from(q in QueryLog, where: q.source == "ask_ai", order_by: [desc: q.inserted_at], limit: 1))
+  end
+
+  defp latest_analytics_event(event_name) do
+    AgentJido.Repo.one(
+      from(e in AnalyticsEvent,
+        where: e.event == ^event_name and e.source == "ask_ai",
+        order_by: [desc: e.inserted_at],
+        limit: 1
+      )
+    )
   end
 end
