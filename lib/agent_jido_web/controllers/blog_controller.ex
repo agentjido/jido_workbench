@@ -5,12 +5,25 @@ defmodule AgentJidoWeb.BlogController do
   use AgentJidoWeb, :controller
 
   alias AgentJido.Blog
+  alias AgentJido.QueryLogs
 
   def search(conn, %{"q" => query}) do
+    normalized_query = String.trim(to_string(query || ""))
+
+    if normalized_query != "" do
+      QueryLogs.track_query_safe(%{
+        source: "search",
+        channel: "blog_duckduckgo",
+        query: normalized_query,
+        status: "submitted",
+        metadata: %{surface: "blog"}
+      })
+    end
+
     site_url = AgentJidoWeb.Endpoint.url()
     # Extract hostname from the URL without the protocol
     hostname = URI.parse(site_url).host || "jido.app"
-    search_url = "https://duckduckgo.com/?q=#{URI.encode_www_form(query)}+site:#{hostname}"
+    search_url = "https://duckduckgo.com/?q=#{URI.encode_www_form(normalized_query)}+site:#{hostname}"
 
     conn
     |> redirect(external: search_url)

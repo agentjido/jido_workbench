@@ -4,6 +4,8 @@ defmodule AgentJidoWeb.AdminDashboardLiveTest do
   import AgentJido.AccountsFixtures
   import Phoenix.LiveViewTest
 
+  alias AgentJido.QueryLogs
+
   defmodule DashboardIngestStub do
     def sync(opts) do
       dry_run? = Keyword.get(opts, :dry_run, false)
@@ -83,10 +85,38 @@ defmodule AgentJidoWeb.AdminDashboardLiveTest do
            )
 
     assert has_element?(view, "a[href='/dashboard/content-generator']", "Open Content Generator")
+    assert has_element?(view, "#dashboard-query-tracking", "Query Tracking")
     assert has_element?(view, "#dashboard-content-ingest", "Content Ingestion")
     assert has_element?(view, "button[phx-click='preview_ingest']", "Preview ingest changes")
     assert has_element?(view, "button[phx-click='run_ingest']", "Run ingest now")
     assert has_element?(view, "button[phx-click='run_ingest_one']", "Ingest 1")
+  end
+
+  test "shows tracked search and Ask AI queries", %{admin_conn: admin_conn} do
+    {:ok, _} =
+      QueryLogs.create_query_log(%{
+        source: "search",
+        channel: "nav_modal",
+        query: "agent supervision",
+        status: "success",
+        results_count: 4
+      })
+
+    {:ok, _} =
+      QueryLogs.create_query_log(%{
+        source: "ask_ai",
+        channel: "ask_ai_modal",
+        query: "what is cmd/2?",
+        status: "no_results",
+        results_count: 0
+      })
+
+    {:ok, view, html} = live(admin_conn, "/dashboard")
+
+    assert html =~ "Query Tracking"
+    assert html =~ "agent supervision"
+    assert html =~ "what is cmd/2?"
+    assert has_element?(view, "button[phx-click='refresh_query_tracking']", "Refresh query logs")
   end
 
   test "preview suggests pending ingestion work", %{admin_conn: admin_conn} do

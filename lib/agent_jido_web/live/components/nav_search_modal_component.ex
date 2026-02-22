@@ -4,6 +4,7 @@ defmodule AgentJidoWeb.NavSearchModalComponent do
   """
   use AgentJidoWeb, :live_component
 
+  alias AgentJido.QueryLogs
   alias AgentJido.Search
   alias AgentJido.Search.Result
   alias Phoenix.LiveView.JS
@@ -21,6 +22,7 @@ defmodule AgentJidoWeb.NavSearchModalComponent do
       |> assign_new(:status, fn -> :idle end)
       |> assign_new(:results, fn -> [] end)
       |> assign_new(:search_ref, fn -> nil end)
+      |> assign_new(:query_log_id, fn -> nil end)
       |> assign(Map.drop(assigns, [:search_complete]))
       |> maybe_apply_search_complete(assigns)
 
@@ -34,23 +36,31 @@ defmodule AgentJidoWeb.NavSearchModalComponent do
     query = normalize_query(raw_query)
 
     if query == "" do
-      {:noreply, assign(socket, query: "", status: :idle, results: [], search_ref: nil)}
+      {:noreply, assign(socket, query: "", status: :idle, results: [], search_ref: nil, query_log_id: nil)}
     else
       search_ref = System.unique_integer([:positive, :monotonic])
       component_id = socket.assigns.id
       live_view_pid = socket.root_pid || self()
+      query_log_id = track_query_id(query)
 
       Task.start(fn ->
         response = Search.query_with_status(query, limit: @default_limit)
         send_update(live_view_pid, __MODULE__, id: component_id, search_complete: {search_ref, query, response})
       end)
 
-      {:noreply, assign(socket, query: query, status: :loading, results: [], search_ref: search_ref)}
+      {:noreply,
+       assign(socket,
+         query: query,
+         status: :loading,
+         results: [],
+         search_ref: search_ref,
+         query_log_id: query_log_id
+       )}
     end
   end
 
   def handle_event("reset", _params, socket) do
-    {:noreply, assign(socket, query: "", status: :idle, results: [], search_ref: nil)}
+    {:noreply, assign(socket, query: "", status: :idle, results: [], search_ref: nil, query_log_id: nil)}
   end
 
   @impl true
@@ -156,26 +166,32 @@ defmodule AgentJidoWeb.NavSearchModalComponent do
   defp apply_search_response(socket, query, {:ok, results, status}) when is_list(results) do
     cond do
       results != [] ->
-        assign(socket, query: query, status: :results, results: results, search_ref: nil)
+        finalize_query_log(socket.assigns.query_log_id, "success", length(results))
+        assign(socket, query: query, status: :results, results: results, search_ref: nil, query_log_id: nil)
 
       status == :success ->
-        assign(socket, query: query, status: :empty, results: [], search_ref: nil)
+        finalize_query_log(socket.assigns.query_log_id, "no_results", 0)
+        assign(socket, query: query, status: :empty, results: [], search_ref: nil, query_log_id: nil)
 
       true ->
-        assign(socket, query: query, status: :error, results: [], search_ref: nil)
+        finalize_query_log(socket.assigns.query_log_id, "error", 0)
+        assign(socket, query: query, status: :error, results: [], search_ref: nil, query_log_id: nil)
     end
   end
 
   defp apply_search_response(socket, query, {:ok, results}) when is_list(results) do
     if results == [] do
-      assign(socket, query: query, status: :empty, results: [], search_ref: nil)
+      finalize_query_log(socket.assigns.query_log_id, "no_results", 0)
+      assign(socket, query: query, status: :empty, results: [], search_ref: nil, query_log_id: nil)
     else
-      assign(socket, query: query, status: :results, results: results, search_ref: nil)
+      finalize_query_log(socket.assigns.query_log_id, "success", length(results))
+      assign(socket, query: query, status: :results, results: results, search_ref: nil, query_log_id: nil)
     end
   end
 
   defp apply_search_response(socket, query, _response) do
-    assign(socket, query: query, status: :error, results: [], search_ref: nil)
+    finalize_query_log(socket.assigns.query_log_id, "error", 0)
+    assign(socket, query: query, status: :error, results: [], search_ref: nil, query_log_id: nil)
   end
 
   @spec result_source_label(Result.t()) :: String.t()
@@ -187,4 +203,25 @@ defmodule AgentJidoWeb.NavSearchModalComponent do
   @spec normalize_query(term()) :: String.t()
   defp normalize_query(query) when is_binary(query), do: String.trim(query)
   defp normalize_query(_query), do: ""
+
+  defp track_query_id(query) when is_binary(query) do
+    case QueryLogs.track_query_safe(%{
+           source: "search",
+           channel: "nav_modal",
+           query: query,
+           status: "submitted",
+           metadata: %{surface: "primary_nav"}
+         }) do
+      %{id: id} -> id
+      _ -> nil
+    end
+  end
+
+  defp finalize_query_log(query_log_id, status, results_count)
+       when is_binary(status) and is_integer(results_count) do
+    QueryLogs.finalize_query_safe(query_log_id, %{
+      status: status,
+      results_count: max(results_count, 0)
+    })
+  end
 end

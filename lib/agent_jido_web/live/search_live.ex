@@ -4,6 +4,7 @@ defmodule AgentJidoWeb.SearchLive do
   """
   use AgentJidoWeb, :live_view
 
+  alias AgentJido.QueryLogs
   alias AgentJido.Search
 
   @telemetry_issued_event [:agent_jido, :search, :query, :issued]
@@ -19,6 +20,7 @@ defmodule AgentJidoWeb.SearchLive do
      |> assign(:results, [])
      |> assign(:status, :no_query)
      |> assign(:search_ref, nil)
+     |> assign(:search_log_ids, %{})
      |> assign(:search_module, resolve_search_module(session))
      |> assign(:search_opts, resolve_search_opts(session))}
   end
@@ -125,31 +127,41 @@ defmodule AgentJidoWeb.SearchLive do
       {:noreply, assign(socket, query: "", results: [], status: :no_query, search_ref: nil)}
     else
       search_ref = System.unique_integer([:monotonic, :positive])
+      query_log_id = track_query_id(query)
       started_at = System.monotonic_time()
       emit_query_issued(query)
       send(self(), {:run_search, search_ref, query, started_at})
 
-      {:noreply, assign(socket, query: query, results: [], status: :loading, search_ref: search_ref)}
+      search_log_ids =
+        if query_log_id do
+          Map.put(socket.assigns.search_log_ids, search_ref, query_log_id)
+        else
+          socket.assigns.search_log_ids
+        end
+
+      {:noreply, assign(socket, query: query, results: [], status: :loading, search_ref: search_ref, search_log_ids: search_log_ids)}
     end
   end
 
   @impl true
   def handle_info({:run_search, search_ref, query, started_at}, socket) do
     {outcome, results} = run_query(socket.assigns.search_module, query, socket.assigns.search_opts)
+    {query_log_id, search_log_ids} = Map.pop(socket.assigns.search_log_ids, search_ref)
     latency_ms = query_latency_ms(started_at)
     emit_query_outcome(outcome, query, results, latency_ms)
+    finalize_search_log(query_log_id, outcome, results)
 
     if socket.assigns.search_ref == search_ref do
       case outcome do
         :success ->
           status = if results == [], do: :no_results, else: :results
-          {:noreply, assign(socket, status: status, results: results)}
+          {:noreply, assign(socket, status: status, results: results, search_ref: nil, search_log_ids: search_log_ids)}
 
         :failure ->
-          {:noreply, assign(socket, status: :error, results: [])}
+          {:noreply, assign(socket, status: :error, results: [], search_ref: nil, search_log_ids: search_log_ids)}
       end
     else
-      {:noreply, socket}
+      {:noreply, assign(socket, :search_log_ids, search_log_ids)}
     end
   end
 
@@ -195,6 +207,30 @@ defmodule AgentJidoWeb.SearchLive do
 
   defp normalize_query(query) when is_binary(query), do: String.trim(query)
   defp normalize_query(_query), do: ""
+
+  defp track_query_id(query) when is_binary(query) do
+    case QueryLogs.track_query_safe(%{
+           source: "search",
+           channel: "search_page",
+           query: query,
+           status: "submitted",
+           metadata: %{surface: "search_live"}
+         }) do
+      %{id: id} -> id
+      _ -> nil
+    end
+  end
+
+  defp finalize_search_log(query_log_id, :success, results) when is_list(results) do
+    QueryLogs.finalize_query_safe(query_log_id, %{
+      status: if(results == [], do: "no_results", else: "success"),
+      results_count: length(results)
+    })
+  end
+
+  defp finalize_search_log(query_log_id, :failure, _results) do
+    QueryLogs.finalize_query_safe(query_log_id, %{status: "error", results_count: 0})
+  end
 
   defp query_latency_ms(started_at) when is_integer(started_at) do
     System.monotonic_time()

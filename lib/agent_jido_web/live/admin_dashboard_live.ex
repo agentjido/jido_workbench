@@ -5,12 +5,16 @@ defmodule AgentJidoWeb.AdminDashboardLive do
   use AgentJidoWeb, :live_view
 
   alias AgentJido.ContentIngest.Inventory
+  alias AgentJido.QueryLogs
 
   @task_supervisor_key :dashboard_ingest_task_supervisor
   @task_ref_key :dashboard_ingest_task_ref
   @running_key :dashboard_ingest_running
   @preview_summary_key :dashboard_ingest_preview_summary
   @apply_summary_key :dashboard_ingest_apply_summary
+  @query_window_days 7
+  @query_recent_limit 80
+  @query_top_limit 8
 
   @impl true
   def mount(_params, _session, socket) do
@@ -20,7 +24,9 @@ defmodule AgentJidoWeb.AdminDashboardLive do
      |> assign(@task_ref_key, nil)
      |> assign(@task_supervisor_key, nil)
      |> assign(@preview_summary_key, nil)
-     |> assign(@apply_summary_key, nil)}
+     |> assign(@apply_summary_key, nil)
+     |> assign(:query_tracking_snapshot, %{})
+     |> load_query_tracking_snapshot()}
   end
 
   @impl true
@@ -90,6 +96,84 @@ defmodule AgentJidoWeb.AdminDashboardLive do
           >
             Open Content Generator
           </.link>
+        </article>
+
+        <article id="dashboard-query-tracking" class="space-y-4 rounded-lg border border-border bg-card p-6 md:col-span-2">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div class="space-y-2">
+              <h2 class="text-lg font-semibold text-foreground">Query Tracking</h2>
+              <p class="text-sm text-muted-foreground">
+                Tracks every Ask AI question and search query submitted through the site.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              phx-click="refresh_query_tracking"
+              class="rounded-md border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground hover:border-primary/50"
+            >
+              Refresh query logs
+            </button>
+          </div>
+
+          <p :if={@query_tracking_snapshot.unavailable?} class="text-xs font-semibold text-amber-300">
+            Query tracking is temporarily unavailable. Run migrations and refresh.
+          </p>
+
+          <div class="grid grid-cols-2 gap-2 text-xs text-muted-foreground md:grid-cols-6">
+            <span>window: {@query_tracking_snapshot.summary.days}d</span>
+            <span>total: {@query_tracking_snapshot.summary.total}</span>
+            <span>search: {@query_tracking_snapshot.summary.search}</span>
+            <span>ask ai: {@query_tracking_snapshot.summary.ask_ai}</span>
+            <span>success: {@query_tracking_snapshot.summary.success}</span>
+            <span>no results: {@query_tracking_snapshot.summary.no_results}</span>
+          </div>
+
+          <div :if={@query_tracking_snapshot.top_queries != []} class="space-y-2">
+            <h3 class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Top queries</h3>
+            <div class="flex flex-wrap gap-2">
+              <span
+                :for={query <- @query_tracking_snapshot.top_queries}
+                class="rounded-full border border-border bg-background px-2.5 py-1 text-xs text-foreground"
+              >
+                {truncate_query(query.query)} <span class="text-muted-foreground">({query.count})</span>
+              </span>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto rounded-md border border-border bg-background">
+            <table class="min-w-full text-left text-xs">
+              <thead class="bg-elevated text-muted-foreground">
+                <tr>
+                  <th class="px-3 py-2 font-semibold">Time (UTC)</th>
+                  <th class="px-3 py-2 font-semibold">Source</th>
+                  <th class="px-3 py-2 font-semibold">Channel</th>
+                  <th class="px-3 py-2 font-semibold">Status</th>
+                  <th class="px-3 py-2 font-semibold">Results</th>
+                  <th class="px-3 py-2 font-semibold">Query</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr :for={entry <- @query_tracking_snapshot.recent_queries} class="border-t border-border/70">
+                  <td class="whitespace-nowrap px-3 py-2 text-muted-foreground">{format_timestamp(entry.inserted_at)}</td>
+                  <td class="px-3 py-2 text-foreground">{source_label(entry.source)}</td>
+                  <td class="px-3 py-2 text-muted-foreground">{entry.channel}</td>
+                  <td class="px-3 py-2">
+                    <span class={"rounded px-1.5 py-0.5 font-semibold #{query_status_class(entry.status)}"}>
+                      {entry.status}
+                    </span>
+                  </td>
+                  <td class="px-3 py-2 text-muted-foreground">{entry.results_count}</td>
+                  <td class="max-w-[560px] break-words px-3 py-2 text-foreground">{entry.query}</td>
+                </tr>
+                <tr :if={@query_tracking_snapshot.recent_queries == []}>
+                  <td colspan="6" class="px-3 py-3 text-muted-foreground">
+                    No query logs yet.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </article>
 
         <article id="dashboard-content-ingest" class="space-y-4 rounded-lg border border-border bg-card p-6 md:col-span-2">
@@ -180,6 +264,11 @@ defmodule AgentJidoWeb.AdminDashboardLive do
   @impl true
   def handle_event("run_ingest_one", _params, socket) do
     trigger_ingest(socket, :apply_one)
+  end
+
+  @impl true
+  def handle_event("refresh_query_tracking", _params, socket) do
+    {:noreply, load_query_tracking_snapshot(socket)}
   end
 
   @impl true
@@ -401,6 +490,52 @@ defmodule AgentJidoWeb.AdminDashboardLive do
       "text-xs font-semibold text-emerald-300"
     end
   end
+
+  defp load_query_tracking_snapshot(socket) do
+    snapshot =
+      QueryLogs.dashboard_snapshot(
+        @query_window_days,
+        @query_recent_limit,
+        @query_top_limit
+      )
+
+    assign(socket, :query_tracking_snapshot, snapshot)
+  end
+
+  defp source_label("ask_ai"), do: "Ask AI"
+  defp source_label("search"), do: "Search"
+  defp source_label(source) when is_binary(source), do: source
+  defp source_label(_source), do: "Unknown"
+
+  defp query_status_class("success"), do: "bg-emerald-500/15 text-emerald-300"
+  defp query_status_class("no_results"), do: "bg-amber-500/15 text-amber-300"
+  defp query_status_class("error"), do: "bg-red-500/15 text-red-300"
+  defp query_status_class("challenge"), do: "bg-amber-500/15 text-amber-300"
+  defp query_status_class("submitted"), do: "bg-cyan-500/15 text-cyan-300"
+  defp query_status_class(_status), do: "bg-muted text-muted-foreground"
+
+  defp format_timestamp(%NaiveDateTime{} = datetime) do
+    Calendar.strftime(datetime, "%Y-%m-%d %H:%M:%S")
+  end
+
+  defp format_timestamp(_datetime), do: "—"
+
+  defp truncate_query(query) when is_binary(query) do
+    trimmed = String.trim(query)
+
+    cond do
+      trimmed == "" ->
+        "(empty)"
+
+      String.length(trimmed) > 80 ->
+        String.slice(trimmed, 0, 77) <> "..."
+
+      true ->
+        trimmed
+    end
+  end
+
+  defp truncate_query(_query), do: "(empty)"
 
   defp first_inventory_source do
     source =

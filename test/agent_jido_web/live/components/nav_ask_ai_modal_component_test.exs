@@ -1,8 +1,10 @@
 defmodule AgentJidoWeb.NavAskAiModalComponentTest do
   use AgentJidoWeb.ConnCase, async: false
 
+  import Ecto.Query
   import Phoenix.LiveViewTest
 
+  alias AgentJido.QueryLogs.QueryLog
   alias AgentJido.Search.Result
 
   defmodule SearchStub do
@@ -81,6 +83,11 @@ defmodule AgentJidoWeb.NavAskAiModalComponentTest do
       html = render(view)
       html =~ ~s(id="primary-nav-ask-ai-modal-challenge") and html =~ "Complete the verification challenge"
     end)
+
+    query_log = latest_query_log()
+    assert query_log.source == "ask_ai"
+    assert query_log.status == "challenge"
+    assert query_log.query == "What is an agent?"
   end
 
   test "submit with valid turnstile token shows normal answer flow", %{conn: conn} do
@@ -93,6 +100,11 @@ defmodule AgentJidoWeb.NavAskAiModalComponentTest do
     assert_eventually(fn ->
       html = render(view)
       html =~ ~s(id="primary-nav-ask-ai-modal-answer") and html =~ "Stubbed LLM answer."
+    end)
+
+    assert_eventually(fn ->
+      query_log = latest_query_log()
+      query_log && query_log.source == "ask_ai" && query_log.status == "success" && query_log.results_count == 1
     end)
   end
 
@@ -111,6 +123,11 @@ defmodule AgentJidoWeb.NavAskAiModalComponentTest do
         html =~ ~s(id="primary-nav-ask-ai-modal-fallback-banner") and
         html =~ "Stubbed fallback answer."
     end)
+
+    assert_eventually(fn ->
+      query_log = latest_query_log()
+      query_log && query_log.source == "ask_ai" && query_log.status == "success" && query_log.results_count == 1
+    end)
   end
 
   defp assert_eventually(fun, attempts \\ 20)
@@ -128,4 +145,8 @@ defmodule AgentJidoWeb.NavAskAiModalComponentTest do
 
   defp restore_env(key, nil), do: Application.delete_env(:agent_jido, key)
   defp restore_env(key, value), do: Application.put_env(:agent_jido, key, value)
+
+  defp latest_query_log do
+    AgentJido.Repo.one(from(q in QueryLog, order_by: [desc: q.inserted_at], limit: 1))
+  end
 end

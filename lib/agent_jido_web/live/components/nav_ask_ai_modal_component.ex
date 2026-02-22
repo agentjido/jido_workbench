@@ -6,6 +6,7 @@ defmodule AgentJidoWeb.NavAskAiModalComponent do
 
   alias AgentJido.AskAi
   alias AgentJido.AskAi.Turnstile
+  alias AgentJido.QueryLogs
   alias AgentJido.Search
   alias Phoenix.LiveView.JS
 
@@ -25,6 +26,7 @@ defmodule AgentJidoWeb.NavAskAiModalComponent do
       |> assign_new(:answer_mode, fn -> nil end)
       |> assign_new(:citations, fn -> [] end)
       |> assign_new(:ask_ref, fn -> nil end)
+      |> assign_new(:query_log_id, fn -> nil end)
       |> assign_new(:turnstile_error, fn -> nil end)
       |> assign_new(:turnstile_token, fn -> "" end)
       |> assign(Map.drop(assigns, [:ask_complete]))
@@ -55,10 +57,13 @@ defmodule AgentJidoWeb.NavAskAiModalComponent do
          answer_mode: nil,
          citations: [],
          ask_ref: nil,
+         query_log_id: nil,
          turnstile_error: nil,
          turnstile_token: ""
        )}
     else
+      query_log_id = track_query_id(query)
+
       case verify_turnstile(socket, turnstile_token) do
         {:ok, socket} ->
           ask_ref = System.unique_integer([:positive, :monotonic])
@@ -79,11 +84,13 @@ defmodule AgentJidoWeb.NavAskAiModalComponent do
              answer_html: nil,
              answer_mode: nil,
              citations: [],
-             ask_ref: ask_ref
+             ask_ref: ask_ref,
+             query_log_id: query_log_id
            )}
 
         {:error, socket} ->
-          {:noreply, socket}
+          finalize_query_log(query_log_id, "challenge", 0)
+          {:noreply, assign(socket, :query_log_id, nil)}
       end
     end
   end
@@ -111,6 +118,7 @@ defmodule AgentJidoWeb.NavAskAiModalComponent do
         answer_mode: nil,
         citations: [],
         ask_ref: nil,
+        query_log_id: nil,
         turnstile_error: nil,
         turnstile_token: ""
       )
@@ -250,6 +258,8 @@ defmodule AgentJidoWeb.NavAskAiModalComponent do
     citations = Enum.take(results, 4)
 
     if citations == [] do
+      finalize_query_log(socket.assigns.query_log_id, "no_results", 0)
+
       assign(socket,
         query: query,
         status: :empty,
@@ -257,7 +267,8 @@ defmodule AgentJidoWeb.NavAskAiModalComponent do
         answer_html: nil,
         answer_mode: nil,
         citations: [],
-        ask_ref: nil
+        ask_ref: nil,
+        query_log_id: nil
       )
     else
       {answer, status, mode} =
@@ -265,6 +276,12 @@ defmodule AgentJidoWeb.NavAskAiModalComponent do
           {:ok, response, mode} when is_binary(response) and response != "" -> {response, :answer, mode}
           _other -> {nil, :error, nil}
         end
+
+      finalize_query_log(
+        socket.assigns.query_log_id,
+        if(status == :answer, do: "success", else: "error"),
+        if(status == :answer, do: length(citations), else: 0)
+      )
 
       assign(socket,
         query: query,
@@ -274,12 +291,15 @@ defmodule AgentJidoWeb.NavAskAiModalComponent do
         answer_mode: mode,
         citations: citations,
         ask_ref: nil,
+        query_log_id: nil,
         turnstile_error: nil
       )
     end
   end
 
   defp apply_ask_response(socket, query, _response) do
+    finalize_query_log(socket.assigns.query_log_id, "error", 0)
+
     assign(socket,
       query: query,
       status: :error,
@@ -287,7 +307,8 @@ defmodule AgentJidoWeb.NavAskAiModalComponent do
       answer_html: nil,
       answer_mode: nil,
       citations: [],
-      ask_ref: nil
+      ask_ref: nil,
+      query_log_id: nil
     )
   end
 
@@ -309,6 +330,27 @@ defmodule AgentJidoWeb.NavAskAiModalComponent do
   @spec normalize_query(term()) :: String.t()
   defp normalize_query(query) when is_binary(query), do: String.trim(query)
   defp normalize_query(_query), do: ""
+
+  defp track_query_id(query) when is_binary(query) do
+    case QueryLogs.track_query_safe(%{
+           source: "ask_ai",
+           channel: "ask_ai_modal",
+           query: query,
+           status: "submitted",
+           metadata: %{surface: "primary_nav"}
+         }) do
+      %{id: id} -> id
+      _ -> nil
+    end
+  end
+
+  defp finalize_query_log(query_log_id, status, results_count)
+       when is_binary(status) and is_integer(results_count) do
+    QueryLogs.finalize_query_safe(query_log_id, %{
+      status: status,
+      results_count: max(results_count, 0)
+    })
+  end
 
   defp run_search(search_module, query) do
     cond do
