@@ -59,44 +59,44 @@ defmodule AgentJidoWeb.ContentOpsLive do
     ~H"""
     <AgentJidoWeb.Jido.AdminNav.admin_shell current_path="/dashboard/contentops">
       <div class="container max-w-5xl mx-auto px-6 py-12 space-y-6">
-      <%!-- Header --%>
-      <div class="flex items-center justify-between">
-        <div>
-          <h1 class="text-2xl font-bold text-foreground">ContentOps Dashboard</h1>
-          <p class="text-sm text-muted-foreground mt-1">
-            Visualize and test the ContentOps agent system
-          </p>
-        </div>
-        <div class="flex items-center gap-3">
-          <.link navigate="/dashboard/contentops/github" class="text-sm text-primary hover:text-primary/80 transition-colors">
-            GitHub Issues &amp; PRs →
-          </.link>
-          <div :if={@running} class="flex items-center gap-2 text-sm text-amber-400">
-            <div class="h-2 w-2 rounded-full bg-amber-400 animate-pulse" /> Running {@current_mode}…
+        <%!-- Header --%>
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-2xl font-bold text-foreground">ContentOps Dashboard</h1>
+            <p class="text-sm text-muted-foreground mt-1">
+              Visualize and test the ContentOps agent system
+            </p>
           </div>
-          <div :if={@last_refreshed_at} class="text-[10px] text-muted-foreground font-mono">
-            polled {format_timestamp(@last_refreshed_at)}
+          <div class="flex items-center gap-3">
+            <.link navigate="/dashboard/contentops/github" class="text-sm text-primary hover:text-primary/80 transition-colors">
+              GitHub Issues &amp; PRs →
+            </.link>
+            <div :if={@running} class="flex items-center gap-2 text-sm text-amber-400">
+              <div class="h-2 w-2 rounded-full bg-amber-400 animate-pulse" /> Running {@current_mode}…
+            </div>
+            <div :if={@last_refreshed_at} class="text-[10px] text-muted-foreground font-mono">
+              polled {format_timestamp(@last_refreshed_at)}
+            </div>
           </div>
         </div>
-      </div>
 
-      <%!-- Server Status Card --%>
-      <.server_status_card
-        server_status={@server_status}
-        server_state_summary={@server_state_summary}
-        server_error={@server_error}
-        show_raw_state={@show_raw_state}
-        raw_state_text={@raw_state_text}
-      />
+        <%!-- Server Status Card --%>
+        <.server_status_card
+          server_status={@server_status}
+          server_state_summary={@server_state_summary}
+          server_error={@server_error}
+          show_raw_state={@show_raw_state}
+          raw_state_text={@raw_state_text}
+        />
 
-      <%!-- Workflow Pipeline Card --%>
-      <.pipeline_card steps={@pipeline_steps} running={@running} />
+        <%!-- Workflow Pipeline Card --%>
+        <.pipeline_card steps={@pipeline_steps} running={@running} />
 
-      <%!-- Trigger Run Card --%>
-      <.trigger_card selected_mode={@selected_mode} running={@running} />
+        <%!-- Trigger Run Card --%>
+        <.trigger_card selected_mode={@selected_mode} running={@running} />
 
-      <%!-- Run History Card --%>
-      <.run_history_card runs={@runs} expanded_run_ids={@expanded_run_ids} />
+        <%!-- Run History Card --%>
+        <.run_history_card runs={@runs} expanded_run_ids={@expanded_run_ids} />
       </div>
     </AgentJidoWeb.Jido.AdminNav.admin_shell>
     """

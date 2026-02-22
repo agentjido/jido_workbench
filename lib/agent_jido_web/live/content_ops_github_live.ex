@@ -92,50 +92,50 @@ defmodule AgentJidoWeb.ContentOpsGithubLive do
     ~H"""
     <AgentJidoWeb.Jido.AdminNav.admin_shell current_path="/dashboard/contentops/github">
       <div class="container max-w-5xl mx-auto px-6 py-12 space-y-6">
-      <%!-- Nav strip --%>
-      <div class="flex items-center gap-3 text-sm">
-        <.link navigate="/dashboard/contentops" class="text-primary hover:text-primary/80 transition-colors">
-          ← Dashboard
-        </.link>
-      </div>
-
-      <%!-- Header --%>
-      <div class="flex items-center justify-between">
-        <div>
-          <h1 class="text-2xl font-bold text-foreground">GitHub Issues & PRs</h1>
-          <p class="text-sm text-muted-foreground mt-1">
-            {@owner}/{@repo} — open issues and pull requests
-          </p>
+        <%!-- Nav strip --%>
+        <div class="flex items-center gap-3 text-sm">
+          <.link navigate="/dashboard/contentops" class="text-primary hover:text-primary/80 transition-colors">
+            ← Dashboard
+          </.link>
         </div>
-        <div class="flex items-center gap-3">
-          <span :if={@cached_at} class="text-[10px] text-muted-foreground font-mono">
-            cached {format_time_ago(@cached_at)}
-          </span>
-          <button
-            phx-click="refresh"
-            disabled={@loading}
-            class="text-sm text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
-          >
-            ↻ Refresh
-          </button>
+
+        <%!-- Header --%>
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-2xl font-bold text-foreground">GitHub Issues & PRs</h1>
+            <p class="text-sm text-muted-foreground mt-1">
+              {@owner}/{@repo} — open issues and pull requests
+            </p>
+          </div>
+          <div class="flex items-center gap-3">
+            <span :if={@cached_at} class="text-[10px] text-muted-foreground font-mono">
+              cached {format_time_ago(@cached_at)}
+            </span>
+            <button
+              phx-click="refresh"
+              disabled={@loading}
+              class="text-sm text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
+            >
+              ↻ Refresh
+            </button>
+          </div>
         </div>
-      </div>
 
-      <%!-- Error --%>
-      <div :if={@error} class="rounded-lg border border-red-500/30 bg-red-500/10 p-4">
-        <p class="text-sm text-red-400 font-mono">⚠ {@error}</p>
-      </div>
+        <%!-- Error --%>
+        <div :if={@error} class="rounded-lg border border-red-500/30 bg-red-500/10 p-4">
+          <p class="text-sm text-red-400 font-mono">⚠ {@error}</p>
+        </div>
 
-      <%!-- Loading --%>
-      <div :if={@loading} class="rounded-lg border border-border bg-card p-8 text-center">
-        <p class="text-sm text-muted-foreground animate-pulse">Loading GitHub data…</p>
-      </div>
+        <%!-- Loading --%>
+        <div :if={@loading} class="rounded-lg border border-border bg-card p-8 text-center">
+          <p class="text-sm text-muted-foreground animate-pulse">Loading GitHub data…</p>
+        </div>
 
-      <%!-- Issues --%>
-      <.issues_card :if={@issues} issues={@issues} />
+        <%!-- Issues --%>
+        <.issues_card :if={@issues} issues={@issues} />
 
-      <%!-- PRs --%>
-      <.prs_card :if={@prs} prs={@prs} />
+        <%!-- PRs --%>
+        <.prs_card :if={@prs} prs={@prs} />
       </div>
     </AgentJidoWeb.Jido.AdminNav.admin_shell>
     """
