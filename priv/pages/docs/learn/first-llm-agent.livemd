@@ -1,0 +1,174 @@
+%{
+  title: "Build Your First LLM Agent",
+  description: "Add LLM reasoning to a Jido agent with jido_ai + req_llm, configure a provider, and run your first AI command.",
+  category: :docs,
+  order: 12,
+  prerequisites: ["/docs/learn/first-agent"],
+}
+---
+In the [First Agent tutorial](/docs/learn/first-agent), you built a deterministic agent with a pure `cmd/2`. This guide extends that exact agent by adding LLM reasoning through `jido_ai`, while keeping the same runtime boundaries.
+
+You will add the AI dependencies, configure a provider, select a reasoning strategy, and run a command that returns structured output. No tools or multi-agent patterns yet.
+
+## Prerequisites
+
+You should already have:
+
+- An Elixir project that can compile and run.
+- The agent module from [Build Your First Agent](/docs/learn/first-agent).
+- An API key for an LLM provider like OpenAI or Anthropic.
+
+If you need a quick setup refresh, the [Configuration reference](/docs/reference/configuration) shows the full runtime configuration surface.
+
+## Add AI Dependencies
+
+`jido_ai` adds reasoning strategies and AI orchestration on top of the core Jido runtime. `req_llm` is the provider-agnostic LLM transport layer used underneath `jido_ai`.
+
+Add both packages to `mix.exs`:
+
+```elixir
+# mix.exs
+
+defp deps do
+  [
+    {:jido, "~> 2.0"},
+    {:jido_ai, "~> 2.0"},
+    {:req_llm, "~> 1.0"}
+  ]
+end
+```
+
+Fetch and compile:
+
+```sh
+mix deps.get
+```
+
+## Configure a Provider
+
+Configure a provider in `config/runtime.exs`. This example uses OpenAI and reads the API key from an environment variable.
+
+```elixir
+# config/runtime.exs
+import Config
+
+openai_key = System.get_env("OPENAI_API_KEY")
+
+if openai_key do
+  config :jido_ai, :providers,
+    openai: [
+      api_key: openai_key
+    ]
+end
+```
+
+Export the key in the same shell session you will use to run your app:
+
+```sh
+export OPENAI_API_KEY="your-api-key-here"
+```
+
+You can add multiple providers in the same `:providers` config. For example, you might configure Anthropic alongside OpenAI later, then switch models in code without changing the agent logic.
+
+## Choose a Strategy
+
+A `jido_ai` strategy defines how an agent turns an AI intent into a provider request and how it interprets the response. In this tutorial you will use the ReAct strategy, but you can switch to CoT later without changing your agent’s `cmd/2` contract.
+
+Update the agent module from the first tutorial. You still use `Jido.Agent`, then opt into a strategy using `Jido.AI` in the same module.
+
+```elixir
+# lib/my_app/greeter.ex
+
+defmodule MyApp.Greeter do
+  use Jido.Agent,
+    name: "greeter",
+    description: "Greets users with a short welcome"
+
+  use Jido.AI,
+    strategy: Jido.AI.Strategies.ReAct,
+    model: "openai:gpt-4o-mini"
+
+  @impl true
+  def init(_args) do
+    {:ok, %{count: 0}}
+  end
+
+  @impl true
+  def cmd(:greet, state) do
+    {:pure, "Hello", state}
+  end
+
+  @impl true
+  def apply({:greet, "Hello"}, state) do
+    {:ok, %{state | count: state.count + 1}}
+  end
+end
+```
+
+The only AI-specific pieces here are the `use Jido.AI` line and a model string. Your agent remains a standard Jido agent with the same lifecycle.
+
+## Run Your First LLM Command
+
+Now change the command to return an AI intent instead of a static string. We will ask the model for a structured JSON object that includes a greeting and a short tone tag.
+
+```elixir
+# lib/my_app/greeter.ex
+
+@impl true
+def cmd(:greet, _state) do
+  prompt = """
+  Return JSON with keys greeting and tone.
+  greeting: one sentence welcome for a new user.
+  tone: one word, like friendly, playful, or formal.
+  """
+
+  {:ai, prompt}
+end
+```
+
+Update `apply/2` to accept structured output. This example assumes your strategy is configured to return decoded JSON; if you see a string, decode it in `apply/2` before pattern matching.
+
+```elixir
+# lib/my_app/greeter.ex
+
+@impl true
+def apply({:greet, %{"greeting" => greeting, "tone" => tone}}, state) do
+  IO.puts("[#{tone}] #{greeting}")
+  {:ok, %{state | count: state.count + 1}}
+end
+```
+
+Start an `iex` session and run the command:
+
+```elixir
+# iex -S mix
+iex> {:ok, pid} = Jido.Agent.start_link(MyApp.Greeter, [])
+{:ok, #PID<...>}
+
+iex> Jido.Agent.run_command(pid, :greet)
+[friendly] Welcome aboard — we’re glad you’re here.
+{:ok, %{count: 1}}
+```
+
+**Verification step:** if you see a greeting and a map with `count: 1`, your AI integration is working. If you get `nil` for providers, re-check `config/runtime.exs` and ensure `OPENAI_API_KEY` is set in the same shell.
+
+## What Just Happened
+
+Here is the flow you just exercised, with the pure/effectful boundary intact.
+
+1. `Jido.Agent.run_command/2` invoked your agent’s `cmd/2` with the current state.
+2. `cmd/2` returned `{:ai, prompt}` instead of performing an HTTP request, so it remained pure.
+3. The `Jido.AI` wrapper intercepted that tuple and delegated to the configured strategy.
+4. The strategy used `req_llm` to call the provider and returned the response to the runtime.
+5. The runtime then called `apply/2` with that response, which you treated as structured data to update state deterministically.
+
+This is the same `cmd/2` contract from the first tutorial, now extended with a strategy that handles the side effect. Your agent logic stays testable, while the AI integration lives in the runtime layer.
+
+## Next Steps
+
+- Build a multi-step orchestration in [Build Your First Workflow](/docs/learn/first-workflow).
+- Learn how to add safe tool calls in [Tool Use and Function Calling](/docs/learn/tool-use).
+- Explore strategy capabilities in the [jido_ai package reference](/docs/reference/packages/jido-ai).
+
+---
+<sub>Generated by Jido Documentation Writer Bot | Run ID: `33a11e11dbf3`</sub>

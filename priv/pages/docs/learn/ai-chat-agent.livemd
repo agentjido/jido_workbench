@@ -1,0 +1,264 @@
+%{
+  title: "Build an AI Chat Agent",
+  description: "Build a multi-turn conversational agent with Jido, including context, streaming, and failure handling.",
+  category: :docs,
+  order: 43,
+  legacy_paths: ["/build/ai-chat-agent"],
+  tags: [:docs, :learn, :build, :ai, :chat],
+  prerequisites: ["/docs/learn/first-llm-agent"],
+  draft: false
+}
+---
+## Overview
+
+This tutorial builds a multi-turn chat agent that keeps conversation context in state, streams partial replies, and handles provider failures gracefully. You will build on the provider setup from [Build Your First LLM Agent](/docs/learn/first-llm-agent) and end with a verified chat loop.
+
+## Prerequisites
+
+You should have already configured `jido_ai` and `req_llm` and verified a basic LLM call. If you have not, complete [Build Your First LLM Agent](/docs/learn/first-llm-agent) before continuing.
+
+## Agent Setup
+
+Start with a dedicated agent module that uses `Jido.AI.Agent` and a minimal state shape for conversation history. This keeps the chat-specific behavior isolated while still using the Jido runtime.
+
+```elixir
+defmodule MyApp.ChatAgent do
+  use Jido.AI.Agent,
+    name: "chat_agent",
+    description: "Multi-turn chat agent with streaming support",
+    tools: [],
+    model: :fast,
+    max_iterations: 1,
+    system_prompt: """
+    You are a concise, friendly chat assistant.
+    Ask short clarifying questions when the user is ambiguous.
+    Keep answers under 6 sentences unless asked to be detailed.
+    """
+
+  @impl true
+  def init(_opts) do
+    {:ok, %{history: []}}
+  end
+end
+```
+
+This agent does not use tools, which keeps the focus on conversation flow. If you want tool use later, see [Tool Use](/docs/learn/tool-use).
+
+## Conversation Context
+
+To maintain multi-turn context, store the message history in agent state and inject it into each new prompt. The example below updates history in `on_before_cmd/2` and `on_after_cmd/3`, which keeps the flow inside the agent lifecycle.
+
+```elixir
+defmodule MyApp.ChatAgent do
+  use Jido.AI.Agent,
+    name: "chat_agent",
+    description: "Multi-turn chat agent with streaming support",
+    tools: [],
+    model: :fast,
+    max_iterations: 1,
+    system_prompt: """
+    You are a concise, friendly chat assistant.
+    Ask short clarifying questions when the user is ambiguous.
+    Keep answers under 6 sentences unless asked to be detailed.
+    """
+
+  @impl true
+  def init(_opts) do
+    {:ok, %{history: []}}
+  end
+
+  @impl true
+  def on_before_cmd(agent, {:react_start, params}) when is_map(params) do
+    user_message =
+      Map.get(params, :prompt) ||
+        Map.get(params, :query) ||
+        Map.get(params, :message)
+
+    history = agent.state.history || []
+    prompt = build_prompt(history, user_message)
+    updated_params = put_prompt(params, prompt)
+
+    updated_state =
+      if is_binary(user_message) do
+        Map.put(agent.state, :history, history ++ [%{role: "user", content: user_message}])
+      else
+        agent.state
+      end
+
+    {:ok, %{agent | state: updated_state}, {:react_start, updated_params}}
+  end
+
+  @impl true
+  def on_before_cmd(agent, action), do: super(agent, action)
+
+  @impl true
+  def on_after_cmd(agent, _action, directives) do
+    snap = strategy_snapshot(agent)
+
+    updated_state =
+      if snap.done? and is_binary(snap.result) do
+        history = agent.state.history || []
+        Map.put(agent.state, :history, history ++ [%{role: "assistant", content: snap.result}])
+      else
+        agent.state
+      end
+
+    {:ok, %{agent | state: updated_state}, directives}
+  end
+
+  defp build_prompt(history, message) when is_list(history) and is_binary(message) do
+    history_block =
+      history
+      |> Enum.map(fn %{role: role, content: content} -> "#{role}: #{content}" end)
+      |> Enum.join("\n")
+
+    """
+    Conversation so far:
+    #{history_block}
+
+    user: #{message}
+    assistant:
+    """
+  end
+
+  defp build_prompt(_history, message), do: message
+
+  defp put_prompt(params, prompt) do
+    cond do
+      Map.has_key?(params, :prompt) -> Map.put(params, :prompt, prompt)
+      Map.has_key?(params, :query) -> Map.put(params, :query, prompt)
+      Map.has_key?(params, :message) -> Map.put(params, :message, prompt)
+      true -> Map.put(params, :prompt, prompt)
+    end
+  end
+end
+```
+
+This pattern keeps state authoritative while still building a simple text prompt for the provider. It also makes it easy to truncate history later if you need to control token size.
+
+## System Prompt Design
+
+A system prompt defines the agent persona, tone, and safety constraints, so keep it stable and short. The template should focus on behavior and limits, while the conversation context stays in the user prompt you build.
+
+```elixir
+system_prompt: """
+You are a concise, friendly chat assistant.
+Use short paragraphs and avoid jargon unless the user asks.
+If you are unsure, ask a clarifying question instead of guessing.
+"""
+```
+
+If you need a deeper dive on AI configuration options, review the [`jido_ai` package reference](/docs/reference/packages/jido-ai). That reference is also the right place to confirm which model aliases you have configured.
+
+## Streaming Responses
+
+`Jido.AI.Agent` supports asynchronous turns, which lets you stream partial output by polling snapshots while a request is running. The flow is: `ask/2` returns a request handle, then you poll `strategy_snapshot/1` until `done?` is true.
+
+```elixir
+# IEx streaming loop
+{:ok, pid} = Jido.AgentServer.start_link(agent: MyApp.ChatAgent)
+{:ok, request} = MyApp.ChatAgent.ask(pid, "Walk me through a safe deployment checklist.")
+
+stream =
+  Stream.repeatedly(fn ->
+    Process.sleep(150)
+    MyApp.ChatAgent.strategy_snapshot(pid)
+  end)
+
+stream
+|> Enum.reduce_while(nil, fn snap, _acc ->
+  if snap.done? do
+    IO.puts("\nDONE\n")
+    IO.puts(snap.result || "")
+    {:halt, snap}
+  else
+    IO.write(".")
+    {:cont, snap}
+  end
+end)
+
+{:ok, result} = MyApp.ChatAgent.await(request)
+```
+
+The same polling pattern works in LiveView, where you can update the UI on each tick. Keep the interval short enough to feel responsive but long enough to avoid saturating the server.
+
+```elixir
+# lib/my_app_web/live/chat_live.ex
+@impl true
+def mount(_params, _session, socket) do
+  {:ok, pid} = Jido.AgentServer.start_link(agent: MyApp.ChatAgent)
+
+  {:ok,
+   socket
+   |> assign(:agent_pid, pid)
+   |> assign(:reply, "")
+   |> assign(:streaming, false)}
+end
+
+@impl true
+def handle_event("send", %{"message" => message}, socket) do
+  {:ok, request} = MyApp.ChatAgent.ask(socket.assigns.agent_pid, message)
+
+  Process.send_after(self(), {:poll, request}, 150)
+
+  {:noreply, assign(socket, streaming: true)}
+end
+
+@impl true
+def handle_info({:poll, request}, socket) do
+  snap = MyApp.ChatAgent.strategy_snapshot(socket.assigns.agent_pid)
+
+  socket =
+    if snap.done? do
+      assign(socket, reply: snap.result || "", streaming: false)
+    else
+      Process.send_after(self(), {:poll, request}, 150)
+      socket
+    end
+
+  {:noreply, socket}
+end
+```
+
+This LiveView example is intentionally minimal and uses a single `:reply` assign. In a real UI, you would store per-turn history, which you already have inside the agent state.
+
+## Error Recovery
+
+LLM providers can rate-limit or become unavailable, so every chat turn should handle `{:error, reason}`. A conservative strategy is to return a friendly fallback while keeping state intact for a retry.
+
+```elixir
+@spec chat(pid(), String.t()) :: {:ok, String.t()} | {:error, term()}
+def chat(pid, message) do
+  case MyApp.ChatAgent.ask_sync(pid, message, timeout: 30_000) do
+    {:ok, response} ->
+      {:ok, response}
+
+    {:error, reason} ->
+      Logger.warning("chat_failed: #{inspect(reason)}")
+      {:error, :provider_unavailable}
+  end
+end
+```
+
+When you surface the error to the UI, keep it brief and suggest a retry instead of losing the conversation. Because the history stays in agent state, you can rerun the turn without reloading context.
+
+## Verification
+
+Run these checks in `iex -S mix` to confirm the end-to-end flow works.
+
+1. Start the agent and run a single turn with `ask_sync/3`.
+2. Ask two consecutive questions and confirm the second answer reflects the first.
+3. Run the streaming loop and confirm `strategy_snapshot/1` reports `done?` and yields a non-empty `result`.
+4. Temporarily disable your provider API key and confirm `chat/2` returns `{:error, :provider_unavailable}`.
+
+## What to Try Next
+
+Now that you have a stable chat loop, continue with these focused guides.
+
+- Review the minimal [Chat Response recipe](/docs/guides/cookbook/chat-response) for a quick reference.
+- Add tool use in [Tool Use](/docs/learn/tool-use) when you want actions or external data.
+- Revisit [Build Your First LLM Agent](/docs/learn/first-llm-agent) if you need to adjust provider configuration.
+- Explore the full surface area of [`jido_ai`](/docs/reference/packages/jido-ai).
+
+---
+<sub>Generated by Jido Documentation Writer Bot | Run ID: `8ddd69d0eb2c`</sub>
