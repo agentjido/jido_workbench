@@ -1203,8 +1203,12 @@ defmodule AgentJido.ContentOntology.Exporter do
     |> Path.expand()
     |> Path.relative_to(cwd)
     |> case do
-      relative when String.starts_with?(relative, "../") -> path
-      relative -> relative
+      relative ->
+        if String.starts_with?(relative, "../") do
+          path
+        else
+          relative
+        end
     end
   end
 
@@ -1231,10 +1235,18 @@ defmodule AgentJido.ContentOntology.Exporter do
           route
           |> String.replace(~r/[?#].*$/, "")
           |> case do
-            "" -> "/"
-            "/" = root -> root
-            path when String.starts_with?(path, "/") -> String.trim_trailing(path, "/")
-            path -> "/" <> String.trim_trailing(path, "/")
+            "" ->
+              "/"
+
+            "/" = root ->
+              root
+
+            path ->
+              if String.starts_with?(path, "/") do
+                String.trim_trailing(path, "/")
+              else
+                "/" <> String.trim_trailing(path, "/")
+              end
           end
 
         if route == "", do: "/", else: route
@@ -1378,10 +1390,10 @@ defmodule AgentJido.ContentOntology.Exporter do
 
   defp map_value(_map, _key, default), do: default
 
+  defp maybe_add_lit(set, subject, predicate, literal, type \\ nil)
   defp maybe_add_lit(set, _subject, _predicate, nil, _type), do: set
-  defp maybe_add_lit(set, _subject, _predicate, nil), do: set
 
-  defp maybe_add_lit(set, subject, predicate, literal, type \\ nil) do
+  defp maybe_add_lit(set, subject, predicate, literal, type) do
     add_lit(set, subject, predicate, literal, type)
   end
 
