@@ -18,6 +18,8 @@ defmodule AgentJido.GithubStarsTracker do
 
   @default_refresh_interval_ms :timer.hours(1)
   @default_request_timeout_ms 10_000
+  @default_min_request_interval_ms 200
+  @default_rate_limit_cooldown_ms :timer.minutes(15)
   @default_user_agent "AgentJido-GithubStarsTracker"
 
   @typedoc "Cached star payload for one package."
@@ -100,7 +102,10 @@ defmodule AgentJido.GithubStarsTracker do
   - `:fetcher` fetcher module implementing `Fetcher`
   - `:request_timeout_ms` HTTP request timeout
   - `:refresh_interval_ms` periodic refresh cadence
+  - `:min_request_interval_ms` minimum delay between GitHub API requests
+  - `:rate_limit_cooldown_ms` cooldown when GitHub rate limits are detected
   - `:repo_cache_timeout_ms` package-id keyed cache timeout override map
+  - `:use_auth_token` include Authorization header when `:github_token` is set (default: false)
   - `:github_token` optional token override
   - `:repos` optional pre-resolved package->repo map (primarily for tests)
   """
@@ -180,7 +185,10 @@ defmodule AgentJido.GithubStarsTracker do
     fetcher = Keyword.get(opts, :fetcher, config(:fetcher, DefaultFetcher))
     request_timeout_ms = Keyword.get(opts, :request_timeout_ms, config(:request_timeout_ms, @default_request_timeout_ms))
     refresh_interval_ms = Keyword.get(opts, :refresh_interval_ms, config(:refresh_interval_ms, @default_refresh_interval_ms))
-    github_token = Keyword.get(opts, :github_token, System.get_env("GITHUB_TOKEN"))
+    min_request_interval_ms = Keyword.get(opts, :min_request_interval_ms, config(:min_request_interval_ms, @default_min_request_interval_ms))
+    rate_limit_cooldown_ms = Keyword.get(opts, :rate_limit_cooldown_ms, config(:rate_limit_cooldown_ms, @default_rate_limit_cooldown_ms))
+    use_auth_token = Keyword.get(opts, :use_auth_token, config(:use_auth_token, false))
+    github_token = normalize_token(Keyword.get(opts, :github_token, config(:github_token, nil)))
 
     state = %{
       repos: repos,
@@ -189,7 +197,12 @@ defmodule AgentJido.GithubStarsTracker do
       fetcher: fetcher,
       request_timeout_ms: request_timeout_ms,
       refresh_interval_ms: refresh_interval_ms,
-      github_token: github_token
+      min_request_interval_ms: normalize_non_neg_integer(min_request_interval_ms, @default_min_request_interval_ms),
+      rate_limit_cooldown_ms: normalize_positive_integer(rate_limit_cooldown_ms, @default_rate_limit_cooldown_ms),
+      rate_limit_reset_monotonic_ms: nil,
+      last_request_monotonic_ms: nil,
+      github_token: github_token,
+      use_auth_token: use_auth_token == true and is_binary(github_token)
     }
 
     send(self(), :refresh)
@@ -230,32 +243,48 @@ defmodule AgentJido.GithubStarsTracker do
 
   defp refresh_stars(state) do
     now = DateTime.utc_now()
+    now_monotonic_ms = System.monotonic_time(:millisecond)
 
-    {next_stars_map, success_count, failure_count} =
-      Enum.reduce(state.repos, {state.stars_map, 0, 0}, fn {package_id, repo_ref}, {acc, success, failure} ->
-        fetch_opts = [
-          request_timeout_ms: state.request_timeout_ms,
-          token: state.github_token,
-          user_agent: @default_user_agent
-        ]
+    case state.rate_limit_reset_monotonic_ms do
+      reset_ms when is_integer(reset_ms) and reset_ms > now_monotonic_ms ->
+        remaining_ms = reset_ms - now_monotonic_ms
 
-        case state.fetcher.fetch_repo_stars(repo_ref.owner, repo_ref.repo, fetch_opts) do
-          {:ok, stars} when is_integer(stars) and stars >= 0 ->
-            updated_entry = %{stars: stars, updated_at: now}
-            {Map.put(acc, package_id, updated_entry), success + 1, failure}
+        Logger.warning("[GithubStarsTracker] refresh skipped cooldown_ms_remaining=#{remaining_ms}")
 
-          {:error, reason} ->
-            Logger.warning(
-              "[GithubStarsTracker] fetch failed package=#{package_id} repo=#{repo_ref.owner}/#{repo_ref.repo} reason=#{inspect(reason)}"
-            )
+        %{state | last_refresh_at: now}
 
-            {acc, success, failure + 1}
-        end
-      end)
+      _other ->
+        {next_stars_map, success_count, failure_count, halted_for_rate_limit, next_state} =
+          Enum.reduce_while(state.repos, {state.stars_map, 0, 0, false, state}, fn {package_id, repo_ref},
+                                                                                   {acc, success, failure, _halted, state_acc} ->
+            {result, state_after_fetch} = fetch_repo_stars(state_acc, repo_ref)
 
-    Logger.info("[GithubStarsTracker] refresh complete success=#{success_count} failure=#{failure_count} total=#{map_size(state.repos)}")
+            case result do
+              {:ok, stars} when is_integer(stars) and stars >= 0 ->
+                updated_entry = %{stars: stars, updated_at: now}
+                {:cont, {Map.put(acc, package_id, updated_entry), success + 1, failure, false, state_after_fetch}}
 
-    %{state | stars_map: next_stars_map, last_refresh_at: now}
+              {:error, reason} ->
+                Logger.warning(
+                  "[GithubStarsTracker] fetch failed package=#{package_id} repo=#{repo_ref.owner}/#{repo_ref.repo} reason=#{inspect(reason)}"
+                )
+
+                if rate_limited_reason?(reason) do
+                  cooldown_until = System.monotonic_time(:millisecond) + state_after_fetch.rate_limit_cooldown_ms
+                  state_with_cooldown = %{state_after_fetch | rate_limit_reset_monotonic_ms: cooldown_until}
+                  {:halt, {acc, success, failure + 1, true, state_with_cooldown}}
+                else
+                  {:cont, {acc, success, failure + 1, false, state_after_fetch}}
+                end
+            end
+          end)
+
+        Logger.info(
+          "[GithubStarsTracker] refresh complete success=#{success_count} failure=#{failure_count} total=#{map_size(state.repos)} halted_for_rate_limit=#{halted_for_rate_limit}"
+        )
+
+        %{next_state | stars_map: next_stars_map, last_refresh_at: now}
+    end
   end
 
   defp build_repo_map(packages, repo_cache_timeout_ms) when is_list(packages) and is_map(repo_cache_timeout_ms) do
@@ -377,6 +406,94 @@ defmodule AgentJido.GithubStarsTracker do
     |> Map.get(:cache_timeout_ms, :infinity)
     |> normalize_cache_timeout()
   end
+
+  defp fetch_repo_stars(state, repo_ref) do
+    state_with_slot = apply_request_rate_limit(state)
+    token = if state_with_slot.use_auth_token, do: state_with_slot.github_token, else: nil
+
+    case fetch_once(state_with_slot, repo_ref, token) do
+      {:ok, stars} ->
+        {{:ok, stars}, state_with_slot}
+
+      {:error, reason} ->
+        maybe_retry_without_token(state_with_slot, repo_ref, reason, token)
+    end
+  end
+
+  defp maybe_retry_without_token(state, _repo_ref, reason, nil), do: {{:error, reason}, state}
+
+  defp maybe_retry_without_token(state, repo_ref, reason, token) when is_binary(token) do
+    if bad_credentials_reason?(reason) do
+      Logger.warning("[GithubStarsTracker] github_token rejected (401); falling back to anonymous GitHub requests")
+
+      state_without_token = %{state | use_auth_token: false}
+
+      case fetch_once(state_without_token, repo_ref, nil) do
+        {:ok, stars} -> {{:ok, stars}, state_without_token}
+        {:error, retry_reason} -> {{:error, retry_reason}, state_without_token}
+      end
+    else
+      {{:error, reason}, state}
+    end
+  end
+
+  defp fetch_once(state, repo_ref, token) do
+    fetch_opts = [
+      request_timeout_ms: state.request_timeout_ms,
+      token: token,
+      user_agent: @default_user_agent
+    ]
+
+    state.fetcher.fetch_repo_stars(repo_ref.owner, repo_ref.repo, fetch_opts)
+  end
+
+  defp apply_request_rate_limit(state) do
+    min_interval_ms = state.min_request_interval_ms
+
+    if min_interval_ms <= 0 do
+      %{state | last_request_monotonic_ms: System.monotonic_time(:millisecond)}
+    else
+      now = System.monotonic_time(:millisecond)
+      previous = state.last_request_monotonic_ms
+
+      wait_ms =
+        case previous do
+          nil -> 0
+          last when is_integer(last) -> max(min_interval_ms - (now - last), 0)
+        end
+
+      if wait_ms > 0 do
+        Process.sleep(wait_ms)
+      end
+
+      %{state | last_request_monotonic_ms: System.monotonic_time(:millisecond)}
+    end
+  end
+
+  defp rate_limited_reason?(:rate_limited), do: true
+  defp rate_limited_reason?({:http_error, 429, _body}), do: true
+
+  defp rate_limited_reason?({:http_error, 403, body}) when is_binary(body) do
+    normalized = String.downcase(body)
+    String.contains?(normalized, "rate limit")
+  end
+
+  defp rate_limited_reason?(_reason), do: false
+
+  defp bad_credentials_reason?({:http_error, 401, _body}), do: true
+
+  defp normalize_token(token) when is_binary(token) do
+    trimmed = String.trim(token)
+    if trimmed == "", do: nil, else: trimmed
+  end
+
+  defp normalize_token(_), do: nil
+
+  defp normalize_non_neg_integer(value, _default) when is_integer(value) and value >= 0, do: value
+  defp normalize_non_neg_integer(_value, default), do: default
+
+  defp normalize_positive_integer(value, _default) when is_integer(value) and value > 0, do: value
+  defp normalize_positive_integer(_value, default), do: default
 
   defp normalize_text(nil), do: ""
 

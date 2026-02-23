@@ -4,18 +4,29 @@ defmodule AgentJido.GithubStarsTrackerTest do
   alias AgentJido.GithubStarsTracker
 
   @table :github_stars_tracker_test_fetches
+  @count_table :github_stars_tracker_test_fetch_counts
 
   defmodule DynamicFetcher do
     @behaviour GithubStarsTracker.Fetcher
+    @table :github_stars_tracker_test_fetches
+    @count_table :github_stars_tracker_test_fetch_counts
 
     @impl true
-    def fetch_repo_stars(owner, repo, _opts) do
-      key = {owner, repo}
+    def fetch_repo_stars(owner, repo, opts) do
+      token = Keyword.get(opts, :token)
+      :ets.update_counter(@count_table, {owner, repo, token}, {2, 1}, {{owner, repo, token}, 0})
 
-      case :ets.lookup(:github_stars_tracker_test_fetches, key) do
-        [{^key, {:ok, stars}}] -> {:ok, stars}
-        [{^key, {:error, reason}}] -> {:error, reason}
-        [] -> {:error, :missing_fixture}
+      case lookup_response({owner, repo, token}) || lookup_response({owner, repo}) do
+        {:ok, stars} -> {:ok, stars}
+        {:error, reason} -> {:error, reason}
+        nil -> {:error, :missing_fixture}
+      end
+    end
+
+    defp lookup_response(key) do
+      case :ets.lookup(@table, key) do
+        [{^key, value}] -> value
+        [] -> nil
       end
     end
   end
@@ -25,11 +36,20 @@ defmodule AgentJido.GithubStarsTrackerTest do
       :ets.delete(@table)
     end
 
+    if :ets.whereis(@count_table) != :undefined do
+      :ets.delete(@count_table)
+    end
+
     :ets.new(@table, [:set, :public, :named_table])
+    :ets.new(@count_table, [:set, :public, :named_table])
 
     on_exit(fn ->
       if :ets.whereis(@table) != :undefined do
         :ets.delete(@table)
+      end
+
+      if :ets.whereis(@count_table) != :undefined do
+        :ets.delete(@count_table)
       end
     end)
 
@@ -63,7 +83,7 @@ defmodule AgentJido.GithubStarsTrackerTest do
     initial_req_llm = GithubStarsTracker.stars_for("req_llm")
     initial_jido_updated_at = initial_jido.updated_at
 
-    :ets.insert(@table, {{"agentjido", "jido"}, {:error, :rate_limited}})
+    :ets.insert(@table, {{"agentjido", "jido"}, {:error, :provider_unavailable}})
     :ets.insert(@table, {{"agentjido", "req_llm"}, {:ok, 75}})
 
     assert :ok = GithubStarsTracker.refresh()
@@ -105,6 +125,51 @@ defmodule AgentJido.GithubStarsTrackerTest do
     assert GithubStarsTracker.format_stars(1_500_000) == "1.5M"
   end
 
+  test "invalid token falls back to anonymous requests and disables token for future fetches" do
+    :ets.insert(@table, {{"agentjido", "jido", "bad-token"}, {:error, {:http_error, 401, "Bad credentials"}}})
+    :ets.insert(@table, {{"agentjido", "jido", nil}, {:ok, 101}})
+    :ets.insert(@table, {{"agentjido", "req_llm", nil}, {:ok, 202}})
+
+    start_supervised!(
+      {GithubStarsTracker,
+       repos: repos(),
+       fetcher: DynamicFetcher,
+       refresh_interval_ms: :timer.hours(24),
+       min_request_interval_ms: 0,
+       use_auth_token: true,
+       github_token: "bad-token"}
+    )
+
+    assert :ok = GithubStarsTracker.refresh()
+    assert %{stars: 101} = GithubStarsTracker.stars_for("jido")
+    assert %{stars: 202} = GithubStarsTracker.stars_for("req_llm")
+
+    bad_token_requests =
+      :ets.tab2list(@count_table)
+      |> Enum.filter(fn {{_owner, _repo, token}, _count} -> token == "bad-token" end)
+      |> Enum.map(&elem(&1, 1))
+      |> Enum.sum()
+
+    assert bad_token_requests == 1
+  end
+
+  test "rate limit error applies cooldown and skips additional fetches during cooldown window" do
+    :ets.insert(@table, {{"agentjido", "jido"}, {:error, :rate_limited}})
+    :ets.insert(@table, {{"agentjido", "req_llm"}, {:ok, 333}})
+
+    start_supervised!(
+      {GithubStarsTracker,
+       repos: repos(), fetcher: DynamicFetcher, refresh_interval_ms: :timer.hours(24), min_request_interval_ms: 0, rate_limit_cooldown_ms: 1_000}
+    )
+
+    assert :ok = GithubStarsTracker.refresh()
+    assert fetch_count("agentjido", "req_llm") == 0
+
+    jido_count_before = fetch_count("agentjido", "jido")
+    assert :ok = GithubStarsTracker.refresh()
+    assert fetch_count("agentjido", "jido") == jido_count_before
+  end
+
   defp repos do
     %{
       "jido" => %{
@@ -118,5 +183,14 @@ defmodule AgentJido.GithubStarsTrackerTest do
         github_url: "https://github.com/agentjido/req_llm"
       }
     }
+  end
+
+  defp fetch_count(owner, repo, token \\ nil) do
+    key = {owner, repo, token}
+
+    case :ets.lookup(@count_table, key) do
+      [{^key, count}] -> count
+      [] -> 0
+    end
   end
 end
