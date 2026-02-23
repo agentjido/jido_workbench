@@ -1,58 +1,69 @@
 # Contributing
 
-Thank you for your interest in contributing!
+Thanks for helping improve Jido Workbench.
 
-## Getting Started
+## Scope and Expectations
+
+This repository powers an internal docs and examples site for the Jido ecosystem.
+It is not the public SDK source repository.
+
+The most valuable contributions are:
+
+- Bug reports and bug fixes in this app
+- Content corrections and clarity improvements
+- Small UX, navigation, and quality-of-life fixes
+
+## Content Edits
+
+Most documentation content lives under `priv/`.
+
+- `priv/content_plan/**`: content briefs and source-of-intent docs
+- `priv/pages/**`: served docs pages
+- `priv/blog/**`, `priv/examples/**`, `priv/ecosystem/**`: additional published content
+
+Preferred workflow:
+
+1. Update the matching brief in `priv/content_plan/**`.
+2. Update the page in `priv/pages/**` so published content stays aligned.
+
+Direct edits to `priv/pages/**` are still welcome, especially for quick fixes. If you skip brief updates, note that in the PR.
+
+## Local Setup
 
 ```bash
-git clone git@github.com:agentjido/agent_jido.git
-cd agent_jido
-mix deps.get
+git clone git@github.com:agentjido/agentjido_xyz.git
+cd agentjido_xyz
+cp .env.example .env
+mix setup
+mix phx.server
+```
+
+## Before You Open a PR
+
+Run the checks that match your change size:
+
+Content-only changes:
+
+```bash
+mix site.link_audit --include-heex
+```
+
+Code changes:
+
+```bash
+mix format
 mix test
-mix quality
 ```
 
-## Development
+`mix credo` and `mix quality` are encouraged for larger changes.
 
-- Run `mix quality` (or `mix q`) before committing
-- Follow [conventional commits](https://www.conventionalcommits.org/)
-- Install git hooks: `mix git_hooks.install`
+## Pull Request Guidelines
 
-## Commit Message Format
-
-```
-<type>[optional scope]: <description>
-
-[optional body]
-
-[optional footer(s)]
-```
-
-**Types:** feat, fix, docs, style, refactor, perf, test, chore, ci
-
-**Examples:**
-```
-feat: add retry logic to API client
-fix(auth): handle expired tokens gracefully
-feat!: rename User to Account (breaking change)
-```
-
-## Testing
-
-```bash
-mix test                   # Run all tests
-mix test --only tag_name   # Run specific tests
-mix test --cover           # With coverage
-```
-
-## Pull Request Process
-
-1. Create a feature branch from `main`
-2. Make changes following our code style
-3. Run `mix quality` - all checks must pass
-4. Write a descriptive PR with conventional commit format
-5. Reference related issues
+1. Create a branch from `main`.
+2. Keep PRs scoped and descriptive.
+3. Include repro steps for bug fixes, and screenshots for UI/content layout changes when helpful.
+4. Reference related issues.
 
 ## Questions?
 
-Open a GitHub issue or join our [Discord](https://agentjido.xyz/discord).
+Open a GitHub issue.

@@ -13,4 +13,4 @@ exclude =
     if include_flaky_tests?, do: tags, else: Keyword.put(tags, :flaky, true)
   end)
 
-ExUnit.start(exclude: exclude)
+ExUnit.start(exclude: exclude, capture_log: true)

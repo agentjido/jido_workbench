@@ -1,6 +1,8 @@
 defmodule AgentJido.OGImage.ResolverTest do
   use ExUnit.Case, async: true
 
+  import ExUnit.CaptureLog
+
   alias AgentJido.Blog
   alias AgentJido.Ecosystem
   alias AgentJido.Examples
@@ -57,17 +59,28 @@ defmodule AgentJido.OGImage.ResolverTest do
   end
 
   test "unknown paths resolve to not_found descriptor" do
-    {:ok, descriptor} = Resolver.resolve_path("/totally/missing/path")
+    log =
+      capture_log(fn ->
+        {:ok, descriptor} = Resolver.resolve_path("/totally/missing/path")
 
-    assert descriptor.template == :not_found
-    assert descriptor.title == "Page Not Found"
+        assert descriptor.template == :not_found
+        assert descriptor.title == "Page Not Found"
+      end)
+
+    assert log =~ "OG resolver miss path=\"/totally/missing/path\""
   end
 
   test "cache key changes when descriptor hash input changes" do
-    {:ok, first} = Resolver.resolve_path("/totally/missing/path-a")
-    {:ok, second} = Resolver.resolve_path("/totally/missing/path-b")
+    log =
+      capture_log(fn ->
+        {:ok, first} = Resolver.resolve_path("/totally/missing/path-a")
+        {:ok, second} = Resolver.resolve_path("/totally/missing/path-b")
 
-    refute first.content_hash == second.content_hash
-    refute first.cache_key == second.cache_key
+        refute first.content_hash == second.content_hash
+        refute first.cache_key == second.cache_key
+      end)
+
+    assert log =~ "OG resolver miss path=\"/totally/missing/path-a\""
+    assert log =~ "OG resolver miss path=\"/totally/missing/path-b\""
   end
 end

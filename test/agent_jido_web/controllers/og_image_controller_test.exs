@@ -1,6 +1,8 @@
 defmodule AgentJidoWeb.OGImageControllerTest do
   use AgentJidoWeb.ConnCase, async: true
 
+  import ExUnit.CaptureLog
+
   alias AgentJido.Blog
   alias AgentJido.Ecosystem
   alias AgentJido.Examples
@@ -52,10 +54,15 @@ defmodule AgentJidoWeb.OGImageControllerTest do
   end
 
   test "unknown render paths return fallback PNG (200)", %{conn: conn} do
-    conn = get(conn, "/og/render/totally/missing/path")
+    log =
+      capture_log(fn ->
+        conn = get(conn, "/og/render/totally/missing/path")
 
-    assert response(conn, 200)
-    assert Enum.any?(get_resp_header(conn, "content-type"), &String.starts_with?(&1, "image/png"))
+        assert response(conn, 200)
+        assert Enum.any?(get_resp_header(conn, "content-type"), &String.starts_with?(&1, "image/png"))
+      end)
+
+    assert log =~ "OG resolver miss path=\"/totally/missing/path\""
   end
 
   test "etag conditional request returns 304 when unchanged", %{conn: conn} do

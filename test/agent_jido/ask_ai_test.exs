@@ -1,6 +1,8 @@
 defmodule AgentJido.AskAiTest do
   use ExUnit.Case, async: true
 
+  import ExUnit.CaptureLog
+
   alias AgentJido.AskAi
   alias AgentJido.Search.Result
 
@@ -46,17 +48,27 @@ defmodule AgentJido.AskAiTest do
     test "returns quota_fallback when llm reports quota or rate-limit errors" do
       llm = fn _prompt, _context, _opts -> {:error, :rate_limited} end
 
-      assert {:ok, answer, :quota_fallback} = AskAi.summarize("What is an agent?", @citations, llm: llm)
-      assert answer =~ "I searched the site content"
-      assert answer =~ "/docs/concepts/agents"
+      log =
+        capture_log(fn ->
+          assert {:ok, answer, :quota_fallback} = AskAi.summarize("What is an agent?", @citations, llm: llm)
+          assert answer =~ "I searched the site content"
+          assert answer =~ "/docs/concepts/agents"
+        end)
+
+      assert log =~ "Ask AI LLM summarization failed: :rate_limited"
     end
 
     test "returns deterministic_fallback for non-quota llm errors" do
       llm = fn _prompt, _context, _opts -> {:error, :provider_unavailable} end
 
-      assert {:ok, answer, :deterministic_fallback} = AskAi.summarize("What is an agent?", @citations, llm: llm)
-      assert answer =~ "I searched the site content"
-      assert answer =~ "/docs/concepts/agents"
+      log =
+        capture_log(fn ->
+          assert {:ok, answer, :deterministic_fallback} = AskAi.summarize("What is an agent?", @citations, llm: llm)
+          assert answer =~ "I searched the site content"
+          assert answer =~ "/docs/concepts/agents"
+        end)
+
+      assert log =~ "Ask AI LLM summarization failed: :provider_unavailable"
     end
 
     test "strips markdown code fences from llm output" do

@@ -138,6 +138,12 @@ if config_env() == :dev do
         tasks: [
           {:cmd, "mix git_ops.check_message", include_hook_args: true}
         ]
+      ],
+      pre_push: [
+        tasks: [
+          {:mix_task, :test},
+          {:mix_task, :quality}
+        ]
       ]
     ]
 
