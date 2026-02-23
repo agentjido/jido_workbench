@@ -14,8 +14,8 @@ ajc: a owl:Ontology ;
   dcterms:description "OWL ontology for representing agentjido.xyz content, source markdown provenance, generation metadata, versioning, categories, and tag relationships." ;
   dcterms:creator "AgentJido Engineering" ;
   dcterms:created "2026-02-23"^^xsd:date ;
-  owl:versionIRI <https://agentjido.xyz/ontology/content/1.0.0> ;
-  owl:versionInfo "1.0.0" ;
+  owl:versionIRI <https://agentjido.xyz/ontology/content/1.1.0> ;
+  owl:versionInfo "1.1.0" ;
   owl:imports <http://www.w3.org/ns/prov-o#> ,
     <http://purl.org/pav/> ,
     <http://www.w3.org/2004/02/skos/core#> .
@@ -78,6 +78,11 @@ ajc:DocumentVersion a owl:Class ;
   rdfs:subClassOf ajc:ContentResource ;
   rdfs:label "Document version" ;
   rdfs:comment "Immutable version node for content hash, commit linkage, and generation provenance." .
+
+ajc:LibraryVersionReference a owl:Class ;
+  rdfs:subClassOf prov:Entity ;
+  rdfs:label "Library version reference" ;
+  rdfs:comment "A qualified reference from a document to an ecosystem library with optional version and version constraint metadata." .
 
 ajc:GenerationRun a owl:Class ;
   rdfs:subClassOf prov:Activity ;
@@ -202,6 +207,22 @@ ajc:referencesPackage a owl:ObjectProperty ;
   rdfs:domain ajc:ContentResource ;
   rdfs:range ajc:EcosystemPackagePage ;
   rdfs:label "references package" .
+
+ajc:hasLibraryVersionReference a owl:ObjectProperty ;
+  rdfs:domain ajc:ContentResource ;
+  rdfs:range ajc:LibraryVersionReference ;
+  rdfs:label "has library version reference" ;
+  owl:inverseOf ajc:isLibraryVersionReferenceFor .
+
+ajc:isLibraryVersionReferenceFor a owl:ObjectProperty ;
+  rdfs:domain ajc:LibraryVersionReference ;
+  rdfs:range ajc:ContentResource ;
+  rdfs:label "is library version reference for" .
+
+ajc:forLibrary a owl:ObjectProperty ;
+  rdfs:domain ajc:LibraryVersionReference ;
+  rdfs:range ajc:EcosystemPackagePage ;
+  rdfs:label "for library" .
 
 ajc:dependsOnPackage a owl:ObjectProperty ;
   rdfs:domain ajc:EcosystemPackagePage ;
@@ -372,6 +393,24 @@ ajc:publishedOn a owl:DatatypeProperty ;
   rdfs:range xsd:date ;
   rdfs:label "published on" .
 
+ajc:libraryVersion a owl:DatatypeProperty ;
+  rdfs:domain ajc:LibraryVersionReference ;
+  rdfs:range xsd:string ;
+  rdfs:label "library version" ;
+  rdfs:comment "Resolved library version for the referenced ecosystem package." .
+
+ajc:libraryVersionConstraint a owl:DatatypeProperty ;
+  rdfs:domain ajc:LibraryVersionReference ;
+  rdfs:range xsd:string ;
+  rdfs:label "library version constraint" ;
+  rdfs:comment "Version requirement expressed by the document, e.g. ~> 2.0." .
+
+ajc:referenceRole a owl:DatatypeProperty ;
+  rdfs:domain ajc:LibraryVersionReference ;
+  rdfs:range xsd:string ;
+  rdfs:label "reference role" ;
+  rdfs:comment "Role of the reference (ecosystem_reference, minimum_required_version, repository_reference)." .
+
 ajc:contentHash a owl:DatatypeProperty ;
   rdfs:domain ajc:DocumentVersion ;
   rdfs:range xsd:string ;
@@ -440,6 +479,14 @@ ajc:DocumentVersion rdfs:subClassOf
     a owl:Restriction ;
     owl:onProperty ajc:contentHash ;
     owl:cardinality "1"^^xsd:nonNegativeInteger
+  ] .
+
+ajc:LibraryVersionReference rdfs:subClassOf
+  [
+    a owl:Restriction ;
+    owl:onProperty ajc:forLibrary ;
+    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+    owl:onClass ajc:EcosystemPackagePage
   ] .
 
 ajc:SourceDocument owl:disjointWith ajc:WebDocument .
@@ -512,6 +559,14 @@ ajc:tag_core a ajc:Tag ; skos:prefLabel "core" .
 ajc:tag_agents a ajc:Tag ; skos:prefLabel "agents" .
 ajc:tag_actions a ajc:Tag ; skos:prefLabel "actions" .
 
+ajr:doc_ecosystem_jido a ajc:EcosystemPackagePage ;
+  ajc:documentId "ecosystem:jido" ;
+  ajc:title "Jido" ;
+  ajc:slug "jido" ;
+  ajc:canonicalRoute "/ecosystem/jido" ;
+  ajc:belongsToCategory ajc:category_ecosystem ;
+  ajc:inCollection ajc:collection_priv_ecosystem .
+
 ajr:source_priv_pages_docs_concepts_agents_livemd a ajc:LivebookSourceDocument ;
   ajc:documentId "source:priv/pages/docs/concepts/agents.livemd" ;
   ajc:title "Agents" ;
@@ -572,6 +627,17 @@ ajr:doc_docs_concepts_actions a ajc:RenderedPage ;
 
 ajr:doc_docs_concepts_agents ajc:linksTo ajr:doc_docs_concepts_actions ;
   ajc:relatedTo ajr:doc_docs_concepts_actions .
+
+ajr:libref_doc_docs_concepts_agents_jido a ajc:LibraryVersionReference, prov:Entity ;
+  ajc:isLibraryVersionReferenceFor ajr:doc_docs_concepts_agents ;
+  ajc:forLibrary ajr:doc_ecosystem_jido ;
+  ajc:referenceRole "minimum_required_version" ;
+  ajc:libraryVersion "2.0.0-rc.4" ;
+  ajc:libraryVersionConstraint "~> 2.0" ;
+  prov:wasDerivedFrom ajr:source_priv_pages_docs_concepts_agents_livemd .
+
+ajr:doc_docs_concepts_agents ajc:hasLibraryVersionReference ajr:libref_doc_docs_concepts_agents_jido ;
+  ajc:referencesPackage ajr:doc_ecosystem_jido .
 
 ajr:version_doc_docs_concepts_agents_sha256_example a ajc:DocumentVersion ;
   ajc:documentId "version:doc_docs_concepts_agents:sha256_example" ;

@@ -104,6 +104,7 @@ defmodule AgentJido.ContentOntology.Exporter do
       |> Enum.sort_by(& &1.id)
 
     web_doc_uri_by_id = Map.new(web_docs, &{&1.id, doc_qname(&1)})
+    web_doc_by_qname = Map.new(web_docs, &{Map.fetch!(web_doc_uri_by_id, &1.id), &1})
     source_uri_by_path = Map.new(source_docs, &{&1.path, source_qname(&1)})
     plan_uri_by_id = Map.new(plan_entries, &{&1.id, plan_qname(&1)})
 
@@ -118,6 +119,14 @@ defmodule AgentJido.ContentOntology.Exporter do
       |> add_web_links(web_docs, web_by_route, web_doc_uri_by_id)
       |> add_web_relations(web_docs, web_by_id, plan_by_id, web_doc_uri_by_id, plan_uri_by_id)
       |> add_content_plan_relations(plan_entries, plan_by_id, web_by_route, plan_uri_by_id, web_doc_uri_by_id)
+      |> add_web_library_version_references(web_docs, web_by_id, web_doc_uri_by_id, web_doc_by_qname, source_uri_by_path)
+      |> add_content_plan_library_version_references(
+        plan_entries,
+        web_by_route,
+        web_doc_uri_by_id,
+        web_doc_by_qname,
+        plan_uri_by_id
+      )
       |> add_tags_for_resources(web_docs, plan_entries, tag_labels, web_doc_uri_by_id, plan_uri_by_id, source_uri_by_path)
       |> add_versions_for_web_docs(web_docs, source_uri_by_path, web_doc_uri_by_id, git_commit_hash, now)
 
@@ -174,6 +183,7 @@ defmodule AgentJido.ContentOntology.Exporter do
       |> Enum.reject(fn page -> not include_non_routable and page.category == :training end)
       |> Enum.map(fn page ->
         freshness = map_value(page, :freshness, %{})
+        validation = map_value(page, :validation, %{})
 
         %{
           kind: :page,
@@ -202,7 +212,8 @@ defmodule AgentJido.ContentOntology.Exporter do
           prerequisites: normalize_ref_list(Map.get(page, :prerequisites, [])),
           related_docs: normalize_ref_list(Map.get(page, :related_docs, [])),
           related_posts: normalize_ref_list(Map.get(page, :related_posts, [])),
-          ecosystem_packages: normalize_ref_list(map_value(map_value(page, :validation, %{}), :ecosystem_packages, [])),
+          ecosystem_packages: normalize_ref_list(map_value(validation, :ecosystem_packages, [])),
+          min_package_versions: normalize_package_version_requirements(map_value(validation, :min_package_versions, [])),
           body_html: normalize_optional(page.body),
           content_hash: normalize_optional(map_value(freshness, :content_hash)),
           version_label: normalize_optional(map_value(freshness, :last_refreshed_at))
@@ -243,6 +254,7 @@ defmodule AgentJido.ContentOntology.Exporter do
           related_docs: normalize_ref_list(Map.get(post, :related_docs, [])),
           related_posts: normalize_ref_list(Map.get(post, :related_posts, [])),
           ecosystem_packages: normalize_ref_list(map_value(validation, :ecosystem_packages, [])),
+          min_package_versions: normalize_package_version_requirements(map_value(validation, :min_package_versions, [])),
           body_html: normalize_optional(post.body),
           content_hash: normalize_optional(map_value(freshness, :content_hash)),
           version_label: Date.to_iso8601(post.date),
@@ -284,6 +296,7 @@ defmodule AgentJido.ContentOntology.Exporter do
           related_docs: [],
           related_posts: [],
           ecosystem_packages: normalize_ref_list(Map.get(pkg, :ecosystem_deps, [])),
+          min_package_versions: %{},
           body_html: normalize_optional(pkg.body),
           content_hash: "sha256:" <> hash,
           version_label: normalize_optional(pkg.version)
@@ -323,6 +336,7 @@ defmodule AgentJido.ContentOntology.Exporter do
           related_docs: [],
           related_posts: [],
           ecosystem_packages: [],
+          min_package_versions: %{},
           body_html: normalize_optional(ex.body),
           content_hash: "sha256:" <> hash,
           version_label: nil
@@ -347,7 +361,8 @@ defmodule AgentJido.ContentOntology.Exporter do
         prerequisites: normalize_ref_list(Map.get(entry, :prerequisites, [])),
         related: normalize_ref_list(Map.get(entry, :related, [])),
         repos: normalize_ref_list(Map.get(entry, :repos, [])),
-        ecosystem_packages: normalize_ref_list(Map.get(entry, :ecosystem_packages, []))
+        ecosystem_packages: normalize_ref_list(Map.get(entry, :ecosystem_packages, [])),
+        min_package_versions: normalize_package_version_requirements(Map.get(entry, :min_package_versions, []))
       }
     end)
   end
@@ -541,13 +556,170 @@ defmodule AgentJido.ContentOntology.Exporter do
   defp add_content_plan_relations(set, entries, plan_by_id, web_by_route, plan_uri_by_id, web_doc_uri_by_id) do
     Enum.reduce(entries, set, fn entry, acc ->
       plan_qn = Map.fetch!(plan_uri_by_id, entry.id)
+      package_refs = entry.ecosystem_packages ++ Map.keys(entry.min_package_versions) ++ entry.repos
 
       acc
       |> add_plan_ref_relations(plan_qn, entry.prerequisites, "ajc:hasPrerequisite", plan_by_id, plan_uri_by_id)
       |> add_plan_ref_relations(plan_qn, entry.related, "ajc:relatedTo", plan_by_id, plan_uri_by_id)
-      |> add_package_relations(plan_qn, entry.ecosystem_packages ++ entry.repos, web_by_route, web_doc_uri_by_id, :route_or_slug)
+      |> add_package_relations(plan_qn, package_refs, web_by_route, web_doc_uri_by_id, :route_or_slug)
       |> maybe_link_plan_to_target(entry, web_by_route, web_doc_uri_by_id)
     end)
+  end
+
+  defp add_web_library_version_references(
+         set,
+         web_docs,
+         web_by_id,
+         web_doc_uri_by_id,
+         web_doc_by_qname,
+         source_uri_by_path
+       ) do
+    Enum.reduce(web_docs, set, fn doc, acc ->
+      doc_qn = Map.fetch!(web_doc_uri_by_id, doc.id)
+      source_qn = Map.get(source_uri_by_path, doc.source_path)
+
+      references = build_web_doc_library_ref_specs(doc)
+
+      add_library_version_references(
+        acc,
+        doc_qn,
+        source_qn,
+        references,
+        web_by_id,
+        web_doc_uri_by_id,
+        web_doc_by_qname,
+        :id_only
+      )
+    end)
+  end
+
+  defp add_content_plan_library_version_references(
+         set,
+         plan_entries,
+         web_by_route,
+         web_doc_uri_by_id,
+         web_doc_by_qname,
+         plan_uri_by_id
+       ) do
+    Enum.reduce(plan_entries, set, fn entry, acc ->
+      plan_qn = Map.fetch!(plan_uri_by_id, entry.id)
+      references = build_content_plan_library_ref_specs(entry)
+
+      add_library_version_references(
+        acc,
+        plan_qn,
+        plan_qn,
+        references,
+        web_by_route,
+        web_doc_uri_by_id,
+        web_doc_by_qname,
+        :route_or_slug
+      )
+    end)
+  end
+
+  defp build_web_doc_library_ref_specs(doc) do
+    requirements = Map.get(doc, :min_package_versions, %{})
+
+    (doc.ecosystem_packages ++ Map.keys(requirements))
+    |> Enum.uniq()
+    |> Enum.map(fn package_ref ->
+      package_key = normalize_identifier(package_ref)
+      constraint = Map.get(requirements, package_key)
+      role = if constraint, do: "minimum_required_version", else: "ecosystem_reference"
+
+      %{
+        package_ref: package_ref,
+        role: role,
+        constraint: constraint
+      }
+    end)
+  end
+
+  defp build_content_plan_library_ref_specs(entry) do
+    requirements = Map.get(entry, :min_package_versions, %{})
+
+    constrained_refs =
+      Enum.map(requirements, fn {package_ref, constraint} ->
+        %{
+          package_ref: package_ref,
+          role: "minimum_required_version",
+          constraint: constraint
+        }
+      end)
+
+    ecosystem_refs =
+      Enum.map(entry.ecosystem_packages, fn package_ref ->
+        %{
+          package_ref: package_ref,
+          role: "ecosystem_reference",
+          constraint: nil
+        }
+      end)
+
+    repo_refs =
+      Enum.map(entry.repos, fn package_ref ->
+        %{
+          package_ref: package_ref,
+          role: "repository_reference",
+          constraint: nil
+        }
+      end)
+
+    (constrained_refs ++ ecosystem_refs ++ repo_refs)
+    |> Enum.uniq_by(fn ref -> normalize_identifier(ref.package_ref) end)
+  end
+
+  defp add_library_version_references(
+         set,
+         source_qn,
+         provenance_qn,
+         references,
+         web_index,
+         web_doc_uri_by_id,
+         web_doc_by_qname,
+         mode
+       ) do
+    Enum.reduce(references, set, fn ref, acc ->
+      case resolve_package_doc_and_qname(ref.package_ref, web_index, web_doc_uri_by_id, web_doc_by_qname, mode) do
+        nil ->
+          acc
+
+        {target_doc, target_qn} ->
+          role = normalize_optional(ref.role) || "ecosystem_reference"
+          constraint = normalize_optional(ref.constraint)
+          library_version = normalize_optional(Map.get(target_doc, :version_label))
+          libref_qn = library_version_reference_qname(source_qn, target_doc.id, role, constraint)
+
+          acc
+          |> add_obj(source_qn, "ajc:referencesPackage", target_qn)
+          |> add_obj(source_qn, "ajc:hasLibraryVersionReference", libref_qn)
+          |> add_obj(libref_qn, "a", "ajc:LibraryVersionReference")
+          |> add_obj(libref_qn, "a", "prov:Entity")
+          |> add_obj(libref_qn, "ajc:isLibraryVersionReferenceFor", source_qn)
+          |> add_obj(libref_qn, "ajc:forLibrary", target_qn)
+          |> add_lit(libref_qn, "ajc:referenceRole", role)
+          |> maybe_add_lit(libref_qn, "ajc:libraryVersion", library_version)
+          |> maybe_add_lit(libref_qn, "ajc:libraryVersionConstraint", constraint)
+          |> maybe_add_obj(libref_qn, "prov:wasDerivedFrom", provenance_qn)
+      end
+    end)
+  end
+
+  defp resolve_package_doc_and_qname(ref, web_index, web_doc_uri_by_id, web_doc_by_qname, mode) do
+    target_qn =
+      case mode do
+        :id_only ->
+          resolve_package_target_by_id(ref, web_doc_uri_by_id)
+
+        :route_or_slug ->
+          resolve_package_target_by_route_or_slug(ref, web_index, web_doc_uri_by_id)
+      end
+
+    case Map.get(web_doc_by_qname, target_qn) do
+      %{kind: :ecosystem} = doc -> {doc, target_qn}
+      _other -> nil
+    end
   end
 
   defp add_tags_for_resources(set, web_docs, plan_entries, _tag_labels, web_doc_uri_by_id, plan_uri_by_id, source_uri_by_path) do
@@ -812,6 +984,10 @@ defmodule AgentJido.ContentOntology.Exporter do
     end)
   end
 
+  defp library_version_reference_qname(source_qn, target_doc_id, role, constraint) do
+    "ajr:libref_#{safe_local("#{source_qn}|#{target_doc_id}|#{role}|#{constraint || ""}")}"
+  end
+
   defp source_qname(source), do: "ajr:source_#{safe_local(source.path)}"
   defp plan_qname(entry), do: "ajr:plan_#{safe_local(entry.id)}"
   defp doc_qname(doc), do: "ajr:doc_#{safe_local(doc.id)}"
@@ -920,6 +1096,84 @@ defmodule AgentJido.ContentOntology.Exporter do
     |> Enum.map(&String.trim/1)
     |> Enum.reject(&(&1 == ""))
     |> Enum.uniq()
+  end
+
+  defp normalize_package_version_requirements(raw) do
+    raw
+    |> package_version_requirement_entries()
+    |> Enum.reduce(%{}, fn entry, acc ->
+      case normalize_package_version_requirement(entry) do
+        nil ->
+          acc
+
+        {package_id, constraint} ->
+          Map.put(acc, package_id, constraint)
+      end
+    end)
+  end
+
+  defp package_version_requirement_entries(raw) when is_list(raw), do: raw
+
+  defp package_version_requirement_entries(raw) when is_map(raw) do
+    if requirement_entry_map?(raw), do: [raw], else: Map.to_list(raw)
+  end
+
+  defp package_version_requirement_entries(_raw), do: []
+
+  defp normalize_package_version_requirement({package_ref, constraint}) do
+    normalize_package_version_requirement_pair(package_ref, constraint)
+  end
+
+  defp normalize_package_version_requirement(entry) when is_map(entry) do
+    package_ref =
+      map_value(entry, :package) ||
+        map_value(entry, :package_id) ||
+        map_value(entry, :id) ||
+        map_value(entry, :name) ||
+        map_value(entry, :library)
+
+    constraint =
+      map_value(entry, :version) ||
+        map_value(entry, :constraint) ||
+        map_value(entry, :requirement) ||
+        map_value(entry, :min_version)
+
+    cond do
+      package_ref ->
+        normalize_package_version_requirement_pair(package_ref, constraint)
+
+      map_size(entry) == 1 ->
+        [{k, v}] = Map.to_list(entry)
+        normalize_package_version_requirement_pair(k, v)
+
+      true ->
+        nil
+    end
+  end
+
+  defp normalize_package_version_requirement(_entry), do: nil
+
+  defp normalize_package_version_requirement_pair(package_ref, constraint) do
+    package_id =
+      case normalize_optional(package_ref) do
+        nil -> nil
+        value -> normalize_identifier(value)
+      end
+
+    if package_id in [nil, ""] do
+      nil
+    else
+      {package_id, normalize_optional(constraint)}
+    end
+  end
+
+  defp requirement_entry_map?(map) when is_map(map) do
+    map
+    |> Map.keys()
+    |> Enum.map(&to_string/1)
+    |> Enum.any?(fn key ->
+      key in ["package", "package_id", "id", "name", "library"]
+    end)
   end
 
   defp normalize_identifier(value) do

@@ -6,6 +6,7 @@ This folder defines an OWL ontology for representing all content on `agentjido.x
 - rendered web documents and their routes
 - categories and many-to-many tags
 - document-to-document relationships (links, related, prerequisites, package dependencies)
+- qualified library references (per-document package links with roles, version constraints, and resolved package versions)
 - generation provenance (content-plan entry -> generation run -> rendered page version)
 - versioning metadata (content hash, version label, commit hash)
 
@@ -38,6 +39,7 @@ mix content.ontology.export --include-non-routable
 - `ajc:Tag` uses many-to-many relation with `ajc:hasTag` / `ajc:tagsResource`.
 - `ajc:GeneratedPage` must be linked to one or more `ajc:ContentPlanEntry`.
 - Versioning is modeled through `ajc:DocumentVersion` and `ajc:hasCurrentVersion`.
+- Library references are modeled through `ajc:LibraryVersionReference`, allowing each document to reference multiple ecosystem packages with role + optional constraint metadata.
 - Provenance is aligned with PROV-O (`prov:used`, `prov:generated`, `prov:wasDerivedFrom`) and PAV (`pav:version`, `pav:previousVersion`).
 
 ## Suggested URI conventions for full site materialization
