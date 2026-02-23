@@ -10,11 +10,11 @@ defmodule AgentJido.ContentGen.Prompts do
 
   @default_prompt_root "priv/prompts/content_gen"
   @max_source_files 4
-  @max_source_lines 80
-  @max_brand_context_lines 140
-  @max_manifesto_lines 240
-  @max_governance_lines 140
-  @max_template_lines 140
+  @max_source_lines 100
+  @max_brand_context_lines 100
+  @max_manifesto_lines 140
+  @max_governance_lines 100
+  @max_template_lines 100
 
   @spec build(map(), map(), map()) :: String.t()
   def build(entry, target, opts) do
@@ -217,10 +217,19 @@ defmodule AgentJido.ContentGen.Prompts do
   end
 
   defp file_snippet(path) do
-    path
-    |> File.stream!([], :line)
-    |> Enum.take(@max_source_lines)
-    |> Enum.join()
+    lines =
+      path
+      |> File.read!()
+      |> String.split("\n")
+
+    {head, tail} = Enum.split(lines, @max_source_lines)
+    snippet = Enum.join(head, "\n")
+
+    if tail == [] do
+      snippet
+    else
+      snippet <> "\n\n# [truncated source file for prompt focus]"
+    end
   rescue
     _ -> "# Unable to read source snippet"
   end
