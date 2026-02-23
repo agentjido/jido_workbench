@@ -3,6 +3,7 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLive do
 
   alias AgentJido.Ecosystem
   alias AgentJido.Ecosystem.Layering
+  alias AgentJido.GithubStarsTracker
 
   import AgentJidoWeb.Jido.MarketingCards
   import AgentJidoWeb.Jido.MarketingLayouts
@@ -14,6 +15,7 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLive do
   @impl true
   def mount(%{"id" => id}, _session, socket) do
     package = Ecosystem.get_public_package!(id)
+    stars = GithubStarsTracker.stars_for(package.id)
     package_hero_summary = hero_summary(package)
 
     {:ok,
@@ -22,7 +24,7 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLive do
        meta_description: package_meta_description(package, package_hero_summary),
        package: package,
        layer: Layering.layer_for(package),
-       package_links: package_links(package),
+       package_links: package_links(package, stars),
        hero_summary: package_hero_summary,
        cliff_notes: cliff_notes(package),
        major_components: major_components(package),
@@ -259,11 +261,20 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLive do
     end)
   end
 
-  defp package_links(pkg) do
+  defp package_links(pkg, stars) do
+    github_label =
+      case stars do
+        %{stars: count} when is_integer(count) and count >= 0 ->
+          "github ★#{GithubStarsTracker.format_stars(count)}"
+
+        _other ->
+          "github"
+      end
+
     []
     |> maybe_push_link("docs", pkg.hexdocs_url)
     |> maybe_push_link("hex", pkg.hex_url)
-    |> maybe_push_link("github", pkg.github_url)
+    |> maybe_push_link(github_label, pkg.github_url)
   end
 
   defp hero_summary(pkg) do

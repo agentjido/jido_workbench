@@ -36,4 +36,6 @@ config :arcana,
   embedder: AgentJido.ArcanaTestEmbedder,
   graph: [enabled: false]
 
+config :agent_jido, AgentJido.GithubStarsTracker, enabled: false
+
 config :agent_jido, :dev_routes, true

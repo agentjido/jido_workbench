@@ -11,9 +11,12 @@ defmodule AgentJido.Application do
         AgentJidoWeb.Telemetry,
         {Phoenix.PubSub, name: AgentJido.PubSub},
         AgentJidoWeb.Presence,
-        {Finch, name: AgentJido.Finch},
-        Arcana.TaskSupervisor
+        {Finch, name: AgentJido.Finch}
       ] ++
+        github_stars_tracker_children() ++
+        [
+          Arcana.TaskSupervisor
+        ] ++
         arcana_embedder_children() ++
         [
           AgentJido.OGImage,
@@ -48,6 +51,14 @@ defmodule AgentJido.Application do
   defp contentops_chat_children do
     if enabled?(:agent_jido, AgentJido.ContentOps.Chat) do
       [AgentJido.ContentOps.Chat.Supervisor]
+    else
+      []
+    end
+  end
+
+  defp github_stars_tracker_children do
+    if enabled?(:agent_jido, AgentJido.GithubStarsTracker) do
+      [{AgentJido.GithubStarsTracker, []}]
     else
       []
     end

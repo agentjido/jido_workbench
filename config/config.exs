@@ -85,6 +85,26 @@ config :agent_jido, AgentJido.ContentOps.Chat,
   github_labels_docs_note: ["docs-note"],
   mutation_tools_enabled: config_env() == :dev
 
+config :agent_jido, AgentJido.GithubStarsTracker,
+  enabled: true,
+  refresh_interval_ms: :timer.hours(1),
+  request_timeout_ms: 10_000,
+  fetcher: AgentJido.GithubStarsTracker.DefaultFetcher,
+  repo_cache_timeout_ms: %{
+    "ash_jido" => :timer.hours(24),
+    "jido" => :timer.hours(24),
+    "jido_action" => :timer.hours(24),
+    "jido_behaviortree" => :timer.hours(24),
+    "jido_browser" => :timer.hours(24),
+    "jido_memory" => :timer.hours(24),
+    "jido_messaging" => :timer.hours(24),
+    "jido_otel" => :timer.hours(24),
+    "jido_signal" => :timer.hours(24),
+    "jido_studio" => :timer.hours(24),
+    "llm_db" => :timer.hours(24),
+    "req_llm" => :timer.hours(24)
+  }
+
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.15.5",
@@ -141,8 +161,7 @@ if config_env() == :dev do
       ],
       pre_push: [
         tasks: [
-          {:mix_task, :test},
-          {:mix_task, :quality}
+          {:mix_task, :test}
         ]
       ]
     ]

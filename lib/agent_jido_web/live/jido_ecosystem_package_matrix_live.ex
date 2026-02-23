@@ -3,6 +3,7 @@ defmodule AgentJidoWeb.JidoEcosystemPackageMatrixLive do
 
   alias AgentJido.Ecosystem
   alias AgentJido.Ecosystem.Layering
+  alias AgentJido.GithubStarsTracker
 
   import AgentJidoWeb.Jido.MarketingLayouts
 
@@ -14,7 +15,8 @@ defmodule AgentJidoWeb.JidoEcosystemPackageMatrixLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    {all_rows, title_by_id} = matrix_data()
+    stars_by_package = GithubStarsTracker.stars_map()
+    {all_rows, title_by_id} = matrix_data(stars_by_package)
     show_unstable = false
     rows = visible_rows(all_rows, show_unstable)
 
@@ -201,7 +203,7 @@ defmodule AgentJidoWeb.JidoEcosystemPackageMatrixLive do
     """
   end
 
-  defp matrix_data do
+  defp matrix_data(stars_by_package) do
     packages =
       Ecosystem.public_packages()
       |> Enum.filter(&Map.has_key?(@package_rank, &1.id))
@@ -210,7 +212,7 @@ defmodule AgentJidoWeb.JidoEcosystemPackageMatrixLive do
 
     rows =
       packages
-      |> Enum.map(&to_row/1)
+      |> Enum.map(&to_row(&1, stars_by_package))
       |> Enum.sort_by(fn row ->
         {
           track_rank(row.track),
@@ -227,7 +229,7 @@ defmodule AgentJidoWeb.JidoEcosystemPackageMatrixLive do
 
   defp unstable_row?(row), do: row.maturity in ["EXPERIMENTAL", "PLANNED"]
 
-  defp to_row(pkg) do
+  defp to_row(pkg, stars_by_package) do
     %{
       id: pkg.id,
       title: pkg.title,
@@ -237,15 +239,24 @@ defmodule AgentJidoWeb.JidoEcosystemPackageMatrixLive do
       maturity: format_atom(pkg.maturity),
       dependency_ids: pkg.ecosystem_deps || [],
       path: package_path(pkg.id),
-      links: package_links(pkg)
+      links: package_links(pkg, Map.get(stars_by_package, pkg.id))
     }
   end
 
-  defp package_links(pkg) do
+  defp package_links(pkg, stars) do
+    github_label =
+      case stars do
+        %{stars: count} when is_integer(count) and count >= 0 ->
+          "github ★#{GithubStarsTracker.format_stars(count)}"
+
+        _other ->
+          "github"
+      end
+
     []
     |> maybe_push_link("docs", pkg.hexdocs_url)
     |> maybe_push_link("hex", pkg.hex_url)
-    |> maybe_push_link("github", pkg.github_url)
+    |> maybe_push_link(github_label, pkg.github_url)
   end
 
   defp maybe_push_link(links, _label, nil), do: links

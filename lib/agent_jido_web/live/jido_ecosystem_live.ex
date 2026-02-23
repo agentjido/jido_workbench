@@ -2,6 +2,7 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
   use AgentJidoWeb, :live_view
 
   alias AgentJido.Ecosystem
+  alias AgentJido.GithubStarsTracker
   alias AgentJido.Ecosystem.Layering
   alias AgentJido.LandingContent
 
@@ -20,7 +21,8 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
   @impl true
   def mount(_params, _session, socket) do
     public_packages = Ecosystem.public_packages()
-    package_cards = LandingContent.packages_from(public_packages)
+    stars_by_package = GithubStarsTracker.stars_map()
+    package_cards = public_packages |> LandingContent.packages_from() |> attach_star_labels(stars_by_package)
     name_by_id = Map.new(public_packages, &{&1.id, &1.title})
 
     {:ok,
@@ -295,4 +297,24 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
   defp layer_title_class(:ai), do: "text-accent-yellow"
   defp layer_title_class(:app), do: "text-accent-red"
   defp layer_title_class(_), do: "text-primary"
+
+  defp attach_star_labels(package_cards, stars_by_package) when is_list(package_cards) and is_map(stars_by_package) do
+    Enum.map(package_cards, fn card ->
+      with true <- is_map(card.links),
+           github_url when is_binary(github_url) <- Map.get(card.links, "github"),
+           %{stars: stars} when is_integer(stars) and stars >= 0 <- Map.get(stars_by_package, card.id) do
+        stars_label = GithubStarsTracker.format_stars(stars)
+
+        updated_links =
+          card.links
+          |> Map.delete("github")
+          |> Map.put("github ★#{stars_label}", github_url)
+
+        %{card | links: updated_links}
+      else
+        _other ->
+          card
+      end
+    end)
+  end
 end
