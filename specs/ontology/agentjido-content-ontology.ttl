@@ -1,0 +1,599 @@
+@prefix ajc: <https://agentjido.xyz/ontology/content#> .
+@prefix ajr: <https://agentjido.xyz/resource/content/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix pav: <http://purl.org/pav/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ajc: a owl:Ontology ;
+  dcterms:title "AgentJido Content Ontology" ;
+  dcterms:description "OWL ontology for representing agentjido.xyz content, source markdown provenance, generation metadata, versioning, categories, and tag relationships." ;
+  dcterms:creator "AgentJido Engineering" ;
+  dcterms:created "2026-02-23"^^xsd:date ;
+  owl:versionIRI <https://agentjido.xyz/ontology/content/1.0.0> ;
+  owl:versionInfo "1.0.0" ;
+  owl:imports <http://www.w3.org/ns/prov-o#> ,
+    <http://purl.org/pav/> ,
+    <http://www.w3.org/2004/02/skos/core#> .
+
+#################################################################
+# Classes
+#################################################################
+
+ajc:ContentResource a owl:Class ;
+  rdfs:subClassOf prov:Entity ;
+  rdfs:label "Content resource" ;
+  rdfs:comment "Any first-party content artifact (source files, rendered pages, briefs, versions)." .
+
+ajc:WebDocument a owl:Class ;
+  rdfs:subClassOf ajc:ContentResource ;
+  rdfs:label "Web document" ;
+  rdfs:comment "A document addressable on agentjido.xyz (docs, blog posts, ecosystem pages, examples)." .
+
+ajc:RenderedPage a owl:Class ;
+  rdfs:subClassOf ajc:WebDocument ;
+  rdfs:label "Rendered page" ;
+  rdfs:comment "A page rendered by the Phoenix site from content in priv/pages." .
+
+ajc:BlogPost a owl:Class ;
+  rdfs:subClassOf ajc:WebDocument ;
+  rdfs:label "Blog post" .
+
+ajc:EcosystemPackagePage a owl:Class ;
+  rdfs:subClassOf ajc:WebDocument ;
+  rdfs:label "Ecosystem package page" .
+
+ajc:ExamplePage a owl:Class ;
+  rdfs:subClassOf ajc:WebDocument ;
+  rdfs:label "Example page" .
+
+ajc:SourceDocument a owl:Class ;
+  rdfs:subClassOf ajc:ContentResource ;
+  rdfs:label "Source document" ;
+  rdfs:comment "A source file in the repository used to produce website content." .
+
+ajc:MarkdownSourceDocument a owl:Class ;
+  rdfs:subClassOf ajc:SourceDocument ;
+  rdfs:label "Markdown source document" .
+
+ajc:LivebookSourceDocument a owl:Class ;
+  rdfs:subClassOf ajc:SourceDocument ;
+  rdfs:label "Livebook markdown source document" .
+
+ajc:ContentPlanEntry a owl:Class ;
+  rdfs:subClassOf ajc:MarkdownSourceDocument ;
+  rdfs:label "Content plan entry" ;
+  rdfs:comment "A brief in priv/content_plan used as editorial/generation input." .
+
+ajc:GeneratedPage a owl:Class ;
+  rdfs:subClassOf ajc:RenderedPage ;
+  rdfs:label "Generated page" ;
+  rdfs:comment "A rendered page that was generated from a content-plan entry." .
+
+ajc:DocumentVersion a owl:Class ;
+  rdfs:subClassOf ajc:ContentResource ;
+  rdfs:label "Document version" ;
+  rdfs:comment "Immutable version node for content hash, commit linkage, and generation provenance." .
+
+ajc:GenerationRun a owl:Class ;
+  rdfs:subClassOf prov:Activity ;
+  rdfs:label "Generation run" .
+
+ajc:ContentGenerationRun a owl:Class ;
+  rdfs:subClassOf ajc:GenerationRun ;
+  rdfs:label "Content generation run" .
+
+ajc:ContentIngestionRun a owl:Class ;
+  rdfs:subClassOf ajc:GenerationRun ;
+  rdfs:label "Content ingestion run" .
+
+ajc:Category a owl:Class ;
+  rdfs:subClassOf skos:Concept ;
+  rdfs:label "Category" .
+
+ajc:Tag a owl:Class ;
+  rdfs:subClassOf skos:Concept ;
+  rdfs:label "Tag" .
+
+ajc:ContentCollection a owl:Class ;
+  rdfs:subClassOf skos:Concept ;
+  rdfs:label "Content collection" .
+
+ajc:WorkflowStatus a owl:Class ;
+  rdfs:subClassOf skos:Concept ;
+  rdfs:label "Workflow status" .
+
+ajc:PriorityLevel a owl:Class ;
+  rdfs:subClassOf skos:Concept ;
+  rdfs:label "Priority level" .
+
+ajc:DocumentType a owl:Class ;
+  rdfs:subClassOf skos:Concept ;
+  rdfs:label "Document type" .
+
+ajc:AudienceLevel a owl:Class ;
+  rdfs:subClassOf skos:Concept ;
+  rdfs:label "Audience level" .
+
+ajc:DifficultyLevel a owl:Class ;
+  rdfs:subClassOf skos:Concept ;
+  rdfs:label "Difficulty level" .
+
+ajc:TrainingTrack a owl:Class ;
+  rdfs:subClassOf skos:Concept ;
+  rdfs:label "Training track" .
+
+ajc:GenerationBackend a owl:Class ;
+  rdfs:subClassOf skos:Concept ;
+  rdfs:label "Generation backend" .
+
+ajc:UpdateMode a owl:Class ;
+  rdfs:subClassOf skos:Concept ;
+  rdfs:label "Generation update mode" .
+
+#################################################################
+# Object properties
+#################################################################
+
+ajc:hasSourceDocument a owl:ObjectProperty ;
+  rdfs:domain ajc:WebDocument ;
+  rdfs:range ajc:SourceDocument ;
+  rdfs:label "has source document" ;
+  owl:inverseOf ajc:isSourceFor .
+
+ajc:isSourceFor a owl:ObjectProperty ;
+  rdfs:domain ajc:SourceDocument ;
+  rdfs:range ajc:WebDocument ;
+  rdfs:label "is source for" .
+
+ajc:generatedFromPlanEntry a owl:ObjectProperty ;
+  rdfs:domain ajc:GeneratedPage ;
+  rdfs:range ajc:ContentPlanEntry ;
+  rdfs:label "generated from content-plan entry" .
+
+ajc:belongsToCategory a owl:ObjectProperty , owl:FunctionalProperty ;
+  rdfs:domain ajc:ContentResource ;
+  rdfs:range ajc:Category ;
+  rdfs:label "belongs to category" .
+
+ajc:inCollection a owl:ObjectProperty ;
+  rdfs:domain ajc:ContentResource ;
+  rdfs:range ajc:ContentCollection ;
+  rdfs:label "in collection" .
+
+ajc:hasTag a owl:ObjectProperty ;
+  rdfs:domain ajc:ContentResource ;
+  rdfs:range ajc:Tag ;
+  rdfs:label "has tag" ;
+  owl:inverseOf ajc:tagsResource .
+
+ajc:tagsResource a owl:ObjectProperty ;
+  rdfs:domain ajc:Tag ;
+  rdfs:range ajc:ContentResource ;
+  rdfs:label "tags resource" .
+
+ajc:linksTo a owl:ObjectProperty ;
+  rdfs:domain ajc:WebDocument ;
+  rdfs:range ajc:WebDocument ;
+  rdfs:label "links to" ;
+  rdfs:comment "Explicit hyperlink relation from one web document to another." .
+
+ajc:relatedTo a owl:ObjectProperty , owl:SymmetricProperty ;
+  rdfs:domain ajc:ContentResource ;
+  rdfs:range ajc:ContentResource ;
+  rdfs:label "related to" .
+
+ajc:hasPrerequisite a owl:ObjectProperty ;
+  rdfs:domain ajc:ContentResource ;
+  rdfs:range ajc:ContentResource ;
+  rdfs:label "has prerequisite" ;
+  owl:inverseOf ajc:isPrerequisiteFor .
+
+ajc:isPrerequisiteFor a owl:ObjectProperty ;
+  rdfs:domain ajc:ContentResource ;
+  rdfs:range ajc:ContentResource ;
+  rdfs:label "is prerequisite for" .
+
+ajc:referencesPackage a owl:ObjectProperty ;
+  rdfs:domain ajc:ContentResource ;
+  rdfs:range ajc:EcosystemPackagePage ;
+  rdfs:label "references package" .
+
+ajc:dependsOnPackage a owl:ObjectProperty ;
+  rdfs:domain ajc:EcosystemPackagePage ;
+  rdfs:range ajc:EcosystemPackagePage ;
+  rdfs:label "depends on package" .
+
+ajc:hasVersion a owl:ObjectProperty ;
+  rdfs:domain ajc:ContentResource ;
+  rdfs:range ajc:DocumentVersion ;
+  rdfs:label "has version" ;
+  owl:inverseOf ajc:isVersionOf .
+
+ajc:isVersionOf a owl:ObjectProperty ;
+  rdfs:domain ajc:DocumentVersion ;
+  rdfs:range ajc:ContentResource ;
+  rdfs:label "is version of" .
+
+ajc:hasCurrentVersion a owl:ObjectProperty , owl:FunctionalProperty ;
+  rdfs:domain ajc:ContentResource ;
+  rdfs:range ajc:DocumentVersion ;
+  rdfs:label "has current version" .
+
+ajc:previousVersion a owl:ObjectProperty ;
+  rdfs:domain ajc:DocumentVersion ;
+  rdfs:range ajc:DocumentVersion ;
+  rdfs:label "previous version" ;
+  rdfs:subPropertyOf pav:previousVersion .
+
+ajc:hasWorkflowStatus a owl:ObjectProperty ;
+  rdfs:domain ajc:ContentPlanEntry ;
+  rdfs:range ajc:WorkflowStatus ;
+  rdfs:label "has workflow status" .
+
+ajc:hasPriorityLevel a owl:ObjectProperty ;
+  rdfs:domain ajc:ContentPlanEntry ;
+  rdfs:range ajc:PriorityLevel ;
+  rdfs:label "has priority level" .
+
+ajc:hasDocumentType a owl:ObjectProperty ;
+  rdfs:domain ajc:WebDocument ;
+  rdfs:range ajc:DocumentType ;
+  rdfs:label "has document type" .
+
+ajc:hasAudienceLevel a owl:ObjectProperty ;
+  rdfs:domain ajc:WebDocument ;
+  rdfs:range ajc:AudienceLevel ;
+  rdfs:label "has audience level" .
+
+ajc:hasDifficultyLevel a owl:ObjectProperty ;
+  rdfs:domain ajc:WebDocument ;
+  rdfs:range ajc:DifficultyLevel ;
+  rdfs:label "has difficulty level" .
+
+ajc:hasTrainingTrack a owl:ObjectProperty ;
+  rdfs:domain ajc:WebDocument ;
+  rdfs:range ajc:TrainingTrack ;
+  rdfs:label "has training track" .
+
+ajc:usedBackend a owl:ObjectProperty ;
+  rdfs:domain ajc:ContentGenerationRun ;
+  rdfs:range ajc:GenerationBackend ;
+  rdfs:label "used backend" .
+
+ajc:usedUpdateMode a owl:ObjectProperty ;
+  rdfs:domain ajc:ContentGenerationRun ;
+  rdfs:range ajc:UpdateMode ;
+  rdfs:label "used update mode" .
+
+#################################################################
+# Datatype properties
+#################################################################
+
+ajc:documentId a owl:DatatypeProperty ;
+  rdfs:domain ajc:ContentResource ;
+  rdfs:range xsd:string ;
+  rdfs:label "document id" .
+
+ajc:title a owl:DatatypeProperty ;
+  rdfs:subPropertyOf dcterms:title ;
+  rdfs:domain ajc:ContentResource ;
+  rdfs:range xsd:string ;
+  rdfs:label "title" .
+
+ajc:description a owl:DatatypeProperty ;
+  rdfs:subPropertyOf dcterms:description ;
+  rdfs:domain ajc:ContentResource ;
+  rdfs:range xsd:string ;
+  rdfs:label "description" .
+
+ajc:slug a owl:DatatypeProperty ;
+  rdfs:domain ajc:ContentResource ;
+  rdfs:range xsd:string ;
+  rdfs:label "slug" .
+
+ajc:canonicalRoute a owl:DatatypeProperty ;
+  rdfs:domain ajc:WebDocument ;
+  rdfs:range xsd:string ;
+  rdfs:label "canonical route" .
+
+ajc:legacyRoute a owl:DatatypeProperty ;
+  rdfs:domain ajc:WebDocument ;
+  rdfs:range xsd:string ;
+  rdfs:label "legacy route" .
+
+ajc:sourcePath a owl:DatatypeProperty ;
+  rdfs:domain ajc:SourceDocument ;
+  rdfs:range xsd:string ;
+  rdfs:label "source path" .
+
+ajc:destinationRoute a owl:DatatypeProperty ;
+  rdfs:domain ajc:ContentPlanEntry ;
+  rdfs:range xsd:string ;
+  rdfs:label "destination route" .
+
+ajc:targetPath a owl:DatatypeProperty ;
+  rdfs:domain ajc:ContentGenerationRun ;
+  rdfs:range xsd:string ;
+  rdfs:label "target path" .
+
+ajc:format a owl:DatatypeProperty ;
+  rdfs:domain ajc:SourceDocument ;
+  rdfs:range xsd:string ;
+  rdfs:label "source format" ;
+  rdfs:comment "Expected values: md, livemd." .
+
+ajc:githubUrl a owl:DatatypeProperty ;
+  rdfs:domain ajc:ContentResource ;
+  rdfs:range xsd:anyURI ;
+  rdfs:label "GitHub URL" .
+
+ajc:livebookUrl a owl:DatatypeProperty ;
+  rdfs:domain ajc:ContentResource ;
+  rdfs:range xsd:anyURI ;
+  rdfs:label "Livebook URL" .
+
+ajc:isDraft a owl:DatatypeProperty ;
+  rdfs:domain ajc:WebDocument ;
+  rdfs:range xsd:boolean ;
+  rdfs:label "is draft" .
+
+ajc:isInMenu a owl:DatatypeProperty ;
+  rdfs:domain ajc:RenderedPage ;
+  rdfs:range xsd:boolean ;
+  rdfs:label "is in menu" .
+
+ajc:sortOrder a owl:DatatypeProperty ;
+  rdfs:domain ajc:ContentResource ;
+  rdfs:range xsd:integer ;
+  rdfs:label "sort order" .
+
+ajc:wordCount a owl:DatatypeProperty ;
+  rdfs:domain ajc:WebDocument ;
+  rdfs:range xsd:integer ;
+  rdfs:label "word count" .
+
+ajc:readingTimeMinutes a owl:DatatypeProperty ;
+  rdfs:domain ajc:WebDocument ;
+  rdfs:range xsd:integer ;
+  rdfs:label "reading time minutes" .
+
+ajc:authorName a owl:DatatypeProperty ;
+  rdfs:domain ajc:BlogPost ;
+  rdfs:range xsd:string ;
+  rdfs:label "author name" .
+
+ajc:publishedOn a owl:DatatypeProperty ;
+  rdfs:domain ajc:BlogPost ;
+  rdfs:range xsd:date ;
+  rdfs:label "published on" .
+
+ajc:contentHash a owl:DatatypeProperty ;
+  rdfs:domain ajc:DocumentVersion ;
+  rdfs:range xsd:string ;
+  rdfs:label "content hash" .
+
+ajc:versionLabel a owl:DatatypeProperty ;
+  rdfs:domain ajc:DocumentVersion ;
+  rdfs:range xsd:string ;
+  rdfs:label "version label" .
+
+ajc:gitCommitHash a owl:DatatypeProperty ;
+  rdfs:domain ajc:DocumentVersion ;
+  rdfs:range xsd:string ;
+  rdfs:label "git commit hash" .
+
+ajc:generationRunId a owl:DatatypeProperty ;
+  rdfs:domain ajc:ContentGenerationRun ;
+  rdfs:range xsd:string ;
+  rdfs:label "generation run id" .
+
+ajc:plannerModel a owl:DatatypeProperty ;
+  rdfs:domain ajc:ContentGenerationRun ;
+  rdfs:range xsd:string ;
+  rdfs:label "planner model" .
+
+ajc:writerModel a owl:DatatypeProperty ;
+  rdfs:domain ajc:ContentGenerationRun ;
+  rdfs:range xsd:string ;
+  rdfs:label "writer model" .
+
+ajc:verificationStatus a owl:DatatypeProperty ;
+  rdfs:domain ajc:ContentGenerationRun ;
+  rdfs:range xsd:string ;
+  rdfs:label "verification status" .
+
+#################################################################
+# OWL constraints
+#################################################################
+
+ajc:WebDocument rdfs:subClassOf
+  [
+    a owl:Restriction ;
+    owl:onProperty ajc:hasSourceDocument ;
+    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+    owl:onClass ajc:SourceDocument
+  ] .
+
+ajc:ContentResource rdfs:subClassOf
+  [
+    a owl:Restriction ;
+    owl:onProperty ajc:belongsToCategory ;
+    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+    owl:onClass ajc:Category
+  ] .
+
+ajc:GeneratedPage rdfs:subClassOf
+  [
+    a owl:Restriction ;
+    owl:onProperty ajc:generatedFromPlanEntry ;
+    owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+    owl:onClass ajc:ContentPlanEntry
+  ] .
+
+ajc:DocumentVersion rdfs:subClassOf
+  [
+    a owl:Restriction ;
+    owl:onProperty ajc:contentHash ;
+    owl:cardinality "1"^^xsd:nonNegativeInteger
+  ] .
+
+ajc:SourceDocument owl:disjointWith ajc:WebDocument .
+ajc:MarkdownSourceDocument owl:disjointWith ajc:LivebookSourceDocument .
+
+#################################################################
+# Controlled vocab individuals
+#################################################################
+
+ajc:category_docs a ajc:Category ; skos:prefLabel "docs" .
+ajc:category_blog a ajc:Category ; skos:prefLabel "blog" .
+ajc:category_ecosystem a ajc:Category ; skos:prefLabel "ecosystem" .
+ajc:category_examples a ajc:Category ; skos:prefLabel "examples" .
+ajc:category_features a ajc:Category ; skos:prefLabel "features" .
+ajc:category_build a ajc:Category ; skos:prefLabel "build" .
+ajc:category_community a ajc:Category ; skos:prefLabel "community" .
+ajc:category_training a ajc:Category ; skos:prefLabel "training" .
+ajc:category_content_plan a ajc:Category ; skos:prefLabel "content_plan" .
+
+ajc:collection_priv_pages a ajc:ContentCollection ; skos:prefLabel "priv/pages" .
+ajc:collection_priv_blog a ajc:ContentCollection ; skos:prefLabel "priv/blog" .
+ajc:collection_priv_ecosystem a ajc:ContentCollection ; skos:prefLabel "priv/ecosystem" .
+ajc:collection_priv_examples a ajc:ContentCollection ; skos:prefLabel "priv/examples" .
+ajc:collection_priv_content_plan a ajc:ContentCollection ; skos:prefLabel "priv/content_plan" .
+
+ajc:status_planned a ajc:WorkflowStatus ; skos:prefLabel "planned" .
+ajc:status_outline a ajc:WorkflowStatus ; skos:prefLabel "outline" .
+ajc:status_draft a ajc:WorkflowStatus ; skos:prefLabel "draft" .
+ajc:status_review a ajc:WorkflowStatus ; skos:prefLabel "review" .
+ajc:status_published a ajc:WorkflowStatus ; skos:prefLabel "published" .
+
+ajc:priority_critical a ajc:PriorityLevel ; skos:prefLabel "critical" .
+ajc:priority_high a ajc:PriorityLevel ; skos:prefLabel "high" .
+ajc:priority_medium a ajc:PriorityLevel ; skos:prefLabel "medium" .
+ajc:priority_low a ajc:PriorityLevel ; skos:prefLabel "low" .
+
+ajc:doc_type_guide a ajc:DocumentType ; skos:prefLabel "guide" .
+ajc:doc_type_reference a ajc:DocumentType ; skos:prefLabel "reference" .
+ajc:doc_type_tutorial a ajc:DocumentType ; skos:prefLabel "tutorial" .
+ajc:doc_type_explanation a ajc:DocumentType ; skos:prefLabel "explanation" .
+ajc:doc_type_cookbook a ajc:DocumentType ; skos:prefLabel "cookbook" .
+
+ajc:audience_beginner a ajc:AudienceLevel ; skos:prefLabel "beginner" .
+ajc:audience_intermediate a ajc:AudienceLevel ; skos:prefLabel "intermediate" .
+ajc:audience_advanced a ajc:AudienceLevel ; skos:prefLabel "advanced" .
+ajc:audience_general a ajc:AudienceLevel ; skos:prefLabel "general" .
+
+ajc:difficulty_beginner a ajc:DifficultyLevel ; skos:prefLabel "beginner" .
+ajc:difficulty_intermediate a ajc:DifficultyLevel ; skos:prefLabel "intermediate" .
+ajc:difficulty_advanced a ajc:DifficultyLevel ; skos:prefLabel "advanced" .
+
+ajc:track_foundations a ajc:TrainingTrack ; skos:prefLabel "foundations" .
+ajc:track_coordination a ajc:TrainingTrack ; skos:prefLabel "coordination" .
+ajc:track_integration a ajc:TrainingTrack ; skos:prefLabel "integration" .
+ajc:track_operations a ajc:TrainingTrack ; skos:prefLabel "operations" .
+
+ajc:backend_req_llm a ajc:GenerationBackend ; skos:prefLabel "req_llm" .
+ajc:update_mode_improve a ajc:UpdateMode ; skos:prefLabel "improve" .
+ajc:update_mode_regenerate a ajc:UpdateMode ; skos:prefLabel "regenerate" .
+ajc:update_mode_audit_only a ajc:UpdateMode ; skos:prefLabel "audit_only" .
+
+#################################################################
+# Example tags and sample ABox (showing target modeling pattern)
+#################################################################
+
+ajc:tag_docs a ajc:Tag ; skos:prefLabel "docs" .
+ajc:tag_concepts a ajc:Tag ; skos:prefLabel "concepts" .
+ajc:tag_livebook a ajc:Tag ; skos:prefLabel "livebook" .
+ajc:tag_core a ajc:Tag ; skos:prefLabel "core" .
+ajc:tag_agents a ajc:Tag ; skos:prefLabel "agents" .
+ajc:tag_actions a ajc:Tag ; skos:prefLabel "actions" .
+
+ajr:source_priv_pages_docs_concepts_agents_livemd a ajc:LivebookSourceDocument ;
+  ajc:documentId "source:priv/pages/docs/concepts/agents.livemd" ;
+  ajc:title "Agents" ;
+  ajc:sourcePath "priv/pages/docs/concepts/agents.livemd" ;
+  ajc:format "livemd" ;
+  ajc:githubUrl "https://github.com/agentjido/agentjido_xyz/blob/main/priv/pages/docs/concepts/agents.livemd"^^xsd:anyURI ;
+  ajc:belongsToCategory ajc:category_docs ;
+  ajc:inCollection ajc:collection_priv_pages ;
+  ajc:hasTag ajc:tag_docs , ajc:tag_concepts , ajc:tag_livebook .
+
+ajr:source_priv_content_plan_docs_concepts_agents_md a ajc:ContentPlanEntry ;
+  ajc:documentId "docs/concepts/agents" ;
+  ajc:title "Agents" ;
+  ajc:slug "agents" ;
+  ajc:sourcePath "priv/content_plan/docs/concepts/agents.md" ;
+  ajc:format "md" ;
+  ajc:destinationRoute "/docs/concepts/agents" ;
+  ajc:belongsToCategory ajc:category_content_plan ;
+  ajc:inCollection ajc:collection_priv_content_plan ;
+  ajc:hasTag ajc:tag_docs , ajc:tag_concepts , ajc:tag_core , ajc:tag_agents ;
+  ajc:hasWorkflowStatus ajc:status_draft ;
+  ajc:hasPriorityLevel ajc:priority_critical .
+
+ajr:doc_docs_concepts_agents a ajc:GeneratedPage ;
+  ajc:documentId "concepts-agents" ;
+  ajc:title "Agents" ;
+  ajc:description "The runtime contract for state transitions, command handling, and directives in Jido." ;
+  ajc:slug "agents" ;
+  ajc:canonicalRoute "/docs/concepts/agents" ;
+  ajc:livebookUrl "https://livebook.dev/run?url=https%3A%2F%2Fraw.githubusercontent.com%2Fagentjido%2Fagentjido_xyz%2Fmain%2Fpriv%2Fpages%2Fdocs%2Fconcepts%2Fagents.livemd"^^xsd:anyURI ;
+  ajc:isDraft "false"^^xsd:boolean ;
+  ajc:isInMenu "true"^^xsd:boolean ;
+  ajc:sortOrder "70"^^xsd:integer ;
+  ajc:belongsToCategory ajc:category_docs ;
+  ajc:inCollection ajc:collection_priv_pages ;
+  ajc:hasSourceDocument ajr:source_priv_pages_docs_concepts_agents_livemd ;
+  ajc:generatedFromPlanEntry ajr:source_priv_content_plan_docs_concepts_agents_md ;
+  ajc:hasTag ajc:tag_docs , ajc:tag_concepts , ajc:tag_livebook , ajc:tag_agents .
+
+ajr:source_priv_pages_docs_concepts_actions_livemd a ajc:LivebookSourceDocument ;
+  ajc:documentId "source:priv/pages/docs/concepts/actions.livemd" ;
+  ajc:title "Actions" ;
+  ajc:sourcePath "priv/pages/docs/concepts/actions.livemd" ;
+  ajc:format "livemd" ;
+  ajc:belongsToCategory ajc:category_docs ;
+  ajc:inCollection ajc:collection_priv_pages ;
+  ajc:hasTag ajc:tag_docs , ajc:tag_concepts , ajc:tag_livebook , ajc:tag_actions .
+
+ajr:doc_docs_concepts_actions a ajc:RenderedPage ;
+  ajc:documentId "concepts-actions" ;
+  ajc:title "Actions" ;
+  ajc:slug "actions" ;
+  ajc:canonicalRoute "/docs/concepts/actions" ;
+  ajc:belongsToCategory ajc:category_docs ;
+  ajc:inCollection ajc:collection_priv_pages ;
+  ajc:hasSourceDocument ajr:source_priv_pages_docs_concepts_actions_livemd ;
+  ajc:hasTag ajc:tag_docs , ajc:tag_concepts , ajc:tag_actions .
+
+ajr:doc_docs_concepts_agents ajc:linksTo ajr:doc_docs_concepts_actions ;
+  ajc:relatedTo ajr:doc_docs_concepts_actions .
+
+ajr:version_doc_docs_concepts_agents_sha256_example a ajc:DocumentVersion ;
+  ajc:documentId "version:doc_docs_concepts_agents:sha256_example" ;
+  ajc:contentHash "sha256:example-content-hash" ;
+  ajc:versionLabel "2026-02-23T00:00:00Z" ;
+  ajc:gitCommitHash "examplecommit1234567890" ;
+  pav:version "2026.02.23" ;
+  ajc:isVersionOf ajr:doc_docs_concepts_agents ;
+  prov:wasDerivedFrom ajr:source_priv_pages_docs_concepts_agents_livemd .
+
+ajr:run_content_plan_generate_example a ajc:ContentGenerationRun ;
+  ajc:generationRunId "run_example_20260223" ;
+  ajc:plannerModel "anthropic:claude-sonnet-4-5" ;
+  ajc:writerModel "google:gemini-2.5-pro" ;
+  ajc:verificationStatus "passed" ;
+  ajc:targetPath "priv/pages/docs/concepts/agents.livemd" ;
+  ajc:usedBackend ajc:backend_req_llm ;
+  ajc:usedUpdateMode ajc:update_mode_improve ;
+  prov:startedAtTime "2026-02-23T00:00:00Z"^^xsd:dateTime ;
+  prov:endedAtTime "2026-02-23T00:03:00Z"^^xsd:dateTime ;
+  prov:used ajr:source_priv_content_plan_docs_concepts_agents_md ;
+  prov:generated ajr:version_doc_docs_concepts_agents_sha256_example .
+
+ajr:doc_docs_concepts_agents ajc:hasCurrentVersion ajr:version_doc_docs_concepts_agents_sha256_example ;
+  ajc:hasVersion ajr:version_doc_docs_concepts_agents_sha256_example .
