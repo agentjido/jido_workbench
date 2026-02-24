@@ -51,11 +51,8 @@ defmodule AgentJido.Application do
   end
 
   defp contentops_chat_children do
-    if enabled?(:agent_jido, AgentJido.ContentOps.Chat) do
-      [AgentJido.ContentOps.Chat.Supervisor]
-    else
-      []
-    end
+    # Temporarily disable ChatOps messaging rooms from application startup.
+    []
   end
 
   defp github_stars_tracker_children do

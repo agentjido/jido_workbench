@@ -4,14 +4,6 @@ defmodule AgentJidoWeb.JidoHomeLive do
   alias AgentJido.LandingContent
 
   import AgentJidoWeb.Jido.MarketingLayouts
-  import AgentJidoWeb.Jido.MarketingCards
-
-  @home_ecosystem_rows [
-    %{layer: :app, ids: ~w(jido_studio jido_messaging)},
-    %{layer: :ai, ids: ~w(jido_ai jido_behaviortree)},
-    %{layer: :core, ids: ~w(jido jido_action jido_signal)},
-    %{layer: :foundation, ids: ~w(req_llm llm_db)}
-  ]
 
   @impl true
   def mount(_params, _session, socket) do
@@ -21,7 +13,7 @@ defmodule AgentJidoWeb.JidoHomeLive do
        meta_description:
          "Jido is a runtime for reliable, multi-agent systems, built on Elixir/OTP for fault isolation, concurrency, and production uptime.",
        install_tab: "full",
-       ecosystem_rows: build_home_ecosystem_rows()
+       ecosystem_overview: LandingContent.home_ecosystem_overview()
      )}
   end
 
@@ -42,7 +34,7 @@ defmodule AgentJidoWeb.JidoHomeLive do
       <div id="home-page" class="container max-w-[1000px] mx-auto px-6">
         <.hero_section />
         <.pillars_section />
-        <.ecosystem_section ecosystem_rows={@ecosystem_rows} />
+        <.ecosystem_section ecosystem_overview={@ecosystem_overview} />
         <.install_section install_tab={@install_tab} />
         <.why_elixir_otp_section />
         <.quick_start_code />
@@ -174,60 +166,95 @@ defmodule AgentJidoWeb.JidoHomeLive do
   end
 
   defp ecosystem_section(assigns) do
-    ~H"""
-    <section id="ecosystem" class="mb-16 opacity-0" phx-hook="ScrollReveal">
-      <div class="flex justify-between items-center mb-6">
-        <div>
-          <h2 class="text-xl font-bold tracking-tight inline">Ecosystem</h2>
-          <span class="home-muted-copy text-sm ml-4">4 layers · composable by design</span>
-        </div>
-        <.link navigate="/ecosystem" class="text-primary text-sm hover:underline">
-          see the ecosystem →
-        </.link>
-      </div>
+    layer_rows =
+      assigns.ecosystem_overview.rows
+      |> Enum.filter(&(&1.id in [:app, :ai, :foundation]))
 
-      <%= for row <- @ecosystem_rows do %>
-        <div class={row_grid_class(row.packages)}>
-          <%= for pkg <- row.packages do %>
-            <.package_card
-              name={pkg.name}
-              desc={pkg.desc}
-              desc_class="home-muted-copy"
-              layer={row.layer}
-              path={pkg.path}
-              links={%{}}
-            />
-          <% end %>
+    core_package =
+      assigns.ecosystem_overview.rows
+      |> Enum.find(&(&1.id == :core))
+      |> case do
+        nil -> nil
+        row -> List.first(row.packages)
+      end
+
+    assigns =
+      assigns
+      |> assign(:ecosystem_layer_rows, layer_rows)
+      |> assign(:ecosystem_core_package, core_package)
+
+    ~H"""
+    <section id="ecosystem" class="home-ecosystem-section mb-16 opacity-0" phx-hook="ScrollReveal">
+      <div id="home-ecosystem-section">
+        <div class="home-ecosystem-header">
+          <div>
+            <h2 class="text-2xl font-bold tracking-tight">Ecosystem</h2>
+            <p class="home-ecosystem-summary">composable by design · ground up</p>
+          </div>
+
+          <.link navigate="/ecosystem" class="home-ecosystem-explore-link">
+            Explore the full ecosystem →
+          </.link>
         </div>
-      <% end %>
+
+        <div class="home-ecosystem-rows">
+          <%= for row <- @ecosystem_layer_rows do %>
+            <article id={"home-ecosystem-row-#{row.id}"} class={"home-ecosystem-row home-ecosystem-row-#{row.id}"}>
+              <div class="home-ecosystem-row-header">
+                <h3 class="home-ecosystem-row-title">{row.label}</h3>
+                <span class={"home-ecosystem-count-badge home-ecosystem-count-badge-#{row.id}"}>
+                  {package_count_label(row.package_count)}
+                </span>
+                <div class="home-ecosystem-chips">
+                  <span :for={chip <- row.chips} class={"home-ecosystem-chip home-ecosystem-chip-#{row.id}"}>
+                    {chip}
+                  </span>
+                </div>
+              </div>
+
+              <p class="home-ecosystem-packages">
+                <%= for {pkg, idx} <- Enum.with_index(row.packages) do %>
+                  <span :if={idx > 0} class="home-ecosystem-separator" aria-hidden="true">·</span>
+                  <.link
+                    id={"home-ecosystem-package-#{pkg.id}"}
+                    navigate={pkg.path}
+                    class="home-ecosystem-package-link"
+                  >
+                    {pkg.name}
+                  </.link>
+                <% end %>
+              </p>
+            </article>
+          <% end %>
+
+          <div :if={@ecosystem_core_package} class="home-ecosystem-connector" aria-hidden="true">
+            <div class="home-ecosystem-connector-line"></div>
+            <span class="home-ecosystem-connector-arrow">↓</span>
+          </div>
+
+          <article :if={@ecosystem_core_package} id="home-ecosystem-core-anchor" class="home-ecosystem-core-row">
+            <.link
+              id={"home-ecosystem-package-#{@ecosystem_core_package.id}"}
+              navigate={@ecosystem_core_package.path}
+              class="home-ecosystem-core-hit"
+            >
+              <div class="home-ecosystem-core-header">
+                <span class="home-ecosystem-core-link">{@ecosystem_core_package.name}</span>
+                <p class="home-ecosystem-core-copy">
+                  <span class="home-ecosystem-core-kanji">自動</span>
+                  <span>Autonomous agent framework</span>
+                </p>
+              </div>
+            </.link>
+          </article>
+        </div>
+      </div>
     </section>
     """
   end
 
-  defp build_home_ecosystem_rows do
-    package_by_id =
-      LandingContent.packages()
-      |> Map.new(&{&1.id, &1})
-
-    @home_ecosystem_rows
-    |> Enum.map(fn row ->
-      packages =
-        row.ids
-        |> Enum.map(&Map.get(package_by_id, &1))
-        |> Enum.reject(&is_nil/1)
-
-      %{layer: row.layer, packages: packages}
-    end)
-    |> Enum.reject(&(&1.packages == []))
-  end
-
-  defp row_grid_class(packages) do
-    case length(packages) do
-      1 -> "grid grid-cols-1 gap-3 mb-3"
-      2 -> "grid grid-cols-1 md:grid-cols-2 gap-3 mb-3"
-      _ -> "grid grid-cols-1 md:grid-cols-3 gap-3 mb-3"
-    end
-  end
+  defp package_count_label(1), do: "1 pkg"
+  defp package_count_label(count), do: "#{count} pkgs"
 
   defp install_section(assigns) do
     install_configs = %{

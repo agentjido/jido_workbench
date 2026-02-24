@@ -3,6 +3,8 @@ defmodule AgentJidoWeb.PageLiveTest do
 
   import Phoenix.LiveViewTest
 
+  alias AgentJido.Ecosystem
+  alias AgentJido.Ecosystem.Layering
   alias AgentJido.Pages
 
   describe "home auth navigation" do
@@ -16,6 +18,52 @@ defmodule AgentJidoWeb.PageLiveTest do
       {:ok, _view, html} = live(conn, "/docs")
 
       refute html =~ ~s(href="/users/log-in")
+    end
+  end
+
+  describe "home ecosystem section" do
+    test "renders ecosystem header, summary, and explore CTA", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/")
+
+      assert html =~ ~s(id="home-ecosystem-section")
+      assert html =~ "Ecosystem"
+      assert html =~ "composable by design · ground up"
+      assert html =~ "Explore the full ecosystem"
+      assert html =~ ~s(href="/ecosystem")
+    end
+
+    test "renders rows in app, ai, foundation order and includes core anchor row", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/")
+
+      expected_layers =
+        [:app, :ai, :foundation]
+        |> Enum.filter(fn layer ->
+          Ecosystem.public_packages()
+          |> Enum.any?(&(Layering.layer_for(&1) == layer))
+        end)
+
+      positions =
+        Enum.map(expected_layers, fn layer ->
+          row_id = ~s(id="home-ecosystem-row-#{layer}")
+          assert html =~ row_id
+
+          case :binary.match(html, row_id) do
+            {index, _length} -> index
+            :nomatch -> flunk("expected #{row_id} to exist in home ecosystem section")
+          end
+        end)
+
+      assert positions == Enum.sort(positions)
+      assert html =~ ~s(id="home-ecosystem-core-anchor")
+    end
+
+    test "renders package links for all public ecosystem packages", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/")
+
+      for pkg <- Ecosystem.public_packages() do
+        assert html =~ ~s(id="home-ecosystem-package-#{pkg.id}")
+        assert html =~ ~s(href="/ecosystem/#{pkg.id}")
+      end
     end
   end
 

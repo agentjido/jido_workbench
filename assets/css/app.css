@@ -572,18 +572,6 @@
     isolation: isolate;
   }
 
-  #home-page .home-pillars-section::before {
-    content: "";
-    position: absolute;
-    inset: -4rem -3rem auto;
-    height: 18rem;
-    background:
-      radial-gradient(34rem 14rem at 18% 35%, hsl(var(--accent-green) / 0.08), transparent 72%),
-      radial-gradient(34rem 14rem at 82% 40%, hsl(var(--accent-cyan) / 0.08), transparent 72%);
-    pointer-events: none;
-    z-index: -1;
-  }
-
   #home-page .home-pillars-grid {
     @apply grid grid-cols-1 md:grid-cols-2;
     column-gap: 3.25rem;
@@ -686,18 +674,261 @@
     text-decoration-thickness: 0.08em;
   }
 
+  #home-page .home-ecosystem-section {
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    padding: 0;
+  }
+
+  #home-page .home-ecosystem-header {
+    @apply flex flex-col sm:flex-row sm:items-start sm:justify-between;
+    gap: 0.9rem;
+    margin-bottom: 1.1rem;
+  }
+
+  #home-page .home-ecosystem-summary {
+    color: hsl(var(--muted-foreground));
+    font-size: 0.82rem;
+    line-height: 1.45;
+    margin-top: 0.35rem;
+    letter-spacing: 0.01em;
+  }
+
+  #home-page .home-ecosystem-explore-link {
+    color: hsl(var(--primary));
+    font-size: 0.84rem;
+    font-weight: 600;
+    transition: color 150ms ease;
+    white-space: nowrap;
+  }
+
+  #home-page .home-ecosystem-explore-link:hover {
+    color: hsl(var(--foreground));
+  }
+
+  #home-page .home-ecosystem-rows {
+    @apply grid;
+    gap: 0.95rem;
+  }
+
+  #home-page .home-ecosystem-row {
+    @apply rounded-md border;
+    border-color: hsl(var(--border));
+    border-left-width: 3px;
+    background: hsl(var(--background) / 0.58);
+    padding: 0.9rem 1rem 0.95rem;
+  }
+
+  #home-page .home-ecosystem-row-app {
+    border-left-color: hsl(var(--accent-red));
+  }
+
+  #home-page .home-ecosystem-row-ai {
+    border-left-color: hsl(var(--accent-yellow));
+  }
+
+  #home-page .home-ecosystem-row-core {
+    border-left-color: hsl(var(--accent-green));
+  }
+
+  #home-page .home-ecosystem-row-foundation {
+    border-left-color: hsl(var(--accent-cyan));
+  }
+
+  #home-page .home-ecosystem-row-header {
+    @apply flex items-center;
+    flex-wrap: nowrap;
+    gap: 0.5rem 0.6rem;
+  }
+
+  #home-page .home-ecosystem-row-title {
+    font-size: 1.12rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    margin-right: 0.1rem;
+  }
+
+  #home-page .home-ecosystem-count-badge {
+    @apply inline-flex items-center rounded-sm border;
+    padding: 0.12rem 0.4rem;
+    font-size: 0.69rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+
+  #home-page .home-ecosystem-count-badge-app {
+    color: hsl(var(--accent-red));
+    border-color: hsl(var(--accent-red) / 0.42);
+    background: hsl(var(--accent-red) / 0.14);
+  }
+
+  #home-page .home-ecosystem-count-badge-ai {
+    color: hsl(var(--accent-yellow));
+    border-color: hsl(var(--accent-yellow) / 0.42);
+    background: hsl(var(--accent-yellow) / 0.14);
+  }
+
+  #home-page .home-ecosystem-count-badge-core {
+    color: hsl(var(--accent-green));
+    border-color: hsl(var(--accent-green) / 0.42);
+    background: hsl(var(--accent-green) / 0.14);
+  }
+
+  #home-page .home-ecosystem-count-badge-foundation {
+    color: hsl(var(--accent-cyan));
+    border-color: hsl(var(--accent-cyan) / 0.42);
+    background: hsl(var(--accent-cyan) / 0.14);
+  }
+
+  #home-page .home-ecosystem-chips {
+    @apply flex flex-wrap items-center;
+    margin-left: auto;
+    justify-content: flex-end;
+    max-width: min(72%, 36rem);
+    gap: 0.35rem;
+  }
+
+  #home-page .home-ecosystem-chip {
+    @apply inline-flex items-center rounded-sm border;
+    padding: 0.1rem 0.38rem;
+    font-size: 0.66rem;
+    font-weight: 500;
+    line-height: 1.1;
+  }
+
+  #home-page .home-ecosystem-chip-app {
+    color: hsl(var(--accent-red));
+    border-color: hsl(var(--accent-red) / 0.42);
+    background: hsl(var(--accent-red) / 0.1);
+  }
+
+  #home-page .home-ecosystem-chip-ai {
+    color: hsl(var(--accent-yellow));
+    border-color: hsl(var(--accent-yellow) / 0.42);
+    background: hsl(var(--accent-yellow) / 0.1);
+  }
+
+  #home-page .home-ecosystem-chip-core {
+    color: hsl(var(--accent-green));
+    border-color: hsl(var(--accent-green) / 0.42);
+    background: hsl(var(--accent-green) / 0.1);
+  }
+
+  #home-page .home-ecosystem-chip-foundation {
+    color: hsl(var(--accent-cyan));
+    border-color: hsl(var(--accent-cyan) / 0.42);
+    background: hsl(var(--accent-cyan) / 0.1);
+  }
+
+  #home-page .home-ecosystem-packages {
+    @apply flex flex-wrap items-center;
+    column-gap: 0.4rem;
+    row-gap: 0.18rem;
+    color: hsl(var(--muted-foreground));
+    font-size: 0.86rem;
+    margin-top: 0.65rem;
+  }
+
+  #home-page .home-ecosystem-separator {
+    color: hsl(var(--muted-foreground) / 0.7);
+    line-height: 1;
+  }
+
+  #home-page .home-ecosystem-package-link {
+    color: hsl(var(--muted-foreground));
+    transition: color 150ms ease;
+  }
+
+  #home-page .home-ecosystem-package-link:hover {
+    color: hsl(var(--foreground));
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  #home-page .home-ecosystem-connector {
+    @apply flex flex-col items-center justify-center;
+    color: hsl(var(--muted-foreground) / 0.42);
+    padding: 0.15rem 0 0.25rem;
+  }
+
+  #home-page .home-ecosystem-connector-line {
+    width: 1px;
+    height: 1.05rem;
+    background: currentColor;
+  }
+
+  #home-page .home-ecosystem-connector-arrow {
+    font-size: 0.62rem;
+    line-height: 1;
+    margin-top: 0.2rem;
+  }
+
+  #home-page .home-ecosystem-core-row {
+    @apply rounded-md border;
+    border-color: hsl(var(--accent-green) / 0.5);
+    border-left-width: 3px;
+    border-left-color: hsl(var(--accent-green));
+    background: linear-gradient(
+      180deg,
+      hsl(var(--background) / 0.72) 0%,
+      hsl(var(--accent-green) / 0.045) 100%
+    );
+    padding: 1rem 1.05rem;
+    box-shadow:
+      0 0 24px -14px hsl(var(--accent-green) / 0.7),
+      0 0 10px -6px hsl(var(--accent-green) / 0.55);
+  }
+
+  #home-page .home-ecosystem-core-header {
+    @apply flex items-center justify-between;
+    gap: 0.8rem;
+  }
+
+  #home-page .home-ecosystem-core-hit {
+    @apply block rounded-md;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  #home-page .home-ecosystem-core-hit:focus-visible {
+    outline: 2px solid hsl(var(--accent-green) / 0.75);
+    outline-offset: 2px;
+  }
+
+  #home-page .home-ecosystem-core-link {
+    color: hsl(var(--foreground));
+    font-size: 1.58rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    transition: color 150ms ease;
+  }
+
+  #home-page .home-ecosystem-core-hit:hover .home-ecosystem-core-link,
+  #home-page .home-ecosystem-core-hit:focus-visible .home-ecosystem-core-link {
+    color: hsl(var(--accent-green));
+  }
+
+  #home-page .home-ecosystem-core-copy {
+    @apply flex items-center;
+    gap: 0.42rem;
+    color: hsl(var(--foreground) / 0.85);
+    font-size: 0.96rem;
+    letter-spacing: 0.01em;
+  }
+
+  #home-page .home-ecosystem-core-kanji {
+    color: hsl(var(--foreground));
+    font-size: 1.02rem;
+    font-weight: 600;
+  }
+
   .dark #home-page .home-subtle-link {
     color: hsl(0 0% 72%);
   }
 
   .dark #home-page .home-muted-copy {
     color: hsl(0 0% 58%);
-  }
-
-  .light #home-page .home-pillars-section::before {
-    background:
-      radial-gradient(34rem 14rem at 18% 35%, hsl(var(--accent-green) / 0.06), transparent 72%),
-      radial-gradient(34rem 14rem at 82% 40%, hsl(var(--accent-cyan) / 0.06), transparent 72%);
   }
 
   .light #home-page .home-pillar-card {
@@ -717,6 +948,32 @@
     );
   }
 
+  .light #home-page .home-ecosystem-section {
+    background: transparent;
+  }
+
+  .light #home-page .home-ecosystem-row {
+    background: hsl(var(--surface) / 0.88);
+    border-color: hsl(var(--border) / 0.85);
+  }
+
+  .light #home-page .home-ecosystem-core-row {
+    background: linear-gradient(
+      180deg,
+      hsl(var(--surface) / 0.96) 0%,
+      hsl(var(--accent-green) / 0.065) 100%
+    );
+    border-color: hsl(var(--accent-green) / 0.45);
+  }
+
+  .light #home-page .home-ecosystem-package-link {
+    color: hsl(var(--foreground) / 0.72);
+  }
+
+  .light #home-page .home-ecosystem-package-link:hover {
+    color: hsl(var(--foreground));
+  }
+
   .dark .home-layout footer .text-muted-foreground {
     color: hsl(0 0% 58%) !important;
   }
@@ -729,33 +986,44 @@
     #home-page .home-pillar-card {
       padding: 0.25rem 0.5rem;
     }
-  }
 
-  .light #home-page #ecosystem .badge-core,
-  .light #home-page #ecosystem .badge-ai,
-  .light #home-page #ecosystem .badge-foundation,
-  .light #home-page #ecosystem .badge-app {
-    color: hsl(var(--foreground));
-  }
+    #home-page .home-ecosystem-section {
+      padding: 0;
+    }
 
-  .light #home-page #ecosystem .badge-core {
-    border: 1px solid hsl(var(--accent-green) / 0.3);
-    background: hsl(var(--accent-green) / 0.2);
-  }
+    #home-page .home-ecosystem-row {
+      padding: 0.8rem 0.72rem 0.85rem;
+    }
 
-  .light #home-page #ecosystem .badge-ai {
-    border: 1px solid hsl(var(--accent-yellow) / 0.3);
-    background: hsl(var(--accent-yellow) / 0.2);
-  }
+    #home-page .home-ecosystem-row-header {
+      flex-wrap: wrap;
+    }
 
-  .light #home-page #ecosystem .badge-foundation {
-    border: 1px solid hsl(var(--accent-cyan) / 0.3);
-    background: hsl(var(--accent-cyan) / 0.2);
-  }
+    #home-page .home-ecosystem-chips {
+      margin-left: 0;
+      max-width: none;
+      width: 100%;
+      justify-content: flex-start;
+    }
 
-  .light #home-page #ecosystem .badge-app {
-    border: 1px solid hsl(var(--accent-red) / 0.3);
-    background: hsl(var(--accent-red) / 0.2);
+    #home-page .home-ecosystem-row-title {
+      font-size: 1.02rem;
+    }
+
+    #home-page .home-ecosystem-core-header {
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      gap: 0.4rem 0.72rem;
+    }
+
+    #home-page .home-ecosystem-core-link {
+      font-size: 1.34rem;
+    }
+
+    #home-page .home-ecosystem-core-copy {
+      font-size: 0.82rem;
+      width: 100%;
+    }
   }
 
   .gradient-text {

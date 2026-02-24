@@ -7,6 +7,7 @@ Last updated: 2026-02-23
 ## Purpose
 
 Define one coherent taxonomy for the entire site so content is classifiable, navigable, and proof-linked across:
+
 - Features
 - Ecosystem
 - Examples
@@ -21,6 +22,7 @@ This spec combines narrative positioning taxonomy with technical package taxonom
 ## Scope
 
 In scope:
+
 - site-wide taxonomy model and naming
 - feature categorization
 - example categorization
@@ -28,6 +30,7 @@ In scope:
 - ecosystem package taxonomy and its docs/reference crosswalk
 
 Out of scope:
+
 - implementation changes in schemas, LiveViews, filters, routes, or card UI
 - visual styling and layout design decisions
 
@@ -55,6 +58,7 @@ Out of scope:
 - Content plan entries (`priv/content_plan`): 89
 
 Pages by section (`priv/pages`):
+
 - `docs`: 47
 - `features`: 8
 - `build`: 5
@@ -62,6 +66,7 @@ Pages by section (`priv/pages`):
 - `community`: 4
 
 Docs sections (`/docs/*`):
+
 - `/docs/getting-started` (1)
 - `/docs/concepts` (8)
 - `/docs/learn` (6)
@@ -102,30 +107,39 @@ All current feature pages are `content_intent=explanation`.
 Primary feature clusters:
 
 `runtime_foundations`
+
 - `/features/beam-native-agent-model`
 
 `reliability_architecture`
+
 - `/features/reliability-by-architecture`
 
 `coordination_orchestration`
+
 - `/features/multi-agent-coordination`
 
 `operations_observability`
+
 - `/features/operations-observability`
 
 `adoption_architecture`
+
 - `/features/incremental-adoption`
 
 `integration_interop` (polyglot bridge framing)
+
 - `/features/beam-for-ai-builders`
 
 `adoption_architecture` + `integration_interop` (fit-for-purpose comparison)
+
 - `/features/jido-vs-framework-first-stacks`
 
 `decision-brief` (exec/leadership)
+
 - `/features/executive-brief`
 
 Feature role taxonomy (for editorial planning):
+
 - `pillar`: reliability, coordination, operations, incremental adoption
 - `supporting`: runtime model foundation, polyglot bridge, comparison framing, executive brief
 
@@ -139,6 +153,7 @@ Feature role taxonomy (for editorial planning):
 ### Additional editorial axes (proposed)
 
 `scenario_cluster`
+
 - `core_mechanics`
 - `coordination`
 - `ai_tool_use`
@@ -147,6 +162,7 @@ Feature role taxonomy (for editorial planning):
 - `foundational_legacy` (for older examples without scenario tags)
 
 `wave`
+
 - `l1` (first-wave examples)
 - `l2` (second-wave examples)
 - `legacy` (no explicit wave tag)
@@ -154,6 +170,7 @@ Feature role taxonomy (for editorial planning):
 Current scenario mapping:
 
 `core_mechanics` (8)
+
 - `address-normalization-agent`
 - `capacity-quota-tracker-agent`
 - `cart-value-calculator-agent`
@@ -164,29 +181,35 @@ Current scenario mapping:
 - `dependency-license-classifier-agent`
 
 `coordination` (4)
+
 - `order-approval-to-fulfillment-chain`
 - `ticket-triage-swarm-coordinator`
 - `async-payment-retry-orchestrator`
 - `dead-letter-reprocessor-workflow`
 
 `ai_tool_use` (4)
+
 - `document-grounded-policy-qna-agent`
 - `pr-review-suggestion-agent`
 - `incident-timeline-narrator-agent`
 - `release-notes-drafting-agent`
 
 `liveview_product` (2)
+
 - `liveview-checkout-recovery-coach`
 - `meeting-prep-briefing-console`
 
 `ops_governance` (1)
+
 - `telemetry-slo-budget-sentinel`
 
 `foundational_legacy` (2)
+
 - `counter-agent`
 - `demand-tracker-agent`
 
 Operational notes:
+
 - 21 published examples, 1 unpublished (`budget-guardrail-agent`)
 - difficulty: 20 beginner, 1 intermediate
 - rank-tagged `top20`: 19 examples
@@ -196,26 +219,32 @@ Operational notes:
 Docs are organized by intent and task posture.
 
 `/docs/getting-started`
+
 - role: bootstrap and first success
 - journey: awareness -> activation
 
 `/docs/concepts`
+
 - role: shared mental models and primitives
 - journey: orientation
 
 `/docs/learn`
+
 - role: guided tutorial progression
 - journey: evaluation -> activation
 
 `/docs/guides`
+
 - role: task-oriented implementation workflows
 - journey: activation
 
 `/docs/reference`
+
 - role: exact contracts and decision support
 - journey: activation -> operationalization
 
 `/docs/operations`
+
 - role: production safety, governance, and incident response
 - journey: operationalization -> expansion
 
@@ -223,15 +252,18 @@ Docs are organized by intent and task posture.
 
 Treat package reference docs as a child taxonomy of Ecosystem.
 Each package reference page should carry:
+
 - ecosystem `layer` (architecture position)
 - ecosystem `domain` (functional purpose)
 
 Current package reference coverage:
+
 - existing docs pages: 7
 - mapped to public ecosystem packages: 5
 - includes private package references: `jido_ai`, `agent_jido`
 
 Current docs package pages mapped to ecosystem taxonomy:
+
 - `jido` -> `layer=core`, `domain=agent_core`
 - `jido_action` -> `layer=foundation`, `domain=agent_core`
 - `jido_signal` -> `layer=foundation`, `domain=agent_core`
@@ -241,6 +273,7 @@ Current docs package pages mapped to ecosystem taxonomy:
 - `agent_jido` -> `layer=app`, `domain=reference_app` (private)
 
 Public-package reference gaps in docs:
+
 - `ash_jido`
 - `jido_behaviortree`
 - `jido_memory`
@@ -251,40 +284,63 @@ Public-package reference gaps in docs:
 
 ## Ecosystem Taxonomy (Authoritative Package Taxonomy)
 
-Retain 2-axis package taxonomy:
-- Axis 1: `layer` = `foundation | core | ai | app`
-- Axis 2: `domain` = functional package purpose
+3-axis package taxonomy:
+
+- Axis 0: `jido` = gravitational center — every package in the ecosystem depends on jido
+- Axis 1: `layer` = `foundation | core | ai | app` — distance from center (orbital ring)
+- Axis 2: `domain` = functional package purpose — angular sector within a ring
+
+jido sits at the core of the ecosystem as the single package through which all
+other packages connect. It is not grouped with peers — it IS the center. The
+remaining packages orbit around it in concentric rings by layer, clustered into
+angular sectors by domain.
 
 Layer distribution (current):
-- `foundation`: 6
-- `core`: 2
-- `ai`: 8
-- `app`: 16
 
-Domain definitions and mapping:
+- `center`: 1 (`jido`)
+- `foundation`: 5
+- `ai`: 8
+- `app`: 18
+
+Ring 0 — Center:
+`jido` — core agent framework, depends on `jido_action` + `jido_signal`
+
+Ring 1 — Foundation (closest orbit):
 
 `agent_core`
-- `jido`, `jido_action`, `jido_signal`, `jido_harness`
+
+- `jido_action`, `jido_signal`, `jido_harness`
 
 `llm_foundation`
+
 - `req_llm`, `llm_db`
 
+Ring 2 — AI (middle orbit):
+
 `cognition_planning`
+
 - `jido_ai`, `jido_memory`, `jido_character`, `jido_behaviortree`, `jido_runic`, `jido_eval`, `jido_evolve`, `jido_browser`
 
+Ring 3 — Application (outer orbit):
+
 `execution_substrate`
+
 - `jido_vfs`, `jido_shell`, `jido_sandbox`, `jido_workspace`
 
 `adapters`
+
 - `ash_jido`, `jido_messaging`, `jido_otel`, `jido_amp`, `jido_claude`, `jido_codex`, `jido_gemini`, `jido_opencode`
 
 `ops_runtime`
+
 - `jido_flame`, `jido_studio`, `jido_live_dashboard`
 
 `workflow_products`
+
 - `jido_code`, `jido_lib`
 
 `reference_app`
+
 - `agent_jido`
 
 ## Build, Training, Community, Blog Taxonomy
@@ -292,43 +348,53 @@ Domain definitions and mapping:
 ### Build (`/build`)
 
 `quickstart_paths`
+
 - `/build/quickstarts-by-persona`
 
 `architecture_blueprints`
+
 - `/build/reference-architectures`
 
 `interop_patterns`
+
 - `/build/mixed-stack-integration`
 
 `feature_implementation_blueprints`
+
 - `/build/product-feature-blueprints`
 
 ### Training (`/training`)
 
 Track taxonomy:
+
 - `foundations`: `agent-fundamentals`, `actions-validation`
 - `coordination`: `signals-routing`, `directives-scheduling`
 - `integration`: `liveview-integration`
 - `operations`: `production-readiness`
 
 Difficulty taxonomy:
+
 - beginner, intermediate, advanced (currently all three represented)
 
 ### Community (`/community`)
 
 `learning_paths`
+
 - `/community/learning-paths`
 
 `adoption_playbooks`
+
 - `/community/adoption-playbooks`
 
 `case_studies`
+
 - `/community/case-studies`
 
 ### Blog (`/blog`)
 
 Keep blog taxonomy aligned to `post_type` and `audience` from schema.
 Current state:
+
 - `post_type`: all current posts are `:post`
 - `audience`: all current posts are `:general`
 
@@ -378,6 +444,7 @@ Use this as a linking rule:
 ## Implementation Notes (Not Started)
 
 When implementing this taxonomy in code/content metadata:
+
 - add optional `capability_theme` and `journey_stage` metadata for pages/examples
 - add optional `scenario_cluster` metadata for examples
 - add `domain` to ecosystem package schema/frontmatter
