@@ -3,6 +3,7 @@ defmodule AgentJidoWeb.Router do
 
   import AgentJidoWeb.UserAuth
   import Phoenix.LiveDashboard.Router
+  import PhoenixBlog.Web.Router
   import JidoStudio.Router
   import ArcanaWeb.Router
 
@@ -27,6 +28,7 @@ defmodule AgentJidoWeb.Router do
     plug(:protect_from_forgery)
     plug(:put_secure_browser_headers)
     plug(:fetch_current_scope_for_user)
+    plug(AgentJidoWeb.Plugs.LegacyBlogSlugRedirect)
     plug(AgentJidoWeb.Plugs.AnalyticsIdentity)
   end
 
@@ -112,6 +114,11 @@ defmodule AgentJidoWeb.Router do
       live "/dashboard/content-generator/entries/:entry_id", AdminContentGeneratorLive, :entry
       live "/dashboard/chatops", ChatOpsLive, :index
     end
+
+    phoenix_blog_dashboard("/dashboard/blog",
+      as: :admin_blog_cms,
+      on_mount: @admin_on_mount
+    )
 
     get "/dashboard/analytics/export/gaps.csv", AdminAnalyticsExportController, :gaps
     get "/dashboard/analytics/export/feedback.csv", AdminAnalyticsExportController, :feedback

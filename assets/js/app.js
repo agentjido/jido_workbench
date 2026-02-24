@@ -5,6 +5,7 @@ import topbar from "../vendor/topbar";
 import ScrollSpy from "./hooks/scroll_spy";
 import ScrollReveal from "./hooks/scroll_reveal";
 import ContentAssistantTurnstile from "./hooks/content_assistant_turnstile";
+import { PhoenixBlogHooks } from "../../deps/phoenix_blog/priv/static/editorjs/hook.js";
 
 function applyTheme(theme) {
   if (theme === "light") {
@@ -18,6 +19,7 @@ function applyTheme(theme) {
 }
 
 let Hooks = {
+  ...PhoenixBlogHooks,
   ScrollSpy,
   ScrollReveal,
   ContentAssistantTurnstile,

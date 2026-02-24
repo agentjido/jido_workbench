@@ -14,6 +14,7 @@ defmodule AgentJidoWeb.Jido.AdminNav do
     %{label: "ContentOps", path: "/dashboard/contentops", kind: :navigate},
     %{label: "ContentOps GitHub", path: "/dashboard/contentops/github", kind: :navigate},
     %{label: "Content Generator", path: "/dashboard/content-generator", kind: :navigate},
+    %{label: "Blog", path: "/dashboard/blog", kind: :navigate},
     %{label: "ChatOps", path: "/dashboard/chatops", kind: :navigate}
   ]
 

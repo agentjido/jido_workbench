@@ -26,6 +26,21 @@ config :agent_jido,
 
 config :agent_jido, AgentJido.Repo, types: AgentJido.PostgrexTypes
 
+config :phoenix_blog,
+  repo: AgentJido.Repo,
+  site_name: "AgentJido Blog",
+  likes_enabled: false,
+  share_enabled: false,
+  get_current_user: fn socket ->
+    case socket.assigns[:current_scope] do
+      %{user: user} -> user
+      _ -> nil
+    end
+  end
+
+config :git_hooks,
+  project_path: Path.expand("..", __DIR__)
+
 # Configures the endpoint
 config :agent_jido, AgentJidoWeb.Endpoint,
   url: [host: "localhost"],

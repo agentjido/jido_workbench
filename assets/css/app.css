@@ -3,6 +3,7 @@
 @source "../js/**/*.js";
 @source "../../lib/*_web.ex";
 @source "../../lib/*_web/**/*.*ex";
+@source "../../deps/phoenix_blog/lib";
 
 @import "./syntax.css";
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
