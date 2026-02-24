@@ -1,7 +1,7 @@
 %{
   name: "llm_db",
   title: "LLMDB",
-  version: "2026.2.3",
+  version: "2026.2.8",
   tagline: "Fast, zero-network LLM model metadata catalog for Elixir",
   graph_label: "model registry",
   license: "MIT",
@@ -16,7 +16,7 @@
   github_repo: "llm_db",
   elixir: "~> 1.17",
   maturity: :stable,
-  hex_status: "2026.2.5",
+  hex_status: "2026.2.8",
   api_stability: "stable",
   stub: false,
   support: :maintained,

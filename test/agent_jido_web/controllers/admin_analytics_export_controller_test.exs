@@ -22,23 +22,23 @@ defmodule AgentJidoWeb.AdminAnalyticsExportControllerTest do
 
     {:ok, query_log} =
       QueryLogs.create_query_log(scope, identity, %{
-        source: "search",
-        channel: "search_page",
+        source: "content_assistant",
+        channel: "content_assistant_page",
         query: "agent retries",
         status: "no_results"
       })
 
     Analytics.track_feedback_safe(scope, %{
       event: "feedback_submitted",
-      source: "search",
-      channel: "search_page_no_results",
+      source: "content_assistant",
+      channel: "content_assistant_no_results",
       path: "/search",
       feedback_value: "not_helpful",
       feedback_note: "No retries docs",
       query_log_id: query_log.id,
       visitor_id: "csv-visitor",
       session_id: "csv-session",
-      metadata: %{surface: "search"}
+      metadata: %{surface: "content_assistant"}
     })
 
     gaps_conn = get(conn, "/dashboard/analytics/export/gaps.csv?days=30")

@@ -54,48 +54,48 @@ defmodule AgentJidoWeb.AdminAnalyticsLiveTest do
 
     {:ok, query_log} =
       QueryLogs.create_query_log(scope, identity, %{
-        source: "search",
-        channel: "search_page",
+        source: "content_assistant",
+        channel: "content_assistant_page",
         query: "agent supervision",
         status: "no_results",
         results_count: 0
       })
 
     Analytics.track_event_safe(scope, %{
-      event: "search_submitted",
-      source: "search",
-      channel: "search_page",
+      event: "content_assistant_submitted",
+      source: "content_assistant",
+      channel: "content_assistant_page",
       path: "/search",
       query_log_id: query_log.id,
       visitor_id: "admin-seed-visitor",
       session_id: "admin-seed-session",
-      metadata: %{surface: "search"}
+      metadata: %{surface: "content_assistant"}
     })
 
     Analytics.track_feedback_safe(scope, %{
       event: "feedback_submitted",
-      source: "search",
-      channel: "search_page_no_results",
+      source: "content_assistant",
+      channel: "content_assistant_no_results",
       path: "/search",
       feedback_value: "not_helpful",
       feedback_note: "Need more docs",
       query_log_id: query_log.id,
       visitor_id: "admin-seed-visitor",
       session_id: "admin-seed-session",
-      metadata: %{surface: "search"}
+      metadata: %{surface: "content_assistant"}
     })
 
     Analytics.track_feedback_safe(scope, %{
       event: "feedback_submitted",
-      source: "ask_ai",
-      channel: "ask_ai_modal",
+      source: "content_assistant",
+      channel: "content_assistant_modal",
       path: "/",
       feedback_value: "helpful",
       feedback_note: "Great answer",
       query_log_id: query_log.id,
       visitor_id: "admin-seed-visitor",
       session_id: "admin-seed-session",
-      metadata: %{surface: "ask_ai"}
+      metadata: %{surface: "content_assistant"}
     })
   end
 end

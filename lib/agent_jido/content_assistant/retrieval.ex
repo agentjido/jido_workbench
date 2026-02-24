@@ -1,11 +1,13 @@
-defmodule AgentJido.Search do
+defmodule AgentJido.ContentAssistant.Retrieval do
   @moduledoc """
-  Arcana-backed site search context with normalized, UI-independent results.
+  Arcana-backed retrieval context for content assistant citations.
   """
 
   import Ecto.Query
 
   alias AgentJido.Blog
+  alias AgentJido.ContentAssistant.Result
+  alias AgentJido.ContentAssistant.URL
   alias AgentJido.Ecosystem
   alias AgentJido.Pages
   alias Arcana.Collection
@@ -16,25 +18,6 @@ defmodule AgentJido.Search do
   @collections ["site_docs", "site_blog", "site_ecosystem"]
   @snippet_max_length 320
   @disabled_route_prefixes ["/training", "/search"]
-
-  defmodule Result do
-    @moduledoc """
-    Normalized site search result.
-    """
-
-    @enforce_keys [:title, :snippet, :url, :source_type]
-    defstruct [:title, :snippet, :url, :source_type, :score]
-
-    @type source_type :: :docs | :blog | :ecosystem
-
-    @type t :: %__MODULE__{
-            title: String.t(),
-            snippet: String.t(),
-            url: String.t(),
-            source_type: source_type(),
-            score: number() | nil
-          }
-  end
 
   @type query_status :: :success | :fallback
   @type search_fun :: (String.t(), keyword() -> {:ok, [map()]} | {:error, term()})
@@ -129,8 +112,7 @@ defmodule AgentJido.Search do
       safe_fallback_search(fallback_fun, query, limit)
       |> filter_disabled_results(limit)
 
-    status = if fallback_results == [], do: :fallback, else: :success
-    {:ok, fallback_results, status}
+    {:ok, fallback_results, :fallback}
   end
 
   @doc """
@@ -138,6 +120,54 @@ defmodule AgentJido.Search do
   """
   @spec collections() :: [String.t()]
   def collections, do: @collections
+
+  @doc """
+  Returns suggested nearby queries for no-results experiences.
+  """
+  @spec suggest_related_queries(String.t(), keyword()) :: [String.t()]
+  def suggest_related_queries(query, opts \\ [])
+
+  def suggest_related_queries(query, opts) when is_binary(query) and is_list(opts) do
+    terms = tokenize_query(query)
+
+    if terms == [] do
+      []
+    else
+      limit =
+        case Keyword.get(opts, :suggestion_limit, 4) do
+          value when is_integer(value) and value > 0 -> value
+          _ -> 4
+        end
+
+      query_downcase = String.downcase(String.trim(query))
+
+      docs_candidates =
+        Pages.all_pages()
+        |> Enum.reject(&(&1.category == :training))
+        |> Enum.map(&normalize_string(&1.title))
+        |> Enum.filter(&is_binary/1)
+
+      blog_candidates =
+        Blog.all_posts()
+        |> Enum.map(&normalize_string(&1.title))
+        |> Enum.filter(&is_binary/1)
+
+      (docs_candidates ++ blog_candidates)
+      |> Enum.uniq()
+      |> Enum.map(fn candidate ->
+        score = lexical_score(candidate, candidate, terms, query_downcase)
+        {candidate, score}
+      end)
+      |> Enum.filter(fn {_candidate, score} -> score > 0 end)
+      |> Enum.sort_by(fn {candidate, score} -> {-score, candidate} end)
+      |> Enum.map(&elem(&1, 0))
+      |> Enum.take(limit)
+    end
+  rescue
+    _ -> []
+  end
+
+  def suggest_related_queries(_query, _opts), do: []
 
   defp safe_search(search_fun, query, opts) do
     search_fun.(query, opts)
@@ -241,7 +271,7 @@ defmodule AgentJido.Search do
       %Result{
         title: title,
         snippet: snippet_for(snippet_source, query_downcase),
-        url: Pages.route_for(page),
+        url: URL.normalize_href(Pages.route_for(page)) || "/",
         source_type: :docs,
         score: score
       }
@@ -265,7 +295,7 @@ defmodule AgentJido.Search do
       %Result{
         title: title,
         snippet: snippet_for(snippet_source, query_downcase),
-        url: "/blog/#{post.id}",
+        url: URL.normalize_href("/blog/#{post.id}") || "/",
         source_type: :blog,
         score: score
       }
@@ -295,7 +325,7 @@ defmodule AgentJido.Search do
       %Result{
         title: title,
         snippet: snippet_for(snippet_source, query_downcase),
-        url: "/ecosystem##{package.id}",
+        url: URL.normalize_href("/ecosystem##{package.id}") || "/",
         source_type: :ecosystem,
         score: score
       }

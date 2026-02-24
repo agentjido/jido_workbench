@@ -11,7 +11,9 @@ defmodule AgentJido.Application do
         AgentJidoWeb.Telemetry,
         {Phoenix.PubSub, name: AgentJido.PubSub},
         AgentJidoWeb.Presence,
-        {Finch, name: AgentJido.Finch}
+        {Finch, name: AgentJido.Finch},
+        {Task.Supervisor, name: AgentJido.ContentAssistant.TaskSupervisor},
+        AgentJido.ContentAssistant.PageResponseCache
       ] ++
         github_stars_tracker_children() ++
         [

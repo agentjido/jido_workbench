@@ -23,9 +23,18 @@ defmodule AgentJidoWeb.TrainingRoutesTest do
     assert body =~ training_route
   end
 
-  test "GET /search is not routable", %{conn: conn} do
+  test "GET /search renders the search experience", %{conn: conn} do
     conn = get(conn, "/search")
-    assert response(conn, 404)
+    body = response(conn, 200)
+    assert body =~ "Search and chat"
+  end
+
+  test "GET /search pre-fills query from q param", %{conn: conn} do
+    conn = get(conn, "/search", q: "agents")
+    body = response(conn, 200)
+
+    assert body =~ "Search and chat"
+    assert body =~ ~s(value="agents")
   end
 
   test "GET /premium-support is not routable", %{conn: conn} do

@@ -1,7 +1,7 @@
 %{
   name: "jido",
   title: "Jido",
-  version: "2.0.0-rc.4",
+  version: "2.0.0",
   tagline: "Core agent framework for building autonomous, multi-agent systems in Elixir",
   license: "Apache-2.0",
   visibility: :public,
@@ -15,12 +15,12 @@
   github_repo: "jido",
   elixir: "~> 1.17",
   maturity: :beta,
-  hex_status: "2.0.0-rc.4",
-  api_stability: "unstable — 2.0 RC, expect breaking changes before stable release",
+  hex_status: "2.0.0",
+  api_stability: "evolving — 2.0 shipped, but expect continued API refinements across early 2.x",
   stub: false,
   support: :maintained,
   limitations: [
-    "2.0 is in release candidate phase — API may change before final release",
+    "Early 2.x hardening may still introduce focused breaking changes",
     "Persistence adapters are limited (hibernate/thaw only, no built-in DB adapter)",
     "Distributed multi-node agent coordination requires manual setup"
   ],

@@ -1,8 +1,8 @@
-defmodule AgentJido.SearchTest do
+defmodule AgentJido.ContentAssistant.RetrievalTest do
   use ExUnit.Case, async: true
 
-  alias AgentJido.Search
-  alias AgentJido.Search.Result
+  alias AgentJido.ContentAssistant.Retrieval
+  alias AgentJido.ContentAssistant.Result
 
   describe "query/2" do
     test "returns empty results for empty queries without calling backend" do
@@ -10,7 +10,7 @@ defmodule AgentJido.SearchTest do
         flunk("expected blank query to short-circuit without backend call")
       end
 
-      assert {:ok, []} = Search.query("   ", search_fun: search_fun)
+      assert {:ok, []} = Retrieval.query("   ", search_fun: search_fun)
     end
 
     test "returns normalized cross-collection results" do
@@ -48,11 +48,11 @@ defmodule AgentJido.SearchTest do
       end
 
       assert {:ok, results} =
-               Search.query("arcana", search_fun: search_fun, document_lookup_fun: document_lookup_fun, repo: :repo)
+               Retrieval.query("arcana", search_fun: search_fun, document_lookup_fun: document_lookup_fun, repo: :repo)
 
       assert_received {:search_call, "arcana", search_opts}
       assert search_opts[:mode] == :hybrid
-      assert search_opts[:collections] == Search.collections()
+      assert search_opts[:collections] == Retrieval.collections()
 
       assert_received {:lookup_call, ^rows}
 
@@ -102,7 +102,7 @@ defmodule AgentJido.SearchTest do
       end
 
       assert {:ok, [%Result{} = result]} =
-               Search.query("jido",
+               Retrieval.query("jido",
                  search_fun: search_fun,
                  document_lookup_fun: document_lookup_fun,
                  repo: :repo
@@ -128,7 +128,7 @@ defmodule AgentJido.SearchTest do
       document_lookup_fun = fn _fetched_rows, _repo -> %{} end
 
       assert {:ok, [%Result{} = result]} =
-               Search.query("jido",
+               Retrieval.query("jido",
                  search_fun: search_fun,
                  document_lookup_fun: document_lookup_fun,
                  repo: :repo
@@ -158,7 +158,7 @@ defmodule AgentJido.SearchTest do
       end
 
       assert {:ok, [%Result{} = result]} =
-               Search.query("jido",
+               Retrieval.query("jido",
                  search_fun: search_fun,
                  document_lookup_fun: document_lookup_fun,
                  repo: :repo
@@ -171,7 +171,7 @@ defmodule AgentJido.SearchTest do
       search_fun = fn _query, _opts -> {:ok, []} end
 
       assert {:ok, []} =
-               Search.query(
+               Retrieval.query(
                  "does-not-exist",
                  search_fun: search_fun,
                  document_lookup_fun: fn _rows, _repo -> %{} end
@@ -202,7 +202,7 @@ defmodule AgentJido.SearchTest do
       end
 
       assert {:ok, results} =
-               Search.query("jido",
+               Retrieval.query("jido",
                  search_fun: search_fun,
                  document_lookup_fun: document_lookup_fun,
                  repo: :repo
@@ -237,7 +237,7 @@ defmodule AgentJido.SearchTest do
       fallback_fun = fn _query, _opts -> [fallback_result] end
 
       assert {:ok, [^fallback_result]} =
-               Search.query("jido",
+               Retrieval.query("jido",
                  search_fun: search_fun,
                  document_lookup_fun: document_lookup_fun,
                  fallback_fun: fallback_fun,
@@ -249,21 +249,21 @@ defmodule AgentJido.SearchTest do
       search_fun = fn _query, _opts -> {:error, :backend_down} end
       fallback_fun = fn _query, _opts -> [] end
 
-      assert {:ok, []} = Search.query("arcana", search_fun: search_fun, fallback_fun: fallback_fun)
+      assert {:ok, []} = Retrieval.query("arcana", search_fun: search_fun, fallback_fun: fallback_fun)
     end
 
     test "falls back to empty results when backend raises" do
       search_fun = fn _query, _opts -> raise "backend crashed" end
       fallback_fun = fn _query, _opts -> [] end
 
-      assert {:ok, []} = Search.query("arcana", search_fun: search_fun, fallback_fun: fallback_fun)
+      assert {:ok, []} = Retrieval.query("arcana", search_fun: search_fun, fallback_fun: fallback_fun)
     end
   end
 
   describe "query_with_status/2" do
     test "returns success status for normal backend responses" do
       search_fun = fn _query, _opts -> {:ok, []} end
-      assert {:ok, [], :success} = Search.query_with_status("arcana", search_fun: search_fun)
+      assert {:ok, [], :success} = Retrieval.query_with_status("arcana", search_fun: search_fun)
     end
 
     test "returns fallback status when backend returns an error" do
@@ -271,7 +271,7 @@ defmodule AgentJido.SearchTest do
       fallback_fun = fn _query, _opts -> [] end
 
       assert {:ok, [], :fallback} =
-               Search.query_with_status("arcana", search_fun: search_fun, fallback_fun: fallback_fun)
+               Retrieval.query_with_status("arcana", search_fun: search_fun, fallback_fun: fallback_fun)
     end
 
     test "returns success status when backend fails but fallback provides results" do
@@ -288,7 +288,7 @@ defmodule AgentJido.SearchTest do
       fallback_fun = fn _query, _opts -> [fallback_result] end
 
       assert {:ok, [^fallback_result], :success} =
-               Search.query_with_status("arcana", search_fun: search_fun, fallback_fun: fallback_fun)
+               Retrieval.query_with_status("arcana", search_fun: search_fun, fallback_fun: fallback_fun)
     end
 
     test "returns fallback status when backend results are fully filtered and no fallback results exist" do
@@ -308,7 +308,7 @@ defmodule AgentJido.SearchTest do
       fallback_fun = fn _query, _opts -> [] end
 
       assert {:ok, [], :fallback} =
-               Search.query_with_status("jido",
+               Retrieval.query_with_status("jido",
                  search_fun: search_fun,
                  document_lookup_fun: document_lookup_fun,
                  fallback_fun: fallback_fun,

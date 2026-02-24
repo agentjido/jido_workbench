@@ -1,7 +1,7 @@
-defmodule AgentJido.AskAi.TurnstileTest do
+defmodule AgentJido.ContentAssistant.TurnstileTest do
   use ExUnit.Case, async: true
 
-  alias AgentJido.AskAi.Turnstile
+  alias AgentJido.ContentAssistant.Turnstile
 
   describe "verify/3" do
     test "returns :ok when siteverify succeeds" do

@@ -1,4 +1,4 @@
-const AskAiTurnstile = {
+const ContentAssistantTurnstile = {
   mounted() {
     this.siteKey = this.el.dataset.siteKey || "";
     this.inputId = this.el.dataset.inputId || "";
@@ -11,7 +11,7 @@ const AskAiTurnstile = {
       }
     };
 
-    this.handleEvent("ask_ai_turnstile_reset", this.resetRequested);
+    this.handleEvent("content_assistant_turnstile_reset", this.resetRequested);
     this.renderWidget();
   },
 
@@ -73,4 +73,4 @@ const AskAiTurnstile = {
   },
 };
 
-export default AskAiTurnstile;
+export default ContentAssistantTurnstile;

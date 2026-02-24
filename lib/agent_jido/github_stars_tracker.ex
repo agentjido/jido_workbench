@@ -208,27 +208,36 @@ defmodule AgentJido.GithubStarsTracker do
     send(self(), :refresh)
     schedule_refresh(refresh_interval_ms)
 
-    {:ok, state}
+    {:ok, ensure_state_defaults(state)}
   end
 
   @impl true
-  def handle_call(:stars_map, _from, state), do: {:reply, active_stars_map(state), state}
+  def handle_call(:stars_map, _from, state) do
+    normalized_state = ensure_state_defaults(state)
+    {:reply, active_stars_map(normalized_state), normalized_state}
+  end
 
   @impl true
   def handle_call({:stars_for, package_id}, _from, state) do
-    {:reply, active_star_for(state, package_id), state}
+    normalized_state = ensure_state_defaults(state)
+    {:reply, active_star_for(normalized_state, package_id), normalized_state}
   end
 
   @impl true
   def handle_call(:refresh, _from, state) do
-    new_state = refresh_stars(state)
+    new_state =
+      state
+      |> ensure_state_defaults()
+      |> refresh_stars()
+
     {:reply, :ok, new_state}
   end
 
   @impl true
   def handle_info(:refresh, state) do
-    schedule_refresh(state.refresh_interval_ms)
-    {:noreply, refresh_stars(state)}
+    normalized_state = ensure_state_defaults(state)
+    schedule_refresh(normalized_state.refresh_interval_ms)
+    {:noreply, refresh_stars(normalized_state)}
   end
 
   defp config(key, default) do
@@ -447,6 +456,27 @@ defmodule AgentJido.GithubStarsTracker do
     state.fetcher.fetch_repo_stars(repo_ref.owner, repo_ref.repo, fetch_opts)
   end
 
+  # Running trackers can hold old state maps after hot code reloads.
+  # Populate and sanitize newly introduced keys before processing callbacks.
+  defp ensure_state_defaults(state) when is_map(state) do
+    github_token = normalize_token(Map.get(state, :github_token))
+    use_auth_token? = Map.get(state, :use_auth_token, false) == true and is_binary(github_token)
+
+    state
+    |> Map.put_new(:repos, %{})
+    |> Map.put_new(:stars_map, %{})
+    |> Map.put_new(:last_refresh_at, nil)
+    |> Map.put_new(:fetcher, DefaultFetcher)
+    |> Map.update(:request_timeout_ms, @default_request_timeout_ms, &normalize_positive_integer(&1, @default_request_timeout_ms))
+    |> Map.update(:refresh_interval_ms, @default_refresh_interval_ms, &normalize_positive_integer(&1, @default_refresh_interval_ms))
+    |> Map.update(:min_request_interval_ms, @default_min_request_interval_ms, &normalize_non_neg_integer(&1, @default_min_request_interval_ms))
+    |> Map.update(:rate_limit_cooldown_ms, @default_rate_limit_cooldown_ms, &normalize_positive_integer(&1, @default_rate_limit_cooldown_ms))
+    |> Map.update(:rate_limit_reset_monotonic_ms, nil, &normalize_optional_integer/1)
+    |> Map.update(:last_request_monotonic_ms, nil, &normalize_optional_integer/1)
+    |> Map.put(:github_token, github_token)
+    |> Map.put(:use_auth_token, use_auth_token?)
+  end
+
   defp apply_request_rate_limit(state) do
     min_interval_ms = state.min_request_interval_ms
 
@@ -491,6 +521,9 @@ defmodule AgentJido.GithubStarsTracker do
 
   defp normalize_non_neg_integer(value, _default) when is_integer(value) and value >= 0, do: value
   defp normalize_non_neg_integer(_value, default), do: default
+
+  defp normalize_optional_integer(value) when is_integer(value), do: value
+  defp normalize_optional_integer(_value), do: nil
 
   defp normalize_positive_integer(value, _default) when is_integer(value) and value > 0, do: value
   defp normalize_positive_integer(_value, default), do: default

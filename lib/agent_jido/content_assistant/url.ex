@@ -1,0 +1,92 @@
+defmodule AgentJido.ContentAssistant.URL do
+  @moduledoc """
+  URL normalization helpers for content assistant links and citations.
+  """
+
+  @spec normalize_href(term()) :: String.t() | nil
+  def normalize_href(url) when is_binary(url) do
+    candidate = String.trim(url)
+
+    cond do
+      candidate == "" ->
+        nil
+
+      String.starts_with?(candidate, "/") ->
+        normalize_path(candidate)
+
+      true ->
+        normalize_absolute(candidate)
+    end
+  end
+
+  def normalize_href(_url), do: nil
+
+  @spec canonicalize(term()) :: String.t() | nil
+  def canonicalize(url), do: normalize_href(url)
+
+  defp normalize_absolute(url) do
+    case URI.parse(url) do
+      %URI{scheme: scheme, host: host} = uri when scheme in ["http", "https"] and is_binary(host) ->
+        normalized_scheme = String.downcase(scheme)
+        normalized_host = String.downcase(host)
+        path = uri.path || "/"
+        query = uri.query
+        fragment = uri.fragment
+
+        if internal_host?(normalized_host) do
+          normalize_path_with_parts(path, query, fragment)
+        else
+          normalize_path_with_parts(path, query, fragment)
+          |> case do
+            nil -> nil
+            path_with_parts -> "#{normalized_scheme}://#{normalized_host}#{path_with_parts}"
+          end
+        end
+
+      _ ->
+        nil
+    end
+  end
+
+  defp normalize_path(path) when is_binary(path) do
+    case URI.parse(path) do
+      %URI{path: parsed_path, query: query, fragment: fragment} when is_binary(parsed_path) ->
+        normalize_path_with_parts(parsed_path, query, fragment)
+
+      _ ->
+        nil
+    end
+  end
+
+  defp normalize_path(_path), do: nil
+
+  defp normalize_path_with_parts(path, query, fragment) when is_binary(path) do
+    normalized_path =
+      path
+      |> String.trim()
+      |> case do
+        "" -> "/"
+        "/" <> _ = absolute -> absolute
+        relative -> "/" <> relative
+      end
+
+    query_part = if is_binary(query) and query != "", do: "?" <> query, else: ""
+    fragment_part = if is_binary(fragment) and fragment != "", do: "#" <> fragment, else: ""
+
+    normalized_path <> query_part <> fragment_part
+  end
+
+  defp normalize_path_with_parts(_path, _query, _fragment), do: nil
+
+  defp internal_host?(host) when is_binary(host) do
+    canonical_host =
+      :agent_jido
+      |> Application.get_env(:canonical_host, "agentjido.xyz")
+      |> to_string()
+      |> String.downcase()
+
+    host in [canonical_host, "www." <> canonical_host, "localhost", "127.0.0.1"]
+  end
+
+  defp internal_host?(_host), do: false
+end

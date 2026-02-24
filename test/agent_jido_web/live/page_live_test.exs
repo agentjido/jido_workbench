@@ -31,7 +31,7 @@ defmodule AgentJidoWeb.PageLiveTest do
 
       assert html =~ ~s(href="/ecosystem")
       assert html =~ ~s(href="https://llmdb.xyz")
-      assert html =~ ~s(id="primary-nav-search-trigger")
+      assert html =~ ~s(id="primary-nav-content-assistant-trigger")
 
       assert html =~ "jido"
       assert html =~ "jido_ai"
@@ -168,9 +168,10 @@ defmodule AgentJidoWeb.PageLiveTest do
       assert response(conn, 404)
     end
 
-    test "search route returns 404", %{conn: conn} do
+    test "search route renders search page", %{conn: conn} do
       conn = get(conn, "/search")
-      assert response(conn, 404)
+      body = response(conn, 200)
+      assert body =~ "Search and chat"
     end
   end
 

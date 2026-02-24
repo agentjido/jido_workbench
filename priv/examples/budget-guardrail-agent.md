@@ -12,6 +12,7 @@
   ],
   live_view_module: "AgentJidoWeb.Examples.BudgetGuardrailAgentLive",
   difficulty: :beginner,
+  published: false,
   sort_order: 22
 }
 ---

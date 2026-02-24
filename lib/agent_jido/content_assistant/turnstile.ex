@@ -1,6 +1,6 @@
-defmodule AgentJido.AskAi.Turnstile do
+defmodule AgentJido.ContentAssistant.Turnstile do
   @moduledoc """
-  Cloudflare Turnstile verification for Ask AI submissions.
+  Cloudflare Turnstile verification for content assistant LLM enhancement.
   """
 
   @siteverify_url "https://challenges.cloudflare.com/turnstile/v0/siteverify"
@@ -55,7 +55,7 @@ defmodule AgentJido.AskAi.Turnstile do
   """
   @spec turnstile_site_key() :: String.t() | nil
   def turnstile_site_key do
-    ask_ai_cfg()
+    content_assistant_cfg()
     |> config_value(:turnstile_site_key)
     |> normalize_optional_string()
   end
@@ -65,7 +65,7 @@ defmodule AgentJido.AskAi.Turnstile do
   """
   @spec turnstile_secret_key() :: String.t() | nil
   def turnstile_secret_key do
-    ask_ai_cfg()
+    content_assistant_cfg()
     |> config_value(:turnstile_secret_key)
     |> normalize_optional_string()
   end
@@ -125,8 +125,8 @@ defmodule AgentJido.AskAi.Turnstile do
 
   defp normalize_error_codes(_codes), do: []
 
-  defp ask_ai_cfg do
-    Application.get_env(:agent_jido, AgentJido.AskAi, [])
+  defp content_assistant_cfg do
+    Application.get_env(:agent_jido, AgentJido.ContentAssistant, [])
   end
 
   defp config_value(config, key) when is_list(config), do: Keyword.get(config, key)

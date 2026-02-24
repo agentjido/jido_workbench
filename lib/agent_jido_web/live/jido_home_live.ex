@@ -35,10 +35,11 @@ defmodule AgentJidoWeb.JidoHomeLive do
     ~H"""
     <.marketing_layout
       current_path="/"
+      layout_class="home-layout"
       current_scope={@current_scope}
       analytics_identity={@analytics_identity}
     >
-      <div class="container max-w-[1000px] mx-auto px-6">
+      <div id="home-page" class="container max-w-[1000px] mx-auto px-6">
         <.hero_section />
         <.pillars_section />
         <.ecosystem_section ecosystem_rows={@ecosystem_rows} />
@@ -55,7 +56,7 @@ defmodule AgentJidoWeb.JidoHomeLive do
     ~H"""
     <section class="text-center mb-16 animate-fade-in">
       <div class="inline-block bg-primary/10 border border-primary/30 px-4 py-2 rounded mb-6">
-        <span class="text-primary text-[11px] font-semibold tracking-widest">
+        <span class="home-eyebrow-label text-[11px] font-semibold tracking-widest">
           RELIABLE MULTI-AGENT RUNTIME
         </span>
       </div>
@@ -66,14 +67,8 @@ defmodule AgentJidoWeb.JidoHomeLive do
       </h1>
 
       <p class="text-secondary-foreground text-[15px] leading-relaxed mb-6 max-w-lg mx-auto">
-        Build supervised agents that crash safely and recover automatically.
+        Build supervised agents that crash and recover automatically.
       </p>
-
-      <div class="flex items-center justify-center mb-8">
-        <code class="bg-muted/50 border border-border text-muted-foreground text-[13px] px-5 py-2.5 rounded font-mono">
-          $ mix add jido jido_ai
-        </code>
-      </div>
 
       <div class="flex items-center gap-4 justify-center mb-12">
         <.link
@@ -84,11 +79,23 @@ defmodule AgentJidoWeb.JidoHomeLive do
         </.link>
         <.link
           navigate="/features"
-          class="text-muted-foreground hover:text-foreground text-[13px] font-medium transition-colors"
+          class="home-subtle-link text-[13px] font-semibold transition-colors"
         >
-          explore features →
+          EXPLORE FEATURES →
         </.link>
       </div>
+
+      <p class="home-muted-copy text-[11px] leading-relaxed max-w-xl mx-auto -mt-6">
+        New to Elixir?
+        <.link navigate="/getting-started" class="text-primary hover:underline font-semibold ml-1">
+          Start here.
+        </.link>
+        <span class="mx-2">•</span>
+        Already an Elixir expert?
+        <a href="#quick-start" class="text-primary hover:underline font-semibold ml-1">
+          Jump to quick start.
+        </a>
+      </p>
     </section>
     """
   end
@@ -100,7 +107,9 @@ defmodule AgentJidoWeb.JidoHomeLive do
         title: "Reliability by architecture",
         desc:
           "Each agent runs in its own BEAM process with isolated state. When agents crash, OTP supervisors restart them in milliseconds — no external orchestrator needed.",
-        color_class: "text-accent-green",
+        icon_color_class: "text-accent-green",
+        chip_class: "home-pillar-chip home-pillar-chip-green",
+        link_class: "home-pillar-link home-pillar-link-green",
         link: "/features/reliability-by-architecture"
       },
       %{
@@ -108,7 +117,9 @@ defmodule AgentJidoWeb.JidoHomeLive do
         title: "Coordination you can reason about",
         desc:
           "Multi-agent behavior is explicit and testable. Actions define capabilities, Signals handle communication, and Directives model orchestration — not role-play in a single prompt.",
-        color_class: "text-accent-yellow",
+        icon_color_class: "text-accent-cyan",
+        chip_class: "home-pillar-chip home-pillar-chip-cyan",
+        link_class: "home-pillar-link home-pillar-link-cyan",
         link: "/features/multi-agent-coordination"
       },
       %{
@@ -116,7 +127,9 @@ defmodule AgentJidoWeb.JidoHomeLive do
         title: "Production operations built in",
         desc:
           "Telemetry, debugging workflows, and operational controls are first-class. Observe agent behavior, trace workflows across processes, and run with confidence under real load.",
-        color_class: "text-accent-cyan",
+        icon_color_class: "text-accent-yellow",
+        chip_class: "home-pillar-chip home-pillar-chip-yellow",
+        link_class: "home-pillar-link home-pillar-link-yellow",
         link: "/features/operations-observability"
       },
       %{
@@ -124,7 +137,9 @@ defmodule AgentJidoWeb.JidoHomeLive do
         title: "Composable, incremental adoption",
         desc:
           "Adopt only what you need now, expand safely later. Start with the core runtime, add AI capabilities, layer on tooling — each package composes without lock-in.",
-        color_class: "text-accent-red",
+        icon_color_class: "text-accent-red",
+        chip_class: "home-pillar-chip home-pillar-chip-red",
+        link_class: "home-pillar-link home-pillar-link-red",
         link: "/features/incremental-adoption"
       }
     ]
@@ -132,22 +147,25 @@ defmodule AgentJidoWeb.JidoHomeLive do
     assigns = assign(assigns, :pillars, pillars)
 
     ~H"""
-    <section id="pillars" class="mb-16 opacity-0" phx-hook="ScrollReveal">
-      <div class="text-center mb-10">
-        <h2 class="text-2xl font-bold tracking-tight mb-3">Why Jido</h2>
-        <p class="text-muted-foreground text-sm">
-          Prototyping is common. Reliable operation is rare. Jido is built for operation.
+    <section id="pillars" class="home-pillars-section mb-20 opacity-0" phx-hook="ScrollReveal">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl font-bold tracking-tight mb-4">Why Jido</h2>
+        <p class="home-muted-copy text-sm leading-relaxed max-w-lg mx-auto">
+          Prototyping is common. Reliable operation is rare. <br /> Jido is built for operation.
         </p>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="home-pillars-grid">
         <%= for pillar <- @pillars do %>
-          <.link navigate={pillar.link} class="feature-card text-left group hover:-translate-y-0.5 transition-transform duration-200">
-            <div class={"text-2xl mb-3 #{pillar.color_class}"}>{pillar.icon}</div>
-            <div class="font-bold text-sm mb-2 group-hover:text-primary transition-colors">
-              {pillar.title}
+          <.link navigate={pillar.link} class="home-pillar-card group">
+            <div class={pillar.chip_class}>
+              <span class={"text-2xl leading-none #{pillar.icon_color_class}"}>{pillar.icon}</span>
             </div>
-            <p class="text-muted-foreground text-[13px] leading-relaxed">{pillar.desc}</p>
+            <h3 class="text-lg sm:text-xl font-bold mb-3 leading-tight group-hover:text-primary transition-colors duration-200">
+              {pillar.title}
+            </h3>
+            <p class="home-muted-copy text-[15px] leading-relaxed max-w-md mx-auto mb-4">{pillar.desc}</p>
+            <span class={pillar.link_class}>Learn more →</span>
           </.link>
         <% end %>
       </div>
@@ -161,7 +179,7 @@ defmodule AgentJidoWeb.JidoHomeLive do
       <div class="flex justify-between items-center mb-6">
         <div>
           <h2 class="text-xl font-bold tracking-tight inline">Ecosystem</h2>
-          <span class="text-muted-foreground text-sm ml-4">4 layers · composable by design</span>
+          <span class="home-muted-copy text-sm ml-4">4 layers · composable by design</span>
         </div>
         <.link navigate="/ecosystem" class="text-primary text-sm hover:underline">
           see the ecosystem →
@@ -174,6 +192,7 @@ defmodule AgentJidoWeb.JidoHomeLive do
             <.package_card
               name={pkg.name}
               desc={pkg.desc}
+              desc_class="home-muted-copy"
               layer={row.layer}
               path={pkg.path}
               links={%{}}
@@ -240,7 +259,7 @@ defmodule AgentJidoWeb.JidoHomeLive do
     <section id="install-section" class="mb-16 opacity-0" phx-hook="ScrollReveal">
       <div class="mb-5">
         <h2 class="text-xl font-bold tracking-tight mb-2">Choose your stack</h2>
-        <p class="text-muted-foreground text-sm">
+        <p class="home-muted-copy text-sm">
           Adopt only what you need now, expand safely later.
         </p>
       </div>
@@ -271,7 +290,7 @@ defmodule AgentJidoWeb.JidoHomeLive do
 
       <div class="code-block overflow-hidden">
         <div class="code-header">
-          <span class="text-muted-foreground text-xs">mix.exs</span>
+          <span class="home-muted-copy text-xs">mix.exs</span>
           <button
             data-copy-button
             data-content={generate_deps_code(@config)}
@@ -356,7 +375,7 @@ defmodule AgentJidoWeb.JidoHomeLive do
     <section id="why-elixir-otp" class="mb-16 opacity-0" phx-hook="ScrollReveal">
       <div class="text-center mb-10">
         <h2 class="text-2xl font-bold tracking-tight mb-3">Why Elixir/OTP</h2>
-        <p class="text-muted-foreground text-sm">
+        <p class="home-muted-copy text-sm">
           The runtime model that makes reliability claims credible.
         </p>
       </div>
@@ -366,7 +385,7 @@ defmodule AgentJidoWeb.JidoHomeLive do
           <div class="feature-card text-center">
             <div class={"text-2xl mb-4 #{feature.color_class}"}>{feature.icon}</div>
             <div class="font-bold text-sm mb-2">{feature.title}</div>
-            <p class="text-muted-foreground text-[13px] leading-relaxed">{feature.desc}</p>
+            <p class="home-muted-copy text-[13px] leading-relaxed">{feature.desc}</p>
           </div>
         <% end %>
       </div>
@@ -406,7 +425,7 @@ defmodule AgentJidoWeb.JidoHomeLive do
 
       <div class="code-block overflow-hidden">
         <div class="code-header">
-          <span class="text-muted-foreground text-xs">lib/my_app/weather_agent.ex</span>
+          <span class="home-muted-copy text-xs">lib/my_app/weather_agent.ex</span>
           <div class="flex gap-3">
             <.link
               navigate="/training/agent-fundamentals"
@@ -416,7 +435,7 @@ defmodule AgentJidoWeb.JidoHomeLive do
             </.link>
             <.link
               navigate="/docs"
-              class="text-muted-foreground text-[10px] hover:text-foreground"
+              class="home-subtle-link text-[10px]"
             >
               DOCS
             </.link>
@@ -448,7 +467,7 @@ defmodule AgentJidoWeb.JidoHomeLive do
           </.link>
           <.link
             navigate="/training"
-            class="border border-accent-cyan text-accent-cyan hover:bg-accent-cyan/10 text-[13px] font-medium px-7 py-5 rounded transition-colors"
+            class="border border-border-strong text-foreground hover:border-primary/40 hover:text-primary hover:bg-primary/10 text-[13px] font-medium px-7 py-5 rounded transition-colors"
           >
             START TRAINING
           </.link>

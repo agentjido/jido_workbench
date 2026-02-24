@@ -170,6 +170,28 @@ defmodule AgentJido.GithubStarsTrackerTest do
     assert fetch_count("agentjido", "jido") == jido_count_before
   end
 
+  test "legacy state maps missing newer keys are normalized during refresh" do
+    :ets.insert(@table, {{"agentjido", "jido"}, {:ok, 777}})
+    :ets.insert(@table, {{"agentjido", "req_llm"}, {:ok, 888}})
+
+    start_supervised!({GithubStarsTracker, repos: repos(), fetcher: DynamicFetcher, refresh_interval_ms: :timer.hours(24)})
+
+    legacy_state = %{
+      repos: repos(),
+      stars_map: %{},
+      last_refresh_at: nil,
+      fetcher: DynamicFetcher,
+      request_timeout_ms: 10_000,
+      refresh_interval_ms: :timer.hours(24)
+    }
+
+    :sys.replace_state(GithubStarsTracker, fn _state -> legacy_state end)
+
+    assert :ok = GithubStarsTracker.refresh()
+    assert %{stars: 777} = GithubStarsTracker.stars_for("jido")
+    assert %{stars: 888} = GithubStarsTracker.stars_for("req_llm")
+  end
+
   defp repos do
     %{
       "jido" => %{

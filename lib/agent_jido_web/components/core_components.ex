@@ -252,6 +252,102 @@ defmodule AgentJidoWeb.CoreComponents do
   end
 
   @doc """
+  Renders a shared helpful/not-helpful feedback prompt.
+
+  It uses button selection (not radio inputs) and only reveals
+  the "why" note field when "Not helpful" is selected.
+  """
+  attr(:id, :string, required: true)
+  attr(:title, :string, default: "Was this helpful?")
+  attr(:value, :string, default: nil)
+  attr(:note, :string, default: "")
+  attr(:submitted, :boolean, default: false)
+  attr(:select_event, :string, required: true)
+  attr(:submit_event, :string, required: true)
+  attr(:target, :any, default: nil)
+  attr(:as, :atom, default: :feedback)
+  attr(:form_id, :string, default: nil)
+  attr(:submit_label, :string, default: "Submit feedback")
+  attr(:thanks_text, :string, default: "Thanks for the feedback.")
+  attr(:note_placeholder, :string, default: "Why wasn't this helpful?")
+  attr(:container_class, :string, default: nil)
+
+  def feedback_prompt(assigns) do
+    assigns =
+      assigns
+      |> assign(:form_id, assigns.form_id || "#{assigns.id}-form")
+      |> assign(:value, normalize_feedback_value(assigns.value))
+      |> assign(:note, assigns.note || "")
+
+    ~H"""
+    <div id={@id} class={["rounded-md border border-border bg-background p-3 text-xs", @container_class]}>
+      <p class="mb-2 font-semibold text-foreground">{@title}</p>
+      <.form id={@form_id} for={%{}} as={@as} phx-submit={@submit_event} phx-target={@target} class="space-y-2">
+        <input type="hidden" name={"#{Atom.to_string(@as)}[value]"} value={@value || ""} />
+        <div class="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            phx-click={@select_event}
+            phx-target={@target}
+            phx-value-value="helpful"
+            class={[
+              "rounded-md border px-3 py-1.5 text-xs font-semibold transition",
+              @value == "helpful" && "border-primary bg-primary/15 text-primary",
+              @value != "helpful" && "border-border bg-background text-foreground hover:border-primary/50"
+            ]}
+          >
+            Helpful
+          </button>
+          <button
+            type="button"
+            phx-click={@select_event}
+            phx-target={@target}
+            phx-value-value="not_helpful"
+            class={[
+              "rounded-md border px-3 py-1.5 text-xs font-semibold transition",
+              @value == "not_helpful" && "border-primary bg-primary/15 text-primary",
+              @value != "not_helpful" && "border-border bg-background text-foreground hover:border-primary/50"
+            ]}
+          >
+            Not helpful
+          </button>
+        </div>
+        <div :if={@value == "not_helpful"} class="space-y-1">
+          <label for={"#{@id}-note"} class="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Why was this not helpful?
+          </label>
+          <textarea
+            id={"#{@id}-note"}
+            name={"#{Atom.to_string(@as)}[note]"}
+            rows="2"
+            maxlength="500"
+            placeholder={@note_placeholder}
+            class="w-full resize-y rounded border border-border bg-background px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground"
+          >{@note}</textarea>
+        </div>
+        <div class="flex items-center justify-between gap-2">
+          <button
+            type="submit"
+            disabled={is_nil(@value)}
+            class={[
+              "rounded-md border px-3 py-1.5 text-xs font-semibold transition",
+              is_nil(@value) && "cursor-not-allowed border-border/50 bg-background/60 text-muted-foreground",
+              not is_nil(@value) && "border-border bg-background text-foreground hover:border-primary/50"
+            ]}
+          >
+            {@submit_label}
+          </button>
+          <span :if={@submitted} class="text-emerald-300">{@thanks_text}</span>
+        </div>
+      </.form>
+    </div>
+    """
+  end
+
+  defp normalize_feedback_value(value) when value in ["helpful", "not_helpful"], do: value
+  defp normalize_feedback_value(_value), do: nil
+
+  @doc """
   Renders an input with label and error messages.
 
   A `%Phoenix.HTML.Form{}` and field name may be passed to the input

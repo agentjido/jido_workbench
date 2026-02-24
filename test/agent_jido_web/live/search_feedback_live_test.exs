@@ -1,47 +1,67 @@
-defmodule AgentJidoWeb.SearchFeedbackLiveTest do
+defmodule AgentJidoWeb.ContentAssistantFeedbackLiveTest do
   use AgentJidoWeb.ConnCase, async: false
 
   import Ecto.Query
   import Phoenix.LiveViewTest
 
   alias AgentJido.Analytics.AnalyticsEvent
+  alias AgentJido.ContentAssistant.Response
 
-  defmodule SearchNoResultsStub do
-    def query(_query, _opts), do: {:ok, []}
+  defmodule ContentAssistantNoResultsStub do
+    def respond(query, _opts) do
+      {:ok,
+       %Response{
+         query: query,
+         answer_markdown: "",
+         answer_html: "",
+         answer_mode: :no_results,
+         citations: [],
+         retrieval_status: :success,
+         llm_attempted?: false,
+         llm_enhanced?: false,
+         enhancement_blocked_reason: :llm_unconfigured,
+         query_log_id: nil
+       }}
+    end
   end
 
-  test "tracks no-results feedback on SearchLive", %{conn: conn} do
-    session = %{
-      "search_module" => SearchNoResultsStub,
-      "search_opts" => [],
-      "analytics_identity" => %{
-        "visitor_id" => "search-live-visitor",
-        "session_id" => "search-live-session",
+  test "tracks no-results feedback on ContentAssistantLive", %{conn: conn} do
+    conn =
+      conn
+      |> init_test_session(%{})
+      |> put_session(:content_assistant_module, ContentAssistantNoResultsStub)
+      |> put_session(:assistant_opts, [])
+      |> put_session(:analytics_identity, %{
+        "visitor_id" => "content-assistant-live-visitor",
+        "session_id" => "content-assistant-live-session",
         "path" => "/search"
-      }
-    }
+      })
 
-    {:ok, view, _html} = live_isolated(conn, AgentJidoWeb.SearchLive, session: session)
+    {:ok, view, _html} = live(conn, "/search")
 
     view
-    |> form("#site-search-form", search: %{q: "unknown-topic"})
+    |> form("#content-assistant-form", assistant: %{q: "unknown-topic"})
     |> render_submit()
 
     assert_eventually(fn ->
       html = render(view)
-      html =~ ~s(id="search-no-results-state")
+      html =~ ~s(id="content-assistant-no-results-state")
     end)
 
     view
-    |> form("#search-no-results-feedback-form", feedback: %{note: "Need a section on retries"})
+    |> element("#content-assistant-no-results-feedback button[phx-value-value='not_helpful']")
+    |> render_click()
+
+    view
+    |> form("#content-assistant-no-results-feedback-form", feedback: %{note: "Need a section on retries"})
     |> render_submit()
 
     assert_eventually(fn ->
       AgentJido.Repo.exists?(
         from(e in AnalyticsEvent,
           where:
-            e.event == "feedback_submitted" and e.source == "search" and
-              e.channel == "search_page_no_results"
+            e.event == "feedback_submitted" and e.source == "content_assistant" and
+              e.channel == "content_assistant_no_results"
         )
       )
     end)

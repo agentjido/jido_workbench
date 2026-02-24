@@ -1,7 +1,7 @@
 %{
   name: "jido_ai",
   title: "Jido AI",
-  version: "2.0.0-beta",
+  version: "2.0.0-rc.0",
   tagline: "LLM orchestration, reasoning strategies, and accuracy improvement for Jido agents",
   graph_label: "agent intelligence",
   license: "Apache-2.0",
@@ -16,14 +16,14 @@
   github_repo: "jido_ai",
   elixir: "~> 1.17",
   maturity: :beta,
-  hex_status: "0.5.2",
+  hex_status: "2.0.0-rc.0",
   api_stability: "unstable — major rewrite in progress for 2.0, expect breaking changes",
   stub: false,
   support: :maintained,
   limitations: [
     "Elixir floor remains `~> 1.17`, which creates matrix skew with `~> 1.18` runtime packages",
     "Broad AI feature scope expands debugging surface area for CLI-runtime-focused stacks",
-    "Published Hex version (0.5.2) is significantly behind the current GitHub main branch"
+    "Hex release cadence may lag GitHub main branch during the 2.0 release-candidate cycle"
   ],
   ecosystem_deps: ["jido", "jido_browser", "req_llm"],
   landing_summary: "Jido AI turns raw LLM calls into structured agent intelligence with strategy-driven reasoning, tool use, and accuracy controls.",

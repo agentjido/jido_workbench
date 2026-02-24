@@ -1,6 +1,6 @@
 defmodule AgentJido.QueryLogs do
   @moduledoc """
-  Query tracking context for Ask AI and search activity.
+  Query tracking context for content assistant activity.
   """
   import Ecto.Query, warn: false
 
@@ -15,8 +15,7 @@ defmodule AgentJido.QueryLogs do
           days: pos_integer(),
           since: NaiveDateTime.t(),
           total: non_neg_integer(),
-          ask_ai: non_neg_integer(),
-          search: non_neg_integer(),
+          content_assistant: non_neg_integer(),
           success: non_neg_integer(),
           no_results: non_neg_integer(),
           failed: non_neg_integer()
@@ -134,8 +133,7 @@ defmodule AgentJido.QueryLogs do
       days: days,
       since: since,
       total: Repo.aggregate(base, :count, :id),
-      ask_ai: count_for(base, source: "ask_ai"),
-      search: count_for(base, source: "search"),
+      content_assistant: count_for(base, source: "content_assistant"),
       success: count_for(base, status: "success"),
       no_results: count_for(base, status: "no_results"),
       failed: count_for(base, status_in: ["error", "challenge"])
@@ -301,8 +299,7 @@ defmodule AgentJido.QueryLogs do
       days: days,
       since: since_naive(days),
       total: 0,
-      ask_ai: 0,
-      search: 0,
+      content_assistant: 0,
       success: 0,
       no_results: 0,
       failed: 0

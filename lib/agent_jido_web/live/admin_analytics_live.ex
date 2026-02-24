@@ -43,7 +43,7 @@ defmodule AgentJidoWeb.AdminAnalyticsLive do
           <p class="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Admin Control Plane</p>
           <h1 class="text-3xl font-semibold text-foreground">First-Party Analytics</h1>
           <p class="max-w-3xl text-sm text-muted-foreground">
-            Tracker-blocker resilient demand and outcome analytics for search, Ask AI, and docs learning flows.
+            Tracker-blocker resilient demand and outcome analytics for content assistant and docs learning flows.
           </p>
         </header>
 

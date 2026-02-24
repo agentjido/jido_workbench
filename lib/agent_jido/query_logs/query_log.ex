@@ -1,6 +1,6 @@
 defmodule AgentJido.QueryLogs.QueryLog do
   @moduledoc """
-  Persistence model for Ask AI and search query activity.
+  Persistence model for content assistant query activity.
   """
   use Ecto.Schema
 
@@ -8,7 +8,7 @@ defmodule AgentJido.QueryLogs.QueryLog do
 
   alias AgentJido.Analytics.Redactor
 
-  @source_values ["ask_ai", "search"]
+  @source_values ["content_assistant"]
   @status_values ["submitted", "success", "no_results", "error", "challenge"]
 
   @primary_key {:id, :binary_id, autogenerate: true}

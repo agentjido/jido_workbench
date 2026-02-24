@@ -1,113 +1,201 @@
-defmodule AgentJidoWeb.SearchLiveTest do
-  use ExUnit.Case, async: true
+defmodule AgentJidoWeb.ContentAssistantLiveTest do
+  use ExUnit.Case, async: false
 
   import Phoenix.ConnTest
   import Phoenix.LiveViewTest
   import Plug.Conn
 
+  alias AgentJido.ContentAssistant.Response
+  alias AgentJido.ContentAssistant.Result
+
   @endpoint AgentJidoWeb.Endpoint
-  @query_issued_event [:agent_jido, :search, :query, :issued]
-  @query_success_event [:agent_jido, :search, :query, :success]
-  @query_failure_event [:agent_jido, :search, :query, :failure]
+  @query_issued_event [:agent_jido, :content_assistant, :query, :issued]
+  @query_success_event [:agent_jido, :content_assistant, :query, :success]
+  @query_failure_event [:agent_jido, :content_assistant, :query, :failure]
 
-  defmodule SearchStub do
+  defmodule ContentAssistantStub do
     @moduledoc false
 
-    alias AgentJido.Search.Result
+    @spec respond(String.t(), keyword()) :: {:ok, Response.t()}
+    def respond(query, _opts \\ [])
 
-    @spec query(String.t(), keyword()) :: {:ok, [Result.t()]}
-    def query(query, _opts \\ [])
-
-    def query("arcana", _opts) do
+    def respond("arcana", _opts) do
       {:ok,
-       [
-         %Result{
-           title: "Getting Started",
-           snippet: "Kick off your first workflow.",
-           url: "/docs/getting-started",
-           source_type: :docs,
-           score: 0.92
-         },
-         %Result{
-           title: "Release Notes",
-           snippet: "Highlights from this release.",
-           url: "/blog/release-notes",
-           source_type: :blog,
-           score: 0.81
-         },
-         %Result{
-           title: "Jido Core",
-           snippet: "Main runtime package details.",
-           url: "/ecosystem#jido-core",
-           source_type: :ecosystem,
-           score: 0.77
-         }
-       ]}
+       %Response{
+         query: "arcana",
+         answer_markdown: "Arcana overview",
+         answer_html: "<p>Arcana overview</p>",
+         answer_mode: :llm,
+         citations: [
+           %Result{
+             title: "Getting Started",
+             snippet: "Kick off your first workflow.",
+             url: "/docs/getting-started",
+             source_type: :docs,
+             score: 0.92
+           },
+           %Result{
+             title: "Release Notes",
+             snippet: "Highlights from this release.",
+             url: "/blog/release-notes",
+             source_type: :blog,
+             score: 0.81
+           },
+           %Result{
+             title: "Jido Core",
+             snippet: "Main runtime package details.",
+             url: "/ecosystem#jido-core",
+             source_type: :ecosystem,
+             score: 0.77
+           }
+         ],
+         retrieval_status: :success,
+         llm_attempted?: true,
+         llm_enhanced?: true,
+         enhancement_blocked_reason: nil,
+         query_log_id: nil
+       }}
     end
 
-    def query("slow", _opts) do
+    def respond("slow", _opts) do
       Process.sleep(100)
-      {:ok, []}
+
+      {:ok,
+       %Response{
+         query: "slow",
+         answer_markdown: "",
+         answer_html: "",
+         answer_mode: :no_results,
+         citations: [],
+         retrieval_status: :success,
+         llm_attempted?: false,
+         llm_enhanced?: false,
+         enhancement_blocked_reason: :llm_unconfigured,
+         query_log_id: nil
+       }}
     end
 
-    def query("backend-down", _opts), do: {:error, :arcana_unavailable}
-    def query("raises", _opts), do: raise("arcana crashed")
-    def query(_query, _opts), do: {:ok, []}
+    def respond("backend-down", _opts) do
+      {:ok,
+       %Response{
+         query: "backend-down",
+         answer_markdown: "",
+         answer_html: "",
+         answer_mode: :error,
+         citations: [],
+         retrieval_status: :failure,
+         llm_attempted?: false,
+         llm_enhanced?: false,
+         enhancement_blocked_reason: nil,
+         query_log_id: nil
+       }}
+    end
+
+    def respond("fallback", _opts) do
+      {:ok,
+       %Response{
+         query: "fallback",
+         answer_markdown: "Fallback answer",
+         answer_html: "<p>Fallback answer</p>",
+         answer_mode: :deterministic,
+         citations: [
+           %Result{
+             title: "Fallback docs",
+             snippet: "Fallback still produced results.",
+             url: "/docs/getting-started",
+             source_type: :docs,
+             score: 0.42
+           }
+         ],
+         retrieval_status: :fallback,
+         llm_attempted?: false,
+         llm_enhanced?: false,
+         enhancement_blocked_reason: :llm_unconfigured,
+         query_log_id: nil
+       }}
+    end
+
+    def respond(_query, _opts) do
+      {:ok,
+       %Response{
+         query: "",
+         answer_markdown: "",
+         answer_html: "",
+         answer_mode: :no_results,
+         citations: [],
+         retrieval_status: :success,
+         llm_attempted?: false,
+         llm_enhanced?: false,
+         enhancement_blocked_reason: :llm_unconfigured,
+         query_log_id: nil
+       }}
+    end
   end
 
-  defmodule SearchFallbackStatusStub do
+  defmodule CountingContentAssistantStub do
     @moduledoc false
 
-    alias AgentJido.Search.Result
+    @spec respond(String.t(), keyword()) :: {:ok, Response.t()}
+    def respond(query, _opts \\ []) do
+      if pid = :persistent_term.get({__MODULE__, :test_pid}, nil) do
+        send(pid, {:counting_stub_called, query})
+      end
 
-    @spec query_with_status(String.t(), keyword()) :: {:ok, [Result.t()], :fallback}
-    def query_with_status("jido", _opts) do
       {:ok,
-       [
-         %Result{
-           title: "Jido from fallback",
-           snippet: "Fallback still produced results.",
-           url: "/docs/getting-started",
-           source_type: :docs,
-           score: 0.42
-         }
-       ], :fallback}
+       %Response{
+         query: query,
+         answer_markdown: "Cached answer for #{query}",
+         answer_html: "<p>Cached answer for #{query}</p>",
+         answer_mode: :llm,
+         citations: [
+           %Result{
+             title: "Cached docs",
+             snippet: "Cached docs snippet.",
+             url: "/docs/getting-started",
+             source_type: :docs,
+             score: 0.9
+           }
+         ],
+         retrieval_status: :success,
+         llm_attempted?: true,
+         llm_enhanced?: true,
+         enhancement_blocked_reason: nil,
+         query_log_id: nil
+       }}
     end
-
-    def query_with_status(_query, _opts), do: {:ok, [], :fallback}
   end
 
-  describe "SearchLive" do
-    test "renders no-query state by default", %{conn: conn} do
-      {:ok, _view, html} = mount_search_live(conn)
+  describe "ContentAssistantLive" do
+    test "renders idle state by default", %{conn: conn} do
+      {:ok, _view, html} = mount_live(conn)
 
-      assert html =~ "Search the site"
-      assert html =~ ~s(id="search-no-query-state")
+      assert html =~ "Search and chat"
+      assert html =~ ~s(id="content-assistant-idle-state")
     end
 
     test "renders loading state while a query is running", %{conn: conn} do
-      conn = with_search_stub(conn)
-      {:ok, view, _html} = mount_search_live(conn)
+      conn = with_content_assistant_stub(conn)
+      {:ok, view, _html} = mount_live(conn)
 
       loading_html =
         view
-        |> form("#site-search-form", search: %{q: "slow"})
+        |> form("#content-assistant-form", assistant: %{q: "slow"})
         |> render_submit()
 
-      assert loading_html =~ ~s(id="search-loading-state")
-      assert loading_html =~ "Searching for"
-      assert_state(view, ~s(id="search-no-results-state"))
+      assert loading_html =~ ~s(id="content-assistant-loading-state")
+      assert loading_html =~ "Working on"
+      assert_state(view, ~s(id="content-assistant-no-results-state"))
     end
 
-    test "renders query results with source labels and destination links", %{conn: conn} do
-      conn = with_search_stub(conn)
-      {:ok, view, _html} = mount_search_live(conn)
+    test "renders answer with source labels and destination links", %{conn: conn} do
+      conn = with_content_assistant_stub(conn)
+      {:ok, view, _html} = mount_live(conn)
 
       view
-      |> form("#site-search-form", search: %{q: "arcana"})
+      |> form("#content-assistant-form", assistant: %{q: "arcana"})
       |> render_submit()
 
-      html = assert_state(view, ~s(id="search-results-state"))
+      html = assert_state(view, ~s(id="content-assistant-answer-state"))
 
       assert html =~ "Getting Started"
       assert html =~ "Release Notes"
@@ -120,116 +208,149 @@ defmodule AgentJidoWeb.SearchLiveTest do
       assert html =~ ~s(href="/ecosystem#jido-core")
     end
 
+    test "submitting a query persists state in URL and reloads from params", %{conn: conn} do
+      conn = with_content_assistant_stub(conn)
+      {:ok, view, _html} = mount_live(conn)
+
+      view
+      |> form("#content-assistant-form", assistant: %{q: "arcana"})
+      |> render_submit()
+
+      assert_patch(view, "/search?q=arcana")
+      assert_state(view, ~s(id="content-assistant-answer-state"))
+
+      reload_conn = with_content_assistant_stub(build_conn())
+      {:ok, reload_view, _html} = mount_live(reload_conn, "/search?q=arcana")
+
+      html = assert_state(reload_view, ~s(id="content-assistant-answer-state"))
+      assert html =~ ~s(value="arcana")
+      assert html =~ "Arcana overview"
+    end
+
+    test "uses cached response on /search?q= reload without rerunning assistant", %{conn: conn} do
+      :persistent_term.put({CountingContentAssistantStub, :test_pid}, self())
+
+      on_exit(fn ->
+        :persistent_term.erase({CountingContentAssistantStub, :test_pid})
+      end)
+
+      conn = with_content_assistant_module(conn, CountingContentAssistantStub)
+      {:ok, view, _html} = mount_live(conn)
+
+      view
+      |> form("#content-assistant-form", assistant: %{q: "arcana"})
+      |> render_submit()
+
+      assert_patch(view, "/search?q=arcana")
+      assert_receive {:counting_stub_called, "arcana"}, 1_000
+
+      _ = assert_state(view, ~s(id="content-assistant-answer-state"))
+      reload_conn = with_content_assistant_module(build_conn(), CountingContentAssistantStub)
+      {:ok, reload_view, _html} = mount_live(reload_conn, "/search?q=arcana")
+      html = assert_state(reload_view, ~s(id="content-assistant-answer-state"))
+
+      assert html =~ "Cached answer for arcana"
+      refute_receive {:counting_stub_called, "arcana"}, 200
+    end
+
     test "renders no-results state when query returns no matches", %{conn: conn} do
-      conn = with_search_stub(conn)
-      {:ok, view, _html} = mount_search_live(conn)
+      conn = with_content_assistant_stub(conn)
+      {:ok, view, _html} = mount_live(conn)
 
       view
-      |> form("#site-search-form", search: %{q: "missing"})
+      |> form("#content-assistant-form", assistant: %{q: "missing"})
       |> render_submit()
 
-      html = assert_state(view, ~s(id="search-no-results-state"))
-      assert html =~ "No results found for"
-      assert html =~ "missing"
+      html = assert_state(view, ~s(id="content-assistant-no-results-state"))
+      assert html =~ "No relevant content found for"
     end
 
-    test "falls back to default search module when session search_module is nil", %{conn: conn} do
-      conn = with_search_module(conn, nil)
-      {:ok, view, _html} = mount_search_live(conn)
+    test "renders answer when retrieval fallback still provides citations", %{conn: conn} do
+      conn = with_content_assistant_stub(conn)
+      {:ok, view, _html} = mount_live(conn)
 
       view
-      |> form("#site-search-form", search: %{q: "4f6a76f0b4b24891895d31bdbf6f3f20"})
+      |> form("#content-assistant-form", assistant: %{q: "fallback"})
       |> render_submit()
 
-      html = assert_state(view, ~s(id="search-no-results-state"))
-      refute html =~ ~s(id="search-error-state")
+      html = assert_state(view, ~s(id="content-assistant-answer-state"))
+
+      assert html =~ "Fallback answer"
+      refute html =~ ~s(id="content-assistant-error-state")
     end
 
-    test "renders results when backend reports fallback status with non-empty results", %{conn: conn} do
-      conn = with_search_module(conn, SearchFallbackStatusStub)
-      {:ok, view, _html} = mount_search_live(conn)
+    test "renders failure state when assistant returns error mode", %{conn: conn} do
+      conn = with_content_assistant_stub(conn)
+      {:ok, view, _html} = mount_live(conn)
 
       view
-      |> form("#site-search-form", search: %{q: "jido"})
+      |> form("#content-assistant-form", assistant: %{q: "backend-down"})
       |> render_submit()
 
-      html = assert_state(view, ~s(id="search-results-state"))
+      html = assert_state(view, ~s(id="content-assistant-error-state"))
 
-      assert html =~ "Jido from fallback"
-      refute html =~ ~s(id="search-error-state")
+      assert html =~ "Content assistant is temporarily unavailable right now"
     end
 
-    test "renders explicit failure fallback messaging when backend search fails", %{conn: conn} do
-      conn = with_search_stub(conn)
-      {:ok, view, _html} = mount_search_live(conn)
+    test "emits issued and success telemetry for successful flow", %{conn: conn} do
+      attach_telemetry([@query_issued_event, @query_success_event])
+
+      conn = with_content_assistant_stub(conn)
+      {:ok, view, _html} = mount_live(conn)
 
       view
-      |> form("#site-search-form", search: %{q: "backend-down"})
+      |> form("#content-assistant-form", assistant: %{q: "arcana"})
       |> render_submit()
 
-      html = assert_state(view, ~s(id="search-error-state"))
-
-      assert html =~ "Search is temporarily unavailable right now."
-    end
-
-    test "emits issued and success telemetry for successful search flow", %{conn: conn} do
-      attach_search_telemetry([@query_issued_event, @query_success_event])
-
-      conn = with_search_stub(conn)
-      {:ok, view, _html} = mount_search_live(conn)
-
-      view
-      |> form("#site-search-form", search: %{q: "arcana"})
-      |> render_submit()
-
-      assert_receive {:search_telemetry, @query_issued_event, %{count: 1}, issued_meta}, 1_000
+      assert_receive {:assistant_telemetry, @query_issued_event, %{count: 1}, issued_meta}, 1_000
       assert issued_meta.query_length == 6
 
-      assert_receive {:search_telemetry, @query_success_event, success_measurements, success_meta}, 1_000
+      assert_receive {:assistant_telemetry, @query_success_event, success_measurements, success_meta}, 1_000
       assert success_measurements.count == 1
       assert is_integer(success_measurements.latency_ms)
       assert success_measurements.latency_ms >= 0
       assert success_meta.query_length == 6
       assert success_meta.results_count == 3
-      refute_receive {:search_telemetry, @query_failure_event, _, _}, 50
+      refute_receive {:assistant_telemetry, @query_failure_event, _, _}, 50
     end
 
-    test "emits issued and failure telemetry for backend failure flow", %{conn: conn} do
-      attach_search_telemetry([@query_issued_event, @query_failure_event])
+    test "emits issued and failure telemetry for failure flow", %{conn: conn} do
+      attach_telemetry([@query_issued_event, @query_failure_event])
 
-      conn = with_search_stub(conn)
-      {:ok, view, _html} = mount_search_live(conn)
+      conn = with_content_assistant_stub(conn)
+      {:ok, view, _html} = mount_live(conn)
 
       view
-      |> form("#site-search-form", search: %{q: "backend-down"})
+      |> form("#content-assistant-form", assistant: %{q: "backend-down"})
       |> render_submit()
 
-      assert_receive {:search_telemetry, @query_issued_event, %{count: 1}, issued_meta}, 1_000
+      assert_receive {:assistant_telemetry, @query_issued_event, %{count: 1}, issued_meta}, 1_000
       assert issued_meta.query_length == String.length("backend-down")
 
-      assert_receive {:search_telemetry, @query_failure_event, failure_measurements, failure_meta}, 1_000
+      assert_receive {:assistant_telemetry, @query_failure_event, failure_measurements, failure_meta}, 1_000
       assert failure_measurements.count == 1
       assert is_integer(failure_measurements.latency_ms)
       assert failure_measurements.latency_ms >= 0
       assert failure_meta.query_length == String.length("backend-down")
-      refute_receive {:search_telemetry, @query_success_event, _, _}, 50
+      refute_receive {:assistant_telemetry, @query_success_event, _, _}, 50
     end
   end
 
   describe "navigation entry points" do
-    test "home header exposes modal search trigger in primary navigation", %{conn: conn} do
+    test "home header exposes unified content assistant trigger", %{conn: conn} do
       {:ok, _view, html} = live(conn, "/")
-      assert html =~ ~s(id="primary-nav-search-trigger")
+      assert html =~ ~s(id="primary-nav-content-assistant-trigger")
+      refute html =~ ~s(id="primary-nav-search-trigger")
+      refute html =~ "Ask AI"
       refute html =~ ~s(href="/search")
-      refute html =~ "Premium Support"
     end
 
-    test "docs header exposes modal search trigger and Ask AI action", %{conn: conn} do
+    test "docs header exposes unified content assistant trigger", %{conn: conn} do
       {:ok, _view, html} = live(conn, "/docs")
-      assert html =~ ~s(id="primary-nav-search-trigger")
-      assert html =~ "Ask AI"
+      assert html =~ ~s(id="primary-nav-content-assistant-trigger")
+      refute html =~ ~s(id="primary-nav-search-trigger")
+      refute html =~ "Ask AI"
       refute html =~ ~s(href="/search")
-      refute html =~ "Premium Support"
     end
   end
 
@@ -250,26 +371,36 @@ defmodule AgentJidoWeb.SearchLiveTest do
   end
 
   setup do
+    clear_response_cache()
     {:ok, conn: build_conn()}
   end
 
-  defp with_search_stub(conn) do
-    with_search_module(conn, SearchStub)
+  defp with_content_assistant_stub(conn) do
+    with_content_assistant_module(conn, ContentAssistantStub)
   end
 
-  defp with_search_module(conn, module) do
+  defp with_content_assistant_module(conn, module) when is_atom(module) do
     conn
     |> init_test_session(%{})
-    |> put_session(:search_module, module)
+    |> put_session(:content_assistant_module, module)
   end
 
-  defp mount_search_live(conn) do
-    session = conn.private[:plug_session] || %{}
-    live_isolated(conn, AgentJidoWeb.SearchLive, session: session)
+  defp mount_live(conn, path \\ "/search") do
+    live(conn, path)
   end
 
-  defp attach_search_telemetry(events) do
-    handler_id = "search-live-test-#{System.unique_integer([:positive, :monotonic])}"
+  defp clear_response_cache do
+    table = :content_assistant_page_response_cache
+
+    if :ets.whereis(table) != :undefined do
+      :ets.delete_all_objects(table)
+    end
+
+    :ok
+  end
+
+  defp attach_telemetry(events) do
+    handler_id = "content-assistant-live-test-#{System.unique_integer([:positive, :monotonic])}"
     pid = self()
 
     :ok =
@@ -277,7 +408,7 @@ defmodule AgentJidoWeb.SearchLiveTest do
         handler_id,
         events,
         fn event, measurements, metadata, _config ->
-          send(pid, {:search_telemetry, event, measurements, metadata})
+          send(pid, {:assistant_telemetry, event, measurements, metadata})
         end,
         nil
       )

@@ -8,8 +8,8 @@
   category: :integrations,
   tier: 2,
   tags: [:messaging, :telegram, :discord, :slack, :whatsapp, :chat],
-  github_url: "https://github.com/epic-creative/jido_messaging",
-  github_org: "epic-creative",
+  github_url: "https://github.com/agentjido/jido_messaging",
+  github_org: "agentjido",
   github_repo: "jido_messaging",
   maturity: :experimental,
   hex_status: "unreleased",
@@ -18,7 +18,6 @@
   support: :best_effort,
   limitations: [
     "Not published to Hex — available only via GitHub dependency",
-    "Private repository (epic-creative org, not agentjido)",
     "Channel adapters (Telegram, Discord, Slack, WhatsApp) vary in completeness",
     "No production persistence backend ships by default"
   ],

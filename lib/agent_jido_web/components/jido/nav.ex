@@ -6,8 +6,7 @@ defmodule AgentJidoWeb.Jido.Nav do
   use AgentJidoWeb, :html
 
   @jido_version_fallback "2.0.0-rc.5"
-  @search_modal_id "primary-nav-search-modal"
-  @ask_ai_modal_id "primary-nav-ask-ai-modal"
+  @content_assistant_modal_id "primary-nav-content-assistant-modal"
   @premium_support_enabled false
   @premium_support_href "mailto:support@agentjido.com?subject=Premium%20Support%20Inquiry"
 
@@ -85,11 +84,8 @@ defmodule AgentJidoWeb.Jido.Nav do
   @spec discord_url() :: String.t()
   def discord_url, do: @discord_url
 
-  @spec search_modal_id() :: String.t()
-  def search_modal_id, do: @search_modal_id
-
-  @spec ask_ai_modal_id() :: String.t()
-  def ask_ai_modal_id, do: @ask_ai_modal_id
+  @spec content_assistant_modal_id() :: String.t()
+  def content_assistant_modal_id, do: @content_assistant_modal_id
 
   @spec premium_support_enabled?() :: boolean()
   def premium_support_enabled?, do: @premium_support_enabled
@@ -117,8 +113,7 @@ defmodule AgentJidoWeb.Jido.Nav do
     assigns =
       assigns
       |> assign(:nav_links, @primary_nav_links)
-      |> assign(:search_modal_id, @search_modal_id)
-      |> assign(:ask_ai_modal_id, @ask_ai_modal_id)
+      |> assign(:content_assistant_modal_id, @content_assistant_modal_id)
       |> assign(:premium_support_enabled, @premium_support_enabled)
       |> assign(:premium_support_href, @premium_support_href)
       |> assign(:container_class, nav_container_class(assigns.layout_mode))
@@ -154,22 +149,15 @@ defmodule AgentJidoWeb.Jido.Nav do
           <.theme_toggle_button :if={@show_theme_toggle} id="primary-nav-theme-toggle" />
 
           <button
-            id="primary-nav-search-trigger"
+            id="primary-nav-content-assistant-trigger"
             type="button"
-            phx-click={show_modal(@search_modal_id)}
-            class="inline-flex h-9 w-9 items-center justify-center rounded border border-border bg-surface text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground"
-            aria-label="Open search"
-            title="Search (Ctrl/Cmd+K)"
-          >
-            <.icon name="hero-magnifying-glass" class="h-4 w-4" />
-          </button>
-
-          <button
-            type="button"
-            phx-click={show_modal(@ask_ai_modal_id)}
+            phx-click={show_modal(@content_assistant_modal_id)}
             class="inline-flex items-center gap-2 rounded border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-medium text-primary transition-colors hover:bg-primary/20"
+            aria-label="Open content assistant"
+            title="Search and ask (Ctrl/Cmd+K)"
           >
-            <.icon name="hero-sparkles" class="h-3 w-3" /> Ask AI
+            <.icon name="hero-magnifying-glass" class="h-3.5 w-3.5" />
+            <.icon name="hero-sparkles" class="h-3 w-3" /> Search
           </button>
 
           <a
@@ -179,13 +167,6 @@ defmodule AgentJidoWeb.Jido.Nav do
           >
             Premium Support
           </a>
-
-          <.link
-            navigate="/getting-started"
-            class="bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-bold px-4 py-2.5 rounded transition-colors"
-          >
-            $ GET STARTED
-          </.link>
         </div>
 
         <button
@@ -217,21 +198,12 @@ defmodule AgentJidoWeb.Jido.Nav do
 
         <button
           type="button"
-          phx-click={show_modal(@search_modal_id)}
+          phx-click={show_modal(@content_assistant_modal_id)}
           class="w-full rounded border border-border bg-surface px-3 py-2 text-left text-xs text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground"
         >
           <span class="inline-flex items-center gap-2">
-            <.icon name="hero-magnifying-glass" class="h-3.5 w-3.5" /> Search
-          </span>
-        </button>
-
-        <button
-          type="button"
-          phx-click={show_modal(@ask_ai_modal_id)}
-          class="w-full rounded border border-primary/30 bg-primary/10 px-3 py-2 text-left text-xs font-medium text-primary transition-colors hover:bg-primary/20"
-        >
-          <span class="inline-flex items-center gap-2">
-            <.icon name="hero-sparkles" class="h-3.5 w-3.5" /> Ask AI
+            <.icon name="hero-magnifying-glass" class="h-3.5 w-3.5" />
+            <.icon name="hero-sparkles" class="h-3.5 w-3.5" /> Search
           </span>
         </button>
 
@@ -248,13 +220,6 @@ defmodule AgentJidoWeb.Jido.Nav do
         >
           Premium Support
         </a>
-
-        <.link
-          navigate="/getting-started"
-          class="mt-2 block rounded bg-primary px-3 py-2 text-center text-xs font-bold text-primary-foreground"
-        >
-          $ GET STARTED
-        </.link>
       </div>
     </div>
     """
@@ -315,20 +280,13 @@ defmodule AgentJidoWeb.Jido.Nav do
   def primary_nav_modals(assigns) do
     assigns =
       assigns
-      |> assign(:search_modal_id, @search_modal_id)
-      |> assign(:ask_ai_modal_id, @ask_ai_modal_id)
+      |> assign(:content_assistant_modal_id, @content_assistant_modal_id)
 
     ~H"""
     <div id="primary-nav-modal-root">
       <.live_component
-        module={AgentJidoWeb.NavSearchModalComponent}
-        id={@search_modal_id}
-        current_scope={@current_scope}
-        analytics_identity={@analytics_identity}
-      />
-      <.live_component
-        module={AgentJidoWeb.NavAskAiModalComponent}
-        id={@ask_ai_modal_id}
+        module={AgentJidoWeb.ContentAssistantModalComponent}
+        id={@content_assistant_modal_id}
         current_scope={@current_scope}
         analytics_identity={@analytics_identity}
       />

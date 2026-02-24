@@ -78,8 +78,8 @@ defmodule AgentJido.AnalyticsTest do
 
       {:ok, first} =
         QueryLogs.create_query_log(scope, identity, %{
-          source: "search",
-          channel: "search_page",
+          source: "content_assistant",
+          channel: "content_assistant_page",
           query: "agent retries",
           status: "no_results"
         })
@@ -88,8 +88,8 @@ defmodule AgentJido.AnalyticsTest do
 
       {:ok, second} =
         QueryLogs.create_query_log(scope, identity, %{
-          source: "search",
-          channel: "search_page",
+          source: "content_assistant",
+          channel: "content_assistant_page",
           query: "agent retry strategies",
           status: "success",
           results_count: 3
@@ -99,28 +99,28 @@ defmodule AgentJido.AnalyticsTest do
 
       Analytics.track_feedback_safe(scope, %{
         event: "feedback_submitted",
-        source: "search",
-        channel: "search_page_no_results",
+        source: "content_assistant",
+        channel: "content_assistant_no_results",
         path: "/search",
         feedback_value: "not_helpful",
         feedback_note: "I wanted retry docs",
         query_log_id: first.id,
         visitor_id: "visitor-gap",
         session_id: "session-gap",
-        metadata: %{surface: "search"}
+        metadata: %{surface: "content_assistant"}
       })
 
       Analytics.track_feedback_safe(scope, %{
         event: "feedback_submitted",
-        source: "ask_ai",
-        channel: "ask_ai_modal",
+        source: "content_assistant",
+        channel: "content_assistant_modal",
         path: "/",
         feedback_value: "helpful",
         feedback_note: "Great summary",
         query_log_id: second.id,
         visitor_id: "visitor-gap",
         session_id: "session-gap",
-        metadata: %{surface: "ask_ai"}
+        metadata: %{surface: "content_assistant"}
       })
 
       snapshot = Analytics.dashboard_snapshot(admin_scope, 7, top_limit: 5, gap_limit: 5, reform_limit: 5)

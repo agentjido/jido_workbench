@@ -25,7 +25,7 @@
     <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
     </script>
 
-    <% turnstile_cfg = Application.get_env(:agent_jido, AgentJido.AskAi, [])
+    <% turnstile_cfg = Application.get_env(:agent_jido, AgentJido.ContentAssistant, [])
 
     turnstile_site_key =
       case turnstile_cfg do

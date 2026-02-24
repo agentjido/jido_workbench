@@ -7,10 +7,10 @@ defmodule AgentJido.Analytics.AnalyticsEvent do
   import Ecto.Changeset
 
   @event_values [
-    "search_submitted",
-    "ask_ai_submitted",
-    "search_result_clicked",
-    "ask_ai_citation_clicked",
+    "content_assistant_submitted",
+    "content_assistant_reference_clicked",
+    "content_assistant_answer_link_clicked",
+    "content_assistant_restored",
     "docs_section_viewed",
     "code_copied",
     "livebook_run_clicked",
@@ -18,7 +18,7 @@ defmodule AgentJido.Analytics.AnalyticsEvent do
   ]
 
   @feedback_values ["helpful", "not_helpful"]
-  @feedback_surface_values ["ask_ai", "search", "docs_page"]
+  @feedback_surface_values ["content_assistant", "docs_page"]
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id

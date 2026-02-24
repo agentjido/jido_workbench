@@ -6,6 +6,7 @@ defmodule AgentJidoWeb.Jido.MarketingCards do
 
   attr :name, :string, required: true
   attr :desc, :string, required: true
+  attr :desc_class, :string, default: "text-muted-foreground"
   attr :layer, :atom, values: [:core, :ai, :foundation, :app], required: true
   attr :path, :string, default: nil
   attr :links, :map, default: %{}
@@ -26,7 +27,7 @@ defmodule AgentJidoWeb.Jido.MarketingCards do
         <span class="text-sm font-bold text-foreground group-hover:text-primary transition-colors">{@name}</span>
         <.layer_badge layer={@layer} />
       </div>
-      <p class="text-xs text-muted-foreground leading-relaxed mb-4">{@desc}</p>
+      <p class={"text-xs #{@desc_class} leading-relaxed mb-4"}>{@desc}</p>
 
       <div class="relative z-20 flex gap-2 flex-wrap">
         <%= if @path do %>

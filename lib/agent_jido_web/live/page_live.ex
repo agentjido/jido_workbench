@@ -465,9 +465,39 @@ defmodule AgentJidoWeb.PageLive do
   # --- Events ---
 
   @impl true
+  def handle_event("docs_feedback_select", %{"value" => value}, socket) do
+    case normalize_feedback_value(value) do
+      "helpful" ->
+        {:noreply,
+         assign(socket, :docs_feedback, %{
+           submitted: false,
+           value: "helpful",
+           note: nil
+         })}
+
+      "not_helpful" ->
+        {:noreply,
+         assign(socket, :docs_feedback, %{
+           submitted: false,
+           value: "not_helpful",
+           note: socket.assigns.docs_feedback[:note]
+         })}
+
+      _ ->
+        {:noreply, socket}
+    end
+  end
+
+  @impl true
   def handle_event("submit_docs_feedback", %{"feedback" => feedback_params}, socket) do
     feedback_value = normalize_feedback_value(Map.get(feedback_params, "value"))
-    feedback_note = normalize_feedback_note(Map.get(feedback_params, "note"))
+
+    feedback_note =
+      if feedback_value == "not_helpful" do
+        normalize_feedback_note(Map.get(feedback_params, "note"))
+      else
+        nil
+      end
 
     if feedback_value in ["helpful", "not_helpful"] do
       analytics_module().track_feedback_safe(socket.assigns.current_scope, %{
@@ -515,6 +545,10 @@ defmodule AgentJidoWeb.PageLive do
     value
     |> String.trim()
     |> String.slice(0, 500)
+    |> case do
+      "" -> nil
+      note -> note
+    end
   end
 
   defp normalize_feedback_note(_value), do: nil

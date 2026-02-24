@@ -1,7 +1,7 @@
 %{
   name: "jido_signal",
   title: "Jido Signal",
-  version: "2.0.0-rc.4",
+  version: "2.0.0",
   tagline: "CloudEvents-based event-driven communication toolkit for Elixir",
   license: "Apache-2.0",
   visibility: :public,
@@ -15,12 +15,12 @@
   github_repo: "jido_signal",
   elixir: "~> 1.17",
   maturity: :beta,
-  hex_status: "2.0.0-rc.4",
-  api_stability: "unstable — 2.0 RC, expect breaking changes before stable release",
+  hex_status: "2.0.0",
+  api_stability: "evolving — 2.0 shipped, but expect continued API refinements across early 2.x",
   stub: false,
   support: :maintained,
   limitations: [
-    "2.0 is in release candidate phase — API may change before final release",
+    "Early 2.x hardening may still introduce focused breaking changes",
     "Journal persistence backends are pluggable but no production adapters ship by default"
   ],
   ecosystem_deps: [],

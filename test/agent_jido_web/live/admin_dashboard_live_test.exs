@@ -71,11 +71,11 @@ defmodule AgentJidoWeb.AdminDashboardLiveTest do
     close_browser(other_view)
   end
 
-  test "shows tracked search and Ask AI queries", %{admin_conn: admin_conn} do
+  test "shows tracked content assistant queries", %{admin_conn: admin_conn} do
     {:ok, _} =
       QueryLogs.create_query_log(%{
-        source: "search",
-        channel: "nav_modal",
+        source: "content_assistant",
+        channel: "content_assistant_modal",
         query: "agent supervision",
         status: "success",
         results_count: 4
@@ -83,8 +83,8 @@ defmodule AgentJidoWeb.AdminDashboardLiveTest do
 
     {:ok, _} =
       QueryLogs.create_query_log(%{
-        source: "ask_ai",
-        channel: "ask_ai_modal",
+        source: "content_assistant",
+        channel: "content_assistant_page",
         query: "what is cmd/2?",
         status: "no_results",
         results_count: 0

@@ -1,7 +1,7 @@
 %{
   name: "jido_browser",
   title: "Jido Browser",
-  version: "0.8.1",
+  version: "1.0.0",
   tagline: "Browser automation for AI agents with 26 composable actions",
   license: "Apache-2.0",
   visibility: :public,
@@ -15,8 +15,8 @@
   github_repo: "jido_browser",
   elixir: "~> 1.17",
   maturity: :beta,
-  hex_status: "0.8.1",
-  api_stability: "unstable — pre-1.0, expect breaking changes",
+  hex_status: "1.0.0",
+  api_stability: "evolving — 1.0 shipped, with ongoing API refinements in the 1.x line",
   stub: false,
   support: :maintained,
   limitations: [

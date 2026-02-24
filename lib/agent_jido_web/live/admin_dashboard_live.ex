@@ -134,7 +134,7 @@ defmodule AgentJidoWeb.AdminDashboardLive do
               <div class="space-y-2">
                 <h2 class="text-lg font-semibold text-foreground">Query Tracking</h2>
                 <p class="text-sm text-muted-foreground">
-                  Tracks every Ask AI question and search query submitted through the site.
+                  Tracks every content assistant query submitted through the site.
                 </p>
               </div>
 
@@ -151,11 +151,10 @@ defmodule AgentJidoWeb.AdminDashboardLive do
               Query tracking is temporarily unavailable. Run migrations and refresh.
             </p>
 
-            <div class="grid grid-cols-2 gap-2 text-xs text-muted-foreground md:grid-cols-6">
+            <div class="grid grid-cols-2 gap-2 text-xs text-muted-foreground md:grid-cols-5">
               <span>window: {@query_tracking_snapshot.summary.days}d</span>
               <span>total: {@query_tracking_snapshot.summary.total}</span>
-              <span>search: {@query_tracking_snapshot.summary.search}</span>
-              <span>ask ai: {@query_tracking_snapshot.summary.ask_ai}</span>
+              <span>content assistant: {@query_tracking_snapshot.summary.content_assistant}</span>
               <span>success: {@query_tracking_snapshot.summary.success}</span>
               <span>no results: {@query_tracking_snapshot.summary.no_results}</span>
             </div>
@@ -280,8 +279,7 @@ defmodule AgentJidoWeb.AdminDashboardLive do
     assign(socket, :live_presence, SitePresence.snapshot())
   end
 
-  defp source_label("ask_ai"), do: "Ask AI"
-  defp source_label("search"), do: "Search"
+  defp source_label("content_assistant"), do: "Content Assistant"
   defp source_label(source) when is_binary(source), do: source
   defp source_label(_source), do: "Unknown"
 

@@ -1,7 +1,7 @@
 %{
   name: "jido_action",
   title: "Jido Action",
-  version: "2.0.0-rc.4",
+  version: "2.0.0",
   tagline: "Composable, validated command pattern for Elixir with built-in AI tool integration",
   license: "Apache-2.0",
   visibility: :public,
@@ -15,13 +15,13 @@
   github_repo: "jido_action",
   elixir: "~> 1.17",
   maturity: :beta,
-  hex_status: "2.0.0-rc.4",
-  api_stability: "unstable — 2.0 RC, expect breaking changes before stable release",
+  hex_status: "2.0.0",
+  api_stability: "evolving — 2.0 shipped, but expect continued API refinements across early 2.x",
   stub: false,
   support: :maintained,
   limitations: [
-    "2.0 is in release candidate phase — API may change before final release",
-    "Hex published version (1.0.0) is outdated; current development is on GitHub main branch"
+    "Early 2.x hardening may still introduce focused breaking changes",
+    "2.0.0 introduced breaking changes from 1.x — review migration notes before upgrading"
   ],
   ecosystem_deps: [],
   key_features: [

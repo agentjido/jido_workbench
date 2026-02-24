@@ -15,7 +15,7 @@ defmodule AgentJido.Analytics do
   @default_feedback_limit 30
   @default_prune_days 180
   @failure_statuses ["no_results", "error", "challenge"]
-  @feedback_surfaces ["ask_ai", "search", "docs_page"]
+  @feedback_surfaces ["content_assistant", "docs_page"]
 
   @type dashboard_snapshot :: %{
           days: pos_integer(),

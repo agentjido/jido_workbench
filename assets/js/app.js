@@ -4,7 +4,7 @@ import { LiveSocket } from "phoenix_live_view";
 import topbar from "../vendor/topbar";
 import ScrollSpy from "./hooks/scroll_spy";
 import ScrollReveal from "./hooks/scroll_reveal";
-import AskAiTurnstile from "./hooks/ask_ai_turnstile";
+import ContentAssistantTurnstile from "./hooks/content_assistant_turnstile";
 
 function applyTheme(theme) {
   if (theme === "light") {
@@ -20,7 +20,7 @@ function applyTheme(theme) {
 let Hooks = {
   ScrollSpy,
   ScrollReveal,
-  AskAiTurnstile,
+  ContentAssistantTurnstile,
 };
 
 Hooks.ThemeToggle = {
@@ -189,7 +189,7 @@ function isEditableTarget(target) {
 }
 
 function openPrimaryNavSearch() {
-  const trigger = document.getElementById("primary-nav-search-trigger");
+  const trigger = document.getElementById("primary-nav-content-assistant-trigger");
 
   if (trigger) {
     trigger.click();

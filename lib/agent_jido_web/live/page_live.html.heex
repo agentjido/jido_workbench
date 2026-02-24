@@ -320,41 +320,18 @@ sup = Jido.Supervisor.start_link()
                     </a>
                   <% end %>
                 </div>
-                <div class="w-full max-w-md rounded-md border border-border bg-card/60 p-4 text-xs">
-                  <p class="mb-2 font-semibold text-foreground">Was this page helpful?</p>
-                  <.form for={%{}} as={:feedback} phx-submit="submit_docs_feedback" class="space-y-2">
-                    <div class="flex items-center gap-4">
-                      <label class="inline-flex items-center gap-2">
-                        <input type="radio" name="feedback[value]" value="helpful" checked={@docs_feedback.value == "helpful"} />
-                        <span>Helpful</span>
-                      </label>
-                      <label class="inline-flex items-center gap-2">
-                        <input
-                          type="radio"
-                          name="feedback[value]"
-                          value="not_helpful"
-                          checked={@docs_feedback.value == "not_helpful"}
-                        />
-                        <span>Not helpful</span>
-                      </label>
-                    </div>
-                    <textarea
-                      name="feedback[note]"
-                      rows="2"
-                      maxlength="500"
-                      placeholder="Optional note (what were you trying to learn?)"
-                      class="w-full rounded border border-border bg-background px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground"
-                    >{if @docs_feedback.submitted, do: @docs_feedback.note || "", else: ""}</textarea>
-                    <div class="flex items-center justify-between gap-2">
-                      <button
-                        type="submit"
-                        class="rounded-md border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground hover:border-primary/50"
-                      >
-                        Submit feedback
-                      </button>
-                      <span :if={@docs_feedback.submitted} class="text-emerald-300">Thanks for the feedback.</span>
-                    </div>
-                  </.form>
+                <div class="w-full max-w-md">
+                  <.feedback_prompt
+                    id="docs-page-feedback"
+                    title="Was this page helpful?"
+                    value={@docs_feedback.value}
+                    note={@docs_feedback.note || ""}
+                    submitted={@docs_feedback.submitted}
+                    select_event="docs_feedback_select"
+                    submit_event="submit_docs_feedback"
+                    note_placeholder="What were you trying to learn?"
+                    container_class="rounded-md border border-border bg-card/60 p-4 text-xs"
+                  />
                 </div>
                 <div class="flex flex-wrap items-center justify-end gap-4">
                   <span>Apache License 2.0</span>

@@ -6,6 +6,7 @@ defmodule AgentJido.Examples.Example do
   Frontmatter provides structured metadata; the body contains rendered HTML.
   Each example references a LiveView module for the interactive demo and
   explicitly lists source files to display alongside the explanation.
+  Set `published: false` in frontmatter to keep an example hidden from public routes.
 
   Source files are read and syntax-highlighted at compile time via Makeup,
   ensuring they are available in production releases.
@@ -37,6 +38,9 @@ defmodule AgentJido.Examples.Example do
                   description: "Difficulty level"
                 )
                 |> Zoi.default(:beginner),
+              published:
+                Zoi.boolean(description: "Whether this example is visible on public examples pages")
+                |> Zoi.default(true),
               sort_order:
                 Zoi.integer(description: "Sort order within category")
                 |> Zoi.default(100),
