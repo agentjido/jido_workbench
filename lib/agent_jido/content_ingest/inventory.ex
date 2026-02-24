@@ -108,6 +108,10 @@ defmodule AgentJido.ContentIngest.Inventory do
           "url" => blog_url,
           "source_path" => post.source_path,
           "post_type" => to_string(post.post_type),
+          "journey_stage" => to_string(Map.get(post, :journey_stage)),
+          "content_intent" => to_string(Map.get(post, :content_intent)),
+          "capability_theme" => to_string(Map.get(post, :capability_theme)),
+          "evidence_surface" => to_string(Map.get(post, :evidence_surface)),
           "date" => Date.to_iso8601(post.date),
           "tags" => Enum.map(post.tags || [], &to_string/1)
         }

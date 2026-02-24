@@ -2,7 +2,13 @@
 title: "Jido Signal 1.0 Released",
 author: "Mike Hostetler",
 tags: ~w(agent jido ai elixir signals),
-description: "Jido Signal is now available as a standalone package, extracted from the core Jido library."
+description: "Jido Signal is now available as a standalone package, extracted from the core Jido library.",
+post_type: :release,
+audience: :general,
+journey_stage: :evaluation,
+content_intent: :reference,
+capability_theme: :coordination_orchestration,
+evidence_surface: :package
 }
 
 ---

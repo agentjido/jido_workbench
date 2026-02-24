@@ -1,8 +1,14 @@
 %{
 title: "Introducing ReqLLM: Req Plugins for LLM Interactions",
 author: "Mike Hostetler",
-tags: ~w(agent jido req elixir),
-description: "Easy Req based LLM interactions in Elixir for multiple AI providers"
+tags: ~w(agent jido req_llm llm elixir ai),
+description: "Easy Req based LLM interactions in Elixir for multiple AI providers",
+post_type: :announcement,
+audience: :general,
+journey_stage: :evaluation,
+content_intent: :decision_brief,
+capability_theme: :ai_intelligence,
+evidence_surface: :package
 }
 
 ---

@@ -12,6 +12,8 @@ defmodule AgentJido.Blog do
   alias AgentJido.Blog.Legacy
   alias AgentJido.Blog.Post
   alias AgentJido.Blog.SlugAlias
+  alias AgentJido.Blog.TagAlias
+  alias AgentJido.Blog.Taxonomy
   alias AgentJido.Repo
   alias PhoenixBlog.Post, as: BlogPost
 
@@ -28,7 +30,7 @@ defmodule AgentJido.Blog do
   @spec all_posts() :: [Post.t()]
   def all_posts do
     case published_posts_from_db() do
-      [] -> Legacy.all_posts()
+      [] -> Enum.map(Legacy.all_posts(), &normalize_legacy_post/1)
       posts -> posts
     end
   end
@@ -56,8 +58,9 @@ defmodule AgentJido.Blog do
   @spec get_posts_by_tag!(String.t()) :: [Post.t()]
   def get_posts_by_tag!(tag) when is_binary(tag) do
     normalized_tag = String.trim(tag)
+    canonical_tag = TagAlias.canonical_tag_for(normalized_tag) || Taxonomy.canonical_tag(normalized_tag)
 
-    case Enum.filter(all_posts(), &(normalized_tag in (&1.tags || []))) do
+    case Enum.filter(all_posts(), &(canonical_tag in (&1.tags || []))) do
       [] -> raise NotFoundError, "posts with tag=#{tag} not found"
       posts -> posts
     end
@@ -109,6 +112,8 @@ defmodule AgentJido.Blog do
     body_text = EditorBlocks.body_to_text(body_map)
     description = normalize_string(post.seo_description) || summarize(body_text)
     date = published_date(post)
+    tags = normalize_tags(post.tags)
+    metadata = taxonomy_metadata(body_map, tags)
     word_count = body_text |> tokenize() |> length()
 
     struct(Post,
@@ -117,13 +122,17 @@ defmodule AgentJido.Blog do
       title: normalize_string(post.title) || post.slug,
       body: body_html,
       description: description || "",
-      tags: normalize_tags(post.tags),
+      tags: tags,
       date: date,
       path: source_path(body_map),
       source_path: source_path(body_map),
       is_livebook: map_bool(body_map, "legacy_is_livebook", false),
-      post_type: map_enum(body_map, "legacy_post_type", [:post, :announcement, :release, :tutorial, :case_study], @default_post_type),
-      audience: map_enum(body_map, "legacy_audience", [:general, :beginner, :intermediate, :advanced], @default_audience),
+      post_type: metadata.post_type,
+      audience: metadata.audience,
+      journey_stage: metadata.journey_stage,
+      content_intent: metadata.content_intent,
+      capability_theme: metadata.capability_theme,
+      evidence_surface: metadata.evidence_surface,
       word_count: word_count,
       reading_time_minutes: max(1, div(word_count, 200)),
       related_docs: map_list(body_map, "legacy_related_docs"),
@@ -133,7 +142,7 @@ defmodule AgentJido.Blog do
       seo: %{
         og_description: description,
         og_image: normalize_string(post.featured_image_url),
-        keywords: normalize_tags(post.tags),
+        keywords: tags,
         noindex: false
       },
       quality: %{},
@@ -164,14 +173,58 @@ defmodule AgentJido.Blog do
   defp normalize_body(_body), do: %{"blocks" => []}
 
   defp normalize_tags(tags) when is_list(tags) do
-    tags
-    |> Enum.map(&to_string/1)
-    |> Enum.map(&String.trim/1)
-    |> Enum.reject(&(&1 == ""))
-    |> Enum.uniq()
+    Taxonomy.normalize_tags(tags)
   end
 
   defp normalize_tags(_tags), do: []
+
+  defp taxonomy_metadata(body_map, tags) do
+    Taxonomy.metadata(
+      map_enum(body_map, "legacy_post_type", Taxonomy.post_types(), @default_post_type),
+      map_enum(body_map, "legacy_audience", Taxonomy.audiences(), @default_audience),
+      tags,
+      %{
+        journey_stage: map_string(body_map, "legacy_journey_stage"),
+        content_intent: map_string(body_map, "legacy_content_intent"),
+        capability_theme: map_string(body_map, "legacy_capability_theme"),
+        evidence_surface: map_string(body_map, "legacy_evidence_surface")
+      }
+    )
+  end
+
+  defp normalize_legacy_post(%Post{} = post) do
+    metadata =
+      Taxonomy.metadata(
+        Map.get(post, :post_type, @default_post_type),
+        Map.get(post, :audience, @default_audience),
+        Map.get(post, :tags, []),
+        %{
+          journey_stage: Map.get(post, :journey_stage),
+          content_intent: Map.get(post, :content_intent),
+          capability_theme: Map.get(post, :capability_theme),
+          evidence_surface: Map.get(post, :evidence_surface)
+        }
+      )
+
+    seo =
+      case Map.get(post, :seo, %{}) do
+        value when is_map(value) -> value
+        _ -> %{}
+      end
+      |> Map.put(:keywords, metadata.tags)
+
+    %Post{
+      post
+      | tags: metadata.tags,
+        post_type: metadata.post_type,
+        audience: metadata.audience,
+        journey_stage: metadata.journey_stage,
+        content_intent: metadata.content_intent,
+        capability_theme: metadata.capability_theme,
+        evidence_surface: metadata.evidence_surface,
+        seo: seo
+    }
+  end
 
   defp map_list(body_map, key) do
     case Map.get(body_map, key) do

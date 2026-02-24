@@ -5,7 +5,7 @@ defmodule AgentJido.Repo.Migrations.ImportLegacyBlogContent do
     stats = AgentJido.Blog.LegacyImporter.import!(transaction?: false)
 
     IO.puts(
-      "Legacy blog import migration complete: created=#{stats.created} updated=#{stats.updated} aliases=#{stats.aliases}"
+      "Legacy blog import migration complete: created=#{stats.created} updated=#{stats.updated} aliases=#{stats.aliases} slug_aliases=#{stats.slug_aliases} tag_aliases=#{stats.tag_aliases}"
     )
   end
 

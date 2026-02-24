@@ -29,6 +29,39 @@ defmodule AgentJido.Blog.Post do
                   description: "Target audience level"
                 )
                 |> Zoi.default(:general),
+              journey_stage:
+                Zoi.enum(
+                  [:awareness, :orientation, :evaluation, :activation, :operationalization, :expansion, :advocacy],
+                  description: "Journey stage within the site taxonomy"
+                )
+                |> Zoi.optional(),
+              content_intent:
+                Zoi.enum([:explanation, :guide, :tutorial, :reference, :cookbook, :case_study, :decision_brief],
+                  description: "Editorial intent within the site taxonomy"
+                )
+                |> Zoi.optional(),
+              capability_theme:
+                Zoi.enum(
+                  [
+                    :runtime_foundations,
+                    :reliability_architecture,
+                    :coordination_orchestration,
+                    :operations_observability,
+                    :ai_intelligence,
+                    :execution_tooling,
+                    :integration_interop,
+                    :adoption_architecture,
+                    :learning_enablement,
+                    :community_adoption
+                  ],
+                  description: "Primary capability theme within the site taxonomy"
+                )
+                |> Zoi.optional(),
+              evidence_surface:
+                Zoi.enum([:package, :runnable_example, :training_module, :docs_reference, :runbook, :case_study],
+                  description: "Primary evidence surface within the site taxonomy"
+                )
+                |> Zoi.optional(),
               word_count: Zoi.integer(description: "Number of words in body") |> Zoi.default(0),
               reading_time_minutes: Zoi.integer(description: "Estimated reading time in minutes") |> Zoi.default(0),
               related_docs: Zoi.any(description: "List of related documentation paths") |> Zoi.default([]),

@@ -1,8 +1,14 @@
 %{
 title: "Announcing ReqLLM 1.0",
 author: "Mike Hostetler",
-tags: ~w(elixir llm ai reqllm),
-description: "Announcing ReqLLM 1.0 - a stable, provider-agnostic Elixir library for working with LLMs using familiar patterns."
+tags: ~w(elixir llm ai req_llm),
+description: "Announcing ReqLLM 1.0 - a stable, provider-agnostic Elixir library for working with LLMs using familiar patterns.",
+post_type: :release,
+audience: :general,
+journey_stage: :operationalization,
+content_intent: :reference,
+capability_theme: :ai_intelligence,
+evidence_surface: :package
 }
 
 ---

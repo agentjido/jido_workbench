@@ -1,8 +1,14 @@
 %{
 title: "Building a Weather Agent with Jido",
 author: "Mike Hostetler",
-tags: ~w(agent jido ai elixir langchain),
-description: "A walkthrough of building a simple AI Weather Agent using Jido Actions, Skills, and Langchain integration."
+tags: ~w(agent jido ai llm elixir langchain),
+description: "A walkthrough of building a simple AI Weather Agent using Jido Actions, Skills, and Langchain integration.",
+post_type: :tutorial,
+audience: :beginner,
+journey_stage: :activation,
+content_intent: :tutorial,
+capability_theme: :ai_intelligence,
+evidence_surface: :runnable_example
 }
 
 ---

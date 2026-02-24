@@ -33,12 +33,21 @@ defmodule Mix.Tasks.Blog.ImportLegacy do
     Mix.shell().info("Legacy posts discovered: #{summary.total_posts}")
     Mix.shell().info("Canonical slugs unchanged: #{summary.canonical_unchanged}")
     Mix.shell().info("Legacy redirect aliases: #{summary.alias_count}")
+    Mix.shell().info("Legacy tag aliases: #{summary.tag_alias_count}")
 
     if summary.redirects != [] do
       Mix.shell().info("Redirect mappings:")
 
       Enum.each(summary.redirects, fn redirect ->
         Mix.shell().info("  /blog/#{redirect.legacy_slug} -> /blog/#{redirect.canonical_slug}")
+      end)
+    end
+
+    if summary.tag_redirects != [] do
+      Mix.shell().info("Tag redirect mappings:")
+
+      Enum.each(summary.tag_redirects, fn redirect ->
+        Mix.shell().info("  /blog/tags/#{redirect.legacy_tag} -> /blog/tags/#{redirect.canonical_tag}")
       end)
     end
   end
@@ -48,5 +57,7 @@ defmodule Mix.Tasks.Blog.ImportLegacy do
     Mix.shell().info("  created: #{stats.created}")
     Mix.shell().info("  updated: #{stats.updated}")
     Mix.shell().info("  aliases: #{stats.aliases}")
+    Mix.shell().info("    slug aliases: #{stats.slug_aliases}")
+    Mix.shell().info("    tag aliases: #{stats.tag_aliases}")
   end
 end

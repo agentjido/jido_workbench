@@ -207,6 +207,10 @@ defmodule AgentJido.ContentOntology.Exporter do
           legacy_routes: List.wrap(Map.get(page, :legacy_paths, [])),
           doc_type: map_value(page, :doc_type),
           audience: map_value(page, :audience),
+          journey_stage: map_value(page, :journey_stage),
+          content_intent: map_value(page, :content_intent),
+          capability_theme: map_value(page, :capability_theme),
+          evidence_surface: map_value(page, :evidence_surface),
           difficulty: map_value(page, :difficulty),
           track: map_value(page, :track),
           prerequisites: normalize_ref_list(Map.get(page, :prerequisites, [])),
@@ -248,6 +252,10 @@ defmodule AgentJido.ContentOntology.Exporter do
           legacy_routes: [],
           doc_type: Map.get(post, :post_type),
           audience: Map.get(post, :audience),
+          journey_stage: Map.get(post, :journey_stage),
+          content_intent: Map.get(post, :content_intent),
+          capability_theme: Map.get(post, :capability_theme),
+          evidence_surface: Map.get(post, :evidence_surface),
           difficulty: nil,
           track: nil,
           prerequisites: [],
@@ -290,6 +298,10 @@ defmodule AgentJido.ContentOntology.Exporter do
           legacy_routes: [],
           doc_type: nil,
           audience: nil,
+          journey_stage: nil,
+          content_intent: nil,
+          capability_theme: nil,
+          evidence_surface: nil,
           difficulty: nil,
           track: nil,
           prerequisites: [],
@@ -330,6 +342,10 @@ defmodule AgentJido.ContentOntology.Exporter do
           legacy_routes: [],
           doc_type: nil,
           audience: nil,
+          journey_stage: nil,
+          content_intent: nil,
+          capability_theme: nil,
+          evidence_surface: nil,
           difficulty: Map.get(ex, :difficulty),
           track: nil,
           prerequisites: [],
@@ -462,6 +478,10 @@ defmodule AgentJido.ContentOntology.Exporter do
       |> maybe_add_lit(doc_qn, "ajc:livebookUrl", doc.livebook_url, "xsd:anyURI")
       |> maybe_add_doc_type(doc_qn, doc.doc_type)
       |> maybe_add_audience(doc_qn, doc.audience)
+      |> maybe_add_journey_stage(doc_qn, doc.journey_stage)
+      |> maybe_add_content_intent(doc_qn, doc.content_intent)
+      |> maybe_add_capability_theme(doc_qn, doc.capability_theme)
+      |> maybe_add_evidence_surface(doc_qn, doc.evidence_surface)
       |> maybe_add_difficulty(doc_qn, doc.difficulty)
       |> maybe_add_track(doc_qn, doc.track)
       |> maybe_add_author(doc_qn, doc)
@@ -877,6 +897,40 @@ defmodule AgentJido.ContentOntology.Exporter do
   defp maybe_add_audience(set, doc_qn, value) do
     concept = concept_qname("audience", value, "ajc:AudienceLevel")
     set |> maybe_add_concept(concept, to_string(value), "ajc:AudienceLevel") |> add_obj(doc_qn, "ajc:hasAudienceLevel", concept)
+  end
+
+  defp maybe_add_journey_stage(set, _doc_qn, nil), do: set
+
+  defp maybe_add_journey_stage(set, doc_qn, value) do
+    concept = concept_qname("journey_stage", value, "ajc:JourneyStage")
+    set |> maybe_add_concept(concept, to_string(value), "ajc:JourneyStage") |> add_obj(doc_qn, "ajc:hasJourneyStage", concept)
+  end
+
+  defp maybe_add_content_intent(set, _doc_qn, nil), do: set
+
+  defp maybe_add_content_intent(set, doc_qn, value) do
+    concept = concept_qname("content_intent", value, "ajc:ContentIntent")
+    set |> maybe_add_concept(concept, to_string(value), "ajc:ContentIntent") |> add_obj(doc_qn, "ajc:hasContentIntent", concept)
+  end
+
+  defp maybe_add_capability_theme(set, _doc_qn, nil), do: set
+
+  defp maybe_add_capability_theme(set, doc_qn, value) do
+    concept = concept_qname("capability_theme", value, "ajc:CapabilityTheme")
+
+    set
+    |> maybe_add_concept(concept, to_string(value), "ajc:CapabilityTheme")
+    |> add_obj(doc_qn, "ajc:hasCapabilityTheme", concept)
+  end
+
+  defp maybe_add_evidence_surface(set, _doc_qn, nil), do: set
+
+  defp maybe_add_evidence_surface(set, doc_qn, value) do
+    concept = concept_qname("evidence_surface", value, "ajc:EvidenceSurface")
+
+    set
+    |> maybe_add_concept(concept, to_string(value), "ajc:EvidenceSurface")
+    |> add_obj(doc_qn, "ajc:hasEvidenceSurface", concept)
   end
 
   defp maybe_add_difficulty(set, _doc_qn, nil), do: set

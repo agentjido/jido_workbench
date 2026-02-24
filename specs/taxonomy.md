@@ -395,8 +395,21 @@ Difficulty taxonomy:
 Keep blog taxonomy aligned to `post_type` and `audience` from schema.
 Current state:
 
-- `post_type`: all current posts are `:post`
-- `audience`: all current posts are `:general`
+- `post_type`: currently represented as `:announcement`, `:release`, `:tutorial`, and `:post`
+- `audience`: currently represented as `:general` and `:beginner`
+
+Canonical blog tag policy:
+
+- tags are normalized to lowercase canonical tokens
+- package/topic aliases redirect to canonical tags (for example: `req`, `reqllm`, `req-llm` -> `req_llm`)
+- legacy tag URLs remain valid via permanent redirects
+
+Blog metadata alignment (implemented):
+
+- each post carries `journey_stage`
+- each post carries `content_intent`
+- each post carries `capability_theme`
+- each post carries `evidence_surface`
 
 ## Crosswalk: Feature -> Examples -> Docs -> Ecosystem
 
