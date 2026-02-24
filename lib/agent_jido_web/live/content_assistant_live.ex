@@ -41,6 +41,7 @@ defmodule AgentJidoWeb.ContentAssistantLive do
       |> assign(:assistant_query_log_id, nil)
       |> assign(:assistant_origin, nil)
       |> assign(:assistant_cache_key, nil)
+      |> assign(:pending_submit_query, nil)
       |> assign(:last_query_log_id, nil)
       |> assign(:feedback_value, nil)
       |> assign(:feedback_note, "")
@@ -302,7 +303,9 @@ defmodule AgentJidoWeb.ContentAssistantLive do
         {:noreply, clear_query_state(socket)}
 
       connected?(socket) and should_run_query?(socket, query) ->
-        {:noreply, begin_assistant(socket, query, :url_restore, "")}
+        {socket, origin} = consume_query_origin(socket, query)
+        turnstile_token = if origin == :user_submit, do: socket.assigns.turnstile_token, else: ""
+        {:noreply, begin_assistant(socket, query, origin, turnstile_token)}
 
       true ->
         {:noreply, assign(socket, query: query, query_error: nil)}
@@ -332,9 +335,14 @@ defmodule AgentJidoWeb.ContentAssistantLive do
 
       {:ok, query} ->
         if socket.assigns.url_query == query do
+          socket = assign(socket, :pending_submit_query, nil)
           {:noreply, begin_assistant(socket, query, :user_submit, turnstile_token)}
         else
-          {:noreply, push_patch(assign(socket, :turnstile_token, turnstile_token), to: search_path(query))}
+          {:noreply,
+           socket
+           |> assign(:turnstile_token, turnstile_token)
+           |> assign(:pending_submit_query, query)
+           |> push_patch(to: search_path(query))}
         end
     end
   end
@@ -755,6 +763,14 @@ defmodule AgentJidoWeb.ContentAssistantLive do
 
   defp should_run_query?(_socket, _query), do: false
 
+  defp consume_query_origin(socket, query) do
+    if socket.assigns.pending_submit_query == query do
+      {assign(socket, :pending_submit_query, nil), :user_submit}
+    else
+      {assign(socket, :pending_submit_query, nil), :url_restore}
+    end
+  end
+
   defp search_path(query) when is_binary(query) do
     "/search?" <> URI.encode_query(%{"q" => query})
   end
@@ -768,6 +784,7 @@ defmodule AgentJidoWeb.ContentAssistantLive do
       url_query: "",
       response: nil,
       status: :idle,
+      pending_submit_query: nil,
       last_query_log_id: nil,
       feedback_value: nil,
       feedback_note: "",

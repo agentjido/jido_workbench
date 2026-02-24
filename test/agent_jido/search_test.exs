@@ -287,7 +287,7 @@ defmodule AgentJido.ContentAssistant.RetrievalTest do
 
       fallback_fun = fn _query, _opts -> [fallback_result] end
 
-      assert {:ok, [^fallback_result], :success} =
+      assert {:ok, [^fallback_result], :fallback} =
                Retrieval.query_with_status("arcana", search_fun: search_fun, fallback_fun: fallback_fun)
     end
 

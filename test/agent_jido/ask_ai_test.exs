@@ -56,9 +56,11 @@ defmodule AgentJido.ContentAssistantTest do
     end
 
     test "returns llm response when enhancement succeeds" do
+      test_pid = self()
+
       llm_complete_fun = fn _llm, prompt, _context, opts ->
-        send(self(), {:llm_prompt, prompt})
-        send(self(), {:llm_system_prompt, opts[:system_prompt]})
+        send(test_pid, {:llm_prompt, prompt})
+        send(test_pid, {:llm_system_prompt, opts[:system_prompt]})
         {:ok, "Grounded answer from LLM."}
       end
 
