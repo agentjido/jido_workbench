@@ -56,10 +56,11 @@ defmodule AgentJido.Analytics do
         |> normalize_attrs()
         |> enrich_event_attrs(current_scope)
 
-      with :ok <- ensure_rate_limit(attrs),
-           changeset <- AnalyticsEvent.changeset(%AnalyticsEvent{}, attrs),
-           {:ok, event} <- Repo.insert(changeset) do
-        {:ok, event}
+      changeset = AnalyticsEvent.changeset(%AnalyticsEvent{}, attrs)
+
+      case ensure_rate_limit(attrs) do
+        :ok -> Repo.insert(changeset)
+        {:error, _reason} = error -> error
       end
     end
   end
@@ -246,7 +247,7 @@ defmodule AgentJido.Analytics do
         where:
           q.inserted_at >= ^since and not is_nil(q.session_id) and not is_nil(q.query_hash) and
             q.query_hash != "",
-        order_by: [asc: q.session_id, asc: q.source, asc: q.inserted_at],
+        order_by: [asc: q.session_id, asc: q.source, asc: q.inserted_at, asc: q.id],
         select: %{
           session_id: q.session_id,
           source: q.source,
@@ -262,20 +263,24 @@ defmodule AgentJido.Analytics do
     |> Enum.reduce(%{}, fn {_group_key, entries}, counts ->
       entries
       |> Enum.chunk_every(2, 1, :discard)
-      |> Enum.reduce(counts, fn [previous, current], acc ->
-        within_window? = NaiveDateTime.diff(current.inserted_at, previous.inserted_at, :second) <= 120
-        reformulated? = previous.query_hash != current.query_hash
-
-        if within_window? and reformulated? do
-          Map.update(acc, current.query, 1, &(&1 + 1))
-        else
-          acc
-        end
-      end)
+      |> Enum.reduce(counts, fn [previous, current], acc -> maybe_count_reformulation(acc, previous, current) end)
     end)
     |> Enum.map(fn {query, count} -> %{query: query, count: count} end)
     |> Enum.sort_by(fn row -> {-row.count, row.query || ""} end)
     |> Enum.take(limit)
+  end
+
+  defp maybe_count_reformulation(acc, previous, current) do
+    if reformulation_transition?(previous, current) do
+      Map.update(acc, current.query, 1, &(&1 + 1))
+    else
+      acc
+    end
+  end
+
+  defp reformulation_transition?(previous, current) do
+    NaiveDateTime.diff(current.inserted_at, previous.inserted_at, :second) <= 120 and
+      previous.query_hash != current.query_hash
   end
 
   defp feedback_breakdown(days, limit) do

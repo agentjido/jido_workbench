@@ -9,6 +9,7 @@ defmodule AgentJido.AnalyticsTest do
   alias AgentJido.Analytics.RateLimiter
   alias AgentJido.Analytics.Redactor
   alias AgentJido.QueryLogs
+  alias AgentJido.QueryLogs.QueryLog
   alias AgentJido.Repo
 
   describe "redaction" do
@@ -75,6 +76,7 @@ defmodule AgentJido.AnalyticsTest do
       actor = user_fixture()
       scope = Scope.for_user(actor)
       identity = %{visitor_id: "visitor-gap", session_id: "session-gap", path: "/docs", referrer_host: "agentjido.xyz"}
+      base_time = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
 
       {:ok, first} =
         QueryLogs.create_query_log(scope, identity, %{
@@ -84,6 +86,7 @@ defmodule AgentJido.AnalyticsTest do
           status: "no_results"
         })
 
+      from(q in QueryLog, where: q.id == ^first.id) |> Repo.update_all(set: [inserted_at: base_time])
       QueryLogs.finalize_query_safe(first.id, %{status: "no_results", results_count: 0})
 
       {:ok, second} =
@@ -94,6 +97,9 @@ defmodule AgentJido.AnalyticsTest do
           status: "success",
           results_count: 3
         })
+
+      from(q in QueryLog, where: q.id == ^second.id)
+      |> Repo.update_all(set: [inserted_at: NaiveDateTime.add(base_time, 1, :second)])
 
       QueryLogs.finalize_query_safe(second.id, %{status: "success", results_count: 3})
 
