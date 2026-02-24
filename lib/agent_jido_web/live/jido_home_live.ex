@@ -337,23 +337,23 @@ defmodule AgentJidoWeb.JidoHomeLive do
   defp generate_deps_code(config) do
     deps_str =
       config.deps
-      |> Enum.map(fn {name, version, _note} -> "    {#{name}, #{version}}" end)
-      |> Enum.join(",\n")
+      |> Enum.map_join(",\n", fn {name, version, _note} -> "    {#{name}, #{version}}" end)
 
     "def deps do\n  [\n#{deps_str}\n  ]\nend"
   end
 
   defp render_deps_code(config) do
+    last_index = length(config.deps) - 1
+
     deps_lines =
       config.deps
       |> Enum.with_index()
-      |> Enum.map(fn {{name, version, note}, idx} ->
-        comma = if idx < length(config.deps) - 1, do: ",", else: ""
+      |> Enum.map_join("\n", fn {{name, version, note}, idx} ->
+        comma = if idx < last_index, do: ",", else: ""
         note_html = if note != "", do: ~s( <span class="syntax-comment">#{note}</span>), else: ""
 
         ~s(    &lbrace;<span class="syntax-keyword">#{name}</span>, <span class="syntax-string">#{version}</span>&rbrace;#{comma}#{note_html})
       end)
-      |> Enum.join("\n")
 
     note_line =
       if config.note != "" and Enum.all?(config.deps, fn {_, _, n} -> n == "" end) do
