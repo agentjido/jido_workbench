@@ -923,6 +923,250 @@
     font-weight: 600;
   }
 
+  #home-page .home-quickstart-header {
+    @apply flex flex-col sm:flex-row sm:items-end sm:justify-between;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  #home-page .home-quickstart-summary {
+    color: hsl(var(--muted-foreground));
+    font-size: 0.88rem;
+    line-height: 1.55;
+  }
+
+  #home-page .home-quickstart-guide-link {
+    color: hsl(var(--primary));
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: color 150ms ease;
+    white-space: nowrap;
+  }
+
+  #home-page .home-quickstart-guide-link:hover {
+    color: hsl(var(--foreground));
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  #home-page .home-quickstart-shell {
+    border-color: hsl(var(--code-border) / 0.95);
+  }
+
+  #home-page .home-quickstart-header-link {
+    color: hsl(var(--primary));
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    transition: color 150ms ease;
+  }
+
+  #home-page .home-quickstart-header-link:hover {
+    color: hsl(var(--foreground));
+    text-decoration: underline;
+    text-underline-offset: 0.22em;
+  }
+
+  #home-page .home-quickstart-pane {
+    @apply overflow-x-auto;
+    padding: 1.25rem 1.35rem;
+  }
+
+  #home-page .home-quickstart-code {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    line-height: 1.82;
+    letter-spacing: 0.01em;
+  }
+
+  #home-page .home-quickstart-terminal {
+    @apply border-t;
+    border-color: hsl(var(--code-border) / 0.85);
+    padding: 1.15rem 1.35rem 1.3rem;
+  }
+
+  #home-page .home-quickstart-terminal-content {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    line-height: 1.78;
+    letter-spacing: 0.01em;
+  }
+
+  #home-page .home-quickstart-prompt {
+    color: hsl(var(--primary));
+  }
+
+  #home-page .home-quickstart-input {
+    color: hsl(var(--foreground));
+  }
+
+  #home-page .home-quickstart-output {
+    color: hsl(var(--muted-foreground));
+    opacity: 0.72;
+    margin-left: 3.2ch;
+  }
+
+  #home-page .home-quickstart-spacer {
+    height: 0.62rem;
+  }
+
+  #home-page .home-why-otp-section {
+    padding-top: 0.35rem;
+  }
+
+  #home-page .home-why-otp-header {
+    text-align: center;
+    margin-bottom: 1.7rem;
+  }
+
+  #home-page .home-why-otp-cards {
+    @apply grid;
+    gap: 0.95rem;
+  }
+
+  #home-page .home-why-otp-card {
+    @apply rounded-md border;
+    border-color: hsl(var(--border));
+    background: hsl(var(--background) / 0.56);
+    padding: 1rem 1.15rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.9rem;
+    transition: border-color 160ms ease;
+  }
+
+  #home-page .home-why-otp-card:hover {
+    border-color: hsl(var(--border-strong));
+  }
+
+  #home-page .home-why-otp-icon {
+    width: 2.55rem;
+    height: 2.55rem;
+    border-radius: 0.55rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+    border: 1px solid hsl(var(--border) / 0.45);
+  }
+
+  #home-page .home-why-otp-icon-green {
+    color: hsl(var(--accent-green));
+    border-color: hsl(var(--accent-green) / 0.36);
+    background: hsl(var(--accent-green) / 0.1);
+  }
+
+  #home-page .home-why-otp-icon-yellow {
+    color: hsl(var(--accent-yellow));
+    border-color: hsl(var(--accent-yellow) / 0.36);
+    background: hsl(var(--accent-yellow) / 0.1);
+  }
+
+  #home-page .home-why-otp-icon-cyan {
+    color: hsl(var(--accent-cyan));
+    border-color: hsl(var(--accent-cyan) / 0.36);
+    background: hsl(var(--accent-cyan) / 0.1);
+  }
+
+  #home-page .home-why-otp-title {
+    font-size: 0.96rem;
+    font-weight: 700;
+    margin-bottom: 0.34rem;
+    letter-spacing: 0.01em;
+  }
+
+  #home-page .home-why-otp-desc {
+    color: hsl(var(--muted-foreground));
+    font-size: 0.84rem;
+    line-height: 1.65;
+    max-width: 42rem;
+  }
+
+  #home-page .home-why-otp-links {
+    @apply flex flex-col sm:flex-row sm:justify-center sm:items-center;
+    gap: 0.55rem 1.45rem;
+    margin-top: 1.3rem;
+  }
+
+  #home-page .home-why-otp-link-primary {
+    color: hsl(var(--primary));
+    font-size: 0.76rem;
+    font-weight: 600;
+    transition: color 150ms ease;
+  }
+
+  #home-page .home-why-otp-link-secondary {
+    color: hsl(var(--muted-foreground));
+    font-size: 0.76rem;
+    transition: color 150ms ease;
+  }
+
+  #home-page .home-why-otp-link-primary:hover,
+  #home-page .home-why-otp-link-secondary:hover {
+    color: hsl(var(--foreground));
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+  }
+
+  #home-page .home-build-agent-shell {
+    border: 1px solid hsl(var(--primary) / 0.25);
+    padding: 2.15rem 1.35rem;
+    text-align: center;
+  }
+
+  #home-page .home-build-agent-title {
+    font-size: 1.62rem;
+    font-weight: 700;
+    margin-bottom: 0.7rem;
+    letter-spacing: -0.01em;
+  }
+
+  #home-page .home-build-agent-copy {
+    color: hsl(var(--secondary-foreground));
+    font-size: 0.91rem;
+    line-height: 1.65;
+    margin: 0 auto 1.4rem;
+    max-width: 39rem;
+  }
+
+  #home-page .home-build-agent-actions {
+    @apply flex flex-col sm:flex-row items-center justify-center;
+    gap: 0.62rem;
+  }
+
+  #home-page .home-build-agent-primary {
+    @apply inline-flex items-center justify-center rounded;
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 0.86rem 1.3rem;
+    transition: background-color 150ms ease;
+    letter-spacing: 0.01em;
+  }
+
+  #home-page .home-build-agent-primary:hover {
+    background: hsl(var(--primary) / 0.9);
+  }
+
+  #home-page .home-build-agent-secondary {
+    @apply inline-flex items-center justify-center rounded border;
+    border-color: hsl(var(--border-strong));
+    color: hsl(var(--foreground));
+    font-size: 0.78rem;
+    font-weight: 500;
+    padding: 0.86rem 1.3rem;
+    transition: all 150ms ease;
+    letter-spacing: 0.01em;
+  }
+
+  #home-page .home-build-agent-secondary:hover {
+    border-color: hsl(var(--primary) / 0.45);
+    color: hsl(var(--primary));
+    background: hsl(var(--primary) / 0.08);
+  }
+
   .dark #home-page .home-subtle-link {
     color: hsl(0 0% 72%);
   }
@@ -974,6 +1218,19 @@
     color: hsl(var(--foreground));
   }
 
+  .light #home-page .home-why-otp-card {
+    background: hsl(var(--surface) / 0.88);
+    border-color: hsl(var(--border) / 0.84);
+  }
+
+  .light #home-page .home-build-agent-shell {
+    border-color: hsl(var(--primary) / 0.32);
+  }
+
+  .light #home-page .home-build-agent-secondary {
+    border-color: hsl(var(--border) / 0.82);
+  }
+
   .dark .home-layout footer .text-muted-foreground {
     color: hsl(0 0% 58%) !important;
   }
@@ -1022,6 +1279,49 @@
 
     #home-page .home-ecosystem-core-copy {
       font-size: 0.82rem;
+      width: 100%;
+    }
+
+    #home-page .home-quickstart-pane,
+    #home-page .home-quickstart-terminal {
+      padding-left: 0.82rem;
+      padding-right: 0.82rem;
+    }
+
+    #home-page .home-quickstart-code,
+    #home-page .home-quickstart-terminal-content {
+      font-size: 0.72rem;
+      line-height: 1.72;
+    }
+
+    #home-page .home-quickstart-output {
+      margin-left: 1.9ch;
+    }
+
+    #home-page .home-why-otp-card {
+      padding: 0.84rem 0.76rem;
+      gap: 0.72rem;
+    }
+
+    #home-page .home-why-otp-icon {
+      width: 2.2rem;
+      height: 2.2rem;
+      font-size: 1.02rem;
+    }
+
+    #home-page .home-build-agent-shell {
+      padding: 1.5rem 0.82rem;
+    }
+
+    #home-page .home-build-agent-title {
+      font-size: 1.34rem;
+    }
+
+    #home-page .home-build-agent-copy {
+      font-size: 0.84rem;
+    }
+
+    #home-page .home-build-agent-actions > a {
       width: 100%;
     }
   }

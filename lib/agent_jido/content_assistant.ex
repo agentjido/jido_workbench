@@ -470,6 +470,7 @@ defmodule AgentJido.ContentAssistant do
     citations = Keyword.fetch!(attrs, :citations)
     link_source = Keyword.get(attrs, :link_source, @default_link_source)
     link_channel = Keyword.get(attrs, :link_channel, "content_assistant")
+
     html =
       markdown
       |> markdown_to_html()

@@ -67,6 +67,44 @@ defmodule AgentJidoWeb.PageLiveTest do
     end
   end
 
+  describe "home quick start and cta sections" do
+    test "renders quick start section with define and terminal blocks", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/")
+
+      assert html =~ ~s(id="quick-start")
+      assert html =~ "Quick start"
+      assert html =~ "Define an agent, start it supervised, ask it questions."
+      assert html =~ "lib/my_app/weather_agent.ex"
+      assert html =~ "iex -S mix"
+      assert html =~ "View full example"
+      assert html =~ ~s(href="/training/agent-fundamentals")
+    end
+
+    test "renders why elixir section with expected feature links", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/")
+
+      assert html =~ ~s(id="why-elixir-otp")
+      assert html =~ "Why Elixir/OTP"
+      assert html =~ "Process isolation"
+      assert html =~ "OTP supervision"
+      assert html =~ "Fault-tolerant concurrency"
+      assert html =~ ~s(href="/features/beam-native-agent-model")
+      assert html =~ ~s(href="/features/beam-for-ai-builders")
+    end
+
+    test "renders reusable build your first agent cta", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/")
+
+      assert html =~ ~s(id="cta")
+      assert html =~ ~s(id="home-build-agent-cta")
+      assert html =~ "Build your first agent"
+      assert html =~ "GET BUILDING"
+      assert html =~ "START TRAINING"
+      assert html =~ ~s(href="/docs/getting-started")
+      assert html =~ ~s(href="/training")
+    end
+  end
+
   describe "footer metadata" do
     test "marketing footer reflects legal and ecosystem updates", %{conn: conn} do
       {:ok, _view, html} = live(conn, "/features")

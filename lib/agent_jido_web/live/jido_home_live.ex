@@ -3,6 +3,7 @@ defmodule AgentJidoWeb.JidoHomeLive do
 
   alias AgentJido.LandingContent
 
+  import AgentJidoWeb.Jido.HomeSections
   import AgentJidoWeb.Jido.MarketingLayouts
 
   @impl true
@@ -36,9 +37,9 @@ defmodule AgentJidoWeb.JidoHomeLive do
         <.pillars_section />
         <.ecosystem_section ecosystem_overview={@ecosystem_overview} />
         <.install_section install_tab={@install_tab} />
-        <.why_elixir_otp_section />
         <.quick_start_code />
-        <.cta_section />
+        <.why_elixir_otp_section />
+        <.build_first_agent_cta />
       </div>
     </.marketing_layout>
     """
@@ -380,53 +381,53 @@ defmodule AgentJidoWeb.JidoHomeLive do
         icon: "◉",
         title: "Process isolation",
         desc: "Each agent runs in its own BEAM process with isolated state and memory. One agent failing never corrupts another.",
-        color_class: "text-accent-green"
+        tone: :green
       },
       %{
         icon: "⟳",
         title: "OTP supervision",
         desc: "Supervisors restart crashed agents in milliseconds with clean state. Failure containment and recovery are built into the runtime.",
-        color_class: "text-accent-yellow"
+        tone: :yellow
       },
       %{
         icon: "⚡",
         title: "Fault-tolerant concurrency",
         desc: "The BEAM's preemptive scheduler handles thousands of long-lived agent processes with true parallelism on multi-core hardware.",
-        color_class: "text-accent-cyan"
+        tone: :cyan
       }
     ]
 
     assigns = assign(assigns, :features, features)
 
     ~H"""
-    <section id="why-elixir-otp" class="mb-16 opacity-0" phx-hook="ScrollReveal">
-      <div class="text-center mb-10">
+    <section id="why-elixir-otp" class="home-why-otp-section mb-16 opacity-0" phx-hook="ScrollReveal">
+      <div class="home-why-otp-header">
         <h2 class="text-2xl font-bold tracking-tight mb-3">Why Elixir/OTP</h2>
-        <p class="home-muted-copy text-sm">
+        <p class="home-muted-copy text-sm max-w-md mx-auto leading-relaxed">
           The runtime model that makes reliability claims credible.
         </p>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <%= for feature <- @features do %>
-          <div class="feature-card text-center">
-            <div class={"text-2xl mb-4 #{feature.color_class}"}>{feature.icon}</div>
-            <div class="font-bold text-sm mb-2">{feature.title}</div>
-            <p class="home-muted-copy text-[13px] leading-relaxed">{feature.desc}</p>
+      <div class="home-why-otp-cards">
+        <article :for={feature <- @features} class="home-why-otp-card">
+          <div class={"home-why-otp-icon home-why-otp-icon-#{feature.tone}"}>{feature.icon}</div>
+          <div>
+            <h3 class="home-why-otp-title">{feature.title}</h3>
+            <p class="home-why-otp-desc">{feature.desc}</p>
           </div>
-        <% end %>
+        </article>
       </div>
 
-      <div class="flex justify-center gap-6 mt-6">
+      <div class="home-why-otp-links">
         <.link
           navigate="/features/beam-native-agent-model"
-          class="text-primary text-sm hover:underline"
+          class="home-why-otp-link-primary"
         >
           The BEAM-native agent model →
         </.link>
         <.link
           navigate="/features/beam-for-ai-builders"
-          class="text-primary text-sm hover:underline"
+          class="home-why-otp-link-secondary"
         >
           Why Elixir/OTP for agent workloads →
         </.link>
@@ -435,69 +436,91 @@ defmodule AgentJidoWeb.JidoHomeLive do
     """
   end
 
-  # credo:disable-for-next-line Credo.Check.Readability.MaxLineLength
-  @quick_start_html "<span class=\"syntax-keyword\">defmodule</span> <span class=\"syntax-type\">MyApp.WeatherAgent</span> <span class=\"syntax-keyword\">do</span>\n  <span class=\"syntax-keyword\">use</span> <span class=\"syntax-type\">Jido.AI.Agent</span>,\n    name: <span class=\"syntax-string\">\"weather_agent\"</span>,\n    description: <span class=\"syntax-string\">\"Weather Q&amp;A agent\"</span>,\n    tools: &lbrack;<span class=\"syntax-type\">Jido.Tools.Weather.Forecast</span>,\n           <span class=\"syntax-type\">Jido.Tools.Weather.CurrentConditions</span>&rbrack;,\n    system_prompt: <span class=\"syntax-string\">\"You are a weather planning assistant.\"</span>\n<span class=\"syntax-keyword\">end</span>\n\n<span class=\"syntax-comment\"># Start a supervised agent — isolated process, automatic restarts</span>\n&lbrace;<span class=\"syntax-atom\">:ok</span>, pid&rbrace; = <span class=\"syntax-type\">Jido.AgentServer</span>.start(agent: <span class=\"syntax-type\">MyApp.WeatherAgent</span>)\n\n<span class=\"syntax-comment\"># Async: send query, get a request handle back</span>\n&lbrace;<span class=\"syntax-atom\">:ok</span>, request&rbrace; = <span class=\"syntax-type\">MyApp.WeatherAgent</span>.ask(pid, <span class=\"syntax-string\">\"What's the weather in Tokyo?\"</span>)\n&lbrace;<span class=\"syntax-atom\">:ok</span>, answer&rbrace; = <span class=\"syntax-type\">MyApp.WeatherAgent</span>.await(request)\n\n<span class=\"syntax-comment\"># Or sync for simple cases</span>\n&lbrace;<span class=\"syntax-atom\">:ok</span>, answer&rbrace; = <span class=\"syntax-type\">MyApp.WeatherAgent</span>.ask_sync(pid, <span class=\"syntax-string\">\"Should I bring an umbrella?\"</span>)"
+  @quick_start_define_html ~S"""
+  <span class="syntax-keyword">defmodule</span> <span class="syntax-type">MyApp.WeatherAgent</span> <span class="syntax-keyword">do</span>
+    <span class="syntax-keyword">use</span> <span class="syntax-type">Jido.AI.Agent</span>,
+      name: <span class="syntax-string">"weather_agent"</span>,
+      description: <span class="syntax-string">"Weather Q&amp;A agent"</span>,
+      tools: &lbrack;<span class="syntax-type">Jido.Tools.Weather.Forecast</span>,
+             <span class="syntax-type">Jido.Tools.Weather.CurrentConditions</span>&rbrack;,
+      system_prompt: <span class="syntax-string">"You are a weather planning assistant."</span>
+  <span class="syntax-keyword">end</span>
+  """
+
+  @quick_start_terminal_lines [
+    %{type: :comment, text: "# Start a supervised agent"},
+    %{type: :input, text: "{:ok, pid} = Jido.AgentServer.start(agent: MyApp.WeatherAgent)"},
+    %{type: :output, text: "{:ok, #PID<0.452.0>}"},
+    %{type: :spacer, text: nil},
+    %{type: :comment, text: "# Async ask"},
+    %{type: :input, text: "MyApp.WeatherAgent.ask(pid, \"Weather in Tokyo?\")"},
+    %{type: :output, text: "{:ok, \"Currently 18 C, partly cloudy. Rain expected tonight.\"}"},
+    %{type: :spacer, text: nil},
+    %{type: :comment, text: "# Sync shorthand"},
+    %{type: :input, text: "MyApp.WeatherAgent.ask_sync(pid, \"Umbrella?\")"},
+    %{type: :output, text: "{:ok, \"Yes - 80% chance of rain after 6pm.\"}"}
+  ]
 
   defp quick_start_code(assigns) do
-    assigns = assign(assigns, :code_html, Phoenix.HTML.raw(@quick_start_html))
+    assigns =
+      assigns
+      |> assign(:define_code_html, Phoenix.HTML.raw(String.trim(@quick_start_define_html)))
+      |> assign(:terminal_lines, @quick_start_terminal_lines)
 
     ~H"""
-    <section id="quick-start" class="mb-16 opacity-0" phx-hook="ScrollReveal">
-      <div class="flex justify-between items-center mb-5">
-        <h2 class="text-xl font-bold tracking-tight">Quick start</h2>
-        <.link navigate="/docs/getting-started" class="text-primary text-sm hover:underline">
+    <section id="quick-start" class="home-quickstart-section mb-16 opacity-0" phx-hook="ScrollReveal">
+      <div class="home-quickstart-header">
+        <div>
+          <h2 class="text-2xl font-bold tracking-tight mb-2">Quick start</h2>
+          <p class="home-quickstart-summary">
+            Define an agent, start it supervised, ask it questions.
+          </p>
+        </div>
+        <.link navigate="/docs/getting-started" class="home-quickstart-guide-link">
           full getting started guide →
         </.link>
       </div>
 
-      <div class="code-block overflow-hidden">
+      <div class="code-block overflow-hidden home-quickstart-shell">
         <div class="code-header">
           <span class="home-muted-copy text-xs">lib/my_app/weather_agent.ex</span>
-          <div class="flex gap-3">
-            <.link
-              navigate="/training/agent-fundamentals"
-              class="text-primary text-[10px] hover:underline"
-            >
+          <.link navigate="/docs/getting-started" class="home-quickstart-header-link">
+            View full example →
+          </.link>
+        </div>
+        <div class="home-quickstart-pane">
+          <pre class="home-quickstart-code"><code><%= @define_code_html %></code></pre>
+        </div>
+
+        <div class="code-header mt-1">
+          <span class="home-muted-copy text-xs">iex -S mix</span>
+          <div class="flex items-center gap-3">
+            <.link navigate="/training/agent-fundamentals" class="home-quickstart-header-link">
               TRAINING
             </.link>
-            <.link
-              navigate="/docs"
-              class="home-subtle-link text-[10px]"
-            >
+            <.link navigate="/docs" class="home-subtle-link text-[10px]">
               DOCS
             </.link>
           </div>
         </div>
-        <div class="p-6 overflow-x-auto">
-          <pre class="text-xs leading-relaxed"><code><%= @code_html %></code></pre>
-        </div>
-      </div>
-    </section>
-    """
-  end
-
-  defp cta_section(assigns) do
-    ~H"""
-    <section id="cta" class="mb-16 opacity-0" phx-hook="ScrollReveal">
-      <div class="cta-glow rounded-lg p-12 text-center">
-        <h2 class="text-2xl font-bold mb-3">Build your first agent</h2>
-        <p class="text-secondary-foreground text-sm mb-6 max-w-md mx-auto">
-          Go from zero to a supervised, fault-tolerant agent workflow.
-          Start with the getting started guide or explore the training modules.
-        </p>
-        <div class="flex gap-3 justify-center">
-          <.link
-            navigate="/docs/getting-started"
-            class="bg-primary text-primary-foreground hover:bg-primary/90 text-[13px] font-bold px-7 py-5 rounded transition-colors"
-          >
-            GET BUILDING →
-          </.link>
-          <.link
-            navigate="/training"
-            class="border border-border-strong text-foreground hover:border-primary/40 hover:text-primary hover:bg-primary/10 text-[13px] font-medium px-7 py-5 rounded transition-colors"
-          >
-            START TRAINING
-          </.link>
+        <div class="home-quickstart-terminal">
+          <div class="home-quickstart-terminal-content">
+            <%= for line <- @terminal_lines do %>
+              <%= case line.type do %>
+                <% :spacer -> %>
+                  <div class="home-quickstart-spacer" aria-hidden="true"></div>
+                <% :comment -> %>
+                  <div class="syntax-comment">{line.text}</div>
+                <% :output -> %>
+                  <div class="home-quickstart-output">{line.text}</div>
+                <% :input -> %>
+                  <div>
+                    <span class="home-quickstart-prompt">iex&gt; </span>
+                    <span class="home-quickstart-input">{line.text}</span>
+                  </div>
+              <% end %>
+            <% end %>
+          </div>
         </div>
       </div>
     </section>
