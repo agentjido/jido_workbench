@@ -13,14 +13,8 @@ defmodule AgentJidoWeb.JidoHomeLive do
        page_title: "A Runtime for Reliable Multi-Agent Systems",
        meta_description:
          "Jido is a runtime for reliable, multi-agent systems, built on Elixir/OTP for fault isolation, concurrency, and production uptime.",
-       install_tab: "full",
        ecosystem_overview: LandingContent.home_ecosystem_overview()
      )}
-  end
-
-  @impl true
-  def handle_event("select_install_tab", %{"tab" => tab}, socket) do
-    {:noreply, assign(socket, install_tab: tab)}
   end
 
   @impl true
@@ -36,7 +30,6 @@ defmodule AgentJidoWeb.JidoHomeLive do
         <.hero_section />
         <.pillars_section />
         <.ecosystem_section ecosystem_overview={@ecosystem_overview} />
-        <.install_section install_tab={@install_tab} />
         <.quick_start_code />
         <.why_elixir_otp_section />
         <.build_first_agent_cta />
@@ -256,124 +249,6 @@ defmodule AgentJidoWeb.JidoHomeLive do
 
   defp package_count_label(1), do: "1 pkg"
   defp package_count_label(count), do: "#{count} pkgs"
-
-  defp install_section(assigns) do
-    install_configs = %{
-      "full" => %{
-        comment: "# Full stack: LLM-powered agents",
-        deps: [{":jido_ai", ~s("~> 0.1.0"), ""}],
-        note: "# includes jido, req_llm, llm_db"
-      },
-      "core" => %{
-        comment: "# Core only: runtime without LLM dependencies",
-        deps: [{":jido", ~s("~> 0.1.0"), ""}],
-        note: "# agent runtime, supervision, orchestration"
-      },
-      "custom" => %{
-        comment: "# Custom: adopt what you need",
-        deps: [
-          {":jido", ~s("~> 0.1.0"), "# runtime"},
-          {":jido_action", ~s("~> 0.1.0"), "# typed actions"},
-          {":jido_signal", ~s("~> 0.1.0"), "# signal routing"},
-          {":req_llm", ~s("~> 0.1.0"), "# LLM client"}
-        ],
-        note: ""
-      }
-    }
-
-    assigns = assign(assigns, :config, Map.get(install_configs, assigns.install_tab))
-
-    ~H"""
-    <section id="install-section" class="mb-16 opacity-0" phx-hook="ScrollReveal">
-      <div class="mb-5">
-        <h2 class="text-xl font-bold tracking-tight mb-2">Choose your stack</h2>
-        <p class="home-muted-copy text-sm">
-          Adopt only what you need now, expand safely later.
-        </p>
-      </div>
-
-      <div class="flex gap-1 mb-4">
-        <button
-          phx-click="select_install_tab"
-          phx-value-tab="full"
-          class={"px-5 py-2.5 rounded text-[11px] font-semibold transition-colors border #{if @install_tab == "full", do: "border-primary bg-primary/10 text-primary", else: "border-border text-secondary-foreground hover:text-foreground"}"}
-        >
-          AI AGENTS
-        </button>
-        <button
-          phx-click="select_install_tab"
-          phx-value-tab="core"
-          class={"px-5 py-2.5 rounded text-[11px] font-semibold transition-colors border #{if @install_tab == "core", do: "border-primary bg-primary/10 text-primary", else: "border-border text-secondary-foreground hover:text-foreground"}"}
-        >
-          CORE RUNTIME
-        </button>
-        <button
-          phx-click="select_install_tab"
-          phx-value-tab="custom"
-          class={"px-5 py-2.5 rounded text-[11px] font-semibold transition-colors border #{if @install_tab == "custom", do: "border-primary bg-primary/10 text-primary", else: "border-border text-secondary-foreground hover:text-foreground"}"}
-        >
-          CUSTOM
-        </button>
-      </div>
-
-      <div class="code-block overflow-hidden">
-        <div class="code-header">
-          <span class="home-muted-copy text-xs">mix.exs</span>
-          <button
-            data-copy-button
-            data-content={generate_deps_code(@config)}
-            class="bg-surface border border-border text-secondary-foreground px-3 py-1 rounded text-[10px] hover:text-foreground transition-colors"
-          >
-            COPY
-          </button>
-        </div>
-        <div class="p-5">
-          <pre class="text-[13px] leading-relaxed"><%= render_deps_code(@config) %></pre>
-        </div>
-      </div>
-    </section>
-    """
-  end
-
-  defp generate_deps_code(config) do
-    deps_str =
-      config.deps
-      |> Enum.map_join(",\n", fn {name, version, _note} -> "    {#{name}, #{version}}" end)
-
-    "def deps do\n  [\n#{deps_str}\n  ]\nend"
-  end
-
-  defp render_deps_code(config) do
-    last_index = length(config.deps) - 1
-
-    deps_lines =
-      config.deps
-      |> Enum.with_index()
-      |> Enum.map_join("\n", fn {{name, version, note}, idx} ->
-        comma = if idx < last_index, do: ",", else: ""
-        note_html = if note != "", do: ~s( <span class="syntax-comment">#{note}</span>), else: ""
-
-        ~s(    &lbrace;<span class="syntax-keyword">#{name}</span>, <span class="syntax-string">#{version}</span>&rbrace;#{comma}#{note_html})
-      end)
-
-    note_line =
-      if config.note != "" and Enum.all?(config.deps, fn {_, _, n} -> n == "" end) do
-        ~s(\n    <span class="syntax-comment">#{config.note}</span>)
-      else
-        ""
-      end
-
-    html = """
-    <span class="syntax-comment">#{config.comment}</span>
-    <span class="syntax-keyword">def</span> <span class="syntax-function">deps</span> <span class="syntax-keyword">do</span>
-      &lbrack;
-    #{deps_lines}#{note_line}
-      &rbrack;
-    <span class="syntax-keyword">end</span>
-    """
-
-    Phoenix.HTML.raw(html)
-  end
 
   defp why_elixir_otp_section(assigns) do
     features = [

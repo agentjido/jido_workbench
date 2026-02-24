@@ -681,6 +681,7 @@ defmodule AgentJidoWeb.CoreComponents do
     |> show("##{id}-container")
     |> JS.add_class("overflow-hidden", to: "body")
     |> JS.focus_first(to: "##{id}-content")
+    |> JS.focus(to: "##{id}-input")
   end
 
   def hide_modal(js \\ %JS{}, id) do

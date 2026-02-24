@@ -340,6 +340,7 @@ defmodule AgentJidoWeb.ContentAssistantLiveTest do
     test "home header exposes unified content assistant trigger", %{conn: conn} do
       {:ok, _view, html} = live(conn, "/")
       assert html =~ ~s(id="primary-nav-content-assistant-trigger")
+      assert html =~ "Cmd+K"
       refute html =~ ~s(id="primary-nav-search-trigger")
       refute html =~ "Ask AI"
       refute html =~ ~s(href="/search")
@@ -348,6 +349,7 @@ defmodule AgentJidoWeb.ContentAssistantLiveTest do
     test "docs header exposes unified content assistant trigger", %{conn: conn} do
       {:ok, _view, html} = live(conn, "/docs")
       assert html =~ ~s(id="primary-nav-content-assistant-trigger")
+      assert html =~ "Cmd+K"
       refute html =~ ~s(id="primary-nav-search-trigger")
       refute html =~ "Ask AI"
       refute html =~ ~s(href="/search")

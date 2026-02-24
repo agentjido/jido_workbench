@@ -41,4 +41,33 @@ defmodule AgentJido.OGImageTest do
     assert svg =~ "&gt;"
     refute svg =~ "<script>alert(\"xss\")</script>"
   end
+
+  test "svg wraps and truncates long copy with bounded multiline tspans" do
+    long_token = String.duplicate("supercalifragilisticexpialidocious", 8)
+
+    descriptor = %Descriptor{
+      template: :marketing,
+      title: long_token,
+      subtitle:
+        "This subtitle is intentionally long so it should wrap onto multiple lines and then truncate with an ellipsis when it exceeds the bounded Open Graph text region.",
+      eyebrow: "FEATURES",
+      footer_url: "agentjido.xyz/features",
+      badges: ["alpha", "beta", "gamma", "delta"],
+      content_hash: "abc123",
+      cache_key: "v5:path=/features:hash=abc123",
+      resolved_path: "/features"
+    }
+
+    svg = Templates.render_svg(descriptor)
+
+    assert svg =~ "<text x=\"90\" y=\"198\""
+    assert svg =~ "..."
+    refute svg =~ long_token
+
+    [[title_block]] =
+      Regex.scan(~r/<text x="90" y="198"[^>]*>(.*?)<\/text>/s, svg, capture: :all_but_first)
+
+    title_tspan_count = Regex.scan(~r/<tspan /, title_block) |> length()
+    assert title_tspan_count == 2
+  end
 end

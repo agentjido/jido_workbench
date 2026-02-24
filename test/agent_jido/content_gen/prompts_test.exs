@@ -1,5 +1,5 @@
 defmodule AgentJido.ContentGen.PromptsTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   alias AgentJido.ContentGen.Prompts
 

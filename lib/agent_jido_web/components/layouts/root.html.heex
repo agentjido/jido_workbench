@@ -69,6 +69,7 @@
 
     endpoint_url = AgentJidoWeb.Endpoint.url()
 
+    # Social platforms can keep stale previews for some time even after OG image changes.
     default_og_image =
       case request_path do
         "/" -> endpoint_url <> "/og/render/home"

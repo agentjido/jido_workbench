@@ -11,7 +11,7 @@ defmodule AgentJido.OGImage.Resolver do
   alias AgentJido.OGImage.Descriptor
   alias AgentJido.Pages
 
-  @og_render_version "v4"
+  @og_render_version "v5"
 
   @top_level_routes %{
     "/" => %{

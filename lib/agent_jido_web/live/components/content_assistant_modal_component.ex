@@ -221,17 +221,6 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
         <:subtitle>Search docs, blog posts, and ecosystem packages, then chat with the results.</:subtitle>
 
         <div class="mt-6 space-y-4">
-          <div class="flex items-center justify-end">
-            <button
-              type="button"
-              phx-click="new_topic"
-              phx-target={@myself}
-              class="rounded-md border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground hover:border-primary/50"
-            >
-              New topic
-            </button>
-          </div>
-
           <.form for={%{}} as={:assistant} phx-submit="submit" phx-target={@myself}>
             <div class="space-y-3">
               <input
@@ -308,7 +297,7 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
             </div>
 
             <div class="rounded-xl border border-border bg-background/70 p-4">
-              <div class="prose prose-sm max-w-none text-foreground prose-headings:text-foreground prose-p:text-foreground prose-li:text-foreground prose-a:text-primary">
+              <div class="prose prose-sm content-assistant-prose max-w-none text-foreground prose-headings:text-foreground prose-p:text-foreground prose-li:text-foreground prose-a:text-primary">
                 {Phoenix.HTML.raw(@response.answer_html || "")}
               </div>
             </div>

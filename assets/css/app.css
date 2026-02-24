@@ -1003,7 +1003,7 @@
   #home-page .home-quickstart-output {
     color: hsl(var(--muted-foreground));
     opacity: 0.72;
-    margin-left: 3.2ch;
+    padding-left: 5ch;
   }
 
   #home-page .home-quickstart-spacer {
@@ -1295,7 +1295,7 @@
     }
 
     #home-page .home-quickstart-output {
-      margin-left: 1.9ch;
+      padding-left: 4.2ch;
     }
 
     #home-page .home-why-otp-card {
@@ -1714,14 +1714,42 @@
     margin-bottom: 0.34rem;
   }
 
+  .content-assistant-prose.prose :where(code):not(:where(pre code)) {
+    font-size: 0.9em;
+    font-weight: 600;
+    color: hsl(var(--accent-cyan));
+    background: hsl(var(--accent-cyan) / 0.12);
+    border: 1px solid hsl(var(--accent-cyan) / 0.3);
+    border-radius: 0.35rem;
+    padding: 0.08rem 0.3rem;
+  }
+
+  .content-assistant-prose.prose :where(code):not(:where(pre code))::before,
+  .content-assistant-prose.prose :where(code):not(:where(pre code))::after {
+    content: none;
+  }
+
   .content-assistant-prose.prose a {
     text-decoration: underline;
     text-underline-offset: 0.2em;
     text-decoration-thickness: 0.07em;
   }
 
+  .content-assistant-prose.prose a code {
+    color: hsl(var(--accent-green));
+    background: hsl(var(--accent-green) / 0.18);
+    border-color: hsl(var(--accent-green) / 0.45);
+    box-shadow: inset 0 0 0 1px hsl(var(--accent-green) / 0.14);
+    font-weight: 700;
+  }
+
   .content-assistant-prose.prose a:hover {
     color: hsl(var(--accent-cyan));
+  }
+
+  .content-assistant-prose.prose a:hover code {
+    color: hsl(var(--foreground));
+    background: hsl(var(--accent-green) / 0.28);
   }
 
   @media (max-width: 640px) {

@@ -157,7 +157,11 @@ defmodule AgentJidoWeb.Jido.Nav do
             title="Search and ask (Ctrl/Cmd+K)"
           >
             <.icon name="hero-magnifying-glass" class="h-3.5 w-3.5" />
-            <.icon name="hero-sparkles" class="h-3 w-3" /> Search
+            <.icon name="hero-sparkles" class="h-3 w-3" />
+            <span>Search</span>
+            <span class="ml-1 hidden rounded border border-primary/30 bg-primary/5 px-1.5 py-0.5 text-[10px] font-normal text-primary/80 lg:inline-flex">
+              Cmd+K
+            </span>
           </button>
 
           <a

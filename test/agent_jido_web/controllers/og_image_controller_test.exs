@@ -53,6 +53,26 @@ defmodule AgentJidoWeb.OGImageControllerTest do
     assert Enum.any?(get_resp_header(conn, "content-type"), &String.starts_with?(&1, "image/png"))
   end
 
+  test "long content routes return PNG responses", %{conn: _conn} do
+    longest_blog_slug =
+      Blog.all_posts()
+      |> Enum.max_by(&String.length(to_string(&1.title || "")))
+      |> Map.fetch!(:id)
+
+    docs_path =
+      Pages.pages_by_category(:docs)
+      |> Enum.max_by(&String.length(to_string(&1.description || "")))
+      |> Pages.route_for()
+
+    for path <- ["/og/render/blog/#{longest_blog_slug}", "/og/render#{docs_path}"] do
+      test_conn = build_conn() |> get(path)
+
+      assert response(test_conn, 200)
+      assert Enum.any?(get_resp_header(test_conn, "content-type"), &String.starts_with?(&1, "image/png"))
+      assert get_resp_header(test_conn, "etag") != []
+    end
+  end
+
   test "unknown render paths return fallback PNG (200)", %{conn: conn} do
     log =
       capture_log(fn ->
