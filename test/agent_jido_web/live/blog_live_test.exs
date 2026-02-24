@@ -11,7 +11,7 @@ defmodule AgentJidoWeb.BlogLiveTest do
       post_path = ~p"/blog/#{post.id}"
 
       {:ok, view, html} = live(conn, ~p"/blog")
-      assert html =~ "Listing all posts"
+      assert html =~ "Engineering Blog"
       assert html =~ ~s(href="/features")
       assert html =~ ~s(href="/ecosystem")
       assert html =~ ~s(href="/examples")
@@ -31,7 +31,7 @@ defmodule AgentJidoWeb.BlogLiveTest do
       |> render_click()
 
       assert_patch(view, ~p"/blog")
-      assert render(view) =~ "Listing all posts"
+      assert render(view) =~ "Engineering Blog"
     end
 
     test "blog tag page mounts as LiveView", %{conn: conn} do

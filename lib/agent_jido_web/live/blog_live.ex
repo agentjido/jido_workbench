@@ -53,7 +53,13 @@ defmodule AgentJidoWeb.BlogLive do
   defp blog_index(assigns) do
     ~H"""
     <div id="blog-index-page" class="container max-w-[1000px] mx-auto px-6 py-12">
-      <h1 class="text-3xl font-bold mb-8 text-foreground">Listing all posts</h1>
+      <section class="mb-8 rounded-lg border border-border bg-card px-6 py-7 md:px-8 md:py-8">
+        <p class="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-primary">Agent Jido</p>
+        <h1 class="text-3xl font-bold tracking-tight text-foreground md:text-4xl">Engineering Blog</h1>
+        <p class="mt-3 max-w-3xl text-sm text-muted-foreground md:text-base">
+          Product updates, release notes, and practical guides for building reliable AI agents in Elixir and on the BEAM.
+        </p>
+      </section>
 
       <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <div class="lg:col-span-3">
@@ -164,27 +170,28 @@ defmodule AgentJidoWeb.BlogLive do
 
   defp blog_show(assigns) do
     ~H"""
-    <div id="blog-show-page" class="container max-w-[900px] mx-auto px-6 py-12">
+    <div id="blog-show-page" class="container max-w-[1000px] mx-auto px-6 py-12">
       <div class="mb-6">
         <.link patch={~p"/blog"} class="text-primary hover:opacity-80 flex items-center gap-1 transition-opacity text-sm">
           <.icon name="hero-arrow-left" class="h-4 w-4" /> Back to all posts
         </.link>
       </div>
 
-      <article class="relative overflow-hidden rounded-xl border border-border/80 bg-card shadow-xl">
-        <div class="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-primary/10 to-transparent"></div>
-        <div class="relative p-6 md:p-10">
+      <article class="overflow-hidden rounded-lg border border-border bg-card">
+        <header class="border-b border-border px-6 py-6 md:px-8 md:py-7">
           <h1 class="text-3xl leading-tight tracking-tight md:text-4xl font-bold mb-4 text-foreground">
             {@post.title}
           </h1>
 
-          <div class="flex items-center gap-4 text-muted-foreground mb-7 text-sm">
+          <div class="flex items-center gap-4 text-muted-foreground text-sm">
             <div>by {@post.author}</div>
             <div>•</div>
             <div>{format_date(@post.date)}</div>
           </div>
+        </header>
 
-          <div class="flex flex-wrap gap-2 mb-8">
+        <div class="px-6 py-7 md:px-8 md:py-8">
+          <div class="flex flex-wrap gap-2 mb-7">
             <%= for tag <- @post.tags do %>
               <.link
                 patch={~p"/blog/tags/#{tag}"}
@@ -211,7 +218,7 @@ defmodule AgentJidoWeb.BlogLive do
     <div class="bg-card rounded-lg mb-8 overflow-hidden border border-border">
       <div class="p-6">
         <h2 class="text-2xl font-bold mb-2">
-          <.link patch={~p"/blog/#{@post.id}"} class="text-primary hover:opacity-80 transition-opacity">
+          <.link patch={~p"/blog/#{@post.id}"} class="text-foreground hover:opacity-85 transition-opacity">
             {@post.title}
           </.link>
         </h2>
