@@ -39,6 +39,18 @@ defmodule Mix.Tasks.Blog.ImportLegacyTest do
     assert Repo.aggregate(SlugAlias, :count) == alias_count
   end
 
+  test "runtime importer is idempotent (release-safe path)" do
+    stats_first = AgentJido.Blog.LegacyImporter.import!()
+    assert stats_first.created == length(Legacy.all_posts())
+    assert stats_first.aliases > 0
+
+    stats_second = AgentJido.Blog.LegacyImporter.import!()
+    assert stats_second.created == 0
+    assert stats_second.updated == length(Legacy.all_posts())
+
+    assert Repo.aggregate(BlogPost, :count) == length(Legacy.all_posts())
+  end
+
   defp run_import do
     capture_io(fn ->
       Mix.Task.reenable("blog.import_legacy")
