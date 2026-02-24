@@ -30,13 +30,7 @@ config :phoenix_blog,
   repo: AgentJido.Repo,
   site_name: "AgentJido Blog",
   likes_enabled: false,
-  share_enabled: false,
-  get_current_user: fn socket ->
-    case socket.assigns[:current_scope] do
-      %{user: user} -> user
-      _ -> nil
-    end
-  end
+  share_enabled: false
 
 config :git_hooks,
   project_path: Path.expand("..", __DIR__)
