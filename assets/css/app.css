@@ -1396,6 +1396,176 @@
     animation: fade-in 0.35s ease-out;
   }
 
+  .blog-prose.prose {
+    --tw-prose-body: hsl(var(--secondary-foreground));
+    --tw-prose-headings: hsl(var(--foreground));
+    --tw-prose-lead: hsl(var(--muted-foreground));
+    --tw-prose-links: hsl(var(--accent-cyan));
+    --tw-prose-bold: hsl(var(--foreground));
+    --tw-prose-counters: hsl(var(--muted-foreground));
+    --tw-prose-bullets: hsl(var(--muted-foreground));
+    --tw-prose-hr: hsl(var(--border));
+    --tw-prose-quotes: hsl(var(--foreground));
+    --tw-prose-quote-borders: hsl(var(--accent-cyan) / 0.4);
+    --tw-prose-captions: hsl(var(--muted-foreground));
+    --tw-prose-code: hsl(var(--accent-cyan));
+    --tw-prose-pre-code: hsl(var(--foreground));
+    --tw-prose-pre-bg: hsl(var(--code-bg));
+    --tw-prose-th-borders: hsl(var(--border));
+    --tw-prose-td-borders: hsl(var(--border));
+    font-size: 1rem;
+    line-height: 1.85;
+  }
+
+  @media (min-width: 768px) {
+    .blog-prose.prose {
+      font-size: 1.05rem;
+    }
+  }
+
+  .blog-prose.prose p,
+  .blog-prose.prose ul,
+  .blog-prose.prose ol {
+    max-width: 74ch;
+  }
+
+  .blog-prose.prose p {
+    margin-top: 1rem;
+    margin-bottom: 1.05rem;
+  }
+
+  .blog-prose.prose :where(h2, h3) {
+    scroll-margin-top: 6rem;
+  }
+
+  .blog-prose.prose h2 {
+    margin-top: 2.8rem;
+    margin-bottom: 0.95rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid hsl(var(--border) / 0.85);
+    font-size: 1.45rem;
+    line-height: 1.35;
+    letter-spacing: -0.015em;
+  }
+
+  .blog-prose.prose h3 {
+    margin-top: 2rem;
+    margin-bottom: 0.8rem;
+    font-size: 1.2rem;
+    line-height: 1.45;
+    color: hsl(var(--foreground));
+  }
+
+  .blog-prose.prose > :first-child:is(h2, h3) {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .blog-prose.prose :where(ul, ol) {
+    margin-top: 1rem;
+    margin-bottom: 1.15rem;
+    padding-left: 1.3rem;
+  }
+
+  .blog-prose.prose li {
+    margin-top: 0.4rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .blog-prose.prose :where(ul > li)::marker,
+  .blog-prose.prose :where(ol > li)::marker {
+    color: hsl(var(--accent-cyan) / 0.7);
+    font-weight: 600;
+  }
+
+  .blog-prose.prose blockquote {
+    margin-top: 1.35rem;
+    margin-bottom: 1.35rem;
+    border-inline-start-width: 3px;
+    border-inline-start-color: hsl(var(--accent-cyan) / 0.45);
+    border-radius: 0.6rem;
+    background: hsl(var(--elevated) / 0.75);
+    padding: 0.8rem 1rem;
+    color: hsl(var(--secondary-foreground));
+  }
+
+  .blog-prose.prose pre {
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.7rem;
+    padding: 0.95rem 1rem;
+    box-shadow: inset 0 1px 0 hsl(var(--foreground) / 0.03);
+    overflow-x: auto;
+  }
+
+  .blog-prose.prose hr {
+    margin-top: 2.25rem;
+    margin-bottom: 2rem;
+  }
+
+  .blog-prose.prose :where(img, video) {
+    border-radius: 0.7rem;
+    border: 1px solid hsl(var(--border));
+  }
+
+  .blog-prose.prose a {
+    color: hsl(var(--accent-cyan));
+    font-weight: 500;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    text-decoration-thickness: 0.07em;
+    transition: color 160ms ease, text-decoration-color 160ms ease;
+  }
+
+  .blog-prose.prose a:hover {
+    color: hsl(var(--primary));
+    text-decoration-color: hsl(var(--primary));
+  }
+
+  .blog-prose.prose a:visited {
+    color: hsl(var(--accent-cyan));
+  }
+
+  .blog-prose.prose a code {
+    color: inherit;
+  }
+
+  .blog-prose.prose :where(code):not(:where(pre code)) {
+    font-size: 0.88em;
+    font-weight: 600;
+    color: hsl(var(--accent-cyan));
+    background: hsl(var(--accent-cyan) / 0.12);
+    border: 1px solid hsl(var(--accent-cyan) / 0.3);
+    border-radius: 0.4rem;
+    padding: 0.08rem 0.34rem;
+  }
+
+  .blog-prose.prose :where(code):not(:where(pre code))::before,
+  .blog-prose.prose :where(code):not(:where(pre code))::after {
+    content: none;
+  }
+
+  .blog-prose.prose :where(strong) {
+    color: hsl(var(--foreground));
+    font-weight: 650;
+  }
+
+  .blog-prose.prose :where(h2, h3) a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .blog-prose.prose :where(h2, h3) a:hover {
+    color: hsl(var(--accent-cyan));
+    text-decoration: underline;
+    text-decoration-thickness: 0.06em;
+    text-underline-offset: 0.2em;
+  }
+
+  .blog-prose.prose :where(h2, h3) {
+    letter-spacing: -0.01em;
+  }
+
   .docs-prose.prose {
     --tw-prose-body: hsl(var(--secondary-foreground));
     --tw-prose-headings: hsl(var(--foreground));

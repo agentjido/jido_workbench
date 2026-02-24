@@ -171,28 +171,31 @@ defmodule AgentJidoWeb.BlogLive do
         </.link>
       </div>
 
-      <article class="bg-card rounded-lg overflow-hidden border border-border">
-        <div class="p-8">
-          <h1 class="text-3xl md:text-4xl font-bold mb-4 text-foreground">{@post.title}</h1>
+      <article class="relative overflow-hidden rounded-xl border border-border/80 bg-card shadow-xl">
+        <div class="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-primary/10 to-transparent"></div>
+        <div class="relative p-6 md:p-10">
+          <h1 class="text-3xl leading-tight tracking-tight md:text-4xl font-bold mb-4 text-foreground">
+            {@post.title}
+          </h1>
 
-          <div class="flex items-center gap-4 text-muted-foreground mb-6 text-sm">
+          <div class="flex items-center gap-4 text-muted-foreground mb-7 text-sm">
             <div>by {@post.author}</div>
             <div>•</div>
             <div>{format_date(@post.date)}</div>
           </div>
 
-          <div class="flex flex-wrap gap-2 mb-6">
+          <div class="flex flex-wrap gap-2 mb-8">
             <%= for tag <- @post.tags do %>
               <.link
                 patch={~p"/blog/tags/#{tag}"}
-                class="inline-block bg-elevated rounded-full px-3 py-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                class="inline-flex items-center rounded-full border border-border bg-elevated px-3 py-1 text-xs font-medium uppercase tracking-wide text-muted-foreground hover:border-primary/40 hover:text-foreground transition-colors"
               >
                 {tag}
               </.link>
             <% end %>
           </div>
 
-          <div class="prose prose-sm max-w-none text-foreground/80">
+          <div class="blog-prose prose max-w-none">
             {Phoenix.HTML.raw(@post.body)}
           </div>
         </div>
