@@ -12,6 +12,11 @@ defmodule AgentJidoWeb.BlogLiveTest do
 
       {:ok, view, html} = live(conn, ~p"/blog")
       assert html =~ "Listing all posts"
+      assert html =~ ~s(href="/features")
+      assert html =~ ~s(href="/ecosystem")
+      assert html =~ ~s(href="/examples")
+      assert html =~ ~s(href="/docs")
+      assert html =~ ~s(href="/blog")
       refute html =~ "Powered by DuckDuckGo"
 
       view

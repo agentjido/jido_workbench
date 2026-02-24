@@ -1,6 +1,7 @@
 defmodule AgentJidoWeb.SitemapControllerTest do
   use AgentJidoWeb.ConnCase, async: true
 
+  alias AgentJido.Blog
   alias AgentJido.Ecosystem
   alias AgentJido.Pages
 
@@ -42,5 +43,20 @@ defmodule AgentJidoWeb.SitemapControllerTest do
     assert body =~ "/features"
     refute body =~ "/partners"
     refute body =~ "/benchmarks"
+  end
+
+  test "includes canonical blog URLs and excludes legacy underscore slugs", %{conn: conn} do
+    body =
+      conn
+      |> get("/sitemap.xml")
+      |> response(200)
+
+    for post <- Blog.all_posts() do
+      assert body =~ "/blog/#{post.id}"
+    end
+
+    refute body =~ "/blog/announcing-req_llm-1_0"
+    refute body =~ "/blog/introducing-req_llm"
+    refute body =~ "/blog/jido_signal"
   end
 end
