@@ -37,6 +37,7 @@ npm-debug.log
 
 .vscode
 .elixir_ls
+.env
 
 _build_18_28/
 _build_18_27/
