@@ -7,6 +7,7 @@ defmodule AgentJidoWeb.BlogLive do
   import AgentJidoWeb.Jido.MarketingLayouts
 
   alias AgentJido.Blog
+  alias AgentJidoWeb.MarkdownLinks
 
   @blog_index_description "Product updates, technical write-ups, and release notes from the Jido project."
 
@@ -16,11 +17,20 @@ defmodule AgentJidoWeb.BlogLive do
   end
 
   @impl true
-  def handle_params(params, _uri, socket) do
+  def handle_params(params, uri, socket) do
+    parsed_uri = URI.parse(uri)
+    request_path = parsed_uri.path || "/blog"
+    request_url = MarkdownLinks.absolute_url(request_path, parsed_uri.query)
+
+    socket =
+      socket
+      |> assign(:request_path, request_path)
+      |> assign(:request_url, request_url)
+
     socket =
       case socket.assigns.live_action do
         :index -> assign_index(socket)
-        :show -> assign_show(socket, params)
+        :show -> assign_show(socket, params, request_url)
         :tag -> assign_tag(socket, params)
       end
 
@@ -41,7 +51,7 @@ defmodule AgentJidoWeb.BlogLive do
         <% :tag -> %>
           <.blog_tag posts={@posts} tags={@tags} tag={@tag} />
         <% :show -> %>
-          <.blog_show post={@post} />
+          <.blog_show post={@post} markdown_action={@markdown_action} />
       <% end %>
     </.marketing_layout>
     """
@@ -167,6 +177,7 @@ defmodule AgentJidoWeb.BlogLive do
   end
 
   attr :post, :map, required: true
+  attr :markdown_action, :map, required: true
 
   defp blog_show(assigns) do
     ~H"""
@@ -188,6 +199,14 @@ defmodule AgentJidoWeb.BlogLive do
             <div>•</div>
             <div>{format_date(@post.date)}</div>
           </div>
+          <a
+            href={@markdown_action.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="mt-4 inline-flex text-xs font-semibold uppercase tracking-wide text-primary hover:opacity-80 transition-opacity"
+          >
+            {@markdown_action.label} →
+          </a>
         </header>
 
         <div class="px-6 py-7 md:px-8 md:py-8">
@@ -255,17 +274,19 @@ defmodule AgentJidoWeb.BlogLive do
     assign(socket,
       page_title: "Blog",
       meta_description: @blog_index_description,
+      markdown_action: nil,
       posts: Blog.all_posts(),
       tags: Blog.all_tags()
     )
   end
 
-  defp assign_show(socket, %{"slug" => slug}) do
+  defp assign_show(socket, %{"slug" => slug}, request_url) do
     post = Blog.get_post_by_id!(slug)
     seo = post_seo(post)
     canonical_url = seo_value(seo, :canonical_url)
     og_description = seo_value(seo, :og_description)
     noindex? = seo_value(seo, :noindex) == true
+    markdown_action = MarkdownLinks.markdown_action(post, request_url)
 
     assign(socket,
       page_title: post.title,
@@ -275,6 +296,7 @@ defmodule AgentJidoWeb.BlogLive do
       robots: if(noindex?, do: ["noindex", "nofollow"]),
       og_image: seo_value(seo, :og_image),
       post: post,
+      markdown_action: markdown_action,
       seo: seo
     )
   end
@@ -283,6 +305,7 @@ defmodule AgentJidoWeb.BlogLive do
     assign(socket,
       page_title: "Blog: #{tag}",
       meta_description: tag_meta_description(tag),
+      markdown_action: nil,
       posts: Blog.get_posts_by_tag!(tag),
       tag: tag,
       tags: Blog.all_tags()

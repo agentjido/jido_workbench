@@ -11,6 +11,7 @@ defmodule AgentJidoWeb.PageLive do
 
   alias AgentJido.Analytics
   alias AgentJido.Pages
+  alias AgentJidoWeb.MarkdownLinks
 
   import AgentJidoWeb.Jido.DocsComponents
   import AgentJidoWeb.Jido.MarketingLayouts
@@ -25,8 +26,14 @@ defmodule AgentJidoWeb.PageLive do
 
   @impl true
   def handle_params(params, uri, socket) do
-    path = URI.parse(uri).path
-    socket = assign(socket, :request_path, path)
+    parsed_uri = URI.parse(uri)
+    path = parsed_uri.path || "/"
+    request_url = MarkdownLinks.absolute_url(path, parsed_uri.query)
+
+    socket =
+      socket
+      |> assign(:request_path, path)
+      |> assign(:request_url, request_url)
 
     case socket.assigns.live_action do
       :index -> handle_index(socket, path)
@@ -76,6 +83,7 @@ defmodule AgentJidoWeb.PageLive do
        docs_secondary_tabs: secondary_tabs,
        docs_sidebar_nav: sidebar,
        page: nil,
+       markdown_action: nil,
        toc: toc
      )}
   end
@@ -93,6 +101,7 @@ defmodule AgentJidoWeb.PageLive do
        modules: modules,
        track_groups: track_groups,
        page: nil,
+       markdown_action: nil,
        selected_document: nil,
        toc: []
      )}
@@ -110,6 +119,7 @@ defmodule AgentJidoWeb.PageLive do
        category: category,
        pages: pages,
        page: nil,
+       markdown_action: nil,
        selected_document: nil,
        toc: []
      )}
@@ -135,6 +145,7 @@ defmodule AgentJidoWeb.PageLive do
         layout_type = layout_for(page.category)
         page_seo = page_seo(page)
         noindex? = seo_value(page_seo, :noindex) == true
+        markdown_action = MarkdownLinks.markdown_action(page, socket.assigns.request_url)
 
         assigns = [
           page_title: page.title,
@@ -146,6 +157,7 @@ defmodule AgentJidoWeb.PageLive do
           layout_type: layout_type,
           category: page.category,
           page: page,
+          markdown_action: markdown_action,
           selected_document: page,
           toc: toc,
           document_content: %{html: page.body, toc: toc}

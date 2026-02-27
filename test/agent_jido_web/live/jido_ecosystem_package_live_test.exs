@@ -26,6 +26,8 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLiveTest do
     assert html =~ "IMPORTANT PACKAGES"
     assert html =~ ~s(href="/ecosystem/jido_action")
     assert html =~ ~s(href="/ecosystem/jido_signal")
+    assert html =~ "Open source in markdown.new"
+    assert html =~ "https://markdown.new/https://raw.githubusercontent.com/"
     refute html =~ "HOW MODULES FIT TOGETHER"
     assert html =~ "back to ecosystem"
   end

@@ -21,6 +21,7 @@ defmodule AgentJidoWeb.Router do
   ]
 
   pipeline :browser do
+    plug(AgentJidoWeb.Plugs.LLMAcceptCompat)
     plug(:accepts, ["html", "json"])
     plug(:fetch_session)
     plug(:fetch_live_flash)
@@ -30,6 +31,7 @@ defmodule AgentJidoWeb.Router do
     plug(:fetch_current_scope_for_user)
     plug(AgentJidoWeb.Plugs.LegacyBlogTagRedirect)
     plug(AgentJidoWeb.Plugs.LegacyBlogSlugRedirect)
+    plug(AgentJidoWeb.Plugs.LLMResponse)
     plug(AgentJidoWeb.Plugs.AnalyticsIdentity)
   end
 

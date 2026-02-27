@@ -4,6 +4,7 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLive do
   alias AgentJido.Ecosystem
   alias AgentJido.Ecosystem.Layering
   alias AgentJido.GithubStarsTracker
+  alias AgentJidoWeb.MarkdownLinks
 
   import AgentJidoWeb.Jido.MarketingCards
   import AgentJidoWeb.Jido.MarketingLayouts
@@ -25,6 +26,7 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLive do
        package: package,
        layer: Layering.layer_for(package),
        package_links: package_links(package, stars),
+       markdown_action: MarkdownLinks.markdown_action(package, MarkdownLinks.absolute_url("/ecosystem/#{package.id}")),
        hero_summary: package_hero_summary,
        cliff_notes: cliff_notes(package),
        major_components: major_components(package),
@@ -81,6 +83,15 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLive do
               <% end %>
             </div>
           <% end %>
+
+          <a
+            href={@markdown_action.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="mb-5 inline-flex text-xs font-semibold uppercase tracking-wide text-primary hover:opacity-80 transition-opacity"
+          >
+            {@markdown_action.label} →
+          </a>
 
           <div :if={@quick_install} class="code-block overflow-hidden">
             <div class="code-header">

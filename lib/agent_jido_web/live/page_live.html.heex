@@ -308,7 +308,7 @@ sup = Jido.Supervisor.start_link()
           <%= if @selected_document do %>
             <footer class="border-t border-border py-6 px-8 lg:px-16 w-full">
               <div class="flex flex-col items-end gap-4 text-[11px] text-muted-foreground">
-                <div class="flex items-center justify-end">
+                <div class="flex items-center justify-end gap-4">
                   <%= if @selected_document.github_url do %>
                     <a
                       href={String.replace(@selected_document.github_url, "/blob/", "/edit/")}
@@ -319,6 +319,15 @@ sup = Jido.Supervisor.start_link()
                       Edit this page →
                     </a>
                   <% end %>
+                  <a
+                    :if={@markdown_action}
+                    href={@markdown_action.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="hover:text-foreground transition-colors"
+                  >
+                    {@markdown_action.label} →
+                  </a>
                 </div>
                 <div class="w-full max-w-md">
                   <.feedback_prompt
@@ -451,6 +460,16 @@ sup = Jido.Supervisor.start_link()
             {@page.description}
           </p>
 
+          <a
+            :if={@markdown_action}
+            href={@markdown_action.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="mt-4 inline-flex text-xs font-semibold uppercase tracking-wide text-primary hover:opacity-80 transition-opacity"
+          >
+            {@markdown_action.label} →
+          </a>
+
           <div :if={@page.learning_outcomes != []} class="mt-5">
             <h2 class="text-xs font-bold tracking-wider mb-2">LEARNING OUTCOMES</h2>
             <ul class="space-y-1">
@@ -514,6 +533,15 @@ sup = Jido.Supervisor.start_link()
               <p :if={@page.description} class="text-lg text-muted-foreground">
                 {@page.description}
               </p>
+              <a
+                :if={@markdown_action}
+                href={@markdown_action.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex text-xs font-semibold uppercase tracking-wide text-primary hover:opacity-80 transition-opacity"
+              >
+                {@markdown_action.label} →
+              </a>
             </div>
             <%= if @category == :features do %>
               <section class="grid sm:grid-cols-3 gap-3">

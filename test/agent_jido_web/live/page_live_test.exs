@@ -145,6 +145,8 @@ defmodule AgentJidoWeb.PageLiveTest do
       current_year = Date.utc_today().year
 
       assert html =~ "Edit this page"
+      assert html =~ "Open source in markdown.new"
+      assert html =~ "https://markdown.new/https://raw.githubusercontent.com/"
       assert html =~ "Apache License 2.0"
       assert html =~ "Copyright © 2025-#{current_year} Mike Hostetler"
       assert html =~ "Jido #{jido_version}"
