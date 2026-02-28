@@ -40,7 +40,7 @@ defmodule AgentJidoWeb.JidoFeaturesLive do
           <h1 class="text-4xl font-bold mb-4 tracking-tight">
             Capabilities for <span class="text-primary">reliable multi-agent systems</span>
           </h1>
-          <p class="text-lg text-muted-foreground max-w-3xl mx-auto mb-8">
+          <p class="copy-measure-wide mx-auto mb-8 text-lg text-muted-foreground">
             Jido is a runtime for reliable, multi-agent systems. Use it without any LLM layer, or add LLM capabilities when they fit your workload.
           </p>
 
@@ -175,7 +175,7 @@ defmodule AgentJidoWeb.JidoFeaturesLive do
         <section id="features-cta" class="opacity-0" phx-hook="ScrollReveal">
           <div class="cta-glow rounded-lg p-12 text-center">
             <h2 class="text-2xl font-bold mb-3">Move from feature evaluation to implementation</h2>
-            <p class="text-secondary-foreground text-sm mb-6 max-w-2xl mx-auto">
+            <p class="copy-measure mx-auto mb-6 text-sm text-secondary-foreground">
               Start with one production-relevant workflow, keep the package set minimal, and expand only after reliability and operations checks are green.
             </p>
             <div class="flex flex-wrap justify-center gap-3">
@@ -186,7 +186,7 @@ defmodule AgentJidoWeb.JidoFeaturesLive do
                 GET BUILDING ->
               </.link>
               <.link
-                navigate="/ecosystem/package-matrix"
+                navigate="/ecosystem/matrix"
                 class="border border-accent-cyan text-accent-cyan hover:bg-accent-cyan/10 text-[13px] font-medium px-7 py-3 rounded transition-colors"
               >
                 VIEW PACKAGE MATRIX
@@ -336,7 +336,7 @@ defmodule AgentJidoWeb.JidoFeaturesLive do
   end
 
   defp status_badge_class(:stable),
-    do: "text-[10px] px-2 py-1 rounded border border-green-500/30 bg-green-500/10 text-green-400"
+    do: "text-[10px] px-2 py-1 rounded border border-accent-green/30 bg-accent-green/10 text-accent-green"
 
   defp status_badge_class(:beta),
     do: "text-[10px] px-2 py-1 rounded border border-accent-yellow/40 bg-accent-yellow/10 text-accent-yellow"
@@ -617,7 +617,7 @@ defmodule AgentJidoWeb.JidoFeaturesLive do
         title: "Engineering manager / CTO",
         question: "What does phased adoption look like in 30/60/90-day terms?",
         start: %{label: "Executive brief", href: "/features/executive-brief"},
-        proof: %{label: "Package matrix", href: "/ecosystem/package-matrix"},
+        proof: %{label: "Package matrix", href: "/ecosystem/matrix"},
         docs: %{label: "Quickstarts by persona", href: "/build/quickstarts-by-persona"}
       }
     ]

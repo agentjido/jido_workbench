@@ -122,8 +122,8 @@ defmodule AgentJidoWeb.ContentOpsGithubLive do
         </div>
 
         <%!-- Error --%>
-        <div :if={@error} class="rounded-lg border border-red-500/30 bg-red-500/10 p-4">
-          <p class="text-sm text-red-400 font-mono">⚠ {@error}</p>
+        <div :if={@error} class="rounded-lg border border-accent-red/30 bg-accent-red/10 p-4">
+          <p class="text-sm text-accent-red font-mono">⚠ {@error}</p>
         </div>
 
         <%!-- Loading --%>
@@ -238,7 +238,7 @@ defmodule AgentJidoWeb.ContentOpsGithubLive do
             phx-value-number={pr["number"]}
             phx-value-title={pr["title"]}
             disabled={not @github_mutations_enabled}
-            class="shrink-0 text-xs px-3 py-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            class="shrink-0 text-xs px-3 py-1.5 rounded-md border border-accent-green/30 bg-accent-green/10 text-accent-green hover:bg-accent-green/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Merge to main
           </button>
@@ -252,19 +252,19 @@ defmodule AgentJidoWeb.ContentOpsGithubLive do
     ~H"""
     <span
       :if={@mergeable == true}
-      class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-400/10 text-emerald-400 font-semibold"
+      class="text-[10px] px-1.5 py-0.5 rounded bg-accent-green/10 text-accent-green font-semibold"
     >
       mergeable
     </span>
     <span
       :if={@mergeable == false}
-      class="text-[10px] px-1.5 py-0.5 rounded bg-red-400/10 text-red-400 font-semibold"
+      class="text-[10px] px-1.5 py-0.5 rounded bg-accent-red/10 text-accent-red font-semibold"
     >
       conflicts
     </span>
     <span
       :if={is_nil(@mergeable)}
-      class="text-[10px] px-1.5 py-0.5 rounded bg-yellow-400/10 text-yellow-400 font-semibold"
+      class="text-[10px] px-1.5 py-0.5 rounded bg-accent-yellow/10 text-accent-yellow font-semibold"
     >
       unknown
     </span>

@@ -69,6 +69,7 @@ defmodule AgentJidoWeb.LLMResponsePlugTest do
 
     assert get_resp_header(conn, "content-type") |> List.first() =~ "text/markdown"
     assert body =~ "# Jido Features"
-    assert body =~ "Markdown URL: https://markdown.new/#{AgentJidoWeb.Endpoint.url()}/features"
+    assert body =~ "Canonical URL: #{AgentJidoWeb.Endpoint.url()}/features"
+    refute body =~ "Markdown URL:"
   end
 end

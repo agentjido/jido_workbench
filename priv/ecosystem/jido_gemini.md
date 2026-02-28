@@ -1,6 +1,7 @@
 %{
   name: "jido_gemini",
   title: "Jido Gemini",
+  graph_label: "Jido Gemini",
   version: "0.1.0",
   tagline: "Google Gemini adapter for Jido Harness with early-stage parity coverage",
   license: "Apache-2.0",

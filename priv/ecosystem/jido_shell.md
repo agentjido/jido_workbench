@@ -3,7 +3,7 @@
   title: "Jido Shell",
   version: "3.0.0",
   tagline: "Agent-friendly shell and session runtime built on top of jido_vfs",
-  graph_label: "shell runtime",
+  graph_label: "Jido Shell",
   license: "Apache-2.0",
   visibility: :private,
   category: :tools,

@@ -1,6 +1,7 @@
 %{
   name: "jido",
   title: "Jido",
+  graph_label: "Jido",
   version: "2.0.0",
   tagline: "Core agent framework for building autonomous, multi-agent systems in Elixir",
   license: "Apache-2.0",

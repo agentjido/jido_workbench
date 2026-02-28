@@ -147,7 +147,7 @@ defmodule AgentJidoWeb.AdminDashboardLive do
               </button>
             </div>
 
-            <p :if={@query_tracking_snapshot.unavailable?} class="text-xs font-semibold text-amber-300">
+            <p :if={@query_tracking_snapshot.unavailable?} class="text-xs font-semibold text-accent-yellow">
               Query tracking is temporarily unavailable. Run migrations and refresh.
             </p>
 
@@ -283,11 +283,11 @@ defmodule AgentJidoWeb.AdminDashboardLive do
   defp source_label(source) when is_binary(source), do: source
   defp source_label(_source), do: "Unknown"
 
-  defp query_status_class("success"), do: "bg-emerald-500/15 text-emerald-300"
-  defp query_status_class("no_results"), do: "bg-amber-500/15 text-amber-300"
-  defp query_status_class("error"), do: "bg-red-500/15 text-red-300"
-  defp query_status_class("challenge"), do: "bg-amber-500/15 text-amber-300"
-  defp query_status_class("submitted"), do: "bg-cyan-500/15 text-cyan-300"
+  defp query_status_class("success"), do: "bg-accent-green/15 text-accent-green"
+  defp query_status_class("no_results"), do: "bg-accent-yellow/15 text-accent-yellow"
+  defp query_status_class("error"), do: "bg-accent-red/15 text-accent-red"
+  defp query_status_class("challenge"), do: "bg-accent-yellow/15 text-accent-yellow"
+  defp query_status_class("submitted"), do: "bg-accent-cyan/15 text-accent-cyan"
   defp query_status_class(_status), do: "bg-muted text-muted-foreground"
 
   defp format_timestamp(%NaiveDateTime{} = datetime) do

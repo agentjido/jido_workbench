@@ -66,7 +66,7 @@ defmodule AgentJidoWeb.JidoExampleLive do
         <div class="mb-8">
           <.link
             navigate="/examples"
-            class="text-xs text-muted-foreground hover:text-primary transition-colors"
+            class="text-xs text-secondary-foreground hover:text-foreground transition-colors"
           >
             ← back to examples
           </.link>
@@ -75,7 +75,6 @@ defmodule AgentJidoWeb.JidoExampleLive do
         <%!-- Header --%>
         <section class="mb-10">
           <div class="flex flex-wrap items-center gap-3 mb-3">
-            <span class="text-2xl">{@example.emoji}</span>
             <span class={"text-[10px] px-2 py-1 rounded font-semibold uppercase tracking-wider #{category_class(@example.category)}"}>
               {@example.category}
             </span>
@@ -137,7 +136,7 @@ defmodule AgentJidoWeb.JidoExampleLive do
 
         <%!-- Explanation tab --%>
         <div :if={@active_tab == :explanation} class="mb-10">
-          <article class="prose max-w-none text-sm leading-relaxed">
+          <article class="docs-prose prose max-w-none text-sm leading-relaxed">
             {Phoenix.HTML.raw(@example.body)}
           </article>
         </div>
@@ -219,13 +218,13 @@ defmodule AgentJidoWeb.JidoExampleLive do
   defp category_class(_), do: "bg-elevated border border-border text-muted-foreground"
 
   defp difficulty_class(:beginner),
-    do: "bg-green-500/10 border border-green-500/30 text-green-400"
+    do: "bg-accent-green/10 border border-accent-green/30 text-accent-green"
 
   defp difficulty_class(:intermediate),
-    do: "bg-amber-500/10 border border-amber-500/30 text-amber-400"
+    do: "bg-accent-yellow/10 border border-accent-yellow/30 text-accent-yellow"
 
   defp difficulty_class(:advanced),
-    do: "bg-red-500/10 border border-red-500/30 text-red-400"
+    do: "bg-accent-red/10 border border-accent-red/30 text-accent-red"
 
   defp difficulty_class(_), do: "bg-elevated border border-border text-muted-foreground"
 end

@@ -1,6 +1,7 @@
 %{
   name: "jido_claude",
   title: "Jido Claude",
+  graph_label: "Jido Claude",
   version: "0.1.0",
   tagline: "Claude Code adapter for Jido Harness with migration support for legacy session surfaces",
   license: "Apache-2.0",

@@ -27,7 +27,7 @@ Differentiator: `Built on Elixir/OTP for fault-tolerant concurrency and producti
 |---|---|---|---|
 | Elixir platform engineer | How does this map to OTP patterns? | Reliable agent architecture aligned to supervision | `/features` |
 | AI product engineer | How do I ship AI features safely? | Tool-using agent patterns with fewer runtime surprises | `/build` |
-| Staff architect / tech lead | Can this scale across teams? | Reference architecture and governance path | `/ecosystem/package-matrix` |
+| Staff architect / tech lead | Can this scale across teams? | Reference architecture and governance path | `/ecosystem/matrix` |
 | Python AI engineer | Why Jido vs Python-first frameworks? | Better runtime semantics for long-lived workloads | `/features/beam-for-ai-builders` |
 | TypeScript fullstack engineer | Can this be my backend agent service? | Mixed-stack integration with clear boundaries | `/build/mixed-stack-integration` |
 | Platform/SRE engineer | Is this operable and safe under failure? | Runbooks, telemetry, and reliability controls | `/docs/production-readiness-checklist` |
@@ -40,7 +40,7 @@ Differentiator: `Built on Elixir/OTP for fault-tolerant concurrency and producti
 | Stage | User intent | Required proof | Best content surfaces |
 |---|---|---|---|
 | Awareness | Understand what Jido is | Problem statement + clear differentiation | `/features` |
-| Orientation | Map to current stack/context | Persona quickstarts + package matrix | `/build/quickstarts-by-persona`, `/ecosystem/package-matrix` |
+| Orientation | Map to current stack/context | Persona quickstarts + package matrix | `/build/quickstarts-by-persona`, `/ecosystem/matrix` |
 | Evaluation | Test feasibility quickly | Runnable examples + setup constraints | `/examples`, `/training/agent-fundamentals` |
 | Activation | Ship first meaningful feature | Implementation guides + validation checklists | `/build`, `/docs/guides`, `/training` |
 | Operationalization | Run safely in production | Runbooks + telemetry + rollback strategy | `/docs/production-readiness-checklist`, `/docs/reference` |
@@ -52,7 +52,7 @@ Differentiator: `Built on Elixir/OTP for fault-tolerant concurrency and producti
 ## A) Non-Elixir technical evaluator
 
 - Goal: start a bounded pilot without full-stack migration.
-- Path: `/features/beam-for-ai-builders` -> `/ecosystem/package-matrix` -> `/examples/counter-agent` -> `/build/mixed-stack-integration` -> `/docs/reference`
+- Path: `/features/beam-for-ai-builders` -> `/ecosystem/matrix` -> `/examples/counter-agent` -> `/build/mixed-stack-integration` -> `/docs/reference`
 - Success signal: first cross-stack workflow running with defined production guardrails.
 
 ## B) Elixir-native builder

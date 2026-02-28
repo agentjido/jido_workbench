@@ -71,8 +71,8 @@ defmodule AgentJidoWeb.ContentOpsLive do
             <.link navigate="/dashboard/contentops/github" class="text-sm text-primary hover:text-primary/80 transition-colors">
               GitHub Issues &amp; PRs →
             </.link>
-            <div :if={@running} class="flex items-center gap-2 text-sm text-amber-400">
-              <div class="h-2 w-2 rounded-full bg-amber-400 animate-pulse" /> Running {@current_mode}…
+            <div :if={@running} class="flex items-center gap-2 text-sm text-accent-yellow">
+              <div class="h-2 w-2 rounded-full bg-accent-yellow animate-pulse" /> Running {@current_mode}…
             </div>
             <div :if={@last_refreshed_at} class="text-[10px] text-muted-foreground font-mono">
               polled {format_timestamp(@last_refreshed_at)}
@@ -117,7 +117,7 @@ defmodule AgentJidoWeb.ContentOpsLive do
         </button>
       </div>
 
-      <div :if={@server_error} class="text-sm text-red-400 mb-3">
+      <div :if={@server_error} class="text-sm text-accent-red mb-3">
         <span class="font-mono">⚠ {@server_error}</span>
       </div>
 
@@ -562,10 +562,10 @@ defmodule AgentJidoWeb.ContentOpsLive do
   defp mode_emoji(_), do: "•"
 
   defp status_badge_class(:completed),
-    do: "text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded text-[10px] uppercase font-semibold shrink-0"
+    do: "text-accent-green bg-accent-green/10 px-1.5 py-0.5 rounded text-[10px] uppercase font-semibold shrink-0"
 
   defp status_badge_class(:failed),
-    do: "text-red-400 bg-red-400/10 px-1.5 py-0.5 rounded text-[10px] uppercase font-semibold shrink-0"
+    do: "text-accent-red bg-accent-red/10 px-1.5 py-0.5 rounded text-[10px] uppercase font-semibold shrink-0"
 
   defp status_badge_class(_),
     do: "text-muted-foreground bg-elevated px-1.5 py-0.5 rounded text-[10px] uppercase font-semibold shrink-0"
@@ -574,9 +574,9 @@ defmodule AgentJidoWeb.ContentOpsLive do
   defp status_label(:failed), do: "✗ failed"
   defp status_label(other), do: "#{other}"
 
-  defp server_status_color(:idle), do: "text-emerald-400"
-  defp server_status_color(:running), do: "text-amber-400"
-  defp server_status_color(:waiting), do: "text-blue-400"
+  defp server_status_color(:idle), do: "text-accent-green"
+  defp server_status_color(:running), do: "text-accent-yellow"
+  defp server_status_color(:waiting), do: "text-accent-cyan"
   defp server_status_color(_), do: "text-muted-foreground"
 
   defp format_timestamp(%DateTime{} = dt), do: Calendar.strftime(dt, "%Y-%m-%d %H:%M:%S")

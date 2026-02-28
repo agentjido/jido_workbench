@@ -1,6 +1,7 @@
 %{
   name: "jido_live_dashboard",
   title: "Jido Live Dashboard",
+  graph_label: "Jido Live Dashboard",
   version: "0.1.0",
   tagline: "Real-time observability and debugging for Jido agents in Phoenix LiveDashboard",
   license: "Apache-2.0",

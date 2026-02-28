@@ -407,19 +407,19 @@ defmodule AgentJidoWeb.PageLive do
   def track_label(:operations), do: "Production Operations"
   def track_label(track), do: track |> to_string() |> Phoenix.Naming.humanize()
 
-  def difficulty_badge(:beginner), do: "bg-green-500/10 text-green-400"
-  def difficulty_badge(:intermediate), do: "bg-amber-500/10 text-amber-400"
-  def difficulty_badge(:advanced), do: "bg-red-500/10 text-red-400"
+  def difficulty_badge(:beginner), do: "bg-accent-green/10 text-accent-green"
+  def difficulty_badge(:intermediate), do: "bg-accent-yellow/10 text-accent-yellow"
+  def difficulty_badge(:advanced), do: "bg-accent-red/10 text-accent-red"
   def difficulty_badge(_), do: "bg-elevated text-muted-foreground"
 
   def difficulty_class(:beginner),
-    do: "bg-green-500/10 border border-green-500/30 text-green-400"
+    do: "bg-accent-green/10 border border-accent-green/30 text-accent-green"
 
   def difficulty_class(:intermediate),
-    do: "bg-amber-500/10 border border-amber-500/30 text-amber-400"
+    do: "bg-accent-yellow/10 border border-accent-yellow/30 text-accent-yellow"
 
   def difficulty_class(:advanced),
-    do: "bg-red-500/10 border border-red-500/30 text-red-400"
+    do: "bg-accent-red/10 border border-accent-red/30 text-accent-red"
 
   def difficulty_class(_), do: "bg-elevated border border-border text-muted-foreground"
 

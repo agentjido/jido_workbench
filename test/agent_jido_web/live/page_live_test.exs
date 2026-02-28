@@ -155,8 +155,8 @@ defmodule AgentJidoWeb.PageLiveTest do
       current_year = Date.utc_today().year
 
       assert html =~ "Edit this page"
-      assert html =~ "Open source in markdown.new"
-      assert html =~ "https://markdown.new/https://raw.githubusercontent.com/"
+      assert html =~ "Open source on GitHub"
+      assert html =~ "https://github.com/agentjido/agentjido_xyz/blob/main/"
       assert html =~ "Apache License 2.0"
       assert html =~ "Copyright © 2025-#{current_year}"
       assert html =~ "Mike Hostetler"
@@ -378,13 +378,16 @@ defmodule AgentJidoWeb.PageLiveTest do
   end
 
   describe "community pages" do
-    test "renders /community placeholder route", %{conn: conn} do
+    test "renders /community community hub route", %{conn: conn} do
       {:ok, _view, html} = live(conn, "/community")
 
-      assert html =~ "Community"
-      refute html =~ "Learning Paths"
-      refute html =~ "Adoption Playbooks"
-      refute html =~ "Case Studies"
+      assert html =~ "COMMUNITY HUB"
+      assert html =~ "Build with others, then"
+      assert html =~ "Learning Paths"
+      assert html =~ "Adoption Playbooks"
+      assert html =~ "Case Studies"
+      assert html =~ "Join Discord"
+      assert html =~ "Open GitHub Issues"
     end
 
     test "smoke routes for all four community pages", %{conn: conn} do

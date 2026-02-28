@@ -1,6 +1,7 @@
 %{
   name: "jido_opencode",
   title: "Jido OpenCode",
+  graph_label: "Jido OpenCode",
   version: "0.1.0",
   tagline: "OpenCode CLI adapter for Jido Harness with buffered-first execution semantics",
   license: "Apache-2.0",

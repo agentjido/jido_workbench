@@ -27,5 +27,5 @@ Discovery
 - Feed: https://agentjido.xyz/feed
 
 Rendered fallback pattern
-- If direct source markdown is unavailable, use:
-  - https://markdown.new/https://agentjido.xyz/<route>
+- If direct source markdown is unavailable, request the canonical route with:
+  - Accept: text/markdown

@@ -1,6 +1,7 @@
 %{
   name: "jido_evolve",
   title: "Jido Evolve",
+  graph_label: "Jido Evolve",
   version: "0.1.0",
   tagline: "Evolutionary optimization toolkit for Elixir with pluggable fitness pipelines",
   license: "Apache-2.0",

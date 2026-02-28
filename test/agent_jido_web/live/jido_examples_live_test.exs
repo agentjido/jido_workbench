@@ -38,4 +38,10 @@ defmodule AgentJidoWeb.JidoExamplesLiveTest do
     assert html =~ simulated.title
     assert html =~ "simulated"
   end
+
+  test "examples content container matches primary nav width", %{conn: conn} do
+    {:ok, _view, html} = live(conn, "/examples")
+
+    assert html =~ ~s(class="container max-w-[1000px] mx-auto px-6 py-12")
+  end
 end

@@ -1,6 +1,7 @@
 %{
   name: "jido_eval",
   title: "Jido Eval",
+  graph_label: "Jido Eval",
   version: "0.1.0",
   tagline: "Evaluation framework for LLM and Jido agent quality measurement",
   license: "Apache-2.0",

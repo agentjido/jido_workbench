@@ -1,6 +1,7 @@
 %{
   name: "jido_chat_telegram",
   title: "Jido Chat Telegram",
+  graph_label: "Jido Chat Telegram",
   version: "0.1.0",
   tagline: "Telegram adapter package implementing the Jido Chat adapter contract",
   license: "Apache-2.0",

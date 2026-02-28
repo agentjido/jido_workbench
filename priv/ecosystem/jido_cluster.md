@@ -1,6 +1,7 @@
 %{
   name: "jido_cluster",
   title: "Jido Cluster",
+  graph_label: "Jido Cluster",
   version: "0.1.0",
   tagline: "Distributed keyed instance management and storage for multi-node Jido runtimes",
   license: "Apache-2.0",

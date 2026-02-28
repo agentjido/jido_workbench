@@ -42,7 +42,7 @@ defmodule AgentJido.OGImage.Resolver do
       eyebrow: "ECOSYSTEM",
       badges: ["Packages", "Composability", "Layers"]
     },
-    "/ecosystem/package-matrix" => %{
+    "/ecosystem/matrix" => %{
       template: :marketing,
       title: "Jido Ecosystem Package Matrix",
       subtitle: "Compare responsibilities, dependencies, and maturity across the curated Jido ecosystem packages.",
@@ -201,6 +201,9 @@ defmodule AgentJido.OGImage.Resolver do
 
   defp ecosystem_package_descriptor(path) do
     case Regex.run(~r{^/ecosystem/([^/]+)$}, path) do
+      [_, "matrix"] ->
+        nil
+
       [_, "package-matrix"] ->
         nil
 

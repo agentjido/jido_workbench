@@ -66,7 +66,7 @@ defmodule AgentJidoWeb.BlogLive do
       <section class="mb-8 rounded-lg border border-border bg-card px-6 py-7 md:px-8 md:py-8">
         <p class="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-primary">Agent Jido</p>
         <h1 class="text-3xl font-bold tracking-tight text-foreground md:text-4xl">Engineering Blog</h1>
-        <p class="mt-3 max-w-3xl text-sm text-muted-foreground md:text-base">
+        <p class="copy-measure-wide mt-3 text-sm text-muted-foreground md:text-base">
           Product updates, release notes, and practical guides for building reliable AI agents in Elixir and on the BEAM.
         </p>
       </section>

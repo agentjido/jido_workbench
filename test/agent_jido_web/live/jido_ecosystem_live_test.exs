@@ -18,7 +18,7 @@ defmodule AgentJidoWeb.JidoEcosystemLiveTest do
     assert html =~ ~s(phx-hook="EcosystemOrbit")
     refute html =~ "DEPENDENCY GRAPH"
     refute html =~ "jido_coder"
-    assert html =~ ~s(href="/ecosystem/package-matrix")
+    assert html =~ ~s(href="/ecosystem/matrix")
 
     for pkg <- Ecosystem.public_packages() do
       assert html =~ pkg.name

@@ -4,7 +4,7 @@ defmodule AgentJidoWeb.JidoEcosystemPackageMatrixLiveTest do
   alias AgentJido.Ecosystem
 
   test "renders package matrix page on static route", %{conn: conn} do
-    {:ok, _view, html} = live(conn, "/ecosystem/package-matrix")
+    {:ok, _view, html} = live(conn, "/ecosystem/matrix")
 
     assert html =~ "Ecosystem Package Matrix"
     assert html =~ "ADOPTION ORDER"
@@ -14,7 +14,7 @@ defmodule AgentJidoWeb.JidoEcosystemPackageMatrixLiveTest do
   end
 
   test "toggle reveals unstable curated packages", %{conn: conn} do
-    {:ok, view, html} = live(conn, "/ecosystem/package-matrix")
+    {:ok, view, html} = live(conn, "/ecosystem/matrix")
 
     unstable_curated_id =
       Ecosystem.public_packages()
@@ -35,8 +35,13 @@ defmodule AgentJidoWeb.JidoEcosystemPackageMatrixLiveTest do
     end
   end
 
-  test "static package-matrix path wins over /ecosystem/:id route", %{conn: conn} do
-    {:ok, _view, html} = live(conn, "/ecosystem/package-matrix")
+  test "legacy package-matrix route redirects permanently to /ecosystem/matrix", %{conn: conn} do
+    redirected_conn = get(conn, "/ecosystem/package-matrix")
+    assert redirected_to(redirected_conn, 301) == "/ecosystem/matrix"
+  end
+
+  test "static matrix path wins over /ecosystem/:id route", %{conn: conn} do
+    {:ok, _view, html} = live(conn, "/ecosystem/matrix")
 
     assert html =~ "PACKAGE MATRIX"
     refute html =~ "FULL OVERVIEW"

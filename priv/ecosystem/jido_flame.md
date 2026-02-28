@@ -1,6 +1,7 @@
 %{
   name: "jido_flame",
   title: "Jido FLAME",
+  graph_label: "Jido FLAME",
   version: "0.1.0",
   tagline: "Distributed agent compute on Fly.io via FLAME with parent-child hierarchy preservation",
   license: "Apache-2.0",

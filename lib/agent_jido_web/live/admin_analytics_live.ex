@@ -83,11 +83,11 @@ defmodule AgentJidoWeb.AdminAnalyticsLive do
           </div>
         </section>
 
-        <p :if={!@analytics_snapshot.authorized?} class="text-sm font-semibold text-amber-300">
+        <p :if={!@analytics_snapshot.authorized?} class="text-sm font-semibold text-accent-yellow">
           Analytics insights require an authenticated admin scope.
         </p>
 
-        <p :if={@analytics_snapshot.unavailable?} class="text-sm font-semibold text-amber-300">
+        <p :if={@analytics_snapshot.unavailable?} class="text-sm font-semibold text-accent-yellow">
           Analytics snapshot is currently unavailable.
         </p>
 
@@ -312,11 +312,11 @@ defmodule AgentJidoWeb.AdminAnalyticsLive do
   defp feedback_label(_value), do: "-"
 
   defp feedback_badge_class("helpful") do
-    "inline-flex rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-300"
+    "inline-flex rounded-full border border-accent-green/30 bg-accent-green/10 px-2 py-0.5 text-[11px] font-semibold text-accent-green"
   end
 
   defp feedback_badge_class("not_helpful") do
-    "inline-flex rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold text-amber-300"
+    "inline-flex rounded-full border border-accent-yellow/30 bg-accent-yellow/10 px-2 py-0.5 text-[11px] font-semibold text-accent-yellow"
   end
 
   defp feedback_badge_class(_value) do

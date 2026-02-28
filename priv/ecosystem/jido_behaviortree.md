@@ -1,6 +1,7 @@
 %{
   name: "jido_behaviortree",
   title: "Jido BehaviorTree",
+  graph_label: "Jido BehaviorTree",
   version: "1.0.0",
   tagline: "Full-featured behavior tree engine for Jido agent decision-making",
   license: "Apache-2.0",

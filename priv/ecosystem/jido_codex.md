@@ -1,6 +1,7 @@
 %{
   name: "jido_codex",
   title: "Jido Codex",
+  graph_label: "Jido Codex",
   version: "0.1.0",
   tagline: "OpenAI Codex adapter for Jido Harness with deep runtime capability coverage",
   license: "Apache-2.0",

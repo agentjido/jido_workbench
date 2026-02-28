@@ -1,6 +1,7 @@
 %{
   name: "jido_memory",
   title: "Jido Memory",
+  graph_label: "Jido Memory",
   version: "0.1.0",
   tagline: "ETS-backed memory system and plugin model for Jido agents",
   license: "Apache-2.0",

@@ -67,7 +67,7 @@ defmodule AgentJidoWeb.JidoEcosystemPackageMatrixLive do
             Ecosystem Package Matrix
           </h1>
 
-          <p class="text-sm text-secondary-foreground leading-relaxed max-w-[720px]">
+          <p class="copy-measure-wide text-sm leading-relaxed text-secondary-foreground">
             Compare responsibilities, layers, maturity, and dependencies across the curated ecosystem package set.
             Use this matrix to choose between core and opt-in packages before diving into details.
           </p>

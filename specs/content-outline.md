@@ -77,7 +77,7 @@ User outcomes:
 ## Ecosystem
 
 - `/ecosystem`
-- `/ecosystem/package-matrix`
+- `/ecosystem/matrix`
 - Package detail pages (one per package)
 
 ## Build

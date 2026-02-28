@@ -1,6 +1,7 @@
 %{
   name: "jido_studio",
   title: "Jido Studio",
+  graph_label: "Jido Studio",
   version: "0.1.0",
   tagline: "Embeddable LiveView dashboard for managing and debugging Jido agents",
   license: "Apache-2.0",

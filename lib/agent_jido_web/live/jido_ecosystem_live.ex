@@ -67,7 +67,7 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
             <span class="text-primary">Jido is composable.</span>
           </h1>
 
-          <p class="text-sm text-secondary-foreground leading-relaxed max-w-[600px] mb-6">
+          <p class="copy-measure text-sm leading-relaxed text-secondary-foreground mb-6">
             Use the full stack or pick the packages you need. Foundation packages for LLM handling,
             core framework for autonomy, and specialized packages for AI and coding workflows.
           </p>
@@ -83,7 +83,7 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
               <span class="text-muted-foreground text-xs">layers</span>
             </div>
             <.link
-              navigate="/ecosystem/package-matrix"
+              navigate="/ecosystem/matrix"
               class="text-xs text-primary hover:text-primary/80 transition-colors font-semibold"
             >
               VIEW PACKAGE MATRIX →

@@ -38,6 +38,12 @@ defmodule AgentJidoWeb.JidoExamplesLive do
   end
 
   @impl true
+  def handle_event("update_filters", params, socket) do
+    filters = parse_filters(params)
+    {:noreply, push_patch(socket, to: ~p"/examples?#{query_map(filters)}")}
+  end
+
+  @impl true
   def render(assigns) do
     ~H"""
     <.marketing_layout
@@ -45,7 +51,7 @@ defmodule AgentJidoWeb.JidoExamplesLive do
       current_scope={@current_scope}
       analytics_identity={@analytics_identity}
     >
-      <div class="container max-w-[1080px] mx-auto px-6 py-12">
+      <div class="container max-w-[1000px] mx-auto px-6 py-12">
         <%!-- Hero --%>
         <section class="text-center mb-12">
           <div class="inline-block px-4 py-2 rounded mb-5 bg-primary/10 border border-primary/30">
@@ -56,42 +62,42 @@ defmodule AgentJidoWeb.JidoExamplesLive do
           <h1 class="text-4xl font-bold mb-4">
             Learn by <span class="text-primary">building</span>
           </h1>
-          <p class="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p class="copy-measure-wide mx-auto text-lg text-muted-foreground">
             Interactive examples with source code, explanation, and live demos.
             AI/browser demos can run in deterministic simulated mode so no external model calls are required.
           </p>
         </section>
 
         <%!-- Taxonomy Filters --%>
-        <section class="mb-12 rounded-lg border border-border bg-card p-6">
-          <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+        <section class="mb-12 rounded-lg border border-border bg-card p-4 sm:p-5">
+          <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
             <h2 class="text-lg font-bold">Browse by Taxonomy</h2>
             <div class="text-xs text-muted-foreground">{@match_count} example(s)</div>
           </div>
 
-          <div class="space-y-4">
-            <.filter_row
+          <form phx-change="update_filters" class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            <.filter_select
               label="Category"
-              filters={@filters}
-              key_name={:category}
+              name="category"
+              selected={@filters.category}
               values={@filter_options.categories}
             />
-            <.filter_row
+            <.filter_select
               label="Scenario"
-              filters={@filters}
-              key_name={:scenario_cluster}
+              name="scenario"
+              selected={@filters.scenario_cluster}
               values={@filter_options.scenario_clusters}
             />
-            <.filter_row
+            <.filter_select
               label="Capability Theme"
-              filters={@filters}
-              key_name={:capability_theme}
+              name="theme"
+              selected={@filters.capability_theme}
               values={@filter_options.capability_themes}
             />
-            <.filter_row label="Wave" filters={@filters} key_name={:wave} values={@filter_options.waves} />
-          </div>
+            <.filter_select label="Wave" name="wave" selected={@filters.wave} values={@filter_options.waves} />
+          </form>
 
-          <div :if={filters_active?(@filters)} class="mt-5">
+          <div :if={filters_active?(@filters)} class="mt-3 flex justify-end">
             <.link
               patch={~p"/examples"}
               class="text-xs text-primary hover:opacity-80 transition-opacity font-semibold"
@@ -154,48 +160,29 @@ defmodule AgentJidoWeb.JidoExamplesLive do
   end
 
   attr :label, :string, required: true
-  attr :filters, :map, required: true
-  attr :key_name, :atom, required: true
+  attr :name, :string, required: true
+  attr :selected, :atom, default: nil
   attr :values, :list, required: true
 
-  defp filter_row(assigns) do
+  defp filter_select(assigns) do
     ~H"""
-    <div>
-      <div class="text-[11px] text-muted-foreground uppercase tracking-wider mb-2">{@label}</div>
-      <div class="flex gap-2 flex-wrap">
-        <.filter_chip
-          label="All"
-          active={Map.get(@filters, @key_name) == nil}
-          params={patch_params(@filters, @key_name, nil)}
-        />
+    <div class="space-y-1">
+      <label for={@name} class="block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+        {@label}
+      </label>
+      <select
+        id={@name}
+        name={@name}
+        class="h-9 w-full rounded-md border border-border bg-background px-2.5 text-xs text-foreground transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+      >
+        <option value="" selected={is_nil(@selected)}>All</option>
         <%= for value <- @values do %>
-          <.filter_chip
-            label={labelize(value)}
-            active={Map.get(@filters, @key_name) == value}
-            params={patch_params(@filters, @key_name, value)}
-          />
+          <option value={Atom.to_string(value)} selected={@selected == value}>
+            {labelize(value)}
+          </option>
         <% end %>
-      </div>
+      </select>
     </div>
-    """
-  end
-
-  attr :label, :string, required: true
-  attr :active, :boolean, required: true
-  attr :params, :map, required: true
-
-  defp filter_chip(assigns) do
-    ~H"""
-    <.link
-      patch={~p"/examples?#{@params}"}
-      class={
-        if @active,
-          do: "text-[11px] px-3 py-1 rounded border border-primary/40 bg-primary/10 text-primary font-semibold transition-colors",
-          else: "text-[11px] px-3 py-1 rounded border border-border bg-elevated text-muted-foreground hover:text-foreground transition-colors"
-      }
-    >
-      {@label}
-    </.link>
     """
   end
 
@@ -204,8 +191,7 @@ defmodule AgentJidoWeb.JidoExamplesLive do
   defp example_card(assigns) do
     ~H"""
     <.link navigate={~p"/examples/#{@example.slug}"} class="feature-card group block">
-      <div class="flex justify-between items-start mb-3">
-        <span class="text-lg">{@example.emoji}</span>
+      <div class="flex justify-end items-start mb-3">
         <div class="flex gap-2">
           <span class={"text-[10px] px-2 py-0.5 rounded font-semibold uppercase #{difficulty_badge(@example.difficulty)}"}>
             {@example.difficulty}
@@ -291,12 +277,6 @@ defmodule AgentJidoWeb.JidoExamplesLive do
     |> Enum.into([])
   end
 
-  defp patch_params(filters, key, value) do
-    filters
-    |> Map.put(key, value)
-    |> query_map()
-  end
-
   defp query_map(filters) do
     filters
     |> Enum.reduce(%{}, fn
@@ -350,8 +330,8 @@ defmodule AgentJidoWeb.JidoExamplesLive do
   defp category_badge_class(:production), do: "bg-primary/10 border border-primary/30 text-primary"
   defp category_badge_class(_), do: "bg-elevated border border-border text-muted-foreground"
 
-  defp difficulty_badge(:beginner), do: "bg-green-500/10 text-green-400"
-  defp difficulty_badge(:intermediate), do: "bg-amber-500/10 text-amber-400"
-  defp difficulty_badge(:advanced), do: "bg-red-500/10 text-red-400"
+  defp difficulty_badge(:beginner), do: "bg-accent-green/10 text-accent-green"
+  defp difficulty_badge(:intermediate), do: "bg-accent-yellow/10 text-accent-yellow"
+  defp difficulty_badge(:advanced), do: "bg-accent-red/10 text-accent-red"
   defp difficulty_badge(_), do: "bg-elevated text-muted-foreground"
 end

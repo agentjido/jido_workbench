@@ -65,7 +65,7 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLive do
           </div>
 
           <h1 class="text-3xl font-bold tracking-tight mb-3">{@package.title}</h1>
-          <p class="text-sm text-secondary-foreground leading-relaxed max-w-[820px] mb-5">
+          <p class="copy-measure-wide mb-5 text-sm leading-relaxed text-secondary-foreground">
             {@hero_summary}
           </p>
 

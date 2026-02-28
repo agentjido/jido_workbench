@@ -1,6 +1,7 @@
 %{
   name: "jido_action",
   title: "Jido Action",
+  graph_label: "Jido Action",
   version: "2.0.0",
   tagline: "Composable, validated command pattern for Elixir with built-in AI tool integration",
   license: "Apache-2.0",

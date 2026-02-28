@@ -1,6 +1,7 @@
 %{
   name: "jido_command",
   title: "Jido Command",
+  graph_label: "Jido Command",
   version: "0.1.0",
   tagline: "Signal-first slash-command runtime with markdown-defined command specs",
   license: "Apache-2.0",

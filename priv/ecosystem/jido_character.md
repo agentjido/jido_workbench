@@ -1,6 +1,7 @@
 %{
   name: "jido_character",
   title: "Jido Character",
+  graph_label: "Jido Character",
   version: "1.0.0",
   tagline: "Composable character definitions and context rendering for AI agents",
   license: "Apache-2.0",

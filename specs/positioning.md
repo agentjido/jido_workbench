@@ -198,7 +198,7 @@ This is the core storyline:
 `/features/beam-for-ai-builders` -> `/features` -> `/build` -> `/docs/reference` -> `/training`
 
 ### Journey D: Architect/lead buyer
-`/features/executive-brief` -> `/ecosystem/package-matrix` -> `/docs/reference` -> `/training/manager-roadmap`
+`/features/executive-brief` -> `/ecosystem/matrix` -> `/docs/reference` -> `/training/manager-roadmap`
 
 ## 12) Objection Handling
 

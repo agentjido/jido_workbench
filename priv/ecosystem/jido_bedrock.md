@@ -1,6 +1,7 @@
 %{
   name: "jido_bedrock",
   title: "Jido Bedrock",
+  graph_label: "Jido Bedrock",
   version: "0.1.0",
   tagline: "Bedrock-backed persistence adapters for Jido runtimes",
   license: "Apache-2.0",

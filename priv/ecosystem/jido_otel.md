@@ -1,6 +1,7 @@
 %{
 name: "jido_otel",
 title: "Jido OTEL",
+graph_label: "Jido OTEL",
 version: "0.1.0",
 tagline: "OpenTelemetry tracer bridge for Jido.Observe instrumentation",
 license: "Apache-2.0",

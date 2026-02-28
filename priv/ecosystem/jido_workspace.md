@@ -1,6 +1,7 @@
 %{
   name: "jido_workspace",
   title: "Jido Workspace",
+  graph_label: "Jido Workspace",
   version: "0.1.0",
   tagline: "Workspace state and artifact lifecycle library for agent sessions",
   license: "Apache-2.0",

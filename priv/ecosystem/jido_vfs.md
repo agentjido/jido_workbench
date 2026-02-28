@@ -3,7 +3,7 @@
   title: "Jido VFS",
   version: "1.0.0",
   tagline: "Backend-agnostic filesystem contract for agent runtimes and sandbox adapters",
-  graph_label: "virtual fs",
+  graph_label: "Jido VFS",
   license: "Apache-2.0",
   visibility: :private,
   category: :tools,

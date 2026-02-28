@@ -1,6 +1,7 @@
 %{
   name: "jido_chat_discord",
   title: "Jido Chat Discord",
+  graph_label: "Jido Chat Discord",
   version: "0.1.0",
   tagline: "Discord adapter package implementing the Jido Chat adapter contract",
   license: "Apache-2.0",

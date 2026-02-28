@@ -1,6 +1,7 @@
 %{
   name: "jido_code",
   title: "Jido Code",
+  graph_label: "Jido Code",
   version: "0.1.0",
   tagline: "Terminal-native AI coding assistant built on the Jido agent framework",
   license: "Apache-2.0",

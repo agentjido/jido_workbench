@@ -26,8 +26,7 @@ defmodule AgentJidoWeb.BlogLiveTest do
       assert_patch(view, post_path)
       rendered_show = render(view)
       assert rendered_show =~ post.title
-      assert rendered_show =~ "markdown.new"
-      assert rendered_show =~ "Open page in markdown.new" or rendered_show =~ "Open source in markdown.new"
+      assert rendered_show =~ "Open source on GitHub" or rendered_show =~ "Open canonical page"
 
       view
       |> element(~s(a[href="/blog"]), "Back to all posts")

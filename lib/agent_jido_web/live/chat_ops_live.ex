@@ -95,7 +95,7 @@ defmodule AgentJidoWeb.ChatOpsLive do
               </div>
             </div>
 
-            <div :if={@inventory_error} id="chatops-room-inventory-error" class="text-xs font-mono text-red-400">
+            <div :if={@inventory_error} id="chatops-room-inventory-error" class="text-xs font-mono text-accent-red">
               ⚠ Unable to load room inventory: {@inventory_error}
             </div>
 
@@ -163,7 +163,7 @@ defmodule AgentJidoWeb.ChatOpsLive do
               </div>
             </div>
 
-            <div :if={@message_error} id="chatops-message-timeline-error" class="text-xs font-mono text-red-400">
+            <div :if={@message_error} id="chatops-message-timeline-error" class="text-xs font-mono text-accent-red">
               ⚠ Unable to load recent messages: {@message_error}
             </div>
 
@@ -229,7 +229,7 @@ defmodule AgentJidoWeb.ChatOpsLive do
               </div>
             </div>
 
-            <div :if={@action_timeline_error} id="chatops-action-timeline-error" class="text-xs font-mono text-red-400">
+            <div :if={@action_timeline_error} id="chatops-action-timeline-error" class="text-xs font-mono text-accent-red">
               ⚠ Unable to load action timeline: {@action_timeline_error}
             </div>
 
@@ -310,7 +310,7 @@ defmodule AgentJidoWeb.ChatOpsLive do
               </div>
             </div>
 
-            <div :if={@guardrail_error} id="chatops-guardrails-error" class="text-xs font-mono text-red-400">
+            <div :if={@guardrail_error} id="chatops-guardrails-error" class="text-xs font-mono text-accent-red">
               ⚠ Unable to load guardrails: {@guardrail_error}
             </div>
 
@@ -339,13 +339,13 @@ defmodule AgentJidoWeb.ChatOpsLive do
               </div>
               <div class="rounded-md border border-border bg-elevated/40 p-3">
                 <p class="text-[10px] uppercase tracking-wider text-muted-foreground">Unauthorized</p>
-                <p id="chatops-guardrail-count-unauthorized" class="font-mono text-red-300">
+                <p id="chatops-guardrail-count-unauthorized" class="font-mono text-accent-red">
                   {guardrail_count(@guardrails, :unauthorized)}
                 </p>
               </div>
               <div class="rounded-md border border-border bg-elevated/40 p-3">
                 <p class="text-[10px] uppercase tracking-wider text-muted-foreground">Mutations Disabled</p>
-                <p id="chatops-guardrail-count-mutations-disabled" class="font-mono text-amber-300">
+                <p id="chatops-guardrail-count-mutations-disabled" class="font-mono text-accent-yellow">
                   {guardrail_count(@guardrails, :mutations_disabled)}
                 </p>
               </div>
@@ -885,10 +885,10 @@ defmodule AgentJidoWeb.ChatOpsLive do
     "space-y-2 rounded-md border p-4 " <> action_row_color(entry)
   end
 
-  defp action_row_color(%{outcome: :succeeded}), do: "border-emerald-500/40 bg-emerald-950/20"
-  defp action_row_color(%{outcome: :blocked}), do: "border-red-500/50 bg-red-950/20"
-  defp action_row_color(%{outcome: :accepted}), do: "border-amber-500/40 bg-amber-950/20"
-  defp action_row_color(%{outcome: :failed}), do: "border-red-500/40 bg-red-950/15"
+  defp action_row_color(%{outcome: :succeeded}), do: "border-accent-green/40 bg-accent-green/20"
+  defp action_row_color(%{outcome: :blocked}), do: "border-accent-red/50 bg-accent-red/20"
+  defp action_row_color(%{outcome: :accepted}), do: "border-accent-yellow/40 bg-accent-yellow/20"
+  defp action_row_color(%{outcome: :failed}), do: "border-accent-red/40 bg-accent-red/15"
   defp action_row_color(_entry), do: "border-border bg-elevated/50"
 
   defp entry_type_badge_class(entry) do
@@ -897,7 +897,7 @@ defmodule AgentJidoWeb.ChatOpsLive do
   end
 
   defp entry_type_color(%{type: :run}),
-    do: "border-emerald-500/60 bg-emerald-900/40 text-emerald-200"
+    do: "border-accent-green/60 bg-accent-green/40 text-accent-green"
 
   defp entry_type_color(_entry), do: "border-border bg-card text-foreground"
 
@@ -907,14 +907,14 @@ defmodule AgentJidoWeb.ChatOpsLive do
   end
 
   defp outcome_color(%{outcome: :succeeded}),
-    do: "border-emerald-500/60 bg-emerald-900/40 text-emerald-200"
+    do: "border-accent-green/60 bg-accent-green/40 text-accent-green"
 
-  defp outcome_color(%{outcome: :blocked}), do: "border-red-500/70 bg-red-900/40 text-red-200"
+  defp outcome_color(%{outcome: :blocked}), do: "border-accent-red/70 bg-accent-red/40 text-accent-red"
 
   defp outcome_color(%{outcome: :accepted}),
-    do: "border-amber-500/60 bg-amber-900/40 text-amber-200"
+    do: "border-accent-yellow/60 bg-accent-yellow/40 text-accent-yellow"
 
-  defp outcome_color(%{outcome: :failed}), do: "border-red-500/60 bg-red-900/40 text-red-200"
+  defp outcome_color(%{outcome: :failed}), do: "border-accent-red/60 bg-accent-red/40 text-accent-red"
   defp outcome_color(_entry), do: "border-border bg-card text-foreground"
 
   defp action_entry_type_label(%{type: :run}), do: "Run"
@@ -969,12 +969,12 @@ defmodule AgentJidoWeb.ChatOpsLive do
   defp action_entry_authz_label(_entry), do: "N/A"
 
   defp action_entry_authz_class(%{authz_status: :authorized}),
-    do: "font-semibold text-emerald-300"
+    do: "font-semibold text-accent-green"
 
-  defp action_entry_authz_class(%{authz_status: :unauthorized}), do: "font-semibold text-red-300"
+  defp action_entry_authz_class(%{authz_status: :unauthorized}), do: "font-semibold text-accent-red"
 
   defp action_entry_authz_class(%{authz_status: :mutations_disabled}),
-    do: "font-semibold text-amber-300"
+    do: "font-semibold text-accent-yellow"
 
   defp action_entry_authz_class(%{authz_status: :unknown}),
     do: "font-semibold text-muted-foreground"
@@ -993,8 +993,8 @@ defmodule AgentJidoWeb.ChatOpsLive do
 
   defp action_entry_mutation_class(entry) when is_map(entry) do
     case Map.get(entry, :mutation_enabled, Map.get(entry, "mutation_enabled")) do
-      true -> "font-semibold text-emerald-300"
-      false -> "font-semibold text-red-300"
+      true -> "font-semibold text-accent-green"
+      false -> "font-semibold text-accent-red"
       _other -> "font-semibold text-muted-foreground"
     end
   end
@@ -1018,11 +1018,11 @@ defmodule AgentJidoWeb.ChatOpsLive do
 
   defp guardrail_mutation_class(guardrails) when is_map(guardrails) do
     if Map.get(guardrails, :mutation_enabled, false),
-      do: "text-sm font-semibold text-emerald-300",
-      else: "text-sm font-semibold text-red-300"
+      do: "text-sm font-semibold text-accent-green",
+      else: "text-sm font-semibold text-accent-red"
   end
 
-  defp guardrail_mutation_class(_guardrails), do: "text-sm font-semibold text-red-300"
+  defp guardrail_mutation_class(_guardrails), do: "text-sm font-semibold text-accent-red"
 
   defp guardrail_authz_label(guardrails) when is_map(guardrails) do
     case Map.get(guardrails, :latest_authz_status) do
@@ -1038,9 +1038,9 @@ defmodule AgentJidoWeb.ChatOpsLive do
 
   defp guardrail_authz_class(guardrails) when is_map(guardrails) do
     case Map.get(guardrails, :latest_authz_status) do
-      :authorized -> "text-sm font-semibold text-emerald-300"
-      :unauthorized -> "text-sm font-semibold text-red-300"
-      :mutations_disabled -> "text-sm font-semibold text-amber-300"
+      :authorized -> "text-sm font-semibold text-accent-green"
+      :unauthorized -> "text-sm font-semibold text-accent-red"
+      :mutations_disabled -> "text-sm font-semibold text-accent-yellow"
       :unknown -> "text-sm font-semibold text-muted-foreground"
       _other -> "text-sm font-semibold text-muted-foreground"
     end

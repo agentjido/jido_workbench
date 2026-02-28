@@ -48,7 +48,7 @@ defmodule AgentJidoWeb.AdminContentIngestionLive do
               </p>
             </div>
 
-            <div :if={@content_ingest_running} class="text-xs font-semibold uppercase tracking-wide text-amber-400">
+            <div :if={@content_ingest_running} class="text-xs font-semibold uppercase tracking-wide text-accent-yellow">
               {@current_run_label || "Ingestion running"}…
             </div>
           </div>
@@ -395,9 +395,9 @@ defmodule AgentJidoWeb.AdminContentIngestionLive do
 
   defp summary_status_class(summary) do
     if summary.failed_count > 0 do
-      "text-xs font-semibold text-red-400"
+      "text-xs font-semibold text-accent-red"
     else
-      "text-xs font-semibold text-emerald-300"
+      "text-xs font-semibold text-accent-green"
     end
   end
 

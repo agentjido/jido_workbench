@@ -60,7 +60,7 @@ These content plan briefs exist in `priv/content_plan/features/` but do **not** 
 |---|---|---|
 | `schema-validated-actions` | Fold | *Reliability by Architecture* (typed contracts), *Multi-Agent Coordination* (action boundaries) |
 | `directives-and-scheduling` | Fold | *Multi-Agent Coordination* (primary — side-effect control), *Operations & Observability* (mention) |
-| `composable-ecosystem` | Fold | *Incremental Adoption* (package composition narrative) + cross-link to `/ecosystem/package-matrix` |
+| `composable-ecosystem` | Fold | *Incremental Adoption* (package composition narrative) + cross-link to `/ecosystem/matrix` |
 | `liveview-integration-patterns` | Relocate | Move to `/build` or `/docs/guides` — implementation pattern, not evaluator decision page |
 
 **Action items:**
@@ -87,7 +87,7 @@ The `JidoFeaturesLive` index has structural issues to resolve:
 These threading items apply across features pages:
 
 1. **"LLM optional by design"** — thread into: `/features` (Why Jido), *Incremental Adoption* (was `composable-ecosystem`, now folded)
-2. **ReqLLM first-class visibility** — thread into: *Incremental Adoption* + `/ecosystem/package-matrix`
+2. **ReqLLM first-class visibility** — thread into: *Incremental Adoption* + `/ecosystem/matrix`
 3. **Runtime-first language primary** — every features page
 
 ---

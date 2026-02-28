@@ -1,6 +1,6 @@
 defmodule AgentJidoWeb.MarkdownLinks do
   @moduledoc """
-  URL helpers for markdown-friendly content workflows.
+  URL helpers for content source and canonical URL workflows.
   """
 
   @repo "https://github.com/agentjido/agentjido_xyz"
@@ -30,16 +30,6 @@ defmodule AgentJidoWeb.MarkdownLinks do
       _other -> base
     end
   end
-
-  @doc """
-  Builds a markdown.new URL using the unescaped absolute URL suffix format.
-  """
-  @spec markdown_new_url(String.t() | nil) :: String.t() | nil
-  def markdown_new_url(url) when is_binary(url) and url != "" do
-    "https://markdown.new/" <> url
-  end
-
-  def markdown_new_url(_url), do: nil
 
   @doc """
   Converts an in-repo GitHub blob URL to the corresponding raw content URL.
@@ -119,28 +109,27 @@ defmodule AgentJidoWeb.MarkdownLinks do
   def raw_source_url_from(_item), do: nil
 
   @doc """
-  Builds a markdown.new action preferring source markdown and falling back to
-  the rendered page URL.
+  Builds a content action preferring source URLs and falling back to
+  the canonical rendered page URL.
   """
   @spec markdown_action(map() | nil, String.t()) :: markdown_action()
   def markdown_action(item, page_absolute_url) when is_binary(page_absolute_url) do
     source_url = source_url_from(item)
-    raw_source_url = raw_source_url_from(item)
 
-    case markdown_new_url(raw_source_url) do
-      url when is_binary(url) ->
+    case source_url do
+      url when is_binary(url) and url != "" ->
         %{
           url: url,
-          label: "Open source in markdown.new",
+          label: "Open source on GitHub",
           source_backed?: true,
           source_url: source_url,
-          raw_source_url: raw_source_url
+          raw_source_url: raw_source_url_from(item)
         }
 
       _other ->
         %{
-          url: markdown_new_url(page_absolute_url),
-          label: "Open page in markdown.new",
+          url: page_absolute_url,
+          label: "Open canonical page",
           source_backed?: false,
           source_url: nil,
           raw_source_url: nil

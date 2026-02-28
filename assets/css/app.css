@@ -260,6 +260,29 @@
 }
 
 @layer components {
+  /* Canonical copy measure and rhythm helpers for marketing/docs text. */
+  .copy-measure {
+    max-width: 68ch;
+  }
+
+  .copy-measure-wide {
+    max-width: 78ch;
+  }
+
+  .copy-measure-tight {
+    max-width: 56ch;
+  }
+
+  .copy-flow > * + * {
+    margin-top: 0.85rem;
+  }
+
+  .copy-justify {
+    text-align: justify;
+    text-justify: inter-word;
+    hyphens: auto;
+  }
+
   .package-card {
     @apply bg-card border border-border rounded-md p-5 transition-all duration-200;
   }

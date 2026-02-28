@@ -3,7 +3,7 @@
   title: "ReqLLM",
   version: "1.6.0",
   tagline: "Composable Elixir library for LLM interactions built on Req",
-  graph_label: "LLM client",
+  graph_label: "ReqLLM",
   license: "Apache-2.0",
   visibility: :public,
   category: :ai,

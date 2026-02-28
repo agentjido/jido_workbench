@@ -1,6 +1,7 @@
 %{
   name: "jido_workflow",
   title: "Jido Workflow",
+  graph_label: "Jido Workflow",
   version: "0.1.0",
   tagline: "Workflow runtime and CLI for DAG-based Jido code workflows",
   license: "Apache-2.0",

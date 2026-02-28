@@ -1,6 +1,7 @@
 %{
   name: "jido_chat",
   title: "Jido Chat",
+  graph_label: "Jido Chat",
   version: "0.1.0",
   tagline: "SDK-first chat core for typed message flows and adapter contracts",
   license: "Apache-2.0",

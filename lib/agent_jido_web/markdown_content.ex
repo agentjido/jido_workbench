@@ -7,7 +7,6 @@ defmodule AgentJidoWeb.MarkdownContent do
   alias AgentJido.Ecosystem
   alias AgentJido.Examples
   alias AgentJido.Pages
-  alias AgentJidoWeb.MarkdownLinks
 
   @doc """
   Returns true when the request path is in the markdown-enabled public route set.
@@ -111,8 +110,12 @@ defmodule AgentJidoWeb.MarkdownContent do
     {:fallback, "Jido Ecosystem", "Discover composable Jido packages across runtime core, AI orchestration, and production operations."}
   end
 
-  defp resolve_from_ecosystem("/ecosystem/package-matrix") do
+  defp resolve_from_ecosystem("/ecosystem/matrix") do
     {:fallback, "Jido Ecosystem Package Matrix", "Cross-package matrix view for capabilities, dependencies, and integrations."}
+  end
+
+  defp resolve_from_ecosystem("/ecosystem/package-matrix") do
+    resolve_from_ecosystem("/ecosystem/matrix")
   end
 
   defp resolve_from_ecosystem("/ecosystem/" <> id_path) do
@@ -183,14 +186,12 @@ defmodule AgentJidoWeb.MarkdownContent do
   defp resolve_misc(_path), do: nil
 
   defp fallback_markdown(title, absolute_url, summary) do
-    markdown_new_url = MarkdownLinks.markdown_new_url(absolute_url)
     normalized_summary = normalize_summary(summary)
 
     """
     # #{title}
 
     Canonical URL: #{absolute_url}
-    Markdown URL: #{markdown_new_url}
 
     #{normalized_summary}
 

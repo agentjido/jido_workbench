@@ -320,8 +320,8 @@ defmodule AgentJidoWeb.ChatOpsLiveTest do
     assert html =~ "Blocked"
     assert html =~ "Unauthorized"
     assert html =~ "Succeeded"
-    assert html =~ "border-red-500/50"
-    assert html =~ "border-emerald-500/40"
+    assert html =~ "border-accent-red/50"
+    assert html =~ "border-accent-green/40"
   end
 
   test "renders guardrail indicators for mutation state and authz outcomes", %{conn: conn} do

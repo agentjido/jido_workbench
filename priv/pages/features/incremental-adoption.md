@@ -75,7 +75,7 @@ Jido's package architecture is designed for incremental scope expansion. Each pa
 
 Start with the core runtime packages. Add layers only after the previous layer is stable and operationally validated.
 
-See the [package matrix](/ecosystem/package-matrix) for full package inventory and maturity status.
+See the [package matrix](/ecosystem/matrix) for full package inventory and maturity status.
 
 ## Tradeoffs and non-goals
 

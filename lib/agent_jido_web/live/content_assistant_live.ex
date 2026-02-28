@@ -173,7 +173,7 @@ defmodule AgentJidoWeb.ContentAssistantLive do
         >
           <div
             :if={fallback_banner(@response, @turnstile_available)}
-            class="rounded-lg border border-amber-400/30 bg-amber-100/10 p-3 text-xs font-semibold text-amber-200"
+            class="rounded-lg border border-accent-yellow/30 bg-accent-yellow/10 p-3 text-xs font-semibold text-accent-yellow"
           >
             {fallback_banner(@response, @turnstile_available)}
           </div>
@@ -268,7 +268,7 @@ defmodule AgentJidoWeb.ContentAssistantLive do
         <section
           :if={@status == :error}
           id="content-assistant-error-state"
-          class="assistant-state-card rounded-2xl border border-amber-400/40 bg-amber-100/30 p-6 text-sm text-foreground"
+          class="assistant-state-card rounded-2xl border border-accent-yellow/40 bg-accent-yellow/30 p-6 text-sm text-foreground"
         >
           Content assistant is temporarily unavailable right now. Please try again in a moment.
         </section>

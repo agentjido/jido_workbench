@@ -12,7 +12,7 @@ The site has one unified page pipeline plus supporting content collections.
 | Collection | Source path | Loader/build module | Primary routes |
 |---|---|---|---|
 | Pages | `priv/pages/**/*.{md,livemd}` | `AgentJido.Pages` | `/docs...`, `/features...`, `/build...`, `/community...`, `/training...` |
-| Ecosystem | `priv/ecosystem/*.md` | `AgentJido.Ecosystem` | `/ecosystem/:id` + `/ecosystem/package-matrix` |
+| Ecosystem | `priv/ecosystem/*.md` | `AgentJido.Ecosystem` | `/ecosystem/:id` + `/ecosystem/matrix` |
 | Examples | `priv/examples/*.md` | `AgentJido.Examples` | `/examples/:slug` |
 | Blog | `priv/blog/**/*.{md,livemd}` | `AgentJido.Blog` | `/blog/:slug`, `/feed`, `/sitemap.xml` |
 
@@ -51,7 +51,7 @@ Compile-time guards already enforce:
 
 Notes:
 
-- `/ecosystem/package-matrix` is an explicit static route and must stay above `/ecosystem/:id` in the router.
+- `/ecosystem/matrix` is an explicit static route and must stay above `/ecosystem/:id` in the router.
 - Legacy docs aliases are handled via `AgentJido.Pages.docs_legacy_redirects/0` + `PageController.docs_legacy_redirect/2`.
 
 ## 4) Specs to content contract

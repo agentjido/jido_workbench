@@ -1,6 +1,7 @@
 %{
   name: "ash_jido",
   title: "Ash Jido",
+  graph_label: "Ash Jido",
   version: "0.1.0",
   tagline: "Compile-time bridge from Ash Framework resources to Jido Action modules",
   license: "Apache-2.0",

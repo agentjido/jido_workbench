@@ -3,7 +3,7 @@
   title: "Jido AI",
   version: "2.0.0-rc.0",
   tagline: "LLM orchestration, reasoning strategies, and accuracy improvement for Jido agents",
-  graph_label: "agent intelligence",
+  graph_label: "Jido AI",
   license: "Apache-2.0",
   visibility: :private,
   category: :ai,

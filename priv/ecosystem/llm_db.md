@@ -3,7 +3,7 @@
   title: "LLMDB",
   version: "2026.2.8",
   tagline: "Fast, zero-network LLM model metadata catalog for Elixir",
-  graph_label: "model registry",
+  graph_label: "LLM DB",
   license: "MIT",
   visibility: :public,
   category: :ai,

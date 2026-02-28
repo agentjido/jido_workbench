@@ -141,19 +141,19 @@ defmodule AgentJidoWeb.AdminContentGeneratorLive do
 
         <section
           :if={@content_gen_running and is_map(@content_gen_run_context)}
-          class="space-y-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3"
+          class="space-y-2 rounded-lg border border-accent-yellow/40 bg-accent-yellow/10 px-4 py-3"
         >
           <div class="flex flex-wrap items-center justify-between gap-2">
-            <p class="text-xs font-semibold uppercase tracking-wide text-amber-300">
+            <p class="text-xs font-semibold uppercase tracking-wide text-accent-yellow">
               {run_progress_label(@content_gen_run_context)}
             </p>
-            <p class="font-mono text-[11px] text-amber-200">
+            <p class="font-mono text-[11px] text-accent-yellow">
               elapsed {format_elapsed_seconds(@content_gen_run_context.elapsed_seconds)}
             </p>
           </div>
           <p
             :if={is_binary(@content_gen_active_command)}
-            class="truncate font-mono text-[11px] text-amber-100"
+            class="truncate font-mono text-[11px] text-accent-yellow"
             title={@content_gen_active_command}
           >
             {@content_gen_active_command}
@@ -179,9 +179,9 @@ defmodule AgentJidoWeb.AdminContentGeneratorLive do
           </button>
         </section>
 
-        <section :if={@run_warnings != []} class="space-y-2 rounded-lg border border-amber-500/40 bg-amber-500/10 p-4">
-          <h2 class="text-sm font-semibold text-amber-300">Run report warnings</h2>
-          <p :for={warning <- @run_warnings} class="text-xs text-amber-200">{warning}</p>
+        <section :if={@run_warnings != []} class="space-y-2 rounded-lg border border-accent-yellow/40 bg-accent-yellow/10 p-4">
+          <h2 class="text-sm font-semibold text-accent-yellow">Run report warnings</h2>
+          <p :for={warning <- @run_warnings} class="text-xs text-accent-yellow">{warning}</p>
         </section>
 
         <%= case @live_action do %>
@@ -459,7 +459,7 @@ defmodule AgentJidoWeb.AdminContentGeneratorLive do
                   <p class="mt-1 truncate font-mono text-[10px] text-muted-foreground" title={row.id}>{row.id}</p>
                   <p
                     :if={run_entry_active?(@run_context, row.id)}
-                    class="mt-1 inline-flex rounded border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-300"
+                    class="mt-1 inline-flex rounded border border-accent-yellow/40 bg-accent-yellow/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent-yellow"
                   >
                     Running {run_action_short_label(@run_context)}
                   </p>
@@ -610,7 +610,7 @@ defmodule AgentJidoWeb.AdminContentGeneratorLive do
           <h3 class="text-base font-semibold text-foreground">Actions</h3>
           <p
             :if={run_entry_active?(@run_context, @entry.id)}
-            class="rounded border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-[11px] text-amber-200"
+            class="rounded border border-accent-yellow/40 bg-accent-yellow/10 px-3 py-2 text-[11px] text-accent-yellow"
           >
             {run_progress_label(@run_context)} ({format_elapsed_seconds(@run_context.elapsed_seconds)})
           </p>
@@ -1849,7 +1849,7 @@ defmodule AgentJidoWeb.AdminContentGeneratorLive do
   end
 
   defp plan_status_badge_class(status) when status in [:review, :published] do
-    "inline-flex rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-300"
+    "inline-flex rounded-full border border-accent-green/30 bg-accent-green/10 px-2 py-0.5 text-[10px] font-semibold text-accent-green"
   end
 
   defp plan_status_badge_class(_status) do
@@ -1857,22 +1857,22 @@ defmodule AgentJidoWeb.AdminContentGeneratorLive do
   end
 
   defp artifact_status_badge_class(:generated),
-    do: "inline-flex rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-300"
+    do: "inline-flex rounded-full border border-accent-green/30 bg-accent-green/10 px-2 py-0.5 text-[10px] font-semibold text-accent-green"
 
   defp artifact_status_badge_class(:stale),
-    do: "inline-flex rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-300"
+    do: "inline-flex rounded-full border border-accent-yellow/30 bg-accent-yellow/10 px-2 py-0.5 text-[10px] font-semibold text-accent-yellow"
 
   defp artifact_status_badge_class(:missing),
-    do: "inline-flex rounded-full border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-300"
+    do: "inline-flex rounded-full border border-accent-red/30 bg-accent-red/10 px-2 py-0.5 text-[10px] font-semibold text-accent-red"
 
   defp artifact_status_badge_class(_status),
     do: "inline-flex rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-semibold text-muted-foreground"
 
   defp verify_status_badge_class(:passed),
-    do: "inline-flex rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-300"
+    do: "inline-flex rounded-full border border-accent-green/30 bg-accent-green/10 px-2 py-0.5 text-[10px] font-semibold text-accent-green"
 
   defp verify_status_badge_class(:failed),
-    do: "inline-flex rounded-full border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-300"
+    do: "inline-flex rounded-full border border-accent-red/30 bg-accent-red/10 px-2 py-0.5 text-[10px] font-semibold text-accent-red"
 
   defp verify_status_badge_class(:skipped),
     do: "inline-flex rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-semibold text-muted-foreground"
@@ -1881,10 +1881,10 @@ defmodule AgentJidoWeb.AdminContentGeneratorLive do
     do: "inline-flex rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-semibold text-muted-foreground"
 
   defp run_status_class(:completed),
-    do: "inline-flex items-center rounded bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-400"
+    do: "inline-flex items-center rounded bg-accent-green/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-accent-green"
 
   defp run_status_class(:failed),
-    do: "inline-flex items-center rounded bg-red-500/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-red-400"
+    do: "inline-flex items-center rounded bg-accent-red/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-accent-red"
 
   defp run_status_class(_),
     do: "inline-flex items-center rounded bg-muted px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground"
@@ -1892,26 +1892,26 @@ defmodule AgentJidoWeb.AdminContentGeneratorLive do
   defp entry_status_badge_class(status) when is_atom(status), do: entry_status_badge_class(Atom.to_string(status))
 
   defp entry_status_badge_class("written"),
-    do: "inline-flex rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-300"
+    do: "inline-flex rounded-full border border-accent-green/30 bg-accent-green/10 px-2 py-0.5 text-[10px] font-semibold text-accent-green"
 
   defp entry_status_badge_class("dry_run_candidate"),
     do: "inline-flex rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary"
 
   defp entry_status_badge_class("verification_failed"),
-    do: "inline-flex rounded-full border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-300"
+    do: "inline-flex rounded-full border border-accent-red/30 bg-accent-red/10 px-2 py-0.5 text-[10px] font-semibold text-accent-red"
 
   defp entry_status_badge_class("generation_failed"),
-    do: "inline-flex rounded-full border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-300"
+    do: "inline-flex rounded-full border border-accent-red/30 bg-accent-red/10 px-2 py-0.5 text-[10px] font-semibold text-accent-red"
 
   defp entry_status_badge_class(_status),
     do: "inline-flex rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-semibold text-muted-foreground"
 
-  defp plan_row_class(:critical), do: "bg-red-500/5"
-  defp plan_row_class(:attention), do: "bg-amber-500/5"
+  defp plan_row_class(:critical), do: "bg-accent-red/5"
+  defp plan_row_class(:attention), do: "bg-accent-yellow/5"
   defp plan_row_class(_), do: ""
 
-  defp diff_line_class(:add), do: "block bg-emerald-500/10 text-emerald-200"
-  defp diff_line_class(:remove), do: "block bg-red-500/10 text-red-200"
+  defp diff_line_class(:add), do: "block bg-accent-green/10 text-accent-green"
+  defp diff_line_class(:remove), do: "block bg-accent-red/10 text-accent-red"
   defp diff_line_class(:context), do: "block text-foreground"
 
   defp verify_status_atom(status) when is_atom(status), do: status

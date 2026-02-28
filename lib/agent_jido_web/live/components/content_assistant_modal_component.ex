@@ -292,7 +292,10 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
           </div>
 
           <div :if={@status == :answer and is_map(@response)} id={"#{@id}-answer"} class="space-y-4">
-            <div :if={fallback_banner(@response)} class="rounded-lg border border-amber-400/30 bg-amber-100/10 p-3 text-xs font-semibold text-amber-200">
+            <div
+              :if={fallback_banner(@response)}
+              class="rounded-lg border border-accent-yellow/30 bg-accent-yellow/10 p-3 text-xs font-semibold text-accent-yellow"
+            >
               {fallback_banner(@response)}
             </div>
 

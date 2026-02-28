@@ -1,6 +1,7 @@
 %{
   name: "jido_skill",
   title: "Jido Skill",
+  graph_label: "Jido Skill",
   version: "0.1.0",
   tagline: "Skill-only runtime for markdown-defined skills with signal-first dispatch",
   license: "Apache-2.0",

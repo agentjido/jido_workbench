@@ -1,6 +1,7 @@
 %{
   name: "jido_browser",
   title: "Jido Browser",
+  graph_label: "Jido Browser",
   version: "1.0.0",
   tagline: "Browser automation for AI agents with 26 composable actions",
   license: "Apache-2.0",

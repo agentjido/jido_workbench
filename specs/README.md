@@ -38,6 +38,7 @@ If you are contributing content or docs, read these in order:
 ## Contributor rules
 
 - Treat `specs/` as policy and `priv/` as implementation.
+- `content-governance.md` includes the canonical ST-CONT-001 publish hard gate and must be enforced before publishing.
 - If you change IA, routes, or nav: update `content-outline.md`, `content-system.md`, and `taxonomy.md` in the same PR.
 - If you change claims: update `proof.md` and ensure claim discipline still matches `positioning.md`.
 - If you change writing mechanics: update `style-voice.md` and confirm templates still align.
@@ -49,5 +50,5 @@ If you are contributing content or docs, read these in order:
 - `runbooks/` — operator and release procedures.
 - `templates/` — authoring templates for page types.
 - `brainstorms/` — exploratory notes and ideation artifacts.
-- `audits/` — audit outputs and snapshots.
+- `audits/` — audit outputs and snapshots (latest: `theme-typography-canon-2026-02-28.md`).
 - `ontology/` — ontology model and export references.

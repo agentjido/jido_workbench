@@ -1,6 +1,7 @@
 %{
   name: "jido_mcp",
   title: "Jido MCP",
+  graph_label: "Jido MCP",
   version: "0.1.1",
   tagline: "MCP server integration package with pooled clients and Jido action surfaces",
   license: "Apache-2.0",

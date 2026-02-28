@@ -1,6 +1,7 @@
 %{
   name: "jido_lib",
   title: "Jido Lib",
+  graph_label: "Jido Lib",
   version: "0.1.0",
   tagline: "GitHub triage and PR orchestration workflows composed over the CLI-agent stack",
   license: "Apache-2.0",

@@ -1,6 +1,7 @@
 %{
   name: "jido_runic",
   title: "Jido Runic",
+  graph_label: "Jido Runic",
   version: "0.1.0",
   tagline: "Workflow composition and execution substrate for DAG-based agent orchestration",
   license: "Apache-2.0",

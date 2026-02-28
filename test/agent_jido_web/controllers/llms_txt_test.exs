@@ -9,6 +9,6 @@ defmodule AgentJidoWeb.LLMSTxtTest do
     assert body =~ "Preferred retrieval"
     assert body =~ "Accept: text/markdown"
     assert body =~ "https://agentjido.xyz/sitemap.xml"
-    assert body =~ "https://markdown.new/https://agentjido.xyz/<route>"
+    assert body =~ "If direct source markdown is unavailable"
   end
 end

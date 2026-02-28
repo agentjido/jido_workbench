@@ -18,7 +18,7 @@ This page is for engineering managers, CTOs, and architecture leads evaluating w
 | Core differentiator | Elixir/OTP runtime semantics: isolation, supervision, and concurrency |
 | Intelligence posture | LLM integration is optional, not mandatory |
 | Adoption model | Bounded pilot -> measured expansion -> operations hardening |
-| First decision path | [Package matrix](/ecosystem/package-matrix) -> [Reference architectures](/build/reference-architectures) |
+| First decision path | [Package matrix](/ecosystem/matrix) -> [Reference architectures](/build/reference-architectures) |
 
 ## What you are buying architecturally
 
@@ -78,7 +78,7 @@ This is the same runtime model used for larger adoption phases.
 ## Recommended next moves
 
 - Build one pilot scope in [Quickstarts by persona](/build/quickstarts-by-persona).
-- Review package choices in [Package matrix](/ecosystem/package-matrix).
+- Review package choices in [Package matrix](/ecosystem/matrix).
 - **Agent model foundations:** [BEAM-native agent model](/features/beam-native-agent-model)
 - Validate rollout criteria with [Production readiness checklist](/docs/operations/production-readiness-checklist).
 

@@ -1,6 +1,7 @@
 %{
   name: "jido_memory_os",
   title: "Jido MemoryOS",
+  graph_label: "Jido MemoryOS",
   version: "0.1.0",
   tagline: "Tiered memory orchestration and governance layer for Jido agents",
   license: "Apache-2.0",

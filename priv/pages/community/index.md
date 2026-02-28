@@ -37,7 +37,7 @@ We do not publish anonymous usage numbers or unsupported adoption claims on thes
 
 - Ask implementation questions in [Discord](/discord).
 - Report product and docs issues in [GitHub Issues](https://github.com/agentjido/agentjido_xyz/issues).
-- Review package choices in [Package Matrix](/ecosystem/package-matrix).
+- Review package choices in [Package Matrix](/ecosystem/matrix).
 
 ## Get Building
 

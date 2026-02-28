@@ -1,6 +1,7 @@
 %{
   name: "jido_amp",
   title: "Jido Amp",
+  graph_label: "Jido Amp",
   version: "0.1.0",
   tagline: "Amp CLI adapter for Jido Harness with runtime compatibility checks",
   license: "Apache-2.0",

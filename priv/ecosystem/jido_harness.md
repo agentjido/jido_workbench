@@ -1,6 +1,7 @@
 %{
   name: "jido_harness",
   title: "Jido Harness",
+  graph_label: "Jido Harness",
   version: "0.1.0",
   tagline: "Provider-neutral contract and runtime policy layer for CLI coding agents",
   license: "Apache-2.0",

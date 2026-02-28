@@ -1,6 +1,7 @@
 %{
   name: "agent_jido",
   title: "Agent Jido",
+  graph_label: "Agent Jido",
   version: "0.1.0",
   tagline: "Reference Phoenix application showcasing the Jido AI agent ecosystem",
   license: "Apache-2.0",
