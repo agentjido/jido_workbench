@@ -30,6 +30,14 @@ if System.get_env("PHX_SERVER") do
   config :agent_jido, AgentJidoWeb.Endpoint, server: true
 end
 
+config :phoenix_blog,
+  get_current_user: fn socket ->
+    case socket.assigns[:current_scope] do
+      %{user: user} -> user
+      _ -> nil
+    end
+  end
+
 config :agent_jido,
   canonical_host: env!("CANONICAL_HOST", :string, nil),
   # Set to true/false to control Plausible analytics loading, only in production
