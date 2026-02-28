@@ -83,14 +83,14 @@ defmodule AgentJido.Accounts do
   @doc """
   Returns true when the user has admin access.
   """
-  @spec admin?(%User{} | nil) :: boolean()
+  @spec admin?(User.t() | nil) :: boolean()
   def admin?(%User{is_admin: true}), do: true
   def admin?(_), do: false
 
   @doc """
   Promotes the given user to admin.
   """
-  @spec promote_user_to_admin(%User{}) :: {:ok, %User{}} | {:error, Ecto.Changeset.t()}
+  @spec promote_user_to_admin(User.t()) :: {:ok, User.t()} | {:error, Ecto.Changeset.t()}
   def promote_user_to_admin(%User{} = user) do
     user
     |> Ecto.Changeset.change(is_admin: true)
@@ -103,7 +103,7 @@ defmodule AgentJido.Accounts do
   Returns `{:error, :not_found}` when no user exists with the given email.
   """
   @spec promote_user_to_admin_by_email(String.t()) ::
-          {:ok, %User{}} | {:error, Ecto.Changeset.t() | :not_found}
+          {:ok, User.t()} | {:error, Ecto.Changeset.t() | :not_found}
   def promote_user_to_admin_by_email(email) when is_binary(email) do
     case get_user_by_email(email) do
       %User{} = user -> promote_user_to_admin(user)

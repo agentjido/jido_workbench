@@ -106,7 +106,7 @@ defmodule AgentJido.Demos.GithubAgentTest do
 
       {200, comments, _} = list_result.data
       assert is_list(comments)
-      assert length(comments) >= 1
+      refute Enum.empty?(comments)
 
       # Clean up
       Tentacat.Issues.update(client, @owner, @repo, issue_num, %{"state" => "closed"})

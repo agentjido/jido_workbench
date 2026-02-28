@@ -148,8 +148,9 @@ defmodule AgentJido.Pages.LivebookParser do
       map
     rescue
       e ->
-        raise ArgumentError,
-              "Failed to evaluate frontmatter in #{inspect(path)}: #{Exception.message(e)}"
+        reraise ArgumentError,
+                [message: "Failed to evaluate frontmatter in #{inspect(path)}: #{Exception.message(e)}"],
+                __STACKTRACE__
     end
   end
 

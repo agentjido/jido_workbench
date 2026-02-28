@@ -9,7 +9,7 @@ defmodule AgentJido.PagesTest do
     test "returns a list of pages" do
       pages = Pages.all_pages()
       assert is_list(pages)
-      assert length(pages) > 0
+      refute Enum.empty?(pages)
       assert Enum.all?(pages, &match?(%Page{}, &1))
     end
 
@@ -159,7 +159,7 @@ defmodule AgentJido.PagesTest do
 
       pages = Pages.pages_by_category(category)
       assert is_list(pages)
-      assert length(pages) > 0
+      refute Enum.empty?(pages)
       assert Enum.all?(pages, &(&1.category == category))
     end
 

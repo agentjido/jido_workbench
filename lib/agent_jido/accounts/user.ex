@@ -4,6 +4,19 @@ defmodule AgentJido.Accounts.User do
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
+
+  @type t :: %__MODULE__{
+          id: Ecto.UUID.t() | nil,
+          email: String.t() | nil,
+          is_admin: boolean() | nil,
+          password: String.t() | nil,
+          hashed_password: String.t() | nil,
+          confirmed_at: NaiveDateTime.t() | nil,
+          authenticated_at: NaiveDateTime.t() | nil,
+          inserted_at: NaiveDateTime.t() | nil,
+          updated_at: NaiveDateTime.t() | nil
+        }
+
   schema "users" do
     field :email, :string
     field :is_admin, :boolean, default: false
