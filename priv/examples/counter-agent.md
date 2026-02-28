@@ -13,6 +13,7 @@
   ],
   live_view_module: "AgentJidoWeb.Examples.CounterAgentLive",
   difficulty: :beginner,
+  status: :live,
   sort_order: 10
 }
 ---

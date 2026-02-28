@@ -6,11 +6,13 @@ defmodule AgentJido.Examples.Example do
   Frontmatter provides structured metadata; the body contains rendered HTML.
   Each example references a LiveView module for the interactive demo and
   explicitly lists source files to display alongside the explanation.
-  Set `published: false` in frontmatter to keep an example hidden from public routes.
+  Set `status: :draft` in frontmatter to keep an example hidden from public routes.
 
   Source files are read and syntax-highlighted at compile time via Makeup,
   ensuring they are available in production releases.
   """
+
+  alias AgentJido.Examples.Taxonomy
 
   @schema Zoi.struct(
             __MODULE__,
@@ -38,9 +40,49 @@ defmodule AgentJido.Examples.Example do
                   description: "Difficulty level"
                 )
                 |> Zoi.default(:beginner),
+              status:
+                Zoi.enum(Taxonomy.statuses(),
+                  description: "Visibility state used for examples index and routes"
+                )
+                |> Zoi.default(:draft),
               published:
                 Zoi.boolean(description: "Whether this example is visible on public examples pages")
                 |> Zoi.default(true),
+              scenario_cluster:
+                Zoi.enum(Taxonomy.scenario_clusters(),
+                  description: "Taxonomy grouping for the example scenario type"
+                )
+                |> Zoi.default(:foundational_legacy),
+              wave:
+                Zoi.enum(Taxonomy.waves(),
+                  description: "Example rollout wave marker"
+                )
+                |> Zoi.default(:legacy),
+              journey_stage:
+                Zoi.enum(Taxonomy.journey_stages(),
+                  description: "Primary user journey stage this example supports"
+                )
+                |> Zoi.default(:activation),
+              content_intent:
+                Zoi.enum(Taxonomy.content_intents(),
+                  description: "Primary content intent for this example"
+                )
+                |> Zoi.default(:tutorial),
+              capability_theme:
+                Zoi.enum(Taxonomy.capability_themes(),
+                  description: "Primary capability theme alignment"
+                )
+                |> Zoi.default(:runtime_foundations),
+              evidence_surface:
+                Zoi.enum(Taxonomy.evidence_surfaces(),
+                  description: "Proof surface represented by this example"
+                )
+                |> Zoi.default(:runnable_example),
+              demo_mode:
+                Zoi.enum(Taxonomy.demo_modes(),
+                  description: "Whether the demo uses real runtime behavior or a deterministic simulation"
+                )
+                |> Zoi.default(:real),
               sort_order:
                 Zoi.integer(description: "Sort order within category")
                 |> Zoi.default(100),
@@ -76,6 +118,11 @@ defmodule AgentJido.Examples.Example do
     source_files = Map.get(attrs, :source_files, [])
     sources = embed_sources(source_files)
 
+    taxonomy_metadata =
+      attrs
+      |> Map.put(:slug, slug)
+      |> Taxonomy.metadata()
+
     attrs =
       attrs
       |> Map.put(:slug, slug)
@@ -83,6 +130,7 @@ defmodule AgentJido.Examples.Example do
       |> Map.put(:path, path)
       |> Map.put(:source_path, filename)
       |> Map.put(:sources, sources)
+      |> Map.merge(taxonomy_metadata)
 
     case Zoi.parse(@schema, attrs) do
       {:ok, example} -> example

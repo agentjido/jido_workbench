@@ -12,6 +12,7 @@
   ],
   live_view_module: "AgentJidoWeb.Examples.AddressNormalizationAgentLive",
   difficulty: :beginner,
+  status: :live,
   sort_order: 21
 }
 ---

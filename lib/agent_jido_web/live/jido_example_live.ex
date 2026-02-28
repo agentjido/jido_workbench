@@ -79,6 +79,12 @@ defmodule AgentJidoWeb.JidoExampleLive do
             <span class={"text-[10px] px-2 py-1 rounded font-semibold uppercase tracking-wider #{category_class(@example.category)}"}>
               {@example.category}
             </span>
+            <span
+              :if={@example.demo_mode == :simulated}
+              class="text-[10px] px-2 py-1 rounded font-semibold uppercase tracking-wider bg-accent-cyan/10 border border-accent-cyan/30 text-accent-cyan"
+            >
+              simulated
+            </span>
             <span class={"text-[10px] px-2 py-1 rounded font-semibold uppercase tracking-wider #{difficulty_class(@example.difficulty)}"}>
               {@example.difficulty}
             </span>
@@ -117,12 +123,21 @@ defmodule AgentJidoWeb.JidoExampleLive do
 
         <%!-- Demo tab --%>
         <div :if={@active_tab == :demo} class="mb-10">
-          {live_render(@socket, @demo_module, id: "demo-#{@example.slug}")}
+          <div
+            :if={@example.demo_mode == :simulated}
+            class="mb-4 rounded-md border border-accent-cyan/30 bg-accent-cyan/10 px-4 py-3 text-xs text-accent-cyan"
+          >
+            <div class="font-semibold uppercase tracking-wider mb-1">Simulated demo</div>
+            <div class="text-[11px] text-accent-cyan/90">
+              This example uses deterministic fixture data. No live LLM, browser, or network calls are executed.
+            </div>
+          </div>
+          {live_render(@socket, @demo_module, id: "demo-#{@example.slug}", session: %{"example_slug" => @example.slug})}
         </div>
 
         <%!-- Explanation tab --%>
         <div :if={@active_tab == :explanation} class="mb-10">
-          <article class="prose prose-invert max-w-none text-sm leading-relaxed">
+          <article class="prose max-w-none text-sm leading-relaxed">
             {Phoenix.HTML.raw(@example.body)}
           </article>
         </div>

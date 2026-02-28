@@ -14,6 +14,7 @@
   ],
   live_view_module: "AgentJidoWeb.Examples.DemandTrackerAgentLive",
   difficulty: :intermediate,
+  status: :live,
   sort_order: 20
 }
 ---

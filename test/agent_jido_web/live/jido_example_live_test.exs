@@ -96,4 +96,23 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
       assert Enum.map(example.sources, & &1.path) == example.source_files
     end
   end
+
+  describe "/examples/browser-agent" do
+    test "renders simulated demo disclosure and runs deterministic flow", %{conn: conn} do
+      {:ok, view, html} = live(conn, "/examples/browser-agent?tab=demo")
+
+      assert html =~ "Browser Agent"
+      assert html =~ "Simulated demo"
+      assert html =~ "No live LLM, browser, or network calls are executed."
+
+      demo_view = find_live_child(view, "demo-browser-agent")
+
+      html =
+        demo_view
+        |> element("#simulated-showcase-demo-browser-agent button[phx-click='run_demo']")
+        |> render_click()
+
+      assert html =~ "Running…"
+    end
+  end
 end
