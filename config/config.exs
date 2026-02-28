@@ -120,7 +120,7 @@ config :agent_jido, AgentJido.GithubStarsTracker,
 
 # Configure esbuild (the version is required)
 config :esbuild,
-  version: "0.15.5",
+  version: "0.27.3",
   default: [
     args: ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
     cd: Path.expand("../assets", __DIR__),
@@ -129,7 +129,7 @@ config :esbuild,
 
 # Configure tailwind (the version is required)
 config :tailwind,
-  version: "4.0.9",
+  version: "4.2.1",
   default: [
     args: ~w(
       --input=assets/css/app.css

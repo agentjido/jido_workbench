@@ -13,3 +13,16 @@ updates:
       prefix: "mix"
       prefix-development: "mix dev"
       include: "scope"
+
+  # Configuration for GitHub Actions dependencies
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
