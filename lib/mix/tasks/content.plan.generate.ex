@@ -244,6 +244,4 @@ defmodule Mix.Tasks.Content.Plan.Generate do
       {:error, reason} -> Mix.raise("failed to start req_llm runtime: #{inspect(reason)}")
     end
   end
-
-  defp ensure_backend_runtime!(_run_opts), do: :ok
 end

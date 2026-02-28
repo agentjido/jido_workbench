@@ -11,7 +11,8 @@ defmodule AgentJido.MixProject do
       listeners: [Phoenix.CodeReloader],
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
-      deps: deps()
+      deps: deps(),
+      dialyzer: dialyzer()
     ]
   end
 
@@ -149,6 +150,13 @@ defmodule AgentJido.MixProject do
         "credo --min-priority higher",
         "dialyzer"
       ]
+    ]
+  end
+
+  defp dialyzer do
+    [
+      ignore_warnings: ".dialyzer_ignore.exs",
+      plt_add_apps: [:mix]
     ]
   end
 end

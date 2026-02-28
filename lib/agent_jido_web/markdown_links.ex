@@ -75,10 +75,10 @@ defmodule AgentJidoWeb.MarkdownLinks do
     github_url = map_get(item, :github_url)
 
     cond do
-      is_binary(source_path_url) and source_path_url != "" ->
+      is_binary(source_path_url) ->
         source_path_url
 
-      is_binary(path_url) and path_url != "" ->
+      is_binary(path_url) ->
         path_url
 
       valid_github_source_url?(github_url) ->
