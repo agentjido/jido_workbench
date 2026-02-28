@@ -6,6 +6,7 @@ import ScrollSpy from "./hooks/scroll_spy";
 import ScrollReveal from "./hooks/scroll_reveal";
 import HashScrollLink from "./hooks/hash_scroll_link";
 import ContentAssistantTurnstile from "./hooks/content_assistant_turnstile";
+import EcosystemOrbit from "./hooks/ecosystem_orbit";
 import { PhoenixBlogHooks } from "../../deps/phoenix_blog/priv/static/editorjs/hook.js";
 
 function applyTheme(theme) {
@@ -25,6 +26,7 @@ let Hooks = {
   ScrollReveal,
   HashScrollLink,
   ContentAssistantTurnstile,
+  EcosystemOrbit,
 };
 
 Hooks.ThemeToggle = {

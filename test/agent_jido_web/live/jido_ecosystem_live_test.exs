@@ -9,10 +9,13 @@ defmodule AgentJidoWeb.JidoEcosystemLiveTest do
     {:ok, _view, html} = live(conn, "/ecosystem")
 
     assert html =~ "PACKAGE ECOSYSTEM"
+    assert html =~ "ECOSYSTEM MAP"
     assert html =~ "LAYERED ECOSYSTEM MAP"
     assert html =~ "FOUNDATION LAYER"
     assert html =~ "APPLICATION LAYER"
     assert html =~ "ALL PACKAGES"
+    assert html =~ ~s(id="ecosystem-orbit")
+    assert html =~ ~s(phx-hook="EcosystemOrbit")
     refute html =~ "DEPENDENCY GRAPH"
     refute html =~ "jido_coder"
     assert html =~ ~s(href="/ecosystem/package-matrix")

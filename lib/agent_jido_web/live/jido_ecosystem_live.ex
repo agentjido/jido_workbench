@@ -24,6 +24,7 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
     stars_by_package = GithubStarsTracker.stars_map()
     package_cards = public_packages |> LandingContent.packages_from() |> attach_star_labels(stars_by_package)
     name_by_id = Map.new(public_packages, &{&1.id, &1.title})
+    orbit_payload = build_orbit_payload(public_packages)
 
     {:ok,
      assign(socket,
@@ -33,6 +34,7 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
        packages: package_cards,
        layer_rows: build_layer_rows(public_packages),
        package_name_by_id: name_by_id,
+       orbit_payload_json: Jason.encode!(orbit_payload),
        package_count: length(package_cards),
        layer_count: count_layers(package_cards)
      )}
@@ -89,11 +91,27 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
           </div>
         </section>
 
-        <%!-- Layered Map Section --%>
-        <section class="mb-16">
+        <%!-- Desktop Orbit Section --%>
+        <section class="mb-16 hidden lg:block">
+          <div class="flex justify-between items-center mb-5">
+            <span class="text-sm font-bold tracking-wider">ECOSYSTEM MAP</span>
+            <span class="text-[11px] text-muted-foreground">interactive architecture view</span>
+          </div>
+
+          <div
+            id="ecosystem-orbit"
+            phx-hook="EcosystemOrbit"
+            data-orbit-payload={@orbit_payload_json}
+            class="ecosystem-orbit-root"
+          >
+          </div>
+        </section>
+
+        <%!-- Mobile Layered Map Fallback --%>
+        <section class="mb-16 lg:hidden">
           <div class="flex justify-between items-center mb-5">
             <span class="text-sm font-bold tracking-wider">LAYERED ECOSYSTEM MAP</span>
-            <span class="text-[11px] text-muted-foreground">curated architecture view</span>
+            <span class="text-[11px] text-muted-foreground">mobile architecture fallback</span>
           </div>
 
           <div class="space-y-4">
@@ -258,6 +276,106 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
     end)
     |> Enum.reject(&(&1.rows == []))
   end
+
+  defp build_orbit_payload(public_packages) when is_list(public_packages) do
+    public_ids = MapSet.new(public_packages, & &1.id)
+
+    packages =
+      public_packages
+      |> Enum.map(&to_orbit_package(&1, public_ids))
+      |> Enum.filter(& &1.visible)
+      |> Enum.sort_by(fn pkg ->
+        {orbit_layer_rank(pkg.layer), normalize_orbit_order(pkg.order), String.downcase(pkg.name)}
+      end)
+
+    center_id =
+      packages
+      |> Enum.find_value(fn pkg -> if pkg.layer == "core", do: pkg.id, else: nil end)
+
+    domains =
+      packages
+      |> Enum.map(& &1.domain)
+      |> Enum.uniq()
+      |> Enum.sort()
+      |> Enum.map(fn domain ->
+        %{
+          id: domain,
+          label: domain_label(domain)
+        }
+      end)
+
+    %{
+      center_id: center_id,
+      layers: Enum.map(@layer_order, &Atom.to_string/1),
+      domains: domains,
+      packages: packages
+    }
+  end
+
+  defp to_orbit_package(pkg, public_ids) do
+    layer = Layering.layer_for(pkg)
+    deps = pkg.ecosystem_deps |> List.wrap() |> Enum.filter(&MapSet.member?(public_ids, &1))
+
+    %{
+      id: pkg.id,
+      name: pkg.name,
+      title: pkg.title,
+      path: "/ecosystem/#{pkg.id}",
+      layer: Atom.to_string(layer),
+      category: to_string_or_empty(pkg.category),
+      domain: orbit_domain(pkg, layer),
+      label: orbit_label(pkg),
+      maturity: to_string_or_empty(pkg.maturity),
+      deps: deps,
+      order: Map.get(pkg, :orbit_order),
+      weight: Map.get(pkg, :orbit_weight),
+      visible: Map.get(pkg, :orbit_visible, true)
+    }
+  end
+
+  defp orbit_domain(pkg, layer) do
+    case Map.get(pkg, :orbit_domain) do
+      nil ->
+        case Map.get(pkg, :category) do
+          nil -> Atom.to_string(layer)
+          value -> to_string_or_empty(value)
+        end
+
+      value ->
+        to_string_or_empty(value)
+    end
+  end
+
+  defp orbit_label(pkg) do
+    case Map.get(pkg, :orbit_label) do
+      value when is_binary(value) and value != "" -> value
+      _other -> pkg.graph_label || pkg.name
+    end
+  end
+
+  defp domain_label(domain) when is_binary(domain) do
+    domain
+    |> String.replace("_", " ")
+    |> String.split(" ", trim: true)
+    |> Enum.map_join(" ", &String.capitalize/1)
+  end
+
+  defp domain_label(other), do: other |> to_string() |> domain_label()
+
+  defp normalize_orbit_order(order) when is_integer(order), do: order
+  defp normalize_orbit_order(_order), do: 9_999
+
+  defp orbit_layer_rank("foundation"), do: 1
+  defp orbit_layer_rank("core"), do: 2
+  defp orbit_layer_rank("ai"), do: 3
+  defp orbit_layer_rank("app"), do: 4
+  defp orbit_layer_rank(_layer), do: 99
+
+  defp to_string_or_empty(value) when is_atom(value), do: Atom.to_string(value)
+  defp to_string_or_empty(value) when is_binary(value), do: value
+  defp to_string_or_empty(value) when is_integer(value), do: Integer.to_string(value)
+  defp to_string_or_empty(value) when is_float(value), do: :erlang.float_to_binary(value, decimals: 2)
+  defp to_string_or_empty(_value), do: ""
 
   defp to_layer_package(id, package_map) do
     case Map.get(package_map, id) do

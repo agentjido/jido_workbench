@@ -17,6 +17,21 @@ defmodule AgentJido.Ecosystem.Package do
               version: Zoi.string(description: "Current version") |> Zoi.default("0.0.0"),
               tagline: Zoi.string(description: "One-line description") |> Zoi.default(""),
               graph_label: Zoi.string(description: "Short graph label for ecosystem ASCII map") |> Zoi.optional(),
+              orbit_domain:
+                Zoi.atom(description: "Optional orbit grouping key for ecosystem visualizations")
+                |> Zoi.optional(),
+              orbit_order:
+                Zoi.integer(description: "Optional explicit orbit sort order within a domain")
+                |> Zoi.optional(),
+              orbit_label:
+                Zoi.string(description: "Optional short label override for orbit node rendering")
+                |> Zoi.optional(),
+              orbit_weight:
+                Zoi.number(description: "Optional orbit node size/weight override for visualizations")
+                |> Zoi.optional(),
+              orbit_visible:
+                Zoi.boolean(description: "Whether this package should be included in orbit visualizations")
+                |> Zoi.default(true),
               description: Zoi.string(description: "Longer description paragraph") |> Zoi.optional(),
               landing_summary: Zoi.string(description: "High-level landing summary blurb") |> Zoi.optional(),
               landing_cliff_notes:
