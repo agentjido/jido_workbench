@@ -1,0 +1,123 @@
+[
+  {
+    "rank": 1,
+    "name": "AutoGen",
+    "slug": "01-autogen",
+    "source_file": "specs/competitors/01-autogen/briefing.md",
+    "topics_file": "specs/competitors/01-autogen/topics.md",
+    "screenshot_file": "specs/competitors/01-autogen/homepage.png",
+    "homepage": "https://microsoft.github.io/autogen/stable/",
+    "examples_file": "specs/competitors/01-autogen/examples.md",
+    "homepage_outline_file": "specs/competitors/01-autogen/homepage-outline.md"
+  },
+  {
+    "rank": 2,
+    "name": "LlamaIndex",
+    "slug": "02-llamaindex",
+    "source_file": "specs/competitors/02-llamaindex/briefing.md",
+    "topics_file": "specs/competitors/02-llamaindex/topics.md",
+    "screenshot_file": "specs/competitors/02-llamaindex/homepage.png",
+    "homepage": "https://www.llamaindex.ai/",
+    "examples_file": "specs/competitors/02-llamaindex/examples.md",
+    "homepage_outline_file": "specs/competitors/02-llamaindex/homepage-outline.md"
+  },
+  {
+    "rank": 3,
+    "name": "CrewAI",
+    "slug": "03-crewai",
+    "source_file": "specs/competitors/03-crewai/briefing.md",
+    "topics_file": "specs/competitors/03-crewai/topics.md",
+    "screenshot_file": "specs/competitors/03-crewai/homepage.png",
+    "homepage": "https://www.crewai.com/",
+    "examples_file": "specs/competitors/03-crewai/examples.md",
+    "homepage_outline_file": "specs/competitors/03-crewai/homepage-outline.md"
+  },
+  {
+    "rank": 4,
+    "name": "Semantic Kernel",
+    "slug": "04-semantic-kernel",
+    "source_file": "specs/competitors/04-semantic-kernel/briefing.md",
+    "topics_file": "specs/competitors/04-semantic-kernel/topics.md",
+    "screenshot_file": "specs/competitors/04-semantic-kernel/homepage.png",
+    "homepage": "https://learn.microsoft.com/en-us/semantic-kernel/",
+    "examples_file": "specs/competitors/04-semantic-kernel/examples.md",
+    "homepage_outline_file": "specs/competitors/04-semantic-kernel/homepage-outline.md"
+  },
+  {
+    "rank": 5,
+    "name": "LangGraph",
+    "slug": "05-langgraph",
+    "source_file": "specs/competitors/05-langgraph/briefing.md",
+    "topics_file": "specs/competitors/05-langgraph/topics.md",
+    "screenshot_file": "specs/competitors/05-langgraph/homepage.png",
+    "homepage": "https://www.langchain.com/langgraph",
+    "examples_file": "specs/competitors/05-langgraph/examples.md",
+    "homepage_outline_file": "specs/competitors/05-langgraph/homepage-outline.md"
+  },
+  {
+    "rank": 6,
+    "name": "Haystack",
+    "slug": "06-haystack",
+    "source_file": "specs/competitors/06-haystack/briefing.md",
+    "topics_file": "specs/competitors/06-haystack/topics.md",
+    "screenshot_file": "specs/competitors/06-haystack/homepage.png",
+    "homepage": "https://haystack.deepset.ai/",
+    "examples_file": "specs/competitors/06-haystack/examples.md",
+    "homepage_outline_file": "specs/competitors/06-haystack/homepage-outline.md"
+  },
+  {
+    "rank": 7,
+    "name": "Mastra",
+    "slug": "07-mastra",
+    "source_file": "specs/competitors/07-mastra/briefing.md",
+    "topics_file": "specs/competitors/07-mastra/topics.md",
+    "screenshot_file": "specs/competitors/07-mastra/homepage.png",
+    "homepage": "https://mastra.ai/",
+    "examples_file": "specs/competitors/07-mastra/examples.md",
+    "homepage_outline_file": "specs/competitors/07-mastra/homepage-outline.md"
+  },
+  {
+    "rank": 8,
+    "name": "Google ADK",
+    "slug": "08-google-adk",
+    "source_file": "specs/competitors/08-google-adk/briefing.md",
+    "topics_file": "specs/competitors/08-google-adk/topics.md",
+    "screenshot_file": "specs/competitors/08-google-adk/homepage.png",
+    "homepage": "https://google.github.io/adk-docs/",
+    "examples_file": "specs/competitors/08-google-adk/examples.md",
+    "homepage_outline_file": "specs/competitors/08-google-adk/homepage-outline.md"
+  },
+  {
+    "rank": 9,
+    "name": "PydanticAI",
+    "slug": "09-pydanticai",
+    "source_file": "specs/competitors/09-pydanticai/briefing.md",
+    "topics_file": "specs/competitors/09-pydanticai/topics.md",
+    "screenshot_file": "specs/competitors/09-pydanticai/homepage.png",
+    "homepage": "https://ai.pydantic.dev/",
+    "examples_file": "specs/competitors/09-pydanticai/examples.md",
+    "homepage_outline_file": "specs/competitors/09-pydanticai/homepage-outline.md"
+  },
+  {
+    "rank": 10,
+    "name": "Pi Mono",
+    "slug": "10-pi-mono",
+    "source_file": "specs/competitors/10-pi-mono/briefing.md",
+    "topics_file": "specs/competitors/10-pi-mono/topics.md",
+    "screenshot_file": "specs/competitors/10-pi-mono/homepage.png",
+    "homepage": "https://github.com/badlogic/pi-mono",
+    "examples_file": "specs/competitors/10-pi-mono/examples.md",
+    "homepage_outline_file": null
+  },
+  {
+    "rank": 11,
+    "name": "Sagents",
+    "slug": "11-sagents",
+    "source_file": "specs/competitors/11-sagents/briefing.md",
+    "topics_file": "specs/competitors/11-sagents/topics.md",
+    "screenshot_file": "specs/competitors/11-sagents/homepage.png",
+    "homepage": "https://github.com/sagents-ai/sagents",
+    "examples_file": "specs/competitors/11-sagents/examples.md",
+    "homepage_outline_file": null
+  }
+]
