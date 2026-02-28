@@ -57,7 +57,8 @@ defmodule AgentJidoWeb.Router do
     # Pages system — index routes
     live "/docs", PageLive, :index
     live "/build", PageLive, :index
-    live "/community", PageLive, :index
+    live "/community", JidoCommunityLive, :index
+    live "/about", JidoAboutLive, :index
 
     # Docs legacy aliases redirect to canonical section routes.
     for {legacy_path, _canonical} <- @legacy_docs_routes do

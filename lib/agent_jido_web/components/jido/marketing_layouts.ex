@@ -74,13 +74,23 @@ defmodule AgentJidoWeb.Jido.MarketingLayouts do
 
             <div class="text-muted-foreground text-xs space-y-1">
               <p>Made with ❤️ for the BEAM</p>
-              <p>Copyright © 2025-{@current_year} Mike Hostetler</p>
+              <p>
+                Copyright © 2025-{@current_year}
+                <a
+                  href="https://mike-hostetler.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="hover:text-foreground transition-colors"
+                >
+                  Mike Hostetler
+                </a>
+              </p>
             </div>
           </div>
 
-          <%!-- Company --%>
+          <%!-- Project --%>
           <div>
-            <h4 class="text-xs font-bold tracking-wider text-foreground mb-4">COMPANY</h4>
+            <h4 class="text-xs font-bold tracking-wider text-foreground mb-4">PROJECT</h4>
             <ul class="space-y-3">
               <%= for {label, href} <- @company_links do %>
                 <li>

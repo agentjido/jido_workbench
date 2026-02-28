@@ -5,17 +5,28 @@ defmodule AgentJidoWeb.Jido.NavTest do
 
   describe "jido_version/1" do
     test "falls back when no version is available" do
-      assert Nav.jido_version(nil) == "2.0.0-rc.5"
+      assert Nav.jido_version(nil) == "unknown"
     end
 
     test "normalizes charlist and binary versions" do
-      assert Nav.jido_version(~c"2.0.0-rc.5") == "2.0.0-rc.5"
-      assert Nav.jido_version("2.0.0-rc.5") == "2.0.0-rc.5"
+      assert Nav.jido_version(~c"2.1.3") == "2.1.3"
+      assert Nav.jido_version("2.1.3") == "2.1.3"
     end
   end
 
-  test "jido_version/0 returns a non-empty runtime version" do
-    assert Nav.jido_version() != ""
+  test "jido_version/0 reads installed jido application version" do
+    expected_vsn =
+      case Application.spec(:jido, :vsn) do
+        nil ->
+          _ = Application.load(:jido)
+          Application.spec(:jido, :vsn)
+
+        vsn ->
+          vsn
+      end
+
+    assert Nav.jido_version() == Nav.jido_version(expected_vsn)
+    refute Nav.jido_version() == "unknown"
   end
 
   test "primary nav links exclude retired training/search routes" do
@@ -26,6 +37,7 @@ defmodule AgentJidoWeb.Jido.NavTest do
              {"Features", "/features"},
              {"Ecosystem", "/ecosystem"},
              {"Examples", "/examples"},
+             {"Community", "/community"},
              {"Docs", "/docs"}
            ]
 

@@ -344,7 +344,17 @@ sup = Jido.Supervisor.start_link()
                 </div>
                 <div class="flex flex-wrap items-center justify-end gap-4">
                   <span>Apache License 2.0</span>
-                  <span>Copyright © 2025-{Date.utc_today().year} Mike Hostetler</span>
+                  <span>
+                    Copyright © 2025-{Date.utc_today().year}
+                    <a
+                      href="https://mike-hostetler.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="hover:text-foreground transition-colors"
+                    >
+                      Mike Hostetler
+                    </a>
+                  </span>
                   <span>Jido {AgentJidoWeb.Jido.Nav.jido_version()}</span>
                 </div>
               </div>

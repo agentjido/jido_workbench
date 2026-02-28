@@ -1,92 +1,53 @@
-# Site Strategy & Content Specs
+# Specs Index (Contributor-Facing)
 
-Last updated: 2026-02-20
+Last updated: 2026-02-28
 
-This folder is the authoritative home for site positioning, content strategy, and messaging governance.
+This folder is the source of truth for site positioning, content rules, and contributor documentation standards.
 
-## Core Positioning (Current Anchor)
+## Start Here
 
-- Anchor phrase: `Jido is a runtime for reliable, multi-agent systems.`
-- Differentiator: `Built on Elixir/OTP for fault-tolerant concurrency and production-grade reliability.`
-- Intelligence posture: `Model-agnostic runtime: LLM integration is optional via add-on packages such as jido_ai/req_llm.`
-- Primary CTA convention: `Get Building`
-- Hero headline (locked): `A runtime for reliable, multi-agent systems.`
-- Hero subhead (locked): `Design, coordinate, and operate agent workflows that stay stable in production — built on Elixir/OTP for fault isolation, concurrency, and uptime.`
-- Target nav (locked): `Features | Ecosystem | Examples | Training | Docs | Community | Get Building`
+If you are contributing content or docs, read these in order:
 
-## Document Index
+1. `contributor-docs.md`
+2. `positioning.md`
+3. `style-voice.md`
+4. `content-outline.md`
+5. `content-system.md`
+6. `content-governance.md`
+7. `templates/*`
 
-### Positioning & Messaging
+## Document tiers
 
-- `positioning.md` — Core positioning strategy, narrative system, differentiation framing, persona coverage, messaging pillars, and copy system.
-- `style-voice.md` — Voice, tone, terminology, and style/mechanical conventions for all site content.
-- `proof.md` — Proof inventory mapping messaging pillars to concrete evidence assets.
+| Tier | Meaning | Files |
+|---|---|---|
+| Canonical (normative) | Rules contributors are expected to follow in active PRs | `contributor-docs.md`, `positioning.md`, `style-voice.md`, `content-outline.md`, `content-system.md`, `content-governance.md`, `taxonomy.md`, `proof.md`, `templates/*` |
+| Operational | Run/ship procedures for maintainers | `runbooks/*` |
+| Planning backlog | Active open items only | `TODO.md`, `topic-briefs-todo.md` |
+| Reference and research | Useful context, not normative for PR acceptance | `docs-manifesto.md`, `competitors/*`, `brainstorms/*`, `ontology/*` |
 
-### Content Architecture
+## Current content pipeline snapshot
 
-- `content-outline.md` — Site information architecture, page inventory, section outline, and delivery phases.
-- `persona-journeys.md` — Persona clusters, buyer intent stages, canonical journeys, and conversion signals.
-- `content-system.md` — Content pipeline reference — where content lives in `priv/`, frontmatter schemas, compile-time flow, and route mapping.
+| Source | Purpose | Rendered |
+|---|---|---|
+| `priv/pages/*` | Unified site pages (`/docs`, `/features`, `/build`, `/community`, `/training`) | Yes |
+| `priv/ecosystem/*` | Ecosystem package pages | Yes |
+| `priv/examples/*` | Example pages | Yes |
+| `priv/blog/*` | Blog pages/feed | Yes |
+| `priv/content_plan/*` | Content briefs and planning metadata | No |
 
-### Governance & Quality
+## Contributor rules
 
-- `content-governance.md` — Content quality controls, validation pipeline, publish gates, and operating model. Includes canonical ST-CONT-001 publish hard gate (§11) and freshness/release cadence checklist (§12).
-- `docs-manifesto.md` — Documentation writing principles adapted from direct response copywriting for Elixir library ecosystems.
+- Treat `specs/` as policy and `priv/` as implementation.
+- If you change IA, routes, or nav: update `content-outline.md`, `content-system.md`, and `taxonomy.md` in the same PR.
+- If you change claims: update `proof.md` and ensure claim discipline still matches `positioning.md`.
+- If you change writing mechanics: update `style-voice.md` and confirm templates still align.
+- Do not introduce new references to retired paths such as `priv/documentation/*`.
 
-### Templates
+## Folder map
 
-- `templates/` — Page template skeletons for each content type:
-  - `feature-page.md`, `build-guide.md`, `docs-concept.md`, `docs-reference.md`, `ecosystem-package.md`, `training-module.md`
-
-### Task Tracking
-
-- `TODO.md` — Pre-writing prep task tracker with priority and effort estimates.
-
-### Competitive Research
-
-- `competitors/` — Deep-dive competitor briefings for the top 10 agentic frameworks (AutoGen, LlamaIndex, CrewAI, Semantic Kernel, LangGraph, Haystack, Mastra, Google ADK, PydanticAI, Sagents).
-- `competitors/external_agentic_framework_feature_matrix.md` — Normalized feature matrix across all frameworks.
-
-### Runbooks
-
-- `runbooks/admin_bootstrap_runbook.md` — Admin user bootstrap and verification procedures.
-- `runbooks/chatops_runbook.md` — ChatOps subsystem startup and health validation.
-- `runbooks/chatops_durability_decision.md` — Architecture decision record for messaging durability.
-- `runbooks/release_punchlist.md` — Homepage-down release checklist, quality gates, and page review matrix.
-
-### Brainstorms
-
-- `brainstorms/content-agents.md` — ContentOps agent system design (v2) — multi-agent content factory brainstorm.
-- `brainstorms/mintlify_gaps/` — Mintlify feature gap analysis for the docs site platform.
-
-## Content Pipeline
-
-All site content is static Markdown compiled at build time via NimblePublisher with Zoi schema validation. See `content-system.md` for the full reference.
-
-### Source directories (priv/)
-
-| Directory | Purpose | Schema module | Rendered? |
-|---|---|---|---|
-| `priv/blog/` | Blog posts | `AgentJido.Blog.Post` | ✅ `/blog/:slug` |
-| `priv/ecosystem/` | Package metadata | `AgentJido.Ecosystem.Package` | ✅ `/ecosystem/:id` |
-| `priv/training/` | Training curriculum | `AgentJido.Training.Module` | ✅ `/training/:slug` |
-| `priv/examples/` | Interactive demos | `AgentJido.Examples.Example` | ✅ `/examples/:slug` |
-| `priv/documentation/` | Docs & guides | `AgentJido.Documentation.Document` | ✅ `/docs/...` |
-| `priv/content_plan/` | Editorial briefs | `AgentJido.ContentPlan.Entry` | ❌ Internal |
-
-### Relationship: specs/ → priv/
-
-`specs/` contains strategy, constraints, and specifications.  
-`priv/` contains the actual content that gets rendered.  
-`lib/agent_jido/` contains the schema modules that define the contract between them.
-
-Specs govern what goes into priv/. `content-system.md` maps the full pipeline.
-
-## Working Agreement
-
-- Keep claims proof-backed (example + training + docs/reference path).
-- Keep top-level language broad and clear.
-- Use Elixir/OTP as explicit differentiator language, not insider shorthand.
-- Treat LLM capabilities as optional add-ons; include at least one non-LLM proof path on strategic feature pages.
-- Keep the project posture OSS-first; default CTAs should drive self-serve builder onboarding.
-- Update the `Last updated` line when materially changing strategy.
+- `competitors/` — competitor briefings and normalized research assets.
+- `runbooks/` — operator and release procedures.
+- `templates/` — authoring templates for page types.
+- `brainstorms/` — exploratory notes and ideation artifacts.
+- `audits/` — audit outputs and snapshots.
+- `ontology/` — ontology model and export references.

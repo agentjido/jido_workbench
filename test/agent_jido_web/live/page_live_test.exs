@@ -68,6 +68,14 @@ defmodule AgentJidoWeb.PageLiveTest do
   end
 
   describe "home quick start and cta sections" do
+    test "renders quick start jump link with hash scroll hook", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/")
+
+      assert html =~ ~s(id="home-quick-start-jump-link")
+      assert html =~ ~s(href="#quick-start")
+      assert html =~ ~s(phx-hook="HashScrollLink")
+    end
+
     test "renders quick start section with define and terminal blocks", %{conn: conn} do
       {:ok, _view, html} = live(conn, "/")
 
@@ -112,7 +120,9 @@ defmodule AgentJidoWeb.PageLiveTest do
       current_year = Date.utc_today().year
 
       assert html =~ "Apache License 2.0"
-      assert html =~ "Copyright © 2025-#{current_year} Mike Hostetler"
+      assert html =~ "Copyright © 2025-#{current_year}"
+      assert html =~ "Mike Hostetler"
+      assert html =~ ~s(href="https://mike-hostetler.com")
       assert html =~ "Jido #{jido_version}"
 
       assert html =~ ~s(href="/ecosystem")
@@ -148,8 +158,18 @@ defmodule AgentJidoWeb.PageLiveTest do
       assert html =~ "Open source in markdown.new"
       assert html =~ "https://markdown.new/https://raw.githubusercontent.com/"
       assert html =~ "Apache License 2.0"
-      assert html =~ "Copyright © 2025-#{current_year} Mike Hostetler"
+      assert html =~ "Copyright © 2025-#{current_year}"
+      assert html =~ "Mike Hostetler"
+      assert html =~ ~s(href="https://mike-hostetler.com")
       assert html =~ "Jido #{jido_version}"
+    end
+  end
+
+  describe "about page" do
+    test "renders placeholder about page", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/about")
+
+      assert html =~ "About"
     end
   end
 
@@ -358,14 +378,13 @@ defmodule AgentJidoWeb.PageLiveTest do
   end
 
   describe "community pages" do
-    test "renders /community index with section cards and no placeholder copy", %{conn: conn} do
+    test "renders /community placeholder route", %{conn: conn} do
       {:ok, _view, html} = live(conn, "/community")
 
       assert html =~ "Community"
-      assert html =~ "Learning Paths"
-      assert html =~ "Adoption Playbooks"
-      assert html =~ "Case Studies"
-      refute html =~ "Content coming soon."
+      refute html =~ "Learning Paths"
+      refute html =~ "Adoption Playbooks"
+      refute html =~ "Case Studies"
     end
 
     test "smoke routes for all four community pages", %{conn: conn} do

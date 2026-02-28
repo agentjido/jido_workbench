@@ -24,8 +24,7 @@ defmodule AgentJido.Application do
           AgentJido.OGImage,
           AgentJidoWeb.Endpoint
         ] ++
-        agent_runtime_children() ++
-        contentops_chat_children()
+        jido_runtime_children()
 
     opts = [strategy: :one_for_one, name: AgentJido.Supervisor]
     Supervisor.start_link(children, opts)
@@ -50,11 +49,6 @@ defmodule AgentJido.Application do
     end
   end
 
-  defp contentops_chat_children do
-    # Temporarily disable ChatOps messaging rooms from application startup.
-    []
-  end
-
   defp github_stars_tracker_children do
     if enabled?(:agent_jido, AgentJido.GithubStarsTracker) do
       [{AgentJido.GithubStarsTracker, []}]
@@ -63,17 +57,11 @@ defmodule AgentJido.Application do
     end
   end
 
-  defp agent_runtime_children do
+  # ContentOps supervisor startup is intentionally disabled so server boot
+  # does not depend on ContentOps runtime/env configuration.
+  defp jido_runtime_children do
     if enabled?(:agent_jido, AgentJido.Jido) do
-      [
-        {Task.Supervisor, name: AgentJido.ContentOps.TaskSupervisor},
-        AgentJido.Jido,
-        {Jido.AgentServer,
-         id: AgentJido.ContentOps.OrchestratorServer,
-         agent: AgentJido.ContentOps.OrchestratorAgent,
-         jido: AgentJido.Jido,
-         name: AgentJido.ContentOps.OrchestratorServer}
-      ]
+      [AgentJido.Jido]
     else
       []
     end

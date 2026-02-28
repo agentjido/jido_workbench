@@ -5,7 +5,7 @@ defmodule AgentJidoWeb.Jido.Nav do
   """
   use AgentJidoWeb, :html
 
-  @jido_version_fallback "2.0.0-rc.5"
+  @jido_version_fallback "unknown"
   @content_assistant_modal_id "primary-nav-content-assistant-modal"
   @premium_support_enabled false
   @premium_support_href "mailto:support@agentjido.com?subject=Premium%20Support%20Inquiry"
@@ -14,6 +14,7 @@ defmodule AgentJidoWeb.Jido.Nav do
     {"Features", "/features"},
     {"Ecosystem", "/ecosystem"},
     {"Examples", "/examples"},
+    {"Community", "/community"},
     {"Docs", "/docs"}
   ]
 
@@ -54,7 +55,8 @@ defmodule AgentJidoWeb.Jido.Nav do
     [
       {"Blog", "/blog"},
       {"Features", primary_nav_path!("Features")},
-      {"Ecosystem", primary_nav_path!("Ecosystem")}
+      {"Ecosystem", primary_nav_path!("Ecosystem")},
+      {"Community", primary_nav_path!("Community")}
     ]
   end
 
@@ -94,7 +96,16 @@ defmodule AgentJidoWeb.Jido.Nav do
   def premium_support_href, do: @premium_support_href
 
   @spec jido_version() :: String.t()
-  def jido_version, do: jido_version(Application.spec(:jido, :vsn))
+  def jido_version do
+    case Application.spec(:jido, :vsn) do
+      nil ->
+        _ = Application.load(:jido)
+        jido_version(Application.spec(:jido, :vsn))
+
+      vsn ->
+        jido_version(vsn)
+    end
+  end
 
   @spec jido_version(term()) :: String.t()
   def jido_version(vsn) when is_list(vsn), do: List.to_string(vsn)

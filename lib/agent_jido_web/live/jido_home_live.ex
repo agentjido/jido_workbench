@@ -78,7 +78,12 @@ defmodule AgentJidoWeb.JidoHomeLive do
         </.link>
         <span class="mx-2">•</span>
         Already an Elixir expert?
-        <a href="#quick-start" class="text-primary hover:underline font-semibold ml-1">
+        <a
+          id="home-quick-start-jump-link"
+          href="#quick-start"
+          phx-hook="HashScrollLink"
+          class="text-primary hover:underline font-semibold ml-1"
+        >
           Jump to quick start.
         </a>
       </p>

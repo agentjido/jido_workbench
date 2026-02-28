@@ -4,6 +4,7 @@ import { LiveSocket } from "phoenix_live_view";
 import topbar from "../vendor/topbar";
 import ScrollSpy from "./hooks/scroll_spy";
 import ScrollReveal from "./hooks/scroll_reveal";
+import HashScrollLink from "./hooks/hash_scroll_link";
 import ContentAssistantTurnstile from "./hooks/content_assistant_turnstile";
 import { PhoenixBlogHooks } from "../../deps/phoenix_blog/priv/static/editorjs/hook.js";
 
@@ -22,6 +23,7 @@ let Hooks = {
   ...PhoenixBlogHooks,
   ScrollSpy,
   ScrollReveal,
+  HashScrollLink,
   ContentAssistantTurnstile,
 };
 
