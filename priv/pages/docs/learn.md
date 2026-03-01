@@ -1,8 +1,8 @@
 %{
-  title: "Learn Jido",
+  title: "Learn",
   description: "Hands-on tutorials from first install to production agent workflows.",
   category: :docs,
-  order: 20,
+  order: 1,
   tags: [:docs, :learn],
   draft: false
 }
