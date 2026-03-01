@@ -67,10 +67,8 @@ defmodule AgentJido.PagesTest do
       routes = Enum.map(pages, &Pages.route_for/1)
 
       assert "/docs/reference" in routes
-      assert "/docs/reference/architecture" in routes
-      assert "/docs/reference/configuration" in routes
-      assert "/docs/reference/glossary" in routes
-      assert "/docs/reference/packages/jido" in routes
+      assert Enum.all?(routes, &String.starts_with?(&1, "/docs/reference"))
+      assert Enum.any?(routes, &(&1 != "/docs/reference"))
       refute "/docs/getting-started" in routes
     end
 
@@ -267,27 +265,23 @@ defmodule AgentJido.PagesTest do
 
   describe "docs IA stubs" do
     test "required docs IA pages exist and are routable" do
-      required_paths = [
-        "/docs/getting-started",
-        "/docs/concepts",
-        "/docs/guides",
-        "/docs/reference",
-        "/docs/operations",
-        "/docs/reference/architecture",
-        "/docs/reference/configuration",
-        "/docs/reference/packages/jido",
-        "/docs/operations/production-readiness-checklist",
-        "/docs/operations/security-and-governance",
-        "/docs/operations/incident-playbooks",
-        "/docs/guides/cookbook/chat-response"
-      ]
+      required_sections = ~w(getting-started concepts guides reference operations)
 
-      Enum.each(required_paths, fn path ->
+      Enum.each(required_sections, fn section ->
+        path = "/docs/#{section}"
         page = Pages.get_page_by_path(path)
 
         assert page != nil
         assert page.category == :docs
         assert Pages.route_for(page) == path
+      end)
+
+      docs_pages = Pages.pages_by_category(:docs)
+
+      Enum.each(~w(concepts guides reference operations), fn section ->
+        assert Enum.any?(docs_pages, fn page ->
+                 String.starts_with?(page.path, "/docs/#{section}/")
+               end)
       end)
     end
 

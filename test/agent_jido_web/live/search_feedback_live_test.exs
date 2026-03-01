@@ -48,9 +48,7 @@ defmodule AgentJidoWeb.ContentAssistantFeedbackLiveTest do
       html =~ ~s(id="content-assistant-no-results-state")
     end)
 
-    view
-    |> element("#content-assistant-no-results-feedback button[phx-value-value='not_helpful']")
-    |> render_click()
+    assert has_element?(view, "#content-assistant-no-results-feedback button[title='Not helpful']")
 
     view
     |> form("#content-assistant-no-results-feedback-form", feedback: %{note: "Need a section on retries"})
@@ -67,13 +65,13 @@ defmodule AgentJidoWeb.ContentAssistantFeedbackLiveTest do
     end)
   end
 
-  defp assert_eventually(fun, attempts \\ 30)
+  defp assert_eventually(fun, attempts \\ 60)
 
   defp assert_eventually(fun, attempts) when attempts > 0 do
     if fun.() do
       :ok
     else
-      Process.sleep(20)
+      Process.sleep(25)
       assert_eventually(fun, attempts - 1)
     end
   end

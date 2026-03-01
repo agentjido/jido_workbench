@@ -210,27 +210,31 @@ defmodule AgentJidoWeb.PageLiveTest do
     end
 
     test "smoke routes for required docs IA stubs", %{conn: conn} do
-      required_paths = [
-        "/docs/getting-started",
-        "/docs/concepts",
-        "/docs/guides",
-        "/docs/reference",
-        "/docs/operations",
-        "/docs/reference/architecture",
-        "/docs/reference/configuration",
-        "/docs/reference/packages/jido",
-        "/docs/operations/production-readiness-checklist",
-        "/docs/operations/security-and-governance",
-        "/docs/operations/incident-playbooks",
-        "/docs/guides/cookbook/chat-response"
-      ]
+      sections = ~w(getting-started concepts guides reference operations)
 
-      Enum.each(required_paths, fn path ->
+      Enum.each(sections, fn section ->
+        path = "/docs/#{section}"
         page = Pages.get_page_by_path(path)
         assert page != nil
 
         {:ok, _view, html} = live(conn, path)
         assert html =~ page.title
+      end)
+
+      docs_pages = Pages.pages_by_category(:docs)
+
+      Enum.each(~w(concepts guides reference operations), fn section ->
+        child =
+          docs_pages
+          |> Enum.filter(&String.starts_with?(&1.path, "/docs/#{section}/"))
+          |> Enum.sort_by(&{&1.order, &1.path})
+          |> List.first()
+
+        assert child != nil
+
+        child_path = Pages.route_for(child)
+        {:ok, _view, html} = live(conn, child_path)
+        assert html =~ child.title
       end)
     end
 

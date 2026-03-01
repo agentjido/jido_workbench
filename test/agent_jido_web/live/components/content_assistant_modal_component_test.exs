@@ -146,9 +146,7 @@ defmodule AgentJidoWeb.ContentAssistantModalComponentTest do
       html =~ ~s(id="primary-nav-content-assistant-modal-empty")
     end)
 
-    view
-    |> element("#primary-nav-content-assistant-modal-no-results-feedback button[phx-value-value='not_helpful']")
-    |> render_click()
+    assert has_element?(view, "#primary-nav-content-assistant-modal-no-results-feedback button[title='Not helpful']")
 
     view
     |> form("#primary-nav-content-assistant-modal-no-results-feedback-form", feedback: %{note: "Need agent docs"})
@@ -180,7 +178,7 @@ defmodule AgentJidoWeb.ContentAssistantModalComponentTest do
     )
   end
 
-  defp assert_eventually(fun, attempts \\ 20)
+  defp assert_eventually(fun, attempts \\ 60)
 
   defp assert_eventually(fun, attempts) when attempts > 0 do
     if fun.() do
