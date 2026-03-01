@@ -4,7 +4,8 @@
   category: :docs,
   legacy_paths: [],
   tags: [:docs, :operations],
-  order: 50
+  order: 50,
+  draft: true
 }
 ---
 

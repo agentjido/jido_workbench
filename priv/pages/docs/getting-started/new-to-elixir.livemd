@@ -163,8 +163,8 @@ You do not need to complete any of these before starting with Jido. The tutorial
 Work through these four tutorials in order. Each builds on the last and takes under fifteen minutes.
 
 1. **[Installation and setup](/docs/learn/installation)** - add Jido to your project, configure dependencies, verify everything compiles
-2. **[Build your first agent](/docs/learn/first-agent)** - define an agent with typed state, implement an action, run your first command
-3. **[Build your first LLM agent](/docs/learn/first-llm-agent)** - wire up an LLM provider so your agent can reason about instructions
+2. **[Your first agent](/docs/getting-started/first-agent)** - define an agent with typed state, implement an action, run your first command
+3. **[Your first LLM agent](/docs/getting-started/first-llm-agent)** - wire up an LLM provider so your agent can reason about instructions
 4. **[Build your first workflow](/docs/learn/first-workflow)** - compose multiple actions into a sequential workflow with shared state
 
 If you get stuck on Elixir syntax during the tutorials, refer back to the concepts section above or check the [Elixir getting started guide](https://elixir-lang.org/getting-started/introduction.html) for the specific topic.

@@ -8,16 +8,7 @@
 }
 ---
 
-These tutorials take you from first install to production agent workflows. The onboarding ladder is sequential - start at the top and work down. Training modules and build guides stand alone, so jump to whatever you need.
-
-## Onboarding ladder
-
-Your first-time path through Jido. Complete these four tutorials in order.
-
-1. [Installation and setup](/docs/learn/installation) - add dependencies, configure secrets, and verify everything runs
-2. [Build your first agent](/docs/learn/first-agent) - define typed state, wire up actions, and call `cmd/2`
-3. [Build your first LLM agent](/docs/learn/first-llm-agent) - add AI reasoning to an agent with `jido_ai`
-4. [Build your first workflow](/docs/learn/first-workflow) - compose actions into multi-step plans
+Deeper dives into specific Jido primitives and hands-on project tutorials. If you haven't completed the [Getting Started](/docs/getting-started) onboarding path yet, start there first.
 
 ## Training modules
 

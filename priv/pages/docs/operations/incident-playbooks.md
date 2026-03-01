@@ -4,7 +4,8 @@
   category: :docs,
   legacy_paths: ["/docs/incident-playbooks", "/docs/reference/incident-playbooks"],
   tags: [:docs, :operations],
-  order: 380
+  order: 380,
+  draft: true
 }
 ---
 # Incident Playbooks

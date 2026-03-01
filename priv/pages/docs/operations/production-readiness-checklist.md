@@ -4,7 +4,8 @@
   category: :docs,
   legacy_paths: ["/docs/production-readiness-checklist", "/docs/reference/production-readiness-checklist"],
   tags: [:docs, :operations],
-  order: 360
+  order: 360,
+  draft: true
 }
 ---
 # Production Readiness Checklist

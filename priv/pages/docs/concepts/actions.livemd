@@ -240,4 +240,4 @@ Some providers (OpenAI structured outputs) require `additionalProperties: false`
 - [Agents](/docs/concepts/agents) - see how agents execute actions through `cmd/2`
 - [Directives](/docs/concepts/directives) - understand the side-effect payloads actions can return
 - [Signals](/docs/concepts/signals) - learn about typed event envelopes for agent coordination
-- [Build your first agent](/docs/learn/first-agent) - hands-on tutorial using actions in practice
+- [Your first agent](/docs/getting-started/first-agent) - hands-on tutorial using actions in practice

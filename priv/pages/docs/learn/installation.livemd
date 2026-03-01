@@ -95,6 +95,6 @@ Visit `http://localhost:4000` or check the logs for the endpoint startup line.
 
 ## Next steps
 
-- [Your first agent](/docs/learn/first-agent)
+- [Your first agent](/docs/getting-started/first-agent)
 - [Core concepts](/docs/learn/concepts)
 - [Configuration reference](/docs/reference/configuration)

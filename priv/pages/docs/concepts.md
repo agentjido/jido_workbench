@@ -29,6 +29,6 @@ Beyond the core, Sensors bridge external events into the signal layer, Strategie
 
 ## Next steps
 
-- [Build your first agent](/docs/learn/first-agent) - apply these concepts in a hands-on tutorial
+- [Your first agent](/docs/getting-started/first-agent) - apply these concepts in a hands-on tutorial
 - [Guides](/docs/guides) - task-oriented recipes for common patterns
 - [Ecosystem packages](/ecosystem) - package overviews and HexDocs links

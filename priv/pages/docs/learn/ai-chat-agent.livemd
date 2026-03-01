@@ -5,17 +5,17 @@
   order: 43,
   legacy_paths: ["/build/ai-chat-agent"],
   tags: [:docs, :learn, :build, :ai, :chat],
-  prerequisites: ["/docs/learn/first-llm-agent"],
+  prerequisites: ["/docs/getting-started/first-llm-agent"],
   draft: false
 }
 ---
 ## Overview
 
-This tutorial builds a multi-turn chat agent that keeps conversation context in state, streams partial replies, and handles provider failures gracefully. You will build on the provider setup from [Build Your First LLM Agent](/docs/learn/first-llm-agent) and end with a verified chat loop.
+This tutorial builds a multi-turn chat agent that keeps conversation context in state, streams partial replies, and handles provider failures gracefully. You will build on the provider setup from [Your First LLM Agent](/docs/getting-started/first-llm-agent) and end with a verified chat loop.
 
 ## Prerequisites
 
-You should have already configured `jido_ai` and `req_llm` and verified a basic LLM call. If you have not, complete [Build Your First LLM Agent](/docs/learn/first-llm-agent) before continuing.
+You should have already configured `jido_ai` and `req_llm` and verified a basic LLM call. If you have not, complete [Your First LLM Agent](/docs/getting-started/first-llm-agent) before continuing.
 
 ## Agent Setup
 
@@ -257,7 +257,7 @@ Now that you have a stable chat loop, continue with these focused guides.
 
 - Review the minimal [Chat Response recipe](/docs/guides/cookbook/chat-response) for a quick reference.
 - Add tool use in [Tool Use](/docs/learn/tool-use) when you want actions or external data.
-- Revisit [Build Your First LLM Agent](/docs/learn/first-llm-agent) if you need to adjust provider configuration.
+- Revisit [Your First LLM Agent](/docs/getting-started/first-llm-agent) if you need to adjust provider configuration.
 - Explore the full surface area of [`jido_ai`](/docs/reference/packages/jido-ai).
 
 ---

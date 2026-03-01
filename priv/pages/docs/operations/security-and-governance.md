@@ -4,7 +4,8 @@
   category: :docs,
   legacy_paths: ["/docs/security-and-governance", "/docs/reference/security-and-governance"],
   tags: [:docs, :operations],
-  order: 370
+  order: 370,
+  draft: true
 }
 ---
 # Security and Governance

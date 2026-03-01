@@ -10,12 +10,12 @@
     "Understand how action outputs flow through a chain",
     "Handle directives from multi-step workflows"
   ],
-  prerequisites: ["/docs/learn/first-agent"]
+  prerequisites: ["/docs/getting-started/first-agent"]
 }
 ---
 ## Prerequisites
 
-Complete [Build your first agent](/docs/learn/first-agent) before starting this tutorial. You need a working agent module and familiarity with single-action execution.
+Complete [Your first agent](/docs/getting-started/first-agent) before starting this tutorial. You need a working agent module and familiarity with single-action execution.
 
 ## Why compose actions?
 

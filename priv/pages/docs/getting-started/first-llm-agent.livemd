@@ -1,19 +1,20 @@
 %{
-  title: "Build your first LLM agent",
+  title: "Your first LLM agent",
   description: "Add LLM reasoning to a Jido agent with jido_ai, configure a provider, and run your first AI-enhanced command.",
   category: :docs,
-  order: 12,
-  tags: [:docs, :learn, :tutorial, :ai],
+  order: 40,
+  tags: [:docs, :getting_started, :tutorial, :ai],
   draft: false,
+  legacy_paths: ["/docs/learn/first-llm-agent"],
   learning_outcomes: [
     "Add jido_ai and req_llm dependencies",
     "Configure an LLM provider with runtime secrets",
     "Run an AI-enhanced agent command"
   ],
-  prerequisites: ["/docs/learn/first-agent"]
+  prerequisites: ["/docs/getting-started/first-agent"]
 }
 ---
-In [Build your first agent](/docs/learn/first-agent) you built a deterministic agent with `cmd/2`. This tutorial adds LLM reasoning to the same pattern using `jido_ai`, while keeping the runtime boundaries intact.
+In [Your first agent](/docs/getting-started/first-agent) you built a deterministic agent with `cmd/2`. This tutorial adds LLM reasoning to the same pattern using `jido_ai`, while keeping the runtime boundaries intact.
 
 You will add the AI dependencies, configure a provider, define an AI agent, and run a single command that returns an LLM-generated response.
 
@@ -22,7 +23,7 @@ You will add the AI dependencies, configure a provider, define an AI agent, and 
 Before starting, you need:
 
 - An Elixir project that compiles and runs.
-- The agent module from [Build your first agent](/docs/learn/first-agent).
+- The agent module from [Your first agent](/docs/getting-started/first-agent).
 - An API key for OpenAI (or another supported provider).
 
 ## Add AI dependencies

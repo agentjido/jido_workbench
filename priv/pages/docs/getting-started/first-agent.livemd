@@ -1,10 +1,11 @@
 %{
-  title: "Build your first agent",
+  title: "Your first agent",
   description: "Define typed state, implement a validated action, and run your first command.",
   category: :docs,
-  order: 11,
-  tags: [:docs, :learn, :tutorial, :agents],
+  order: 30,
+  tags: [:docs, :getting_started, :tutorial, :agents],
   draft: false,
+  legacy_paths: ["/docs/learn/first-agent"],
   learning_outcomes: [
     "Define an agent module with typed state",
     "Implement an action and execute it via cmd/2",
@@ -89,4 +90,4 @@ The directives list is empty because this action is pure. If an action needed to
 
 - [Agents](/docs/concepts/agents) for the full conceptual model
 - [Actions](/docs/concepts/actions) for deeper action design patterns
-- [Build your first LLM agent](/docs/learn/first-llm-agent) to add language model capabilities
+- [Your first LLM agent](/docs/getting-started/first-llm-agent) to add language model capabilities
