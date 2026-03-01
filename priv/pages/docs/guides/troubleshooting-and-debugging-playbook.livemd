@@ -4,7 +4,8 @@
   category: :docs,
   legacy_paths: ["/docs/troubleshooting-and-debugging-playbook"],
   tags: [:docs, :guides, :livebook],
-  order: 220
+  order: 220,
+  draft: true
 }
 ---
 # Troubleshooting and Debugging Playbook

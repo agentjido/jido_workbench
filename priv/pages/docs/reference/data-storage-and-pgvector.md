@@ -4,7 +4,8 @@
   category: :docs,
   legacy_paths: ["/docs/data-storage-and-pgvector"],
   tags: [:docs, :reference],
-  order: 300
+  order: 300,
+  draft: true
 }
 ---
 # Data Storage and pgvector

@@ -4,7 +4,8 @@
   category: :docs,
   legacy_paths: ["/docs/chat-response", "/docs/cookbook/chat-response"],
   tags: [:docs, :guides, :cookbook, :livebook],
-  order: 161
+  order: 161,
+  draft: true
 }
 ---
 # Chat Response

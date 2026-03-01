@@ -4,7 +4,8 @@
   category: :docs,
   legacy_paths: ["/docs/architecture-decision-guides"],
   tags: [:docs, :reference],
-  order: 320
+  order: 320,
+  draft: true
 }
 ---
 # Architecture Decision Guides

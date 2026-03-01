@@ -4,7 +4,8 @@
   category: :docs,
   legacy_paths: ["/docs/weather-tool-response", "/docs/cookbook/weather-tool-response"],
   tags: [:docs, :guides, :cookbook, :livebook],
-  order: 163
+  order: 163,
+  draft: true
 }
 ---
 # Weather Tool Response

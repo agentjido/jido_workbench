@@ -1,5 +1,5 @@
 %{
-  description: "Architecture, configuration, schemas, and API reference for the Jido framework.",
+  description: "Glossary, configuration, telemetry events, and API documentation links for the Jido ecosystem.",
   title: "Reference",
   category: :docs,
   legacy_paths: [],
@@ -8,33 +8,31 @@
 }
 ---
 
-Reference pages give you exact specifications - architecture, configuration, schemas, telemetry. No tutorials, no narratives. You come here when you need a specific answer about how Jido works under the hood.
+## Reference pages
 
-## Architecture and design
+- [Configuration](/docs/reference/configuration) - all config keys with defaults and examples for `jido` and `jido_ai`
+- [Telemetry and observability](/docs/reference/telemetry-and-observability) - every telemetry event, metric definition, and log level control
+- [ReqLLM and LLMDB](/docs/reference/req-llm-and-llmdb) - provider-agnostic LLM client and model metadata database
+- [Debugging](/docs/reference/debugging) - runtime introspection and debug tooling
+- [Glossary](/docs/reference/glossary) - canonical definitions for every Jido term
 
-- [Architecture](/docs/reference/architecture) - system design, component boundaries, and data flow
-- [Architecture decision guides](/docs/reference/architecture-decision-guides) - when to use which patterns
-- [Configuration](/docs/reference/configuration) - all configuration options with defaults and examples
+## API documentation (HexDocs)
 
-## Observability and data
+Full module docs, typespecs, and function references live on HexDocs:
 
-- [Telemetry and observability](/docs/reference/telemetry-and-observability) - events, metrics, and tracing integration
-- [Data storage and pgvector](/docs/reference/data-storage-and-pgvector) - persistence layer and vector search setup
+| Package | Description | Docs |
+| --- | --- | --- |
+| `jido` | Core agent framework — agents, actions, signals, directives, runtime | [hexdocs.pm/jido](https://hexdocs.pm/jido) |
+| `jido_ai` | LLM integration — model aliases, reasoning strategies, tool management | [hexdocs.pm/jido_ai](https://hexdocs.pm/jido_ai) |
+| `jido_action` | Standalone action framework — schema-validated composable operations | [hexdocs.pm/jido_action](https://hexdocs.pm/jido_action) |
+| `jido_signal` | CloudEvents-based signal system — typed event envelopes and routing | [hexdocs.pm/jido_signal](https://hexdocs.pm/jido_signal) |
+| `jido_browser` | Browser automation — navigation, extraction, forms, and screenshots | [hexdocs.pm/jido_browser](https://hexdocs.pm/jido_browser) |
+| `req_llm` | HTTP client for LLM providers — retries, rate limiting, streaming | [hexdocs.pm/req_llm](https://hexdocs.pm/req_llm) |
+| `llmdb` | LLM model metadata database — capabilities, pricing, and context limits | [llmdb.xyz](https://llmdb.xyz) |
 
-## Maintenance
-
-- [Glossary](/docs/reference/glossary) - canonical definitions for Jido terminology
-- [Migrations and upgrade paths](/docs/reference/migrations-and-upgrade-paths) - version-to-version upgrade procedures
-
-## API documentation
-
-Full API docs live on HexDocs. For package overviews and installation details, start with the ecosystem page.
-
-- [Ecosystem packages](/ecosystem) - overview of all Jido packages
-- [jido on HexDocs](https://hexdocs.pm/jido) - core API reference
-- [jido_ai on HexDocs](https://hexdocs.pm/jido_ai) - AI integration API reference
+For package overviews and installation instructions, see the [Ecosystem page](/ecosystem).
 
 ## Next steps
 
-- [Concepts](/docs/concepts) - understand the mental models behind Jido
+- [Concepts](/docs/concepts) - understand the mental models behind Jido's primitives
 - [Guides](/docs/guides) - step-by-step walkthroughs for common tasks

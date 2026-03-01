@@ -4,7 +4,8 @@
   category: :docs,
   legacy_paths: ["/docs/testing-agents-and-actions"],
   tags: [:docs, :guides, :livebook],
-  order: 170
+  order: 170,
+  draft: true
 }
 ---
 # Testing Agents and Actions

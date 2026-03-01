@@ -4,7 +4,8 @@
   category: :docs,
   legacy_paths: ["/docs/migrations-and-upgrade-paths"],
   tags: [:docs, :reference],
-  order: 310
+  order: 310,
+  draft: true
 }
 ---
 # Migrations and Upgrade Paths

@@ -11,12 +11,12 @@
     "Implement an action and execute it via cmd/2",
     "Interpret updated state and returned directives"
   ],
-  prerequisites: ["/docs/learn/installation"]
+  prerequisites: ["/docs/getting-started/installation"]
 }
 ---
 ## Prerequisites
 
-Complete [Installation and setup](/docs/learn/installation) before starting this tutorial. You only need the core `jido` package and a local `iex` session.
+Complete [Installation and setup](/docs/getting-started/installation) before starting this tutorial. You only need the core `jido` package and a local `iex` session.
 
 ## Define your agent
 

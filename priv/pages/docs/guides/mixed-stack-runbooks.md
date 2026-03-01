@@ -4,7 +4,8 @@
   category: :docs,
   legacy_paths: ["/docs/mixed-stack-runbooks"],
   tags: [:docs, :guides],
-  order: 200
+  order: 200,
+  draft: true
 }
 ---
 # Mixed-Stack Runbooks

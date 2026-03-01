@@ -2,9 +2,10 @@
   title: "Installation and setup",
   description: "Add Jido to a new or existing Elixir project with a production-safe baseline.",
   category: :docs,
-  order: 10,
-  tags: [:docs, :learn, :setup],
+  order: 25,
+  tags: [:docs, :getting_started, :setup],
   draft: false,
+  legacy_paths: ["/docs/learn/installation"],
   learning_outcomes: [
     "Add core Jido dependencies to mix.exs",
     "Configure runtime secrets and provider settings",
@@ -96,5 +97,4 @@ Visit `http://localhost:4000` or check the logs for the endpoint startup line.
 ## Next steps
 
 - [Your first agent](/docs/getting-started/first-agent)
-- [Core concepts](/docs/learn/concepts)
-- [Configuration reference](/docs/reference/configuration)
+- [Core concepts](/docs/concepts)

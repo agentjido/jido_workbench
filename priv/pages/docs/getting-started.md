@@ -36,7 +36,7 @@ You've built OTP applications. You're comfortable with GenServer, supervision tr
 
 Both paths feed into the same four-step onboarding ladder:
 
-1. **[Installation and setup](/docs/learn/installation)** - add Jido to a project, configure dependencies, verify everything compiles
+1. **[Installation and setup](/docs/getting-started/installation)** - add Jido to a project, configure dependencies, verify everything compiles
 2. **[Your first agent](/docs/getting-started/first-agent)** - define an agent with typed state and actions, no LLM required
 3. **[Your first LLM agent](/docs/getting-started/first-llm-agent)** - wire up an LLM so your agent can reason about instructions
 4. **[Build your first workflow](/docs/learn/first-workflow)** - compose actions into a multi-step workflow that runs as a single unit

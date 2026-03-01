@@ -4,7 +4,8 @@
   category: :docs,
   legacy_paths: ["/docs/cookbook", "/docs/cookbook-index"],
   tags: [:docs, :guides],
-  order: 160
+  order: 160,
+  draft: true
 }
 ---
 # Cookbook

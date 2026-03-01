@@ -4,7 +4,8 @@
   category: :docs,
   legacy_paths: ["/docs/tool-response", "/docs/cookbook/tool-response"],
   tags: [:docs, :guides, :cookbook, :livebook],
-  order: 162
+  order: 162,
+  draft: true
 }
 ---
 # Tool Response

@@ -68,7 +68,7 @@ State changes and effect descriptions come back as data. The runtime handles dir
 
 Work through these four tutorials in order. Each builds on the last.
 
-1. **[Installation and setup](/docs/learn/installation)** - add `jido` and `jido_ai` to `mix.exs`, configure runtime secrets, verify compilation
+1. **[Installation and setup](/docs/getting-started/installation)** - add `jido` and `jido_ai` to `mix.exs`, configure runtime secrets, verify compilation
 2. **[Your first agent](/docs/getting-started/first-agent)** - define a `CounterAgent` with a Zoi schema, implement an Action, execute it with `cmd/2`
 3. **[Your first LLM agent](/docs/getting-started/first-llm-agent)** - add `jido_ai`, configure a provider, run an AI-enhanced command through `AgentServer`
 4. **[Build your first workflow](/docs/learn/first-workflow)** - compose multiple actions into a sequential workflow with shared state
@@ -88,6 +88,6 @@ Jido's architecture is built on a small set of composable primitives. The [Conce
 
 ## Next steps
 
-- [Start with installation](/docs/learn/installation) - begin the onboarding ladder
+- [Start with installation](/docs/getting-started/installation) - begin the onboarding ladder
 - [Concepts](/docs/concepts) - the full architectural reference for every Jido primitive
 - [Why not just a GenServer?](/docs/learn/why-not-just-a-genserver) - the full case for separating data from process

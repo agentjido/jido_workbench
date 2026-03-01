@@ -6,8 +6,11 @@ Reference `specs/docs-style-guide.md`, `specs/style-voice.md` and `specs/docs-ma
 
 ## Status key
 
-- **write** = no page exists or is a 12-line stub
+- **done** = page has substantive, manifesto-quality content and is published (`draft: false`)
+- **write** = no page exists yet
 - **rewrite** = page has real content but needs a fresh manifesto-quality pass
+- **stub** = 12-line placeholder file exists but has no real content
+- **drafted** = page exists with `draft: true` (hidden from site)
 
 ## Ship strategy
 
@@ -15,7 +18,7 @@ Pages support `draft: true` in frontmatter. Draft pages are excluded from nav, l
 
 ### MVP = what ships on day one (published)
 
-Tiers 1–3 plus Concepts — the minimum path a new user needs to evaluate and start using Jido.
+Tiers 1–4 — the minimum path a new user needs to evaluate and start using Jido.
 
 ### Post-MVP = draft: true until ready
 
@@ -23,9 +26,16 @@ Everything else. Exists in the repo, invisible on the site, shipped incrementall
 
 ---
 
-## Package references → Ecosystem
+## ⚠️ Known issues
 
-`/ecosystem/jido` is the canonical page for each package. The `docs/reference/packages/` section has been removed. All cross-links now point to `/ecosystem/<package>` for package-level details and HexDocs for API docs.
+1. ~~**Guide stubs are missing `draft: true`**~~ — ✅ Fixed. All guide/cookbook stubs now have `draft: true`.
+2. **`operations.md` hub is `draft: true`** — intentional, entire operations section not shipping at release.
+
+---
+
+## Package references → Ecosystem + Reference
+
+`/ecosystem/<package>` is the canonical page for each package overview. The reference section links to HexDocs for API docs and has a dedicated [ReqLLM and LLMDB](/docs/reference/req-llm-and-llmdb) page for the LLM infrastructure layer.
 
 ---
 
@@ -35,33 +45,37 @@ Everything else. Exists in the repo, invisible on the site, shipped incrementall
 
 Navigation/routing pages. Short, intent-driven, no deep prose.
 
-- [ ] `docs/index.md` → **rewrite** (stub → intent-based routing page)
-- [ ] `docs/getting-started.livemd` → **rewrite** (stub → onboarding funnel)
-- [ ] `docs/learn.md` → **rewrite** (stub → progression map)
-- [ ] `docs/concepts.md` → **rewrite** (stub → primitive map with reading order)
-- [ ] `docs/guides.md` → **rewrite** (stub → guide index)
-- [ ] `docs/operations.md` → **rewrite** (stub → ops routing)
-- [ ] `docs/reference.md` → **rewrite** (stub → reference index, links to /ecosystem for packages)
+- [x] `docs/index.md` → **done**
+- [x] `docs/getting-started.md` → **done**
+- [x] `docs/learn.md` → **done**
+- [x] `docs/concepts.md` → **done**
+- [x] `docs/guides.md` → **done**
+- [x] `docs/reference.md` → **done** (updated with full HexDocs table + 3 live pages)
+- [x] `docs/operations.md` → **drafted** (entire operations section is `draft: true` — not ready for release)
 
-### Tier 2: Learn — Onboarding Ladder (wave_1, critical)
+### Tier 2: Getting Started — Onboarding Ladder (critical)
 
 The first-time user path. Sequential, must be airtight.
 
-- [ ] `docs/learn/installation.livemd` → **rewrite** (solid draft → manifesto polish)
-- [ ] `docs/learn/first-agent.livemd` → **rewrite** (solid draft → manifesto polish)
-- [ ] `docs/learn/first-llm-agent.livemd` → **rewrite** (solid draft → manifesto polish)
-- [ ] `docs/learn/first-workflow.livemd` → **rewrite** (solid draft → manifesto polish)
+> **Note**: These files live in `docs/getting-started/`, not `docs/learn/`. Legacy paths redirect.
+
+- [x] `docs/getting-started/new-to-elixir.livemd` → **done** (185 lines, essential Elixir context for newcomers)
+- [x] `docs/getting-started/elixir-developers.livemd` → **done** (93 lines, maps Jido to OTP patterns)
+- [ ] `docs/getting-started/installation.livemd` → **rewrite** (100 lines, solid draft → manifesto polish)
+- [ ] `docs/getting-started/first-agent.livemd` → **rewrite** (93 lines, solid draft → manifesto polish)
+- [x] `docs/getting-started/first-llm-agent.livemd` → **done** (129 lines, live)
 
 ### Tier 3: Learn — Training Modules
 
 Deepen understanding after the onboarding ladder.
 
-- [ ] `docs/learn/agent-fundamentals.md` → **rewrite** (solid draft → manifesto polish)
-- [ ] `docs/learn/actions-validation.md` → **write**
-- [ ] `docs/learn/directives-scheduling.md` → **write**
-- [ ] `docs/learn/signals-routing.md` → **write**
-- [ ] `docs/learn/tool-use.md` → **write**
-- [ ] `docs/learn/why-not-just-a-genserver.md` → **write**
+- [x] `docs/learn/agent-fundamentals.md` → **done** (186 lines — typed state, schemas, signal routing)
+- [x] `docs/learn/actions-validation.md` → **done** (327 lines — schemas, composition, output validation)
+- [x] `docs/learn/directives-scheduling.md` → **done** (241 lines — drain loop, scheduling, testing)
+- [x] `docs/learn/signals-routing.md` → **done** (139 lines — CloudEvents, routing tables, wildcards)
+- [x] `docs/learn/tool-use.md` → **done** (108 lines — actions as tools, tool calling flow)
+- [x] `docs/learn/why-not-just-a-genserver.md` → **done** (101 lines — GenServer comparison)
+- [ ] `docs/learn/workflows.livemd` → **rewrite** (141 lines, moved from getting-started/first-workflow)
 
 ### Tier 4: Concepts
 
@@ -69,11 +83,11 @@ Authoritative explanations of each Jido primitive. Not tutorials.
 
 - [x] `docs/concepts/actions.livemd` → **done**
 - [x] `docs/concepts/signals.livemd` → **done**
-- [x] `docs/concepts/agents.livemd` → **done** (solid draft, manifesto-aligned)
+- [x] `docs/concepts/agents.livemd` → **done**
 - [x] `docs/concepts/directives.livemd` → **done**
 - [x] `docs/concepts/agent-runtime.livemd` → **done**
-- [x] `docs/concepts/sensors.md` → **done** (new page)
-- [x] `docs/concepts/strategy.md` → **done** (new page)
+- [x] `docs/concepts/sensors.md` → **done**
+- [x] `docs/concepts/strategy.md` → **done**
 - [x] `docs/concepts/plugins.md` → **done**
 
 ---
@@ -94,58 +108,49 @@ Hands-on projects. Each build guide teaches via a focused livemd tutorial under 
 | `liveview-integration`      | `/examples/counter-agent` (live, has LiveView) |
 | `mixed-stack-integration`   | — (needs example)                              |
 
-- [ ] `docs/learn/counter-agent.md` → **write** — refs `/examples/counter-agent`
-- [ ] `docs/learn/demand-tracker-agent.md` → **write** — refs `/examples/demand-tracker-agent`
-- [ ] `docs/learn/ai-chat-agent.livemd` → **rewrite** — refs relevant example
-- [ ] `docs/learn/behavior-tree-without-llm.md` → **write**
-- [ ] `docs/learn/multi-agent-workflows.md` → **write** — refs `/examples/workflow-coordinator`
-- [ ] `docs/learn/liveview-integration.md` → **write** — refs `/examples/counter-agent`
-- [ ] `docs/learn/mixed-stack-integration.md` → **write**
+- [x] `docs/learn/ai-chat-agent.livemd` → **done** (261 lines, published — multi-turn chat, streaming, error handling)
+- [ ] `docs/learn/counter-agent.md` → **write** (no file) — refs `/examples/counter-agent`
+- [ ] `docs/learn/demand-tracker-agent.md` → **write** (no file) — refs `/examples/demand-tracker-agent`
+- [ ] `docs/learn/behavior-tree-without-llm.md` → **write** (no file)
+- [ ] `docs/learn/multi-agent-workflows.md` → **write** (no file) — refs `/examples/workflow-coordinator`
+- [ ] `docs/learn/liveview-integration.md` → **write** (no file) — refs `/examples/counter-agent`
+- [ ] `docs/learn/mixed-stack-integration.md` → **write** (no file)
 
 ### Tier 6: Guides — Implementation Patterns
 
-- [ ] `docs/guides/cookbook.md` → **write** (stub, hub page)
-- [ ] `docs/guides/testing-agents-and-actions.livemd` → **write** (stub)
-- [ ] `docs/guides/long-running-agent-workflows.livemd` → **write** (stub)
-- [ ] `docs/guides/retries-backpressure-and-failure-recovery.livemd` → **write** (stub)
-- [ ] `docs/guides/persistence-memory-and-vector-search.livemd` → **write** (stub)
-- [ ] `docs/guides/troubleshooting-and-debugging-playbook.livemd` → **write** (stub)
-- [ ] `docs/guides/mcp-integration.md` → **write** (no page exists)
-- [ ] `docs/guides/mixed-stack-runbooks.md` → **write** (stub)
+> ⚠️ All stubs below are **missing `draft: true`** in frontmatter — they're visible on the live site as empty pages.
 
-### Tier 7: Guides — Cookbook Recipes
+- [ ] `docs/guides/testing-agents-and-actions.livemd` → **stub** (12 lines, needs `draft: true`)
+- [ ] `docs/guides/long-running-agent-workflows.livemd` → **stub** (12 lines, needs `draft: true`)
+- [ ] `docs/guides/retries-backpressure-and-failure-recovery.livemd` → **stub** (12 lines, needs `draft: true`)
+- [ ] `docs/guides/persistence-memory-and-vector-search.livemd` → **stub** (12 lines, needs `draft: true`)
+- [ ] `docs/guides/troubleshooting-and-debugging-playbook.livemd` → **stub** (12 lines, needs `draft: true`)
+- [ ] `docs/guides/mcp-integration.md` → **write** (no file)
 
-- [ ] `docs/guides/cookbook/chat-response.livemd` → **write** (stub)
-- [ ] `docs/guides/cookbook/tool-response.livemd` → **write** (stub)
-- [ ] `docs/guides/cookbook/weather-tool-response.livemd` → **write** (stub)
+### Tier 7: Operations (entire section `draft: true`)
 
-### Tier 8: Operations
+- [ ] `docs/operations/production-readiness-checklist.md` → **stub** (13 lines, `draft: true` ✅)
+- [ ] `docs/operations/incident-playbooks.md` → **stub** (13 lines, `draft: true` ✅)
+- [ ] `docs/operations/security-and-governance.md` → **stub** (13 lines, `draft: true` ✅)
 
-- [ ] `docs/operations/production-readiness-checklist.md` → **write** (stub)
-- [ ] `docs/operations/incident-playbooks.md` → **write** (stub)
-- [ ] `docs/operations/security-and-governance.md` → **write** (stub)
-- [ ] `docs/operations/backup-and-disaster-recovery.md` → **write** (no page exists)
+### Tier 8: Reference
 
-### Tier 9: Reference
+Live reference pages (shipped):
 
-- [ ] `docs/reference/architecture.md` → **write** (stub)
-- [ ] `docs/reference/configuration.md` → **write** (stub)
-- [ ] `docs/reference/glossary.md` → **write** (stub)
-- [ ] `docs/reference/telemetry-and-observability.md` → **write** (stub)
-- [ ] `docs/reference/data-storage-and-pgvector.md` → **write** (stub)
-- [ ] `docs/reference/architecture-decision-guides.md` → **write** (stub)
-- [ ] `docs/reference/ai-integration-decision-guide.md` → **write** (no page exists)
-- [ ] `docs/reference/provider-capability-and-fallback-matrix.md` → **write** (no page exists)
-- [ ] `docs/reference/content-governance-and-drift-detection.md` → **write** (stub)
-- [ ] `docs/reference/migrations-and-upgrade-paths.md` → **write** (stub)
+- [x] `docs/reference.md` → **done** (landing page with HexDocs table for all packages)
+- [x] `docs/reference/configuration.md` → **done** (158 lines — all config keys for jido + jido_ai)
+- [x] `docs/reference/telemetry-and-observability.md` → **done** (210 lines — all events, metrics, jido_otel mention)
+- [x] `docs/reference/req-llm-and-llmdb.md` → **done** (78 lines — LLM infrastructure packages)
+- [x] `docs/reference/glossary.md` → **done** (79 lines — 20+ terms, canonical definitions)
 
-### Tier 10: Community
+Drafted reference pages (hidden, for later):
 
-- [ ] `docs/community/` hub → **write** (no page exists)
-- [ ] `docs/community/adoption-playbooks.md` → **write** (no page exists)
-- [ ] `docs/community/case-studies.md` → **write** (no page exists)
-- [ ] `docs/community/learning-paths.md` → **write** (no page exists)
-- [ ] `docs/community/manager-roadmap.md` → **write** (no page exists)
+- [x] `docs/reference/debugging.md` → **done** (29 lines, live) — needs research into `Jido.Debug`, debug event modes, IEx helpers
+- [ ] `docs/reference/architecture.md` → **stub** (13 lines, `draft: true`) — covered by Concepts for now
+- [ ] `docs/reference/architecture-decision-guides.md` → **stub** (13 lines, `draft: true`)
+- [ ] `docs/reference/data-storage-and-pgvector.md` → **stub** (13 lines, `draft: true`)
+- [ ] `docs/reference/content-governance-and-drift-detection.md` → **stub** (13 lines, `draft: true`) — internal, may never be user-facing
+- [ ] `docs/reference/migrations-and-upgrade-paths.md` → **stub** (13 lines, `draft: true`) — nothing to migrate pre-1.0
 
 ---
 
@@ -154,13 +159,27 @@ Hands-on projects. Each build guide teaches via a focused livemd tutorial under 
 | Phase        | Tiers | Pages  | Status                             |
 | ------------ | ----- | ------ | ---------------------------------- |
 | **MVP**      | 1–4   | 29     | `draft: false` — ships published   |
-| **Post-MVP** | 5–10  | 35     | `draft: true` — hidden until ready |
-| **Total**    |       | **64** |                                    |
+| **Post-MVP** | 5–8   | 24     | `draft: true` — hidden until ready |
+| **Total**    |       | **53** |                                    |
 
-### Recommended MVP writing order
+### Current progress
 
-1. Tier 1 hub pages (7) — navigation skeleton
-2. Tier 2 onboarding ladder (4) — critical first-user path
-3. Tier 4 concepts (7) — foundations everything links to
-4. Tier 3 training modules (6) — deepen after onboarding
-5. Then flip `draft: false` on post-MVP pages as they're completed
+| Section | Done | Remaining | Notes |
+| --- | --- | --- | --- |
+| Hub pages (T1) | 6/7 | 0 live | operations drafted, rest done |
+| Getting started (T2) | 3/5 | 2 rewrites | new-to-elixir, elixir-devs, first-llm-agent done; installation + first-agent need polish |
+| Training modules (T3) | 6/7 | 1 rewrite | workflows moved from getting-started |
+| Concepts (T4) | 8/8 | 0 | ✅ all done |
+| Build guides (T5) | 1/7 | 6 writes | ai-chat-agent done; 6 no file yet |
+| Guides (T6) | 0/6 | 5 stubs + 1 no file | ⚠️ stubs need `draft: true` |
+| Operations (T7) | 0/3 | 3 stubs | correctly drafted |
+| Reference (T8) | 6/11 | 5 stubs | 6 done + shipped (incl. debugging), 5 drafted |
+
+### Recommended writing order (remaining work)
+
+1. **Fix stubs** — add `draft: true` to Tier 6 guide stubs so empty pages aren't live
+2. **Tier 2 rewrites** (2 pages) — manifesto polish on installation, first-agent
+3. **Tier 3 rewrite** (1 page) — workflows (moved from getting-started)
+4. **Tier 5 build guides** (6 pages) — write counter-agent, demand-tracker, etc.
+5. **Tier 6 guides** (6 pages) — write when ready, flip `draft: false`
+6. Remaining reference + operations pages as needed
