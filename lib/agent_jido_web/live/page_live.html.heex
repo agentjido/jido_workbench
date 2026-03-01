@@ -9,14 +9,15 @@
       />
       <.docs_secondary_nav current_path={@request_path} tabs={@docs_secondary_tabs || []} />
 
-      <div class="flex flex-1 min-h-0">
+      <div class="docs-scrollbar flex-1 min-h-0 overflow-y-auto">
+        <div class="flex min-h-full">
         <.docs_sidebar
           nav={@docs_sidebar_nav || []}
           current_path={@request_path}
           open={@sidebar_open}
         />
 
-        <main class="docs-scrollbar docs-main flex-1 min-h-0 min-w-0 overflow-y-auto">
+        <main class="docs-main flex-1 min-w-0">
           <div class="mx-auto w-full max-w-[1040px] px-6 py-10 lg:px-10 xl:px-14">
             <%= if @selected_document do %>
               <div class="space-y-10">
@@ -306,30 +307,33 @@ sup = Jido.Supervisor.start_link()
           </div>
 
           <%= if @selected_document do %>
-            <footer class="border-t border-border py-6 px-8 lg:px-16 w-full">
-              <div class="flex flex-col items-end gap-4 text-[11px] text-muted-foreground">
-                <div class="flex items-center justify-end gap-4">
-                  <%= if @selected_document.github_url do %>
+            <%!-- Content-area footer: edit link, feedback, source link --%>
+            <div class="mx-auto w-full max-w-[1040px] px-6 lg:px-10 xl:px-14 pb-10">
+              <div class="border-t border-border pt-6">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-[11px] text-muted-foreground mb-6">
+                  <div class="flex items-center gap-4">
+                    <%= if @selected_document.github_url do %>
+                      <a
+                        href={String.replace(@selected_document.github_url, "/blob/", "/edit/")}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="hover:text-foreground transition-colors"
+                      >
+                        Edit this page →
+                      </a>
+                    <% end %>
                     <a
-                      href={String.replace(@selected_document.github_url, "/blob/", "/edit/")}
+                      :if={@markdown_action}
+                      href={@markdown_action.url}
                       target="_blank"
                       rel="noopener noreferrer"
                       class="hover:text-foreground transition-colors"
                     >
-                      Edit this page →
+                      {@markdown_action.label} →
                     </a>
-                  <% end %>
-                  <a
-                    :if={@markdown_action}
-                    href={@markdown_action.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="hover:text-foreground transition-colors"
-                  >
-                    {@markdown_action.label} →
-                  </a>
+                  </div>
                 </div>
-                <div class="w-full max-w-md">
+                <div class="max-w-md">
                   <.feedback_prompt
                     id="docs-page-feedback"
                     title="Was this page helpful?"
@@ -342,29 +346,19 @@ sup = Jido.Supervisor.start_link()
                     container_class="rounded-md border border-border bg-card/60 p-4 text-xs"
                   />
                 </div>
-                <div class="flex flex-wrap items-center justify-end gap-4">
-                  <span>Apache License 2.0</span>
-                  <span>
-                    Copyright © 2025-{Date.utc_today().year}
-                    <a
-                      href="https://mike-hostetler.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      class="hover:text-foreground transition-colors"
-                    >
-                      Mike Hostetler
-                    </a>
-                  </span>
-                  <span>Jido {AgentJidoWeb.Jido.Nav.jido_version()}</span>
-                </div>
               </div>
-            </footer>
+            </div>
           <% end %>
+
         </main>
 
         <%= if @toc && @toc != [] do %>
           <.docs_right_sidebar toc={@toc} selected_document={@selected_document} />
         <% end %>
+        </div>
+
+        <%!-- Full-width marketing footer — outside the sidebar flex row --%>
+        <AgentJidoWeb.Jido.MarketingLayouts.marketing_footer />
       </div>
     </div>
   <% :training_index -> %>

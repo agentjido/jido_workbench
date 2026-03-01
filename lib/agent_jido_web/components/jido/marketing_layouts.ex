@@ -63,7 +63,7 @@ defmodule AgentJidoWeb.Jido.MarketingLayouts do
           <div class="col-span-2">
             <Nav.logo class="mb-4" show_version={false} logo_size="w-8 h-8 text-sm" text_size="text-lg" />
             <p class="text-muted-foreground text-sm mb-6">
-              BEAM-native agent framework for Elixir
+              Infrastructure for Agent Systems
             </p>
 
             <%!-- Status Indicator --%>

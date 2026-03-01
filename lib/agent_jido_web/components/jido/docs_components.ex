@@ -70,7 +70,7 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
   def docs_sidebar(assigns) do
     ~H"""
     <%= if @open do %>
-      <aside class="docs-scrollbar hidden lg:block h-full w-[260px] shrink-0 overflow-y-auto border-r border-border bg-card">
+      <aside class="docs-scrollbar hidden lg:block sticky top-0 self-start h-[calc(100dvh-6rem)] w-[260px] shrink-0 overflow-y-auto border-r border-border bg-card">
         <div class="py-4">
           <!-- Jido Docs header -->
           <div class="flex items-center justify-between px-4 mb-4">
@@ -172,7 +172,7 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
 
   def docs_right_sidebar(assigns) do
     ~H"""
-    <aside class="hidden xl:flex h-full w-[260px] shrink-0 flex-col border-l border-border bg-background/55 px-5 py-8">
+    <aside class="hidden xl:flex sticky top-0 self-start h-[calc(100dvh-6rem)] w-[260px] shrink-0 flex-col border-l border-border bg-background/55 px-5 py-8">
       <%= if @toc && @toc != [] do %>
         <div class="mb-6 flex min-h-0 flex-1 flex-col rounded-md border border-border/80 bg-card/60 p-3">
           <div class="mb-3 px-1 text-[10px] font-bold tracking-[0.11em] uppercase text-muted-foreground">
