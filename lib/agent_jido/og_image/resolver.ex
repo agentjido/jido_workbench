@@ -338,21 +338,8 @@ defmodule AgentJido.OGImage.Resolver do
 
   defp normalize_path(_), do: "/"
 
-  defp site_url do
-    AgentJidoWeb.Endpoint.url()
-  end
-
   defp site_host do
-    case Application.get_env(:agent_jido, :canonical_host) do
-      host when is_binary(host) and host != "" ->
-        host
-
-      _ ->
-        case URI.parse(site_url()) do
-          %URI{host: host} when is_binary(host) and host != "" -> host
-          _ -> "agentjido.xyz"
-        end
-    end
+    AgentJido.Site.canonical_host()
   end
 
   defp footer_url(path) do

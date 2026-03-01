@@ -25,8 +25,7 @@ defmodule AgentJido.ContentOntology.Exporter do
   alias AgentJido.Pages
 
   @repo_base "https://github.com/agentjido/agentjido_xyz/blob/main/"
-  @ontology_iri "https://agentjido.xyz/ontology/content#"
-  @default_internal_hosts ["agentjido.xyz", "stage.agentjido.xyz", "localhost"]
+  @default_internal_hosts ["localhost", "127.0.0.1"]
 
   @type export_result :: %{
           path: String.t(),
@@ -139,8 +138,8 @@ defmodule AgentJido.ContentOntology.Exporter do
 
     output =
       """
-      @prefix ajc: <https://agentjido.xyz/ontology/content#> .
-      @prefix ajr: <https://agentjido.xyz/resource/content/> .
+      @prefix ajc: <#{ontology_prefix_iri()}> .
+      @prefix ajr: <#{resource_prefix_iri()}> .
       @prefix dcterms: <http://purl.org/dc/terms/> .
       @prefix owl: <http://www.w3.org/2002/07/owl#> .
       @prefix pav: <http://purl.org/pav/> .
@@ -151,7 +150,7 @@ defmodule AgentJido.ContentOntology.Exporter do
       @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
       <> a owl:Ontology ;
-        owl:imports <#{@ontology_iri}> ;
+        owl:imports <#{ontology_import_iri()}> ;
         dcterms:title "AgentJido content graph export" ;
         dcterms:created "#{DateTime.to_iso8601(now)}"^^xsd:dateTime .
 
@@ -1354,7 +1353,7 @@ defmodule AgentJido.ContentOntology.Exporter do
       uri.scheme in [nil, ""] ->
         normalize_route(href)
 
-      is_binary(uri.host) and uri.host in internal_hosts() ->
+      is_binary(uri.host) and String.downcase(uri.host) in internal_hosts() ->
         normalize_route(href)
 
       true ->
@@ -1388,21 +1387,14 @@ defmodule AgentJido.ContentOntology.Exporter do
   end
 
   defp internal_hosts do
-    endpoint_host =
-      case URI.parse(AgentJidoWeb.Endpoint.url()) do
-        %URI{host: host} when is_binary(host) and host != "" -> [host]
-        _ -> []
-      end
-
-    canonical_host =
-      case Application.get_env(:agent_jido, :canonical_host) do
-        host when is_binary(host) and host != "" -> [host]
-        _ -> []
-      end
-
-    (@default_internal_hosts ++ endpoint_host ++ canonical_host)
+    (@default_internal_hosts ++ AgentJido.Site.internal_hosts())
     |> Enum.uniq()
   end
+
+  defp ontology_import_iri, do: canonical_origin() <> "/ontology/content#"
+  defp ontology_prefix_iri, do: canonical_origin() <> "/ontology/content#"
+  defp resource_prefix_iri, do: canonical_origin() <> "/resource/content/"
+  defp canonical_origin, do: "https://" <> AgentJido.Site.canonical_host()
 
   defp safe_local(value) do
     text = to_string(value)

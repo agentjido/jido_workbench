@@ -18,7 +18,7 @@ defmodule AgentJidoWeb.AdminAnalyticsExportControllerTest do
     scope = Scope.for_user(actor)
     conn = log_in_user(conn, admin)
 
-    identity = %{visitor_id: "csv-visitor", session_id: "csv-session", path: "/search", referrer_host: "agentjido.xyz"}
+    identity = %{visitor_id: "csv-visitor", session_id: "csv-session", path: "/search", referrer_host: "jido.run"}
 
     {:ok, query_log} =
       QueryLogs.create_query_log(scope, identity, %{

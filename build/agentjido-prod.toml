@@ -21,8 +21,8 @@ app = "/app/bin/entrypoint"
 
 [env]
 FLY_APP_NAME = 'agentjido-prod'
-PHX_HOST = 'agentjido.xyz'
-CANONICAL_HOST = 'agentjido.xyz'
+PHX_HOST = 'jido.run'
+CANONICAL_HOST = 'jido.run'
 PORT = '8080'
 PRIMARY_REGION = "ord"
 ARCANA_EMBEDDER = "openai"

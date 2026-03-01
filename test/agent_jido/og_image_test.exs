@@ -27,7 +27,7 @@ defmodule AgentJido.OGImageTest do
       title: ~S{<script>alert("xss")</script>},
       subtitle: "A & B > C",
       eyebrow: "TEST",
-      footer_url: "agentjido.xyz/features",
+      footer_url: "jido.run/features",
       badges: ["alpha&beta", "<unsafe>"],
       content_hash: "abc123",
       cache_key: "v3:path=/features:hash=abc123",
@@ -51,7 +51,7 @@ defmodule AgentJido.OGImageTest do
       subtitle:
         "This subtitle is intentionally long so it should wrap onto multiple lines and then truncate with an ellipsis when it exceeds the bounded Open Graph text region.",
       eyebrow: "FEATURES",
-      footer_url: "agentjido.xyz/features",
+      footer_url: "jido.run/features",
       badges: ["alpha", "beta", "gamma", "delta"],
       content_hash: "abc123",
       cache_key: "v5:path=/features:hash=abc123",

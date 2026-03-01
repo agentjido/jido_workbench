@@ -43,7 +43,7 @@
     <%= if Application.get_env(:agent_jido, :enable_analytics) do %>
       <script
         defer
-        data-domain={Application.get_env(:agent_jido, :canonical_host) || "agentjido.xyz"}
+        data-domain={AgentJido.Site.canonical_host()}
         src="https://plausible.io/js/script.outbound-links.js"
       >
       </script>

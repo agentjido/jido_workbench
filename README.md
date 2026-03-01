@@ -2,7 +2,7 @@
 
 Jido Workbench is a Phoenix LiveView app for Jido ecosystem documentation, examples, and internal learning content.
 
-- Live site: https://agentjido.xyz
+- Live site: https://jido.run
 - Deployment target: Fly.io
 
 This repository is an internal docs/workbench app, not the public SDK source repository for `jido` or `jido_ai`.

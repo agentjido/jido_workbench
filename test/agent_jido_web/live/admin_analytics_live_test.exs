@@ -50,7 +50,7 @@ defmodule AgentJidoWeb.AdminAnalyticsLiveTest do
   defp seed_analytics_data do
     actor = user_fixture()
     scope = Scope.for_user(actor)
-    identity = %{visitor_id: "admin-seed-visitor", session_id: "admin-seed-session", path: "/search", referrer_host: "agentjido.xyz"}
+    identity = %{visitor_id: "admin-seed-visitor", session_id: "admin-seed-session", path: "/search", referrer_host: "jido.run"}
 
     {:ok, query_log} =
       QueryLogs.create_query_log(scope, identity, %{

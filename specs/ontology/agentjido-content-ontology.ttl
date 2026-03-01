@@ -1,5 +1,5 @@
-@prefix ajc: <https://agentjido.xyz/ontology/content#> .
-@prefix ajr: <https://agentjido.xyz/resource/content/> .
+@prefix ajc: <https://jido.run/ontology/content#> .
+@prefix ajr: <https://jido.run/resource/content/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix pav: <http://purl.org/pav/> .
@@ -11,10 +11,10 @@
 
 ajc: a owl:Ontology ;
   dcterms:title "AgentJido Content Ontology" ;
-  dcterms:description "OWL ontology for representing agentjido.xyz content, source markdown provenance, generation metadata, versioning, categories, and tag relationships." ;
+  dcterms:description "OWL ontology for representing jido.run content, source markdown provenance, generation metadata, versioning, categories, and tag relationships." ;
   dcterms:creator "AgentJido Engineering" ;
   dcterms:created "2026-02-23"^^xsd:date ;
-  owl:versionIRI <https://agentjido.xyz/ontology/content/1.1.0> ;
+  owl:versionIRI <https://jido.run/ontology/content/1.1.0> ;
   owl:versionInfo "1.1.0" ;
   owl:imports <http://www.w3.org/ns/prov-o#> ,
     <http://purl.org/pav/> ,
@@ -32,7 +32,7 @@ ajc:ContentResource a owl:Class ;
 ajc:WebDocument a owl:Class ;
   rdfs:subClassOf ajc:ContentResource ;
   rdfs:label "Web document" ;
-  rdfs:comment "A document addressable on agentjido.xyz (docs, blog posts, ecosystem pages, examples)." .
+  rdfs:comment "A document addressable on jido.run (docs, blog posts, ecosystem pages, examples)." .
 
 ajc:RenderedPage a owl:Class ;
   rdfs:subClassOf ajc:WebDocument ;

@@ -58,7 +58,7 @@ Name competitors when the comparison is specific and technical (e.g., "Unlike Cr
 - fault-tolerant — hyphenated
 - open-source — hyphenated as adjective, "open source" as noun
 - hex.pm — lowercase
-- agentjido.xyz — lowercase
+- jido.run — lowercase
 - HexDocs — one word, capital H capital D
 
 ### Jido-Specific Terms (use consistently)
@@ -89,7 +89,7 @@ Name competitors when the comparison is specific and technical (e.g., "Unlike Cr
 - Internal cross-links: use relative paths (`/docs/guides/...`)
 - Package references: link to hex.pm (`https://hex.pm/packages/jido`)
 - API references: link to HexDocs (`https://hexdocs.pm/jido`)
-- Ecosystem overview: link to agentjido.xyz
+- Ecosystem overview: link to jido.run
 - Never link to internal workspace files, GitHub source, or contributor-only paths in public content
 
 ### Status Labels (for pre-release / maturity)

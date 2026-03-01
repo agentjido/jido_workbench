@@ -287,7 +287,7 @@ defmodule AgentJido.Demos.GithubAgent do
 
       {:ok, result} = GithubAgent.setup_webhook(
         owner: "agentjido", repo: "agentjido_xyz",
-        url: "https://agentjido.xyz/api/webhooks/github",
+        url: "https://jido.run/api/webhooks/github",
         events: ["issues", "pull_request", "issue_comment"]
       )
   """

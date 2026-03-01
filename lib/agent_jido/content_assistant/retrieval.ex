@@ -652,15 +652,9 @@ defmodule AgentJido.ContentAssistant.Retrieval do
   defp normalize_path_with_parts(_path, _query, _fragment), do: nil
 
   defp internal_host?(host) when is_binary(host) do
-    canonical_host =
-      :agent_jido
-      |> Application.get_env(:canonical_host, "agentjido.xyz")
-      |> to_string()
-      |> String.downcase()
-
     host_down = String.downcase(host)
 
-    host_down in [canonical_host, "www." <> canonical_host, "localhost", "127.0.0.1"]
+    host_down in AgentJido.Site.internal_hosts()
   end
 
   defp internal_host?(_host), do: false

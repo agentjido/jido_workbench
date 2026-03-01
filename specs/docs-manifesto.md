@@ -55,9 +55,9 @@ Each package is independently usable from Hex. This is where external developers
 **Primary artifacts:** Package README, HexDocs guides, module/function docs
 **Audience:** External Elixir developers installing from hex.pm
 
-### 2. Cross-package recipes (agentjido.xyz)
+### 2. Cross-package recipes (jido.run)
 
-Show how multiple libraries work together (e.g., `jido` + `jido_ai` + `jido_chat`). These live on the main docs site at agentjido.xyz, powered by `jido_workbench`.
+Show how multiple libraries work together (e.g., `jido` + `jido_ai` + `jido_chat`). These live on the main docs site at jido.run, powered by `jido_workbench`.
 
 **Primary artifacts:** Getting started guides, tutorials, architecture overviews
 **Audience:** Developers evaluating or adopting the Jido ecosystem
@@ -69,9 +69,9 @@ For maintainers working in the development workspace. Never published externally
 **Primary artifacts:** `AGENTS.md`, `PACKAGE_TREE.md`, workspace README
 **Audience:** Contributors only
 
-**Routing rule:** Put *API details* in HexDocs; put *ecosystem overviews and tutorials* on agentjido.xyz; keep *contributor workflows* internal.
+**Routing rule:** Put *API details* in HexDocs; put *ecosystem overviews and tutorials* on jido.run; keep *contributor workflows* internal.
 
-**Implementation rule:** Package docs assume "Elixir dev discovering you via HexDocs" awareness. Site docs on agentjido.xyz assume "developer evaluating Jido" awareness. Never leak internal tooling (`jido_dep/4`, workspace commands) into public docs.
+**Implementation rule:** Package docs assume "Elixir dev discovering you via HexDocs" awareness. Site docs on jido.run assume "developer evaluating Jido" awareness. Never leak internal tooling (`jido_dep/4`, workspace commands) into public docs.
 
 ---
 
@@ -89,7 +89,7 @@ For maintainers working in the development workspace. Never published externally
 ## Where This Package Fits
 
 [One short paragraph explaining how this package fits into the Jido ecosystem:
-core / AI / app / extension / utility. Link to the ecosystem overview on agentjido.xyz.]
+core / AI / app / extension / utility. Link to the ecosystem overview on jido.run.]
 
 **Works best with:**
 - [jido](https://hex.pm/packages/jido) – [1 line: why]
@@ -202,9 +202,9 @@ end
 
 ---
 
-## Cross-package recipes (agentjido.xyz)
+## Cross-package recipes (jido.run)
 
-In an ecosystem, the most valuable examples show how multiple packages work together. These recipes live on agentjido.xyz (powered by `jido_workbench`), not in individual package docs.
+In an ecosystem, the most valuable examples show how multiple packages work together. These recipes live on jido.run (powered by `jido_workbench`), not in individual package docs.
 
 For Jido-style packages, aim for at least:
 
@@ -215,12 +215,12 @@ For Jido-style packages, aim for at least:
 3. **Tooling recipe** – e.g., "Use Jido Code to drive agentic coding workflows"
    - Uses `jido_code` + core packages
 
-**Rule:** Recipes on agentjido.xyz must:
+**Rule:** Recipes on jido.run must:
 - List all participating packages explicitly with hex.pm links
 - Include a dependency diagram or bullet list
 - Be copy-paste-runnable with Hex deps (no workspace assumptions)
 
-**Package HexDocs can link to agentjido.xyz** for cross-package tutorials, but should not duplicate that content.
+**Package HexDocs can link to jido.run** for cross-package tutorials, but should not duplicate that content.
 
 ---
 
@@ -450,7 +450,7 @@ This guide shows you how to surface that bottleneck in under 5 minutes.
 
 ### Public docs only
 
-All published documentation (HexDocs and agentjido.xyz) must be written for external developers using Hex packages.
+All published documentation (HexDocs and jido.run) must be written for external developers using Hex packages.
 
 **Rules:**
 
@@ -467,7 +467,7 @@ All published documentation (HexDocs and agentjido.xyz) must be written for exte
 
 - **Never mention internal tooling** (`jido_dep/4`, `mix ws.*`, workspace commands) in public docs
 - **Use standard Mix commands** (`mix test`, `mix docs`) in all examples
-- **Link to hex.pm and agentjido.xyz**, never to internal workspace files
+- **Link to hex.pm and jido.run**, never to internal workspace files
 
 ### Inline code comments
 
@@ -576,9 +576,9 @@ Find someone unfamiliar with your library. Watch them try to use it from your do
 
 ### Ecosystem
 
-- [ ] **Ecosystem fit:** Does the README explain where this package fits in the Jido ecosystem and link to agentjido.xyz?
+- [ ] **Ecosystem fit:** Does the README explain where this package fits in the Jido ecosystem and link to jido.run?
 - [ ] **Version alignment:** Are dependency version requirements in the README consistent with `mix.exs`?
-- [ ] **Cross-package recipes:** Are relevant tutorials on agentjido.xyz linked from the README or HexDocs?
+- [ ] **Cross-package recipes:** Are relevant tutorials on jido.run linked from the README or HexDocs?
 
 ### Testing
 
@@ -593,6 +593,6 @@ Across all documentation that drives adoption, the same principles repeat:
 
 **Know your developer's awareness level and meet them there.** The README headline is 80% of first impressions—obsess accordingly. Specificity creates believability. The API design matters more than clever prose. Every sentence exists to get the next sentence read. You cannot create need, only channel existing need. Test your docs by using them yourself. Write to one developer, not "users." Enter the conversation already in their head. Show code first, explain second.
 
-**For ecosystems:** Document two public layers—package HexDocs and cross-package tutorials on agentjido.xyz. Keep workspace concerns strictly internal. Make ecosystem fit explicit in every README. Link to agentjido.xyz for how packages work together.
+**For ecosystems:** Document two public layers—package HexDocs and cross-package tutorials on jido.run. Keep workspace concerns strictly internal. Make ecosystem fit explicit in every README. Link to jido.run for how packages work together.
 
 The documentation author's job remains: **Help one developer solve one problem.** Do it with clarity, specificity, and working examples. Adoption follows.

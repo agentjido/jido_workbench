@@ -81,7 +81,7 @@ defmodule AgentJidoWeb.ContentAssistantModalComponentTest do
             visitor_id: "content-assistant-test-visitor",
             session_id: "content-assistant-test-session",
             path: "/docs/concepts/agents",
-            referrer_host: "agentjido.xyz"
+            referrer_host: "jido.run"
           }
         }
       />

@@ -73,7 +73,7 @@ defmodule AgentJido.QueryLogsTest do
         visitor_id: "visitor-enriched",
         session_id: "session-enriched",
         path: "/docs/concepts/agents",
-        referrer_host: "agentjido.xyz"
+        referrer_host: "jido.run"
       }
 
       assert {:ok, query_log} =
@@ -88,7 +88,7 @@ defmodule AgentJido.QueryLogsTest do
       assert query_log.visitor_id == "visitor-enriched"
       assert query_log.session_id == "session-enriched"
       assert query_log.path == "/docs/concepts/agents"
-      assert query_log.referrer_host == "agentjido.xyz"
+      assert query_log.referrer_host == "jido.run"
       assert is_binary(query_log.query_hash)
       assert query_log.query =~ "[email]"
     end

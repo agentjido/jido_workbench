@@ -75,7 +75,7 @@ defmodule AgentJido.AnalyticsTest do
       admin_scope = Scope.for_user(admin)
       actor = user_fixture()
       scope = Scope.for_user(actor)
-      identity = %{visitor_id: "visitor-gap", session_id: "session-gap", path: "/docs", referrer_host: "agentjido.xyz"}
+      identity = %{visitor_id: "visitor-gap", session_id: "session-gap", path: "/docs", referrer_host: "jido.run"}
       base_time = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
 
       {:ok, first} =

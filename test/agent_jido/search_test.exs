@@ -151,7 +151,7 @@ defmodule AgentJido.ContentAssistant.RetrievalTest do
             source_id: "docs:/docs/getting-started",
             metadata: %{
               "title" => "Getting Started",
-              "url" => "https://agentjido.xyz/docs/getting-started#intro"
+              "url" => AgentJidoWeb.Endpoint.url() <> "/docs/getting-started#intro"
             }
           }
         }

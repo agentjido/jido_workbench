@@ -296,7 +296,7 @@ There's much more to explore in Jido, including state management, complex workfl
 
 ### Additional Resources
 
-- **Website:** [https://agentjido.xyz](https://agentjido.xyz)
+- **Website:** [https://jido.run](https://jido.run)
 - **Jido Documentation:** [https://hexdocs.pm/jido](https://hexdocs.pm/jido)
 - **Jido AI Documentation:** [https://hexdocs.pm/jido_ai](https://hexdocs.pm/jido_ai)
 - **Jido Tools Documentation:** [https://hexdocs.pm/jido_tools](https://hexdocs.pm/jido_tools)

@@ -38,13 +38,33 @@ config :phoenix_blog,
     end
   end
 
+canonical_host =
+  case env!("CANONICAL_HOST", :string, nil) do
+    host when is_binary(host) ->
+      host
+      |> String.trim()
+      |> case do
+        "" -> nil
+        normalized -> normalized
+      end
+
+    _ ->
+      nil
+  end
+
+default_mailer_from_email =
+  case canonical_host do
+    host when is_binary(host) and host != "" -> "noreply@#{host}"
+    _ -> "noreply@localhost"
+  end
+
 config :agent_jido,
-  canonical_host: env!("CANONICAL_HOST", :string, nil),
+  canonical_host: canonical_host,
   # Set to true/false to control Plausible analytics loading, only in production
   enable_analytics: env!("ENABLE_ANALYTICS", :boolean, false),
   discord_invite_link: env!("DISCORD_INVITE_LINK", :string, "https://discord.gg/dMh8CqEH8Q"),
   mailer_from_name: env!("MAILER_FROM_NAME", :string, "AgentJido"),
-  mailer_from_email: env!("MAILER_FROM_EMAIL", :string, "mike@agentjido.xyz")
+  mailer_from_email: env!("MAILER_FROM_EMAIL", :string, default_mailer_from_email)
 
 # Agent runtime
 jido_config =

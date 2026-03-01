@@ -1,6 +1,6 @@
 # AgentJido Content Ontology
 
-This folder defines an OWL ontology for representing all content on `agentjido.xyz`, including:
+This folder defines an OWL ontology for representing all content on `jido.run`, including:
 
 - source markdown/livebook files in `priv/**`
 - rendered web documents and their routes
@@ -44,11 +44,11 @@ mix content.ontology.export --include-non-routable
 
 ## Suggested URI conventions for full site materialization
 
-- Web documents: `https://agentjido.xyz/resource/content/doc/<kind>/<id>`
-- Source files: `https://agentjido.xyz/resource/content/source/<normalized-path>`
-- Versions: `https://agentjido.xyz/resource/content/version/<doc-id>/<content-hash>`
-- Runs: `https://agentjido.xyz/resource/content/run/<run-id>`
-- Tags: `https://agentjido.xyz/ontology/content#tag_<tag>`
+- Web documents: `https://jido.run/resource/content/doc/<kind>/<id>`
+- Source files: `https://jido.run/resource/content/source/<normalized-path>`
+- Versions: `https://jido.run/resource/content/version/<doc-id>/<content-hash>`
+- Runs: `https://jido.run/resource/content/run/<run-id>`
+- Tags: `https://jido.run/ontology/content#tag_<tag>`
 
 ## Competency queries (examples)
 

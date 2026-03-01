@@ -84,6 +84,8 @@ defmodule AgentJidoWeb.Router do
     post "/analytics/events", AnalyticsEventController, :create
     get("/feed", BlogController, :feed)
     get("/sitemap.xml", SitemapController, :index)
+    get("/robots.txt", RobotsTxtController, :index)
+    get("/llms.txt", LLMSTxtController, :index)
   end
 
   if Application.compile_env(:agent_jido, :dev_routes) do

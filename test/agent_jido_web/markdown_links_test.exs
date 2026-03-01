@@ -19,7 +19,7 @@ defmodule AgentJidoWeb.MarkdownLinksTest do
 
   test "prefers source-backed markdown action when source exists" do
     page = %{source_path: Path.expand("priv/pages/docs/index.md", File.cwd!())}
-    request_url = "https://agentjido.xyz/docs"
+    request_url = AgentJidoWeb.Endpoint.url() <> "/docs"
     action = MarkdownLinks.markdown_action(page, request_url)
 
     assert action.source_backed? == true
@@ -31,11 +31,11 @@ defmodule AgentJidoWeb.MarkdownLinksTest do
 
   test "falls back to canonical page action when source is unavailable" do
     post = %{source_path: "phoenix_blog://posts"}
-    request_url = "https://agentjido.xyz/blog/test-post"
+    request_url = AgentJidoWeb.Endpoint.url() <> "/blog/test-post"
     action = MarkdownLinks.markdown_action(post, request_url)
 
     assert action.source_backed? == false
     assert action.label == "Open canonical page"
-    assert action.url == "https://agentjido.xyz/blog/test-post"
+    assert action.url == request_url
   end
 end

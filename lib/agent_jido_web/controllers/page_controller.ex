@@ -33,7 +33,7 @@ defmodule AgentJidoWeb.PageController do
     |> render(:not_found,
       request_path: conn.request_path,
       page_title: "Page Not Found",
-      meta_description: "The requested page could not be found on agentjido.xyz.",
+      meta_description: "The requested page could not be found.",
       robots: ["noindex", "nofollow"]
     )
   end

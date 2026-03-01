@@ -19,9 +19,11 @@ defmodule AgentJido.Accounts.UserNotifier do
   end
 
   defp mailer_from do
+    default_email = "noreply@" <> AgentJido.Site.canonical_host()
+
     {
       Application.get_env(:agent_jido, :mailer_from_name, "AgentJido"),
-      Application.get_env(:agent_jido, :mailer_from_email, "mike@agentjido.xyz")
+      Application.get_env(:agent_jido, :mailer_from_email, default_email)
     }
   end
 
