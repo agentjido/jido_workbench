@@ -73,19 +73,21 @@ defmodule AgentJidoWeb.JidoHomeLive do
 
       <p class="home-muted-copy text-[11px] leading-relaxed max-w-xl mx-auto -mt-6">
         New to Elixir?
-        <.link navigate="/getting-started" class="text-primary hover:underline font-semibold ml-1">
+        <.link
+          navigate="/docs/getting-started/new-to-elixir"
+          class="text-primary hover:underline font-semibold ml-1"
+        >
           Start here.
         </.link>
         <span class="mx-2">•</span>
         Already an Elixir expert?
-        <a
-          id="home-quick-start-jump-link"
-          href="#quick-start"
-          phx-hook="HashScrollLink"
+        <.link
+          id="home-elixir-expert-guide-link"
+          navigate="/docs/getting-started/elixir-developers"
           class="text-primary hover:underline font-semibold ml-1"
         >
-          Jump to quick start.
-        </a>
+          Jump to the Elixir expert getting started guide.
+        </.link>
       </p>
     </section>
     """

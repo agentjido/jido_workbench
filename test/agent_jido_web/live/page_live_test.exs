@@ -70,12 +70,12 @@ defmodule AgentJidoWeb.PageLiveTest do
   end
 
   describe "home quick start and cta sections" do
-    test "renders quick start jump link with hash scroll hook", %{conn: conn} do
+    test "renders elixir onboarding guide links", %{conn: conn} do
       {:ok, _view, html} = live(conn, "/")
 
-      assert html =~ ~s(id="home-quick-start-jump-link")
-      assert html =~ ~s(href="#quick-start")
-      assert html =~ ~s(phx-hook="HashScrollLink")
+      assert html =~ ~s(href="/docs/getting-started/new-to-elixir")
+      assert html =~ ~s(id="home-elixir-expert-guide-link")
+      assert html =~ ~s(href="/docs/getting-started/elixir-developers")
     end
 
     test "renders quick start section with define and terminal blocks", %{conn: conn} do
