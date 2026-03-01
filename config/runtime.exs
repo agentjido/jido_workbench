@@ -294,6 +294,20 @@ graph_config =
 
 config :arcana, graph: graph_config
 
+if config_env() != :prod and env!("MAILER_USE_BREVO", :boolean, false) do
+  brevo_api_key =
+    env!("BREVO_API_KEY", :string, nil) ||
+      raise """
+      MAILER_USE_BREVO=true requires BREVO_API_KEY.
+      """
+
+  config :swoosh, api_client: Swoosh.ApiClient.Finch, finch_name: AgentJido.Finch
+
+  config :agent_jido, AgentJido.Mailer,
+    adapter: Swoosh.Adapters.Brevo,
+    api_key: brevo_api_key
+end
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||

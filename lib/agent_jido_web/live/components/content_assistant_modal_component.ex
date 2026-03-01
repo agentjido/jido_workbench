@@ -257,11 +257,14 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
                   phx-hook="ContentAssistantTurnstile"
                   data-site-key={@turnstile_site_key}
                   data-input-id={@turnstile_input_id}
-                  class="min-h-16"
+                  data-appearance="interaction-only"
+                  data-size="invisible"
+                  data-execution="execute"
+                  class="h-0 overflow-hidden"
                 >
                 </div>
                 <p class="mt-1 text-xs text-muted-foreground">
-                  Verification is only used for optional LLM enhancement.
+                  Verification runs in the background and only prompts when risk is detected.
                 </p>
               </div>
             </div>

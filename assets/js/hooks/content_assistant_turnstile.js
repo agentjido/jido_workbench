@@ -2,6 +2,9 @@ const ContentAssistantTurnstile = {
   mounted() {
     this.siteKey = this.el.dataset.siteKey || "";
     this.inputId = this.el.dataset.inputId || "";
+    this.appearance = this.el.dataset.appearance || "interaction-only";
+    this.size = this.el.dataset.size || "invisible";
+    this.execution = this.el.dataset.execution || "execute";
     this.widgetId = null;
 
     this.renderWidget = this.renderWidget.bind(this);
@@ -18,6 +21,9 @@ const ContentAssistantTurnstile = {
   updated() {
     this.siteKey = this.el.dataset.siteKey || this.siteKey;
     this.inputId = this.el.dataset.inputId || this.inputId;
+    this.appearance = this.el.dataset.appearance || this.appearance;
+    this.size = this.el.dataset.size || this.size;
+    this.execution = this.el.dataset.execution || this.execution;
     this.renderWidget();
   },
 
@@ -42,10 +48,15 @@ const ContentAssistantTurnstile = {
 
     this.widgetId = window.turnstile.render(this.el, {
       sitekey: this.siteKey,
+      appearance: this.appearance,
+      size: this.size,
+      execution: this.execution,
       callback: (token) => this.setToken(token),
       "expired-callback": () => this.setToken(""),
       "error-callback": () => this.setToken(""),
     });
+
+    this.executeWidget();
   },
 
   resetWidget() {
@@ -54,6 +65,7 @@ const ContentAssistantTurnstile = {
     if (window.turnstile && this.widgetId !== null) {
       try {
         window.turnstile.reset(this.widgetId);
+        this.executeWidget();
       } catch (_error) {
         this.widgetId = null;
         this.renderWidget();
@@ -61,6 +73,18 @@ const ContentAssistantTurnstile = {
     } else {
       this.widgetId = null;
       this.renderWidget();
+    }
+  },
+
+  executeWidget() {
+    if (!window.turnstile || this.widgetId === null || typeof window.turnstile.execute !== "function") {
+      return;
+    }
+
+    try {
+      window.turnstile.execute(this.widgetId);
+    } catch (_error) {
+      // No-op: execute can fail during script race conditions.
     }
   },
 
