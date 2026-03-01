@@ -215,17 +215,17 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
             data-analytics-source="docs"
             data-analytics-channel="quick_links"
             data-analytics-target-url={livebook_url}
-            class="group flex w-full items-center justify-between gap-3 rounded-lg bg-[#e8457c] px-3.5 py-2.5 text-[12px] font-semibold text-white shadow-sm ring-1 ring-black/10 transition hover:bg-[#f06292] hover:shadow-md"
+            class="group flex w-full items-center justify-between gap-3 rounded-lg bg-primary px-3.5 py-2.5 text-[12px] font-semibold text-primary-foreground shadow-sm ring-1 ring-black/10 transition hover:brightness-110 hover:shadow-md"
           >
             <span class="flex items-center gap-2.5">
-              <span class="inline-flex h-6 w-6 items-center justify-center rounded bg-white/20">
-                <.icon name="hero-book-open" class="h-3.5 w-3.5 text-white" />
+              <span class="inline-flex h-6 w-6 items-center justify-center rounded bg-primary-foreground/20">
+                <.icon name="hero-book-open" class="h-3.5 w-3.5 text-primary-foreground" />
               </span>
               <span>Run in Livebook</span>
             </span>
             <.icon
               name="hero-arrow-top-right-on-square"
-              class="h-3.5 w-3.5 opacity-80 group-hover:opacity-100"
+              class="h-3.5 w-3.5 text-primary-foreground opacity-80 group-hover:opacity-100"
             />
           </a>
           <%= if notice = livebook_notice(@selected_document) do %>

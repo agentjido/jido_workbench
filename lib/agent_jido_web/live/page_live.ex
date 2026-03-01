@@ -63,12 +63,12 @@ defmodule AgentJidoWeb.PageLive do
     secondary_tabs = docs_secondary_tabs()
     sidebar = sidebar_nav("/docs")
 
+    sections = Pages.docs_sections()
+
     toc = [
       %{id: "get-started", title: "Get Started", level: 2},
+      %{id: "documentation", title: "Documentation", level: 2},
       %{id: "package-ecosystem", title: "Package Ecosystem", level: 2},
-      %{id: "quickstarts", title: "Quickstarts", level: 2},
-      %{id: "explore-docs", title: "Explore the Docs", level: 2},
-      %{id: "quick-example", title: "Quick Example", level: 2},
       %{id: "community", title: "Join the Community", level: 2}
     ]
 
@@ -82,6 +82,7 @@ defmodule AgentJidoWeb.PageLive do
        selected_document: nil,
        docs_secondary_tabs: secondary_tabs,
        docs_sidebar_nav: sidebar,
+       docs_sections: sections,
        page: nil,
        markdown_action: nil,
        toc: toc
@@ -422,6 +423,67 @@ defmodule AgentJidoWeb.PageLive do
     do: "bg-accent-red/10 border border-accent-red/30 text-accent-red"
 
   def difficulty_class(_), do: "bg-elevated border border-border text-muted-foreground"
+
+  @doc false
+  def section_page_count(section_page) do
+    section = Pages.docs_section_for_path(Pages.route_for(section_page))
+
+    if section do
+      Pages.docs_section_pages(section)
+      |> Enum.reject(&(&1.path == section_page.path))
+      |> length()
+    else
+      0
+    end
+  end
+
+  @section_icons %{
+    "getting-started" => "hero-rocket-launch",
+    "concepts" => "hero-light-bulb",
+    "learn" => "hero-academic-cap",
+    "guides" => "hero-wrench-screwdriver",
+    "reference" => "hero-book-open",
+    "operations" => "hero-server-stack"
+  }
+
+  @section_colors %{
+    "getting-started" => "green",
+    "concepts" => "yellow",
+    "learn" => "cyan",
+    "guides" => "red",
+    "reference" => "green",
+    "operations" => "cyan"
+  }
+
+  @doc false
+  def section_icon(section_page) do
+    section = Pages.docs_section_for_path(Pages.route_for(section_page))
+    Map.get(@section_icons, section, "hero-document-text")
+  end
+
+  @doc false
+  def section_color(section_page) do
+    section = Pages.docs_section_for_path(Pages.route_for(section_page))
+    Map.get(@section_colors, section, "green")
+  end
+
+  defp section_color_classes("green"), do: "text-accent-green border-accent-green/30 bg-accent-green/10"
+  defp section_color_classes("yellow"), do: "text-accent-yellow border-accent-yellow/30 bg-accent-yellow/10"
+  defp section_color_classes("cyan"), do: "text-accent-cyan border-accent-cyan/30 bg-accent-cyan/10"
+  defp section_color_classes("red"), do: "text-accent-red border-accent-red/30 bg-accent-red/10"
+  defp section_color_classes(_), do: "text-primary border-primary/30 bg-primary/10"
+
+  defp section_icon_color("green"), do: "text-accent-green"
+  defp section_icon_color("yellow"), do: "text-accent-yellow"
+  defp section_icon_color("cyan"), do: "text-accent-cyan"
+  defp section_icon_color("red"), do: "text-accent-red"
+  defp section_icon_color(_), do: "text-primary"
+
+  defp section_hover_class("green"), do: "hover:border-accent-green"
+  defp section_hover_class("yellow"), do: "hover:border-accent-yellow"
+  defp section_hover_class("cyan"), do: "hover:border-accent-cyan"
+  defp section_hover_class("red"), do: "hover:border-accent-red"
+  defp section_hover_class(_), do: "hover:border-border"
 
   # --- Sidebar for docs ---
 
