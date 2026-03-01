@@ -9,15 +9,96 @@
 ---
 Every agent needs to decide how to run its actions. A Strategy is the pluggable execution model that controls this. It sits between the agent's `cmd/2` call and the actual action execution, letting you swap execution semantics without changing your agent or action code.
 
-Jido ships with `Jido.Agent.Strategy.Direct` as the default. You can replace it with a behavior tree, an LLM chain of thought, or any custom execution pattern by implementing a single callback.
+Strategies are a key extension point in Jido. The core ships with `Direct` and `FSM` strategies. The `jido_ai` package adds AI reasoning strategies. The `jido_behaviortree` package adds behavior tree execution. You can implement your own by satisfying a single callback.
 
 ## What strategies solve
 
 Without strategies, execution logic gets baked into the agent definition. Every agent that needs retry logic, staged execution, or multi-step planning would need its own `cmd/2` implementation. This couples the agent's state model to its runtime behavior.
 
-Strategies decouple these concerns. Your agent defines state shape and validation. Your actions define pure transformations. Your strategy decides how those actions run: sequentially, in stages, with LLM-driven planning, or through a behavior tree.
+Strategies decouple these concerns. Your agent defines state shape and validation. Your actions define pure transformations. Your strategy decides how those actions run: sequentially, through a finite state machine, via a behavior tree, or with LLM-driven planning.
 
-The same agent struct and actions work identically under different strategies. Swap from `Direct` to a custom planner and your tests, state contracts, and action logic stay unchanged.
+The same agent struct and actions work identically under different strategies. Swap from `Direct` to a behavior tree and your tests, state contracts, and action logic stay unchanged.
+
+## Direct strategy
+
+`Jido.Agent.Strategy.Direct` is the default and handles most use cases. It executes instructions sequentially in a single pass.
+
+For each instruction, Direct calls `Jido.Exec.run/1`, merges the result into agent state, separates internal state operations from external directives, and moves to the next instruction. If an instruction fails, it emits an error directive and continues.
+
+```elixir
+defmodule MyApp.OrderAgent do
+  use Jido.Agent,
+    name: "order_agent",
+    schema: Zoi.object(%{total: Zoi.integer() |> Zoi.default(0)})
+end
+
+agent = MyApp.OrderAgent.new()
+{agent, directives} = MyApp.OrderAgent.cmd(agent, MyApp.AddItem)
+```
+
+Start with `Direct` unless you can name the specific runtime behavior you need from a custom strategy.
+
+## FSM strategy
+
+`Jido.Agent.Strategy.FSM` adds finite state machine semantics. Instructions trigger state transitions, and the strategy enforces which transitions are valid. This is useful for workflows with well-defined phases - order processing, approval pipelines, onboarding flows.
+
+```elixir
+defmodule MyApp.ApprovalAgent do
+  use Jido.Agent,
+    name: "approval_agent",
+    strategy: {Jido.Agent.Strategy.FSM,
+      initial_state: "draft",
+      transitions: %{
+        "draft" => ["pending_review"],
+        "pending_review" => ["approved", "rejected"],
+        "approved" => ["draft"],
+        "rejected" => ["draft"]
+      }
+    }
+end
+```
+
+The FSM state is stored in `agent.state.__strategy__` and tracked through the standard `snapshot/2` interface. Invalid transitions are rejected with error directives.
+
+## Behavior tree strategy
+
+The `jido_behaviortree` package implements behavior tree execution as a Jido strategy. Behavior trees are the proof point for Jido's classical agent model - they've powered game AI, robotics, and autonomous systems for decades without any LLM involvement.
+
+A behavior tree composes actions into a tree of selectors, sequences, and conditions. The strategy traverses the tree, executing actions at leaf nodes and using control nodes to decide branching. This gives you deterministic, inspectable decision-making that is trivially testable.
+
+```elixir
+defmodule MyApp.PatrolAgent do
+  use Jido.Agent,
+    name: "patrol_agent",
+    strategy: {Jido.Agent.Strategy.BehaviorTree,
+      tree: sequence([
+        MyApp.Actions.CheckBattery,
+        selector([
+          MyApp.Actions.InvestigateAnomaly,
+          MyApp.Actions.ContinuePatrol
+        ]),
+        MyApp.Actions.ReportStatus
+      ])
+    }
+end
+```
+
+The tree evaluates on each `cmd/2` call. Nodes return `:success`, `:failure`, or `:running`. A `:running` result schedules a tick for the next turn, letting the tree pause and resume across multiple execution cycles.
+
+## AI reasoning strategies
+
+The `jido_ai` package implements several AI reasoning strategies that use LLMs as the decision engine while preserving the same strategy contract. These include:
+
+- **ReAct** - reason-act loops with tool calling
+- **Chain of Thought** - step-by-step LLM reasoning
+- **Chain of Draft** - concise iterative drafting
+- **Tree of Thoughts** - branching exploration of reasoning paths
+- **Graph of Thoughts** - non-linear reasoning with merging and refinement
+- **Algorithm of Thoughts** - algorithmic search through solution space
+- **TRM** - test-time reinforcement for self-improving responses
+- **Adaptive** - dynamic strategy selection based on task complexity
+
+Each uses the `tick/2` callback to implement multi-turn reasoning. The LLM call happens in one turn, tool execution in another, and result processing in the next. From the agent's perspective, it's the same `cmd/2` call with the same `{agent, directives}` return.
 
 ## The strategy contract
 
@@ -30,39 +111,24 @@ A strategy implements the `Jido.Agent.Strategy` behaviour. The only required cal
 @callback snapshot(agent, context) :: Strategy.Snapshot.t()
 ```
 
-**`cmd/3`** (required) receives the agent, a list of normalized `Instruction` structs, and an execution context. It returns the updated agent and a list of directives. This is where your execution logic lives.
+**`cmd/3`** (required) receives the agent, a list of normalized `Instruction` structs, and an execution context. It returns the updated agent and a list of directives.
 
-**`init/2`** (optional) is called by `AgentServer` after `new/1` and before the first `cmd/2`. Use it to set up strategy-specific state. Implementations should be idempotent because `init/2` may be called more than once.
+**`init/2`** (optional) is called by `AgentServer` after `new/1` and before the first `cmd/2`. Use it to set up strategy-specific state.
 
-**`tick/2`** (optional) is called by `AgentServer` when a strategy has scheduled a tick via the `{:schedule, ms, :strategy_tick}` directive. Use it for multi-step execution that spans multiple turns.
+**`tick/2`** (optional) supports multi-turn execution. After `cmd/3` sets up initial state, the strategy emits a `{:schedule, ms, :strategy_tick}` directive. The `AgentServer` calls `tick/2` when the scheduled time arrives, and the strategy can continue execution or schedule another tick. This is how strategies implement turns - `jido_ai` uses this pattern extensively for reasoning loops that alternate between LLM calls, tool execution, and result processing.
 
-**`snapshot/2`** (optional) returns a `Strategy.Snapshot` struct that exposes strategy state without leaking internal details. The default implementation reads from `Strategy.State` helpers automatically.
-
-Every callback receives a context map containing `:agent_module` and `:strategy_opts`.
-
-## Direct strategy
-
-`Jido.Agent.Strategy.Direct` is the default and handles most use cases. It executes instructions sequentially and immediately in a single pass.
-
-For each instruction, Direct calls `Jido.Exec.run/1`, merges the result into agent state, separates internal state operations from external directives, and moves to the next instruction. If an instruction fails, it emits an error directive and continues.
+**`snapshot/2`** (optional) returns a `Strategy.Snapshot` struct that exposes strategy state without leaking internal details.
 
 ```elixir
-defmodule MyApp.OrderAgent do
-  use Jido.Agent,
-    name: "order_agent",
-    schema: Zoi.object(%{total: Zoi.integer() |> Zoi.default(0)})
-end
-
-# Direct strategy is implicit. No configuration needed.
-agent = MyApp.OrderAgent.new()
-{agent, directives} = MyApp.OrderAgent.cmd(agent, MyApp.AddItem)
+snap = MyAgent.strategy_snapshot(agent)
+snap.status   # => :running, :waiting, :success, or :failure
+snap.done?    # => true when status is :success or :failure
+snap.result   # => the strategy's main output, if any
 ```
-
-Start with `Direct` unless you can name the specific runtime behavior you need from a custom strategy.
 
 ## Custom strategies
 
-To build a custom strategy, `use Jido.Agent.Strategy` and implement `cmd/3`. The `use` macro provides default implementations of `init/2`, `tick/2`, and `snapshot/2` that you can override as needed.
+To build a custom strategy, `use Jido.Agent.Strategy` and implement `cmd/3`.
 
 ```elixir
 defmodule MyApp.RetryStrategy do
@@ -80,7 +146,7 @@ defmodule MyApp.RetryStrategy do
 end
 ```
 
-Set the strategy at compile time in your agent definition. Pass a module directly or a `{module, opts}` tuple to provide options through `ctx.strategy_opts`.
+Set the strategy at compile time in your agent definition:
 
 ```elixir
 defmodule MyApp.ResilientAgent do
@@ -90,33 +156,7 @@ defmodule MyApp.ResilientAgent do
 end
 ```
 
-Strategy state lives inside `agent.state` under the reserved key `:__strategy__`. Use the `Jido.Agent.Strategy.State` helpers to manage it without reaching into agent internals directly.
-
-```elixir
-alias Jido.Agent.Strategy.State, as: StratState
-
-agent = StratState.put(agent, %{module: __MODULE__, status: :running})
-status = StratState.status(agent)    # => :running
-active? = StratState.active?(agent)  # => true
-```
-
-## Multi-step execution
-
-Some strategies need to execute across multiple turns. A behavior tree might pause at a waiting node. An LLM planner might need to process a response before deciding the next step.
-
-The `tick/2` callback supports this pattern. After `cmd/3` sets up initial state, the strategy emits a `{:schedule, ms, :strategy_tick}` directive. The `AgentServer` calls `tick/2` when the scheduled time arrives, and the strategy can continue execution or schedule another tick.
-
-Use `snapshot/2` to inspect strategy progress without coupling to internal state. The `Strategy.Snapshot` struct provides a stable interface across all strategy implementations.
-
-```elixir
-snap = MyApp.PlannerStrategy.snapshot(agent, ctx)
-snap.status   # => :running, :waiting, :success, or :failure
-snap.done?    # => true when status is :success or :failure
-snap.result   # => the strategy's main output, if any
-snap.details  # => strategy-specific metadata
-```
-
-This keeps callers decoupled from how a strategy represents its internal progress. Whether you build a behavior tree or an LLM chain, consumers read the same `Snapshot` struct.
+Strategy state lives inside `agent.state` under the reserved key `:__strategy__`. Use the `Jido.Agent.Strategy.State` helpers to manage it.
 
 ## Next steps
 

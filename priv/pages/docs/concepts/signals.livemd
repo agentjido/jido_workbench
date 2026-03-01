@@ -7,13 +7,11 @@
   tags: [:docs, :concepts, :livebook]
 }
 ---
-This page covers how Signals work as the universal message format in Jido. You will learn how to create, route, and dispatch them across your agent-based system.
-
 ## What signals solve
 
 Agent systems need a common message format that works across process boundaries, networks, and storage layers. Without one, each integration invents its own envelope, and interoperability breaks down.
 
-Signals solve this by giving every event, command, and state change a single structured format. They implement the [CloudEvents v1.0.2 specification](https://cloudevents.io/) with Jido-specific extensions, so you get a well-defined contract that tooling and infrastructure already understand.
+Signals solve this by providing a structured messaging envelope for all external communication. They implement the [CloudEvents v1.0.2 specification](https://cloudevents.io/) with Jido-specific extensions, so you get a well-defined contract that tooling and infrastructure already understand.
 
 Signals connect three core parts of the system:
 
@@ -30,9 +28,11 @@ Every signal carries a set of required CloudEvents fields plus optional metadata
 | Field | Description |
 | --- | --- |
 | `specversion` | Always `"1.0.2"` |
-| `id` | Unique identifier (UUID v4, generated automatically) |
+| `id` | UUID v7 identifier (generated automatically, monotonically increasing) |
 | `source` | Origin of the event, e.g. `"/auth/registration"` |
 | `type` | Classification string using dot notation |
+
+UUID v7 is an intentional choice over UUID v4. The embedded timestamp means signal IDs are naturally time-ordered, which gives you chronological sorting, efficient database indexing, and the ability to extract creation time directly from the ID without extra fields.
 
 **Optional fields:**
 
@@ -114,14 +114,14 @@ When a signal arrives at an `AgentServer` through `call/3` or `cast/2`, the serv
 2. **Agent routes** - `agent_module.signal_routes/1` (priority 0)
 3. **Plugin routes** - `plugin.signal_routes/1` (priority -10)
 
-Higher-priority routes take precedence. A strategy definition looks like this:
+Higher-priority routes take precedence. Each route maps a signal type string to the action module that handles it:
 
 ```elixir
-def signal_routes(_ctx) do
+def signal_routes(_config) do
   [
-    {"react.user_query", {:strategy_cmd, :react_start}},
-    {"ai.llm_result", {:strategy_cmd, :react_llm_result}},
-    {"ai.tool_result", {:strategy_cmd, :react_tool_result}}
+    {"chat.message", MyApp.Actions.HandleMessage},
+    {"chat.complete", MyApp.Actions.CompleteChat},
+    {"user.created", MyApp.Actions.OnboardUser}
   ]
 end
 ```
@@ -130,7 +130,7 @@ The router supports exact matches (`"user.created"`), single-segment wildcards (
 
 ## Dispatch
 
-Dispatch controls how signals reach their targets after creation. The `Jido.Signal.Dispatch` module provides a unified interface with built-in adapters:
+`Jido.Signal.Dispatch` is a utility for sending signals to various destinations. It provides a unified interface with built-in adapters:
 
 | Adapter | Purpose |
 | --- | --- |
@@ -147,20 +147,21 @@ Configure dispatch as a tuple of `{adapter, options}`:
 ```elixir
 alias Jido.Signal.Dispatch
 
-# Deliver to a specific process
 Dispatch.dispatch(signal, {:pid, target: pid})
 
-# Broadcast over PubSub
 Dispatch.dispatch(signal, {:pubsub, target: :my_pubsub, topic: "events"})
 
-# Send to multiple targets in parallel
 Dispatch.dispatch(signal, [
   {:pid, target: worker_pid},
   {:logger, level: :info}
 ])
 ```
 
-Dispatch runs targets in parallel using `Task.Supervisor` with configurable concurrency. For high-throughput scenarios, `dispatch_batch/3` processes large volumes of dispatch configurations in batches.
+For high-throughput scenarios, `dispatch_batch/3` processes large volumes of dispatch configurations with configurable concurrency:
+
+```elixir
+Dispatch.dispatch_batch(signal, configs, max_concurrency: 20)
+```
 
 ## Next steps
 

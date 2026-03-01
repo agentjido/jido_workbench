@@ -1,92 +1,79 @@
 %{
-  title: "Build Your First Agent (no LLM)",
-  description: "A canonical hello-world tutorial for building a deterministic Jido agent with typed state, validated actions, and explicit directives.",
+  title: "Build your first agent",
+  description: "Define typed state, implement a validated action, and run your first command.",
   category: :docs,
   order: 11,
-  audience: :beginner,
-  tags: [:docs, :learn, :tutorial, :agents, :wave_1],
+  tags: [:docs, :learn, :tutorial, :agents],
+  draft: false,
   learning_outcomes: [
     "Define an agent module with typed state",
     "Implement an action and execute it via cmd/2",
     "Interpret updated state and returned directives"
   ],
-  prerequisites: ["docs/learn/installation"],
-  related: [
-    "docs/concepts/key-concepts",
-    "docs/learn/counter-agent",
-    "docs/learn/agent-fundamentals",
-    "docs/concepts/actions"
-  ],
-  legacy_paths: ["/build/first-agent"]
+  prerequisites: ["/docs/learn/installation"]
 }
 ---
-### Overview
+## Prerequisites
 
-This guide walks you through building a deterministic Jido agent with no LLMs involved. You will define typed state, implement a single action with schema validation, and execute the action through `cmd/2`. You will finish by inspecting the updated state and the directives returned by the command boundary.
+Complete [Installation and setup](/docs/learn/installation) before starting this tutorial. You only need the core `jido` package and a local `iex` session.
 
-### Prerequisites
+## Define your agent
 
-You should already have Jido installed in an Elixir project. Follow [Installation and Setup](/docs/learn/installation) if you have not completed that step yet. This tutorial uses only the core `jido` package and runs in a local `iex` session.
-
-### Define Your Agent
-
-An agent is an immutable struct with a schema-backed state. The schema enforces types and default values, which keeps state transitions consistent across runs. We will build a simple counter agent with a single integer field.
+An agent is an immutable struct backed by a typed schema. The schema enforces types and defaults so state transitions stay consistent across runs.
 
 ```elixir
 defmodule MyApp.CounterAgent do
   use Jido.Agent,
     name: "counter_agent",
     description: "Tracks a simple counter",
-    schema: [
-      count: [type: :integer, default: 0]
-    ]
+    schema: Zoi.object(%{
+      count: Zoi.integer() |> Zoi.default(0)
+    })
 end
 ```
 
-This module now provides `new/1`, `set/2`, `validate/2`, and `cmd/2`. The agent itself is just data, not a process. If you later need supervision or long-lived runtime state, you can run it inside a `Jido.AgentServer`.
+This module provides `new/1`, `set/2`, `validate/2`, and `cmd/2`. The agent is data, not a process. When you need supervision or long-lived runtime state, wrap it in a `Jido.AgentServer`.
 
-### Create an Action
+## Create an action
 
-Actions are the only way to change agent state. Each action defines a schema for its inputs and implements `run/2`, where the first argument is validated params and the second argument is the execution context that includes `context.state`. The action returns the state changes that should be merged into the agent.
+Actions are the only way to change agent state. Each action defines a schema for its inputs and implements `run/2`. The first argument is validated params. The second is the execution context, which includes `context.state`.
 
 ```elixir
 defmodule MyApp.IncrementAction do
   use Jido.Action,
     name: "increment",
     description: "Increments the counter by a specified amount",
-    schema: [
-      by: [type: :integer, default: 1, doc: "Amount to increment by"]
-    ]
+    schema: Zoi.object(%{
+      by: Zoi.integer() |> Zoi.default(1)
+    })
 
   @impl true
-  def run(%{by: amount}, context) do
+  def run(params, context) do
     current = Map.get(context.state, :count, 0)
-    {:ok, %{count: current + amount}}
+    {:ok, %{count: current + params.by}}
   end
 end
 ```
 
-Because the params are schema-validated, you can rely on `by` being an integer or falling back to the default. The return value is a partial state map, which `cmd/2` merges into the agent state for you. This makes the action deterministic and easy to test.
+Params are schema-validated before `run/2` is called, so `params.by` is always an integer. The return value is a partial state map that `cmd/2` merges into the agent.
 
-### Execute with `cmd/2`
+## Execute with `cmd/2`
 
-`cmd/2` is the core contract for agent evolution. It takes the current agent and an action instruction, runs the action through the agent strategy, and returns a new agent plus any directives. The original agent value remains unchanged, which gives you a clean, functional workflow.
+`cmd/2` is the core contract for agent evolution. It takes the current agent and an action instruction, runs the action, and returns a new agent plus any directives. The original agent is unchanged.
 
 ```elixir
-# Start with a fresh agent instance.
 agent = MyApp.CounterAgent.new()
 #=> %MyApp.CounterAgent{state: %{count: 0}, ...}
 
-# Execute the increment action with validated params.
 {updated_agent, directives} =
   MyApp.CounterAgent.cmd(agent, {MyApp.IncrementAction, %{by: 3}})
 ```
 
-This call is deterministic: the same input agent and action will always produce the same output agent and directives. If the action schema fails validation, `cmd/2` returns a directive describing the error instead of mutating state. This is how Jido keeps failures explicit and contained.
+The same input always produces the same output. If validation fails, `cmd/2` returns a directive describing the error instead of mutating state.
 
-### Understand the Output
+## Understand the output
 
-`cmd/2` always returns a tuple: `{agent, directives}`. The `agent` is already complete and reflects the new state after the action is applied. Directives are outbound instructions that describe side effects for the runtime to perform later.
+`cmd/2` returns `{agent, directives}`. The agent reflects the new state. Directives are outbound instructions that describe side effects for the runtime to handle later.
 
 ```elixir
 updated_agent.state
@@ -96,32 +83,10 @@ directives
 #=> []
 ```
 
-In this example, the directives list is empty because the action was pure and did not request side effects. If an action needed to emit an event or schedule work, it would return one or more `Jido.Agent.Directive` structs alongside the state changes. This separation keeps your business logic pure while allowing the runtime to handle the messy operational work.
+The directives list is empty because this action is pure. If an action needed to emit an event or schedule work, it would return `Jido.Agent.Directive` structs alongside the state changes.
 
-### Verify the Flow
+## Next steps
 
-Use the following steps in `iex` to confirm the entire flow behaves as expected. You should see a deterministic state transition and no directives returned.
-
-```elixir
-agent = MyApp.CounterAgent.new()
-{updated_agent, directives} =
-  MyApp.CounterAgent.cmd(agent, {MyApp.IncrementAction, %{by: 2}})
-
-updated_agent.state.count
-#=> 2
-
-directives
-#=> []
-```
-
-If the count increments and the directives list is empty, the command boundary is working correctly. You now have a minimal, deterministic agent that demonstrates the Jido command model.
-
-### References and Next Steps
-
-- See a more complete walkthrough in [Counter Agent](/docs/learn/counter-agent).
-- Learn the conceptual model in [Agents](/docs/concepts/agents).
-- Deepen action design in [Actions](/docs/concepts/actions).
-- Continue with LLM-backed workflows in [Build Your First LLM Agent](/docs/learn/first-llm-agent).
-
----
-<sub>Generated by Jido Documentation Writer Bot | Run ID: `69ca15250657`</sub>
+- [Agents](/docs/concepts/agents) for the full conceptual model
+- [Actions](/docs/concepts/actions) for deeper action design patterns
+- [Build your first LLM agent](/docs/learn/first-llm-agent) to add language model capabilities

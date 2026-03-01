@@ -7,8 +7,6 @@
   legacy_paths: ["/docs/agent-server"]
 }
 ---
-This page explains how `Jido.AgentServer` bridges the gap between agent decision logic and real-world execution. You will learn how it manages processes, routes signals, drains directives, and organizes agents into parent-child hierarchies.
-
 ## Agents think, the runtime acts
 
 Jido splits agent work into two halves. Agents "think" by running pure decision logic through `cmd/2`, which returns an updated agent struct and a list of directives. AgentServer "acts" by executing those directives as side effects.
@@ -123,7 +121,7 @@ end
 {:ok, result} = Jido.AgentServer.await_completion(pid, timeout: 10_000)
 ```
 
-The process stays alive after completion until explicitly stopped or cleaned up by supervision. This follows Elm/Redux semantics where completion is a state concern, not a lifecycle event.
+The process stays alive after completion until explicitly stopped or cleaned up by supervision. Completion is a state concern, not a lifecycle event.
 
 ## Configuration
 

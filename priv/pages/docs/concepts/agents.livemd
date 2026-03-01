@@ -9,7 +9,29 @@
   tags: [:docs, :concepts, :livebook]
 }
 ---
-## What This Solves
+## Agents are pure data
+
+This is the most important concept in Jido: **an agent is an immutable struct, not a process.**
+
+There is no GenServer inside an agent. No message passing, no mailbox, no `handle_call`. An agent is a plain Elixir struct with schema-validated state and a command interface. You create one, pass it to `cmd/2` with an action, and get back a new struct plus a list of directives. The original is unchanged.
+
+This makes agents trivially testable, serializable, and composable. You can hold ten agents in a list, run the same action against all of them, and inspect results without starting any processes.
+
+If you need a long-running process with supervision, message routing, and directive execution, that's what [AgentServer](/docs/concepts/agent-runtime) provides. It wraps an agent struct and runs it inside OTP. But the agent itself remains data.
+
+Jido's core has no AI dependency. You can build, test, and ship agents without any LLM, any API key, or any neural network. AI capabilities live in the separate `jido_ai` package, which treats machine learning as one more action an agent can run - not as the foundation of what an agent is.
+
+## Agents before LLMs
+
+The word "agent" has been hijacked. In 2024, "agent" became shorthand for "LLM in a loop with tools." But agents have a 30-year history in computer science that predates large language models by decades.
+
+In classical AI, an agent is an entity that perceives its environment through sensors and acts upon it through effectors. Stuart Russell and Peter Norvig defined this in *Artificial Intelligence: A Modern Approach* (1995). The BDI (Belief-Desire-Intention) model formalized how agents reason about goals. Behavior trees gave game AI agents deterministic decision-making. None of these required a language model.
+
+Jido implements this classical definition. An agent has state (beliefs), receives signals (perceptions), executes actions (effectors), and emits directives (intentions). The execution model - how the agent decides what to do - is pluggable through strategies. A strategy can be a simple sequential pipeline, a behavior tree, a state machine, or yes, an LLM chain of thought. The agent contract is the same regardless.
+
+This is why Jido agents are powerful in ways that LLM wrappers are not. You get deterministic testing, predictable performance, and composability that doesn't depend on a network call to a model provider. When you do want AI, `jido_ai` adds reasoning strategies like ReAct, chain-of-thought, and tree-of-thoughts as pluggable strategies - not as the core abstraction.
+
+## What this solves
 
 Most agent systems fail in production for one reason: state transitions and side effects are coupled.
 
@@ -21,9 +43,7 @@ When one function both mutates state and performs external work, failures become
 
 The result is a system you can reason about under load.
 
-## When to Use It
-
-Use a Jido Agent when you need long-lived state plus predictable transitions.
+## When to use it
 
 A plain function is enough if your workflow is single-step and stateless. Reach for a Jido Agent when you need:
 
@@ -32,15 +52,7 @@ A plain function is enough if your workflow is single-step and stateless. Reach 
 - Runtime-level failure isolation via OTP processes
 - Clear effect boundaries for emits, scheduling, spawning, and retries
 
-## What an Agent Is (and Is Not)
-
-An Agent is an immutable struct plus a command interface.
-
-It is not a process by itself. If you want a long-running process with supervision, run the agent inside an `AgentServer`.
-
-It is also not an unbounded AI loop. You can use LLM-backed actions, but the agent contract remains explicit and testable: pass in an agent and action, get back a new agent and directives.
-
-## Quick Start
+## Quick start
 
 Define an agent with schema-backed state, then execute an action through `cmd/2`.
 
@@ -77,7 +89,7 @@ end
 # # => []
 ```
 
-## How `cmd/2` Works
+## How `cmd/2` works
 
 `cmd/2` is the core contract for agent evolution.
 
@@ -94,18 +106,7 @@ Two invariants matter:
 - The returned `agent` is already complete; there is no "apply directives to state" step
 - Directives are outbound runtime instructions, not state mutators
 
-## Module Boundaries
-
-| Module | Responsibility |
-| --- | --- |
-| `Jido.Agent` | Defines the agent struct and public API (`new/1`, `set/2`, `validate/2`, `cmd/2`) |
-| `Jido.Agent.Strategy` | Behavior for how instructions execute (`cmd/3`, optional `init/2`, `tick/2`, `snapshot/2`) |
-| `Jido.Agent.Strategy.Direct` | Default sequential strategy; runs instructions immediately and returns external directives |
-| `Jido.Agent.Directive` | Typed effect payloads (`Emit`, `Schedule`, `RunInstruction`, `SpawnAgent`, `Stop`, etc.) |
-
-This split is the practical boundary between decision logic and operational effects.
-
-## Progressive Example
+## Progressive example
 
 This example updates agent state and emits a signal directive for the runtime.
 
@@ -156,7 +157,7 @@ end
 
 In production, the runtime handles the directive dispatch; your state transition logic stays pure.
 
-## Strategy Selection Guidance
+## Strategy selection guidance
 
 | Strategy | Best for | Tradeoff |
 | --- | --- | --- |
@@ -165,7 +166,7 @@ In production, the runtime handles the directive dispatch; your state transition
 
 Start with `Direct` unless you can name the specific runtime behavior you need from a custom strategy.
 
-## Failure Modes and Operational Boundaries
+## Failure modes and operational boundaries
 
 The most common failures are normalization errors, action execution failures, and schema violations.
 
@@ -177,21 +178,9 @@ Jido keeps those failures bounded:
 
 Operationally, this is where `AgentServer` and supervision matter. Supervisors handle process lifecycle; your agent contract handles state correctness and effect intent.
 
-## API Surface Map
-
-Key functions you should expect to use most:
-
-- `MyAgent.new/1`
-- `MyAgent.cmd/2` and `MyAgent.cmd/3`
-- `MyAgent.set/2`
-- `MyAgent.validate/2`
-- `MyAgent.strategy_snapshot/1`
-
-For custom strategies, implement `Jido.Agent.Strategy.cmd/3` first, then add `init/2` or `tick/2` only if your runtime model requires them.
-
 ## Next steps
 
+- [Agent runtime](/docs/concepts/agent-runtime) - run agents under OTP supervision with process management
 - [Actions](/docs/concepts/actions) - learn how pure functions transform agent state
 - [Directives](/docs/concepts/directives) - understand effect payloads returned by actions
-- [Agent runtime](/docs/concepts/agent-runtime) - run agents under OTP supervision
 - [Strategy](/docs/concepts/strategy) - plug in custom execution models

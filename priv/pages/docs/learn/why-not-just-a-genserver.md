@@ -1,0 +1,101 @@
+%{
+  title: "Why not just a GenServer?",
+  description: "When a plain GenServer is enough and when Jido's data-first model pays off.",
+  category: :docs,
+  order: 25,
+  tags: [:docs, :learn, :architecture],
+  draft: false
+}
+---
+GenServer is the natural starting point for stateful processes in Elixir. It gives you a process, a mailbox, and state management - which is enough for many problems. Jido builds on top of OTP by separating what an agent decides from how the runtime executes it.
+
+## What GenServer gives you
+
+GenServer provides process isolation, message serialization, supervision tree integration, and hot code upgrades out of the box. For single-responsibility processes with straightforward state, it is the right choice.
+
+You define callbacks, receive messages, and return updated state. The BEAM handles the rest. This model scales well when each process owns one concern.
+
+## Where it gets complicated
+
+Problems appear when a single callback mixes validation, persistence, and side effects. Consider an order processing server:
+
+```elixir
+defmodule MyApp.OrderServer do
+  use GenServer
+
+  def handle_call({:process_order, order}, _from, state) do
+    case validate_order(order) do
+      {:ok, valid} ->
+        {:ok, _} = MyApp.Repo.insert(valid)
+        MyApp.Mailer.send_confirmation(valid)
+        new_state = Map.put(state, :last_order, valid)
+        {:reply, {:ok, valid}, new_state}
+
+      {:error, reason} ->
+        {:reply, {:error, reason}, state}
+    end
+  end
+end
+```
+
+If the database write succeeds but the email fails, what state is the process in? The state update already happened in memory, but `send_confirmation` raised. The supervisor restarts the process, but the side effect is partially applied.
+
+This is not a GenServer flaw. It is a design pressure that grows with every concern you add to a callback. Validation, persistence, notification, and state transition are four separate responsibilities sharing one function body.
+
+## How Jido separates concerns
+
+With Jido, the same logic becomes a pure action that returns state changes and directives:
+
+```elixir
+defmodule MyApp.ProcessOrder do
+  use Jido.Action,
+    name: "process_order",
+    schema: Zoi.object(%{
+      order_id: Zoi.string(),
+      total: Zoi.float()
+    })
+
+  @impl true
+  def run(params, _context) do
+    signal = Jido.Signal.new!(
+      "order.processed",
+      %{order_id: params.order_id},
+      source: "/orders"
+    )
+
+    {:ok, %{last_order: params.order_id, status: :processed},
+     %Jido.Agent.Directive.Emit{signal: signal}}
+  end
+end
+```
+
+The state transition is pure. Side effects are described as directives, not executed inline. The runtime decides when and how to apply them.
+
+## What you gain
+
+- **Testability** - call `cmd/2` with any agent state and assert on the returned state and directives. No process needed.
+- **Replayability** - same input always produces same output. Debug by replaying the command.
+- **Effect isolation** - side effects happen in the runtime, not in your logic. Failures are contained.
+- **Schema validation** - state shape is enforced at every transition, not just initialization.
+- **Composability** - chain actions freely. Open validation means outputs flow between actions without boilerplate.
+- **Strategy pluggability** - swap execution models (direct, AI reasoning, behavior trees) without changing agent code.
+
+## When to reach for Jido
+
+**Use a plain GenServer** when you have a single-responsibility process with simple state and no composition needs. A cache, a rate limiter, or a connection pool are good examples.
+
+**Use Jido** when you need multi-step workflows, validated state transitions, effect isolation, pluggable strategies, or AI integration.
+
+A rule of thumb: if your GenServer's `handle_call` does more than one thing (validates + persists + notifies), Jido's separation will pay off.
+
+## They work together
+
+Jido does not replace GenServer. It builds on it. `Jido.AgentServer` is a GenServer. You still get supervision, process isolation, and all the BEAM guarantees.
+
+Jido adds structure on top of OTP: typed state, deterministic transitions, signal routing, and directive-based effects. The process model stays the same. The execution model becomes composable.
+
+## Next steps
+
+- [Agent fundamentals](/docs/learn/agent-fundamentals) - deeper mental model for Jido agents
+- [Agents concept](/docs/concepts/agents) - the authoritative reference for the Agent system
+- [Agent runtime concept](/docs/concepts/agent-runtime) - how AgentServer wraps agents in OTP

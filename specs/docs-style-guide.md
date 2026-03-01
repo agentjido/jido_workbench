@@ -12,8 +12,6 @@ Every page follows this skeleton:
 Frontmatter (Elixir map)
 ---
 
-[Opening paragraph - what this page helps you do, written to "you"]
-
 ## Sections...
 
 [Body content]
@@ -22,6 +20,8 @@ Frontmatter (Elixir map)
 
 [2-4 links to logical next pages]
 ```
+
+> **Note:** Do NOT add a generic introductory paragraph like "This page covers X. You will learn Y." The frontmatter `description` already serves as the subtitle. Jump straight into the first real section.
 
 > **Note:** Do NOT include an `# H1` title in the markdown body. The template renders the frontmatter `title` and `description` as the page header automatically. Starting your markdown with `# Title` creates a duplicate heading.
 
@@ -246,4 +246,5 @@ Never use bare URLs in prose. Always use descriptive link text - never "click he
 - Don't explain Elixir basics to Elixir developers
 - **No em dashes.** Use a regular hyphen ` - ` for parenthetical asides and link descriptions. Restructure sentences to avoid dashes when possible.
 - **No emoji.** Keep prose and headings free of emoji characters.
+- **No Elm/Redux analogies.** Do not reference Elm, Redux, or similar frontend state management patterns. Jido's design stands on its own.
 - Follow the full voice, tone, and terminology conventions in `specs/style-voice.md`.

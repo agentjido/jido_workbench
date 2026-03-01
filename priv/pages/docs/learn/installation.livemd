@@ -1,66 +1,52 @@
 %{
-  title: "Installation and Setup",
-  description: "Get Jido installed and validated in a new or existing Elixir project with a clean production-safe baseline.",
+  title: "Installation and setup",
+  description: "Add Jido to a new or existing Elixir project with a production-safe baseline.",
   category: :docs,
   order: 10,
-  audience: :beginner,
-  tags: [:docs, :learn, :setup, :getting_started, :wave_1],
-  legacy_paths: ["/build/installation"],
+  tags: [:docs, :learn, :setup],
+  draft: false,
   learning_outcomes: [
     "Add core Jido dependencies to mix.exs",
-    "Configure runtime secrets and provider settings safely",
-    "Run a smoke test proving the local environment is ready"
+    "Configure runtime secrets and provider settings",
+    "Verify the installation with a smoke test"
   ]
 }
 ---
-# Installation and Setup
-
-## Overview
-This guide gets you from zero to a verified Jido setup without building a full agent yet. You will add the core dependencies, separate runtime secrets from compile-time config, and run quick smoke tests in both IEx and a Phoenix app. By the end, you will have a production-safe baseline that matches the Jido ecosystem packages used in this repository.
-
 ## Prerequisites
-You need an Elixir project to install Jido into, plus a working local toolchain. The versions below mirror what this site uses today and are safe for first-time installs.
 
-- Elixir `~> 1.14` or newer.
-- An existing Elixir app, or create one with `mix new my_agent_app`.
-- A Phoenix app if you want to validate in a web context.
-- An API key for an LLM provider if you plan to enable AI-backed features.
+- Elixir `~> 1.14` or newer
+- An existing Elixir app, or create one with `mix new my_agent_app`
+- An API key for an LLM provider if you plan to use AI-backed features
 
-## Add Dependencies
-Jido is a small set of composable packages. Start with the core runtime (`jido`) and the AI provider layer (`jido_ai`). This repository currently targets the `2.0.0-rc.5` line for core packages, so use an optimistic constraint to pick up compatible releases.
+## Add dependencies
 
-Add the dependencies to `mix.exs`:
+Add `jido` and `jido_ai` to `mix.exs`:
 
 ```elixir
 defp deps do
   [
-    {:jido, "~> 2.0.0-rc.5"},
-    {:jido_ai, github: "agentjido/jido_ai", branch: "main"}
+    {:jido, "~> 2.0"},
+    {:jido_ai, "~> 0.2"}
   ]
 end
 ```
 
-Version strategy guidance:
-- Use `~>` for Jido core packages so you receive compatible updates automatically.
-- If you need stricter stability, pin to an exact version and update intentionally.
-- If you are on a release train, track the same `rc` or stable line across `jido`, `jido_action`, and `jido_signal`.
-
-Fetch and compile dependencies:
+Fetch and compile:
 
 ```shell
 mix deps.get
 mix compile
 ```
 
-## Configure Runtime
-Runtime configuration belongs in `config/runtime.exs`, not `config/config.exs`. That separation keeps secrets and environment-specific values out of compiled artifacts. This repository uses `Dotenvy` in `config/runtime.exs` to load `.env` locally and then merges in the real environment at runtime, so your workflow can stay simple in development.
+## Configure runtime
 
-Add a minimal provider configuration for `jido_ai` in `config/runtime.exs`:
+Runtime configuration belongs in `config/runtime.exs`, not `config/config.exs`. That separation keeps secrets out of compiled artifacts.
+
+Add a minimal provider block for `jido_ai`:
 
 ```elixir
 import Config
 
-# Load from the environment at runtime, never from compile-time config.
 openai_api_key = System.get_env("OPENAI_API_KEY")
 
 if openai_api_key do
@@ -71,21 +57,15 @@ if openai_api_key do
 end
 ```
 
-Set the environment variable locally. If you are using a `.env` file, put the entry there instead of exporting it inline.
+Set the environment variable in your shell or a `.env` file:
 
 ```shell
 export OPENAI_API_KEY="your-api-key"
 ```
 
-A few runtime notes that align with this repository's baseline:
-- `config/runtime.exs` is evaluated on boot for every environment, including releases.
-- Production-only values like `DATABASE_URL` and `SECRET_KEY_BASE` should remain in `config/runtime.exs` so they never hit version control.
-- Arcana features in this repo will auto-select `openai:gpt-4o-mini` in development when `OPENAI_API_KEY` is present, so you do not need to set `ARCANA_LLM` for a basic local run.
+## Verify installation
 
-## Verify Installation
-You should validate both a plain Elixir runtime and a Phoenix runtime if your app is web-based. These are smoke tests, not a full agent build.
-
-IEx verification:
+Start an IEx session and confirm both applications load:
 
 ```shell
 iex -S mix
@@ -96,31 +76,25 @@ Application.ensure_all_started(:jido)
 Application.ensure_all_started(:jido_ai)
 ```
 
-Expected result is `{:ok, _}` for each call. If you see errors, jump to the failure checklist below.
+Both calls should return `{:ok, _}`. If you see errors, check the troubleshooting section below.
 
-Phoenix verification:
+For Phoenix apps, boot the server and confirm the endpoint starts:
 
 ```shell
 iex -S mix phx.server
 ```
 
-Once the server boots, confirm the endpoint is running by visiting `http://localhost:4000` or by checking the logs for the endpoint startup line. This proves Jido dependencies and runtime config load cleanly in a web context.
+Visit `http://localhost:4000` or check the logs for the endpoint startup line.
 
-## Common Setup Failures and Quick Fixes
-These are the most frequent issues we see when teams are onboarding.
+## Common failures
 
-- `UndefinedFunctionError` for a Jido module: run `mix deps.get` and `mix compile` again, then restart IEx.
-- `{:error, {:jido_ai, ...}}` when calling `Application.ensure_all_started/1`: confirm `jido_ai` is in `mix.exs` and the dependency was fetched.
-- `nil` provider config in IEx: your `OPENAI_API_KEY` is not set in the same shell session that runs `iex -S mix`.
-- Arcana OpenAI warnings in development: set `OPENAI_API_KEY` or disable graph features by leaving `ARCANA_GRAPH_ENABLED` unset.
-- Production boot failures for missing secrets: ensure `DATABASE_URL` and `SECRET_KEY_BASE` are set in the runtime environment.
+- **`UndefinedFunctionError` for a Jido module** — Run `mix deps.get && mix compile` again, then restart IEx.
+- **`{:error, {:jido_ai, ...}}`** — Confirm `jido_ai` is listed in `mix.exs` and the dependency was fetched.
+- **`nil` provider config** — Your `OPENAI_API_KEY` is not set in the shell session running `iex -S mix`.
+- **Production boot failures** — Ensure `DATABASE_URL` and `SECRET_KEY_BASE` are set in the runtime environment.
 
-## Next Steps
-Once the installation is confirmed, move directly into your first build path.
+## Next steps
 
-- [Your First Agent](/docs/learn/first-agent)
-- [Quickstarts by Persona](/docs/learn/quickstarts-by-persona)
-- [Configuration Reference](/docs/reference/configuration)
-
----
-<sub>Generated by Jido Documentation Writer Bot | Run ID: `3ac0cad8b34f`</sub>
+- [Your first agent](/docs/learn/first-agent)
+- [Core concepts](/docs/learn/concepts)
+- [Configuration reference](/docs/reference/configuration)

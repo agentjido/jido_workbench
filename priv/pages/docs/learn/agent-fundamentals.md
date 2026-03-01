@@ -1,33 +1,39 @@
 %{
-  title: "Agent Fundamentals on the BEAM",
-  description: "Foundational mental model for Jido agents: typed state, deterministic transitions, signal routing, and supervised execution.",
+  title: "Agent fundamentals",
+  description: "The mental model for Jido agents: typed state, deterministic transitions, signal routing, and supervised execution.",
   category: :docs,
   order: 20,
+  tags: [:docs, :learn, :fundamentals],
+  draft: false
 }
 ---
-This module establishes the core Jido mental model: agents are typed state containers, actions are deterministic transitions, and side effects are isolated as directives. You will learn how routing turns signals into actions, how the runtime executes directives, and how supervision boundaries keep processes resilient without mutating domain state.
+Jido agents are data, not processes. An agent is an immutable struct with schema-validated state. Actions are pure functions that return a new agent and a list of directives describing side effects. The runtime handles everything else.
 
-### Overview
-Jido models agents as **data first** and treats execution as a separate concern. `Jido.Agent` is a pure API that transforms state, while `Jido.AgentServer` is the GenServer runtime that interprets directives, builds signal routing, and executes effects.
+## Agents as data
 
-### Prerequisites
-Read [Build Your First Agent](/docs/learn/first-agent) to get familiar with `use Jido.Agent` and `cmd/2`. This guide assumes you can define an agent module and run a basic action.
+A `Jido.Agent` is a struct. It holds typed state, a reference to its schema, and metadata. It is not a GenServer. It does not own a mailbox, subscribe to messages, or manage timers.
 
-### Mental Model
-Agents as typed state containers plus behavior contracts is the core framing in Jido. An agent is an immutable struct that carries validated state plus an execution contract (`cmd/2`, `signal_routes/1`, and optional pure callbacks).
-
-Immutable transitions for debuggability and replayability follow from `cmd/2` always returning a **new** agent and a list of directives. Directives describe side effects but never mutate state, giving you isolation of side effects from domain transitions while the runtime handles process work.
-
-Differentiate process lifecycle from agent state lifecycle. A GenServer may restart or continue running, but completion, failure, and progress live in agent state (for example `status: :completed`).
-
-### State Schema
-A schema defines the shape and defaults for agent state. Jido supports NimbleOptions-style schemas and Zoi schemas, with Zoi recommended for new code.
+This distinction matters. You can create an agent, transform it ten times in a pipeline, serialize it, send it across nodes, and deserialize it without any process infrastructure. Every transformation is a pure function call that returns a new struct.
 
 ```elixir
-defmodule InventoryAgent do
+agent = MyApp.InventoryAgent.new()
+{agent, []} = MyApp.InventoryAgent.cmd(agent, {ReceiveStock, %{sku: "A1", qty: 10}})
+{agent, []} = MyApp.InventoryAgent.cmd(agent, {ReserveStock, %{sku: "A1", qty: 3}})
+agent.state.stock["A1"]    # => 10
+agent.state.reserved["A1"] # => 3
+```
+
+Each call to `cmd/2` returns a new agent. The previous value is unchanged. There is no hidden mutation.
+
+## State schema
+
+Every agent declares a schema that defines the shape, types, and defaults for its state. Jido supports Zoi schemas (recommended) and NimbleOptions-style schemas.
+
+```elixir
+defmodule MyApp.InventoryAgent do
   use Jido.Agent,
     name: "inventory_agent",
-    description: "Tracks stock and reservations.",
+    description: "Tracks stock and reservations",
     schema: Zoi.object(%{
       status: Zoi.atom() |> Zoi.default(:idle),
       stock: Zoi.map(Zoi.integer()) |> Zoi.default(%{}),
@@ -36,61 +42,65 @@ defmodule InventoryAgent do
 end
 ```
 
-`new/1` builds initial state by applying schema defaults, then strategy initialization runs to set any strategy-managed fields. `set/2` deep-merges updates into state, and `validate/2` lets you enforce strict schema conformance.
+When you call `new/1`, the schema applies defaults and validates the initial state. `set/2` deep-merges updates into state. `validate/2` enforces strict conformance against the schema at any point.
 
-### Signal Routing
-Signals are routed to actions by the runtime, not by the agent. `Jido.AgentServer` builds a unified router from strategy routes, agent routes, and plugin routes, then dispatches each signal to the best matching action.
+Schemas prevent a class of bugs where state drifts into an unexpected shape. If an action returns `%{stock: "oops"}`, schema validation catches it before the bad state propagates.
 
-Signal route tables mapping events to action modules keep signal naming explicit and predictable. Routes can include optional match functions and priorities, and they are normalized into a single router by the runtime.
+## The command boundary
+
+`cmd/2` is the single entry point for all agent transitions. It takes an agent and one or more instructions, runs them through the agent's strategy, and returns a tuple: `{updated_agent, directives}`.
 
 ```elixir
-defmodule InventoryAgent do
+{agent, directives} = MyApp.InventoryAgent.cmd(
+  agent,
+  {ReceiveStock, %{sku: "A1", qty: 5}}
+)
+```
+
+Three rules govern `cmd/2`:
+
+1. It is a pure function. Same agent and instruction always produce the same result.
+2. It never performs side effects. No HTTP calls, no database writes, no message sends.
+3. Side effects are described as directives. The runtime decides when and whether to execute them.
+
+This makes every transition testable without mocks, replayable for debugging, and safe to run speculatively.
+
+## Signal routing
+
+Signals are events that arrive at an agent. A route table maps signal types to action modules. The runtime builds a unified router from the agent's declared routes, strategy routes, and plugin routes.
+
+```elixir
+defmodule MyApp.InventoryAgent do
   use Jido.Agent,
     name: "inventory_agent",
     signal_routes: [
-      {"inventory.stock.received", Inventory.ReceiveStock},
-      {"inventory.reserve", Inventory.ReserveStock},
-      {"inventory.release", Inventory.ReleaseReservation, 5},
-      {"inventory.*", fn signal -> signal.data["sku"] != nil end, Inventory.ReceiveStock, -5}
+      {"inventory.stock.received", MyApp.ReceiveStock},
+      {"inventory.reserve", MyApp.ReserveStock},
+      {"inventory.release", MyApp.ReleaseReservation}
     ]
 end
 ```
 
-If no route matches, the runtime falls back to `{signal.type, signal.data}` as the action input for the strategy to interpret. This keeps unmatched signals explicit while preserving deterministic behavior.
+Routes match on signal type strings. You can add an optional priority (integer) or a match function for conditional routing. The runtime evaluates routes by priority and dispatches to the first match.
 
-### Deterministic Execution
-`cmd/2` is a pure function: given the same agent and action, it always returns the same updated agent and directives. `Jido.Agent` normalizes instructions, executes them through the selected strategy, and then applies `on_after_cmd/3` as a final pure transformation.
+Wildcard routes use `*` as a suffix. A route for `"inventory.*"` matches any signal whose type starts with `"inventory."`. If no route matches, the runtime passes `{signal.type, signal.data}` to the strategy for default handling.
 
-Side effects are never applied inside `cmd/2`. Instead, actions return state diffs and the strategy returns directives, which the runtime can execute later or not at all.
+## Failure and supervision
 
-```elixir
-agent = InventoryAgent.new(state: %{stock: %{"sku-1" => 10}})
+`Jido.AgentServer` wraps an agent struct inside a GenServer under an OTP supervisor. The process lifecycle and the agent state lifecycle are separate concerns.
 
-{agent2, directives} = InventoryAgent.cmd(
-  agent,
-  {Inventory.ReceiveStock, %{sku: "sku-1", qty: 5}}
-)
+If the GenServer crashes, the supervisor restarts it. The agent struct can be reconstructed from persisted state or reinitialized from defaults. Process death does not mean domain failure.
 
-# agent2.state.stock["sku-1"] == 15
-# directives == []
-```
+For domain completion, update agent state directly. Set `status: :completed` or `status: :failed` in your action's return value. The process keeps running and can handle subsequent signals. This avoids races between asynchronous directive execution and process termination.
 
-### Failure and Supervision
-Each agent runs inside a `Jido.AgentServer` GenServer under a supervisor. If the process crashes, supervision can restart it, but your domain completion status is still a state concern.
+## Hands-on exercise
 
-For normal completion, update agent state (for example `status: :completed`) instead of stopping the process. This makes the process lifecycle distinct from the agent state lifecycle and avoids races with asynchronous directive execution.
+Build an `InventoryAgent` that tracks stock levels and reservations using three actions.
 
-### Hands-on Exercise
-InventoryAgent exercise with schema, routes, and guards. You will build an `InventoryAgent` that tracks stock and reservations with deterministic transitions, then drive it using signal routes.
-
-Step-by-step:
-1. Define the agent schema with `stock` and `reserved` maps keyed by SKU.
-2. Define actions `ReceiveStock`, `ReserveStock`, and `ReleaseReservation` with guards for invalid quantities or insufficient stock.
-3. Wire signal routes that map inventory signals to those actions.
-4. Run commands and confirm the agent always returns a new state plus directives.
+**Step 1: Define the actions.**
 
 ```elixir
-defmodule Inventory.ReceiveStock do
+defmodule MyApp.ReceiveStock do
   use Jido.Action,
     name: "inventory.receive_stock",
     schema: [
@@ -98,13 +108,15 @@ defmodule Inventory.ReceiveStock do
       qty: [type: :integer, required: true]
     ]
 
-  def run(%{sku: sku, qty: qty}, %{state: state}) do
-    current = get_in(state, [:stock, sku]) || 0
-    {:ok, %{stock: Map.put(state.stock, sku, current + qty)}}
+  def run(params, context) do
+    current = get_in(context.state, [:stock, params.sku]) || 0
+    {:ok, %{stock: Map.put(context.state.stock, params.sku, current + params.qty)}}
   end
 end
+```
 
-defmodule Inventory.ReserveStock do
+```elixir
+defmodule MyApp.ReserveStock do
   use Jido.Action,
     name: "inventory.reserve_stock",
     schema: [
@@ -112,21 +124,21 @@ defmodule Inventory.ReserveStock do
       qty: [type: :integer, required: true]
     ]
 
-  def run(%{sku: sku, qty: qty}, %{state: state}) do
-    current = get_in(state, [:stock, sku]) || 0
-    reserved = get_in(state, [:reserved, sku]) || 0
+  def run(params, context) do
+    current = get_in(context.state, [:stock, params.sku]) || 0
+    reserved = get_in(context.state, [:reserved, params.sku]) || 0
 
-    if qty <= 0 or current - reserved < qty do
+    if params.qty <= 0 or current - reserved < params.qty do
       {:error, :insufficient_stock}
     else
-      {:ok, %{reserved: Map.put(state.reserved, sku, reserved + qty)}}
+      {:ok, %{reserved: Map.put(context.state.reserved, params.sku, reserved + params.qty)}}
     end
   end
 end
 ```
 
 ```elixir
-defmodule Inventory.ReleaseReservation do
+defmodule MyApp.ReleaseReservation do
   use Jido.Action,
     name: "inventory.release_reservation",
     schema: [
@@ -134,16 +146,17 @@ defmodule Inventory.ReleaseReservation do
       qty: [type: :integer, required: true]
     ]
 
-  def run(%{sku: sku, qty: qty}, %{state: state}) do
-    reserved = get_in(state, [:reserved, sku]) || 0
-    new_reserved = max(reserved - qty, 0)
-    {:ok, %{reserved: Map.put(state.reserved, sku, new_reserved)}}
+  def run(params, context) do
+    reserved = get_in(context.state, [:reserved, params.sku]) || 0
+    {:ok, %{reserved: Map.put(context.state.reserved, params.sku, max(reserved - params.qty, 0))}}
   end
 end
 ```
 
+**Step 2: Wire the agent.**
+
 ```elixir
-defmodule InventoryAgent do
+defmodule MyApp.InventoryAgent do
   use Jido.Agent,
     name: "inventory_agent",
     schema: Zoi.object(%{
@@ -152,23 +165,22 @@ defmodule InventoryAgent do
       reserved: Zoi.map(Zoi.integer()) |> Zoi.default(%{})
     }),
     signal_routes: [
-      {"inventory.stock.received", Inventory.ReceiveStock},
-      {"inventory.reserve", Inventory.ReserveStock},
-      {"inventory.release", Inventory.ReleaseReservation}
+      {"inventory.stock.received", MyApp.ReceiveStock},
+      {"inventory.reserve", MyApp.ReserveStock},
+      {"inventory.release", MyApp.ReleaseReservation}
     ]
 end
 ```
 
-### Verification Steps
-1. Create a new agent and call `cmd/2` with `{Inventory.ReceiveStock, %{sku: "sku-1", qty: 10}}`, then confirm stock increments by 10.
-2. Call `{Inventory.ReserveStock, %{sku: "sku-1", qty: 4}}` twice and confirm the second call returns an error from the action.
-3. Call `{Inventory.ReleaseReservation, %{sku: "sku-1", qty: 2}}` and confirm `reserved["sku-1"]` decreases while stock stays unchanged.
-4. Confirm that each command returns `{agent, directives}` and that directives are empty for these actions.
+**Step 3: Verify.**
 
-### Related Reading
-- [Agents](/docs/concepts/agents)
-- [Agent Runtime](/docs/concepts/agent-runtime)
-- [Actions and Validation](/docs/learn/actions-validation)
+1. Call `cmd/2` with `{MyApp.ReceiveStock, %{sku: "A1", qty: 10}}`. Confirm `stock["A1"] == 10`.
+2. Call `{MyApp.ReserveStock, %{sku: "A1", qty: 4}}` twice. The second call should return `{:error, :insufficient_stock}` because only 6 units are unreserved.
+3. Call `{MyApp.ReleaseReservation, %{sku: "A1", qty: 2}}`. Confirm `reserved["A1"]` drops to 2 while `stock["A1"]` stays at 10.
+4. Confirm every successful `cmd/2` returns `{agent, directives}` with an empty directives list.
 
----
-<sub>Generated by Jido Documentation Writer Bot | Run ID: `80a001ad84c8`</sub>
+## Next steps
+
+- [Strategy](/docs/concepts/strategy) covers pluggable execution models for action dispatch
+- [Plugins](/docs/concepts/plugins) explains composable capability bundles
+- [Sensors](/docs/concepts/sensors) shows how external events become signals

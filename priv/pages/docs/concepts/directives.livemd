@@ -17,50 +17,131 @@ Side effects in agent systems create coupling that breaks under load. When a sin
 
 Directives solve this by splitting the decision from the execution. Your action decides what should happen and returns a struct describing the effect. The runtime decides when and how to execute it. This gives you pure, testable action logic and lets the runtime handle retries, ordering, and failure isolation independently.
 
-The pattern follows the same principle as Elm commands or Redux middleware. Your reducer (action) returns data describing work. The framework (runtime) performs it.
-
 ## Core directives
 
 Jido provides built-in directive types that cover the most common runtime effects.
 
-**Emit** dispatches a signal through `Jido.Signal.Dispatch`. You can target a specific process, broadcast over PubSub, or use any configured dispatch adapter.
+### Emit
+
+Dispatches a signal through `Jido.Signal.Dispatch`. You can target a specific process, broadcast over PubSub, or use any configured dispatch adapter. If no dispatch config is provided, the runtime uses the agent's default dispatch or falls back to emitting to the agent process itself.
 
 ```elixir
 alias Jido.Agent.Directive
 
-# Use the agent's default dispatch configuration
 %Directive.Emit{signal: signal}
 
-# Explicit PubSub dispatch
 %Directive.Emit{signal: signal, dispatch: {:pubsub, topic: "events"}}
 
-# Direct to a specific process
 %Directive.Emit{signal: signal, dispatch: {:pid, target: pid}}
 ```
 
-**Schedule** sends a delayed message back to the agent process after a specified interval.
+You can also target multiple destinations from a single emit:
+
+```elixir
+%Directive.Emit{signal: signal, dispatch: [
+  {:pubsub, topic: "events"},
+  {:logger, level: :info}
+]}
+```
+
+### Schedule
+
+Sends a delayed message back to the agent process after a specified interval. Use this for timeouts, deferred checks, and any "do this later" pattern.
 
 ```elixir
 %Directive.Schedule{delay_ms: 5000, message: :timeout}
+
+%Directive.Schedule{delay_ms: 30_000, message: {:check_status, order_id}}
 ```
 
-**SpawnAgent** starts a child agent with full parent-child hierarchy tracking, including process monitoring and exit signal delivery.
+The message arrives as a signal at the agent, so it flows through the same routing and action execution as any other signal.
+
+### Cron and CronCancel
+
+Agents natively support recurring scheduled execution using cron expressions. This means any agent can set up periodic tasks - health checks, cleanup jobs, polling loops, heartbeats - without external schedulers or infrastructure.
 
 ```elixir
-%Directive.SpawnAgent{agent: MyWorkerAgent, tag: :worker_1}
+%Directive.Cron{
+  cron: "*/5 * * * *",
+  message: health_check_signal,
+  job_id: :health_check
+}
+
+%Directive.Cron{
+  cron: "@daily",
+  message: cleanup_signal,
+  job_id: :daily_cleanup,
+  timezone: "America/New_York"
+}
 ```
 
-**Spawn** starts a generic BEAM process under the agent's supervisor without hierarchy tracking. Use this for fire-and-forget tasks.
+Each tick sends the configured message back to the agent as a signal via `cast/2`. The `job_id` identifies the job within that agent - if you emit a `Cron` directive with the same `job_id`, it replaces the existing job.
 
-**StopChild** requests a tracked child agent to stop gracefully.
+Cancel a job by emitting a `CronCancel` with the matching `job_id`:
 
-**RunInstruction** executes an instruction at runtime and routes the result back through `cmd/2`. This is useful for async workflows where an instruction depends on external data.
+```elixir
+%Directive.CronCancel{job_id: :health_check}
+```
 
-**Error** wraps a `Jido.Error.t()` to signal an error from command processing.
+### SpawnAgent
 
-**Stop** terminates the agent process itself.
+Starts a child agent with full parent-child hierarchy tracking. The parent monitors the child process, tracks it by tag, and receives exit signals when the child stops.
 
-**Cron** and **CronCancel** manage recurring scheduled execution using cron expressions.
+```elixir
+%Directive.SpawnAgent{agent: MyApp.WorkerAgent, tag: :worker_1}
+
+%Directive.SpawnAgent{
+  agent: MyApp.WorkerAgent,
+  tag: :processor,
+  opts: %{initial_state: %{batch_size: 100}},
+  meta: %{assigned_topic: "orders"}
+}
+```
+
+Child agents can send signals back to their parent using `Directive.emit_to_parent/3`, and parents can stop children with `StopChild`.
+
+### StopChild
+
+Requests a tracked child agent to stop gracefully.
+
+```elixir
+%Directive.StopChild{tag: :worker_1, reason: :normal}
+```
+
+### Spawn
+
+Starts a generic BEAM process under the agent's supervisor without hierarchy tracking. Use this for fire-and-forget tasks like sending an email or writing to a log.
+
+```elixir
+%Directive.Spawn{child_spec: {MyApp.EmailWorker, to: "jane@example.com"}}
+```
+
+### RunInstruction
+
+Executes an instruction at runtime and routes the result back through `cmd/2`. This is useful for async workflows where an instruction depends on external data that isn't available during the original `cmd/2` call.
+
+```elixir
+%Directive.RunInstruction{
+  instruction: instruction,
+  result_action: :handle_result
+}
+```
+
+### Stop
+
+Terminates the agent process itself.
+
+```elixir
+%Directive.Stop{reason: :shutdown}
+```
+
+### Error
+
+Wraps a `Jido.Error.t()` to signal an error from command processing. The runtime can log, emit, or handle errors based on this directive.
+
+```elixir
+%Directive.Error{error: error, context: :normalize}
+```
 
 ## Returning directives from actions
 
@@ -87,14 +168,14 @@ defmodule MyApp.NotifyAction do
 end
 ```
 
-You can also return multiple directives to express compound effects from a single action.
+Return multiple directives to express compound effects from a single action:
 
 ```elixir
 def run(params, _context) do
   {:ok, %{status: :processing}, [
     %Directive.Emit{signal: started_signal},
     %Directive.Schedule{delay_ms: 30_000, message: :check_timeout},
-    %Directive.SpawnAgent{agent: MyWorker, tag: :worker}
+    %Directive.SpawnAgent{agent: MyApp.Worker, tag: :worker}
   ]}
 end
 ```
@@ -103,17 +184,15 @@ The agent struct returned by `cmd/2` already reflects the state changes. Directi
 
 ## How the runtime executes directives
 
-When `cmd/2` completes, the `AgentServer` enqueues all returned directives into an internal queue. If the server is idle, it starts the drain loop.
-
-The drain loop dequeues directives one at a time. For each directive, the server calls the `Jido.AgentServer.DirectiveExec` protocol, which dispatches on the directive's struct type. After executing a directive, the loop sends itself another `:drain` message to process the next one.
+When `cmd/2` completes, the `AgentServer` enqueues all returned directives into an internal queue. The drain loop dequeues directives one at a time and calls the `Jido.AgentServer.DirectiveExec` protocol, which dispatches on the directive's struct type.
 
 Each `DirectiveExec.exec/3` implementation returns one of three results:
 
-- `{:ok, state}` signals successful execution and continues draining
-- `{:async, ref, state}` indicates async work was started
-- `{:stop, reason, state}` terminates the agent process immediately
+- `{:ok, state}` - successful execution, continue draining
+- `{:async, ref, state}` - async work was started
+- `{:stop, reason, state}` - terminate the agent process
 
-This one-at-a-time drain design means directives execute in the order they were returned. If an agent is processing a signal while directives are still draining, new directives are appended to the end of the queue.
+Directives execute in the order they were returned. If new directives arrive while the queue is draining, they are appended to the end.
 
 ## Custom directives
 
@@ -137,21 +216,12 @@ defimpl Jido.AgentServer.DirectiveExec,
 end
 ```
 
+> **Note:** LLM integration is already implemented in `jido_ai` using the `req_llm` package. The example above illustrates the custom directive pattern - you would not need to build this yourself.
+
 The protocol uses `@fallback_to_any true`, so unknown directive types are logged and ignored rather than crashing the agent. This makes it safe to introduce new directives incrementally.
-
-Helper constructors on `Jido.Agent.Directive` provide a convenience API for the built-in types.
-
-```elixir
-alias Jido.Agent.Directive
-
-Directive.emit(signal)
-Directive.schedule(5000, :timeout)
-Directive.spawn_agent(MyWorker, :worker_1)
-Directive.stop(:shutdown)
-```
 
 ## Next steps
 
-- [Actions](/docs/concepts/actions) - Learn how pure functions produce state changes and directives
-- [Agent runtime](/docs/concepts/agent-runtime) - Understand how AgentServer supervises agents and drains directives
-- [Signals](/docs/concepts/signals) - Explore the typed envelopes that directives dispatch
+- [Actions](/docs/concepts/actions) - learn how pure functions produce state changes and directives
+- [Agent runtime](/docs/concepts/agent-runtime) - understand how AgentServer supervises agents and drains directives
+- [Signals](/docs/concepts/signals) - explore the typed envelopes that directives dispatch

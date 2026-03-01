@@ -1,6 +1,6 @@
 %{
   title: "Plugins",
-  description: "Composable capability bundles that extend agents with actions, routes, and state.",
+  description: "Reusable packages of agent functionality - actions, routes, state, and lifecycle hooks.",
   category: :docs,
   order: 105,
   tags: [:docs, :concepts],
@@ -8,8 +8,7 @@
   draft: false
 }
 ---
-
-A Plugin is a composable capability that you attach to an agent. It bundles actions, state, signal routing, and lifecycle hooks into a single reusable module. Plugins let you build agent capabilities once and share them across any number of agents.
+Plugins are how you extend agent functionality and package reusable agent capabilities. A plugin bundles actions, state, signal routing, and lifecycle hooks into a single module that any agent can include. They are meant to be distributed as separate Mix packages, giving you an extension point for sharing functionality across agents and projects.
 
 ## What plugins solve
 
@@ -44,6 +43,38 @@ end
 Three options are required. `name` identifies the plugin. `state_key` is the atom key under which the plugin's state lives in the agent struct. `actions` lists the action modules the plugin provides.
 
 The optional `schema` defines the shape and defaults for the plugin's state slice using a Zoi schema. `config_schema` defines a separate schema for per-agent configuration, letting each agent customize the plugin at declaration time. Both schemas are validated at compile time.
+
+## Default plugins
+
+Every agent automatically includes three singleton plugins provided by Jido core:
+
+| Plugin | State key | Purpose |
+| --- | --- | --- |
+| `Jido.Thread.Plugin` | `:__thread__` | Conversation history and thread state management |
+| `Jido.Identity.Plugin` | `:__identity__` | Agent identity and self-model |
+| `Jido.Memory.Plugin` | `:__memory__` | Cognitive memory state |
+
+These are singleton plugins - they cannot be duplicated or aliased. They reserve their state keys with double-underscore prefixes to avoid collisions with your own plugins.
+
+Default plugins are initialized lazily. `Thread.Plugin` does not create a thread until you call `Jido.Thread.Agent.ensure/2`. `Memory.Plugin` does not allocate memory until first use. This keeps bare agents lightweight.
+
+You can disable or replace default plugins per-agent:
+
+```elixir
+defmodule MyApp.BareAgent do
+  use Jido.Agent,
+    name: "bare_agent",
+    default_plugins: %{__thread__: false}
+end
+
+defmodule MyApp.CustomAgent do
+  use Jido.Agent,
+    name: "custom_agent",
+    default_plugins: %{__thread__: MyApp.CustomThreadPlugin}
+end
+```
+
+To disable all defaults, pass `default_plugins: false`.
 
 ## Plugin lifecycle
 
@@ -104,31 +135,9 @@ The `handle_signal/2` callback returns one of several responses:
 - `{:ok, {:override, action}}` to bypass the router entirely
 - `{:error, reason}` to abort signal processing
 
-## Requirements and capabilities
+## Schedules
 
-Plugins declare what they need and what they provide using `requires` and `capabilities`.
-
-The `requires` option lists dependencies as tagged tuples. Three dependency types are supported:
-
-- `{:config, :api_key}` requires a configuration value
-- `{:app, :req}` requires an OTP application to be available
-- `{:plugin, :http}` requires another plugin's capability
-
-The `capabilities` option lists atoms that describe what the plugin provides. Other plugins can depend on these capabilities through the `{:plugin, :capability}` requirement. This creates a declarative dependency graph that Jido validates at compile time.
-
-```elixir
-use Jido.Plugin,
-  name: "slack_notifier",
-  state_key: :slack,
-  actions: [MyApp.Actions.NotifySlack],
-  capabilities: [:notifications],
-  requires: [
-    {:config, :slack_token},
-    {:plugin, :http}
-  ]
-```
-
-Plugins can also declare `schedules` for cron-style periodic execution. Each schedule is a tuple of a cron expression and an action module:
+Plugins can declare `schedules` for cron-style periodic execution. Each schedule is a tuple of a cron expression and an action module:
 
 ```elixir
 schedules: [{"*/5 * * * *", MyApp.Actions.SyncMessages}]
@@ -136,6 +145,6 @@ schedules: [{"*/5 * * * *", MyApp.Actions.SyncMessages}]
 
 ## Next steps
 
-- Read about [Actions](/docs/concepts/actions) to understand the building blocks that plugins bundle together
-- Learn how [Signals](/docs/concepts/signals) flow through the routing system that plugins extend
-- See [Agent runtime](/docs/concepts/agent-runtime) for how child processes and signal dispatch work at the server level
+- [Actions](/docs/concepts/actions) - understand the building blocks that plugins bundle together
+- [Signals](/docs/concepts/signals) - learn how signals flow through the routing system that plugins extend
+- [Agent runtime](/docs/concepts/agent-runtime) - see how child processes and signal dispatch work at the server level

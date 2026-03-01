@@ -7,8 +7,6 @@
   tags: [:docs, :concepts, :livebook]
 }
 ---
-This page explains what Actions are, how they validate inputs and outputs, and how they compose into workflows. Actions are the primary building block for all computation in Jido.
-
 ## What actions solve
 
 Agent systems need a consistent way to express "what should happen" without coupling logic to infrastructure. Raw functions lack validation, composability, and introspection. When you chain several operations together, you need guarantees about data shape at every boundary.
@@ -138,6 +136,57 @@ end
 ```
 
 The directive does not execute inline. It is collected and returned alongside the updated agent, keeping your action logic pure.
+
+## Instructions
+
+An Instruction pairs an Action module with everything it needs to execute: parameters, context, and runtime options. When you call `cmd/2`, Jido normalizes whatever you pass into `%Jido.Instruction{}` structs before execution.
+
+You can express instructions in several formats, from minimal to fully explicit:
+
+### Action module only
+
+The simplest form. No params, no context.
+
+```elixir
+MyAgent.cmd(agent, MyApp.ValidateOrder)
+```
+
+### Tuple with params
+
+The most common form. Pairs an action with its input data.
+
+```elixir
+MyAgent.cmd(agent, {MyApp.ValidateOrder, %{order_id: "ord_99"}})
+```
+
+### List of instructions
+
+Chain multiple actions. Each format can be mixed freely in the list.
+
+```elixir
+MyAgent.cmd(agent, [
+  {MyApp.ValidateOrder, %{order_id: "ord_99"}},
+  MyApp.ApplyDiscount,
+  {MyApp.CalculateShipping, %{destination: "US"}}
+])
+```
+
+### Full struct
+
+For cases where you need to set context or runtime options explicitly.
+
+```elixir
+instruction = Jido.Instruction.new!(%{
+  action: MyApp.ProcessOrder,
+  params: %{order_id: "ord_99"},
+  context: %{tenant_id: "tenant_456"},
+  opts: [timeout: 10_000]
+})
+
+MyAgent.cmd(agent, instruction)
+```
+
+All formats normalize to the same `%Jido.Instruction{}` struct internally, so the execution path is identical regardless of which shorthand you use.
 
 ## Actions as AI tools
 

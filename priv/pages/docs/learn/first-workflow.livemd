@@ -1,146 +1,141 @@
 %{
-  title: "Build Your First Workflow",
-  description: "Compose multiple actions into a single workflow using Jido.Plan for sequential and parallel execution.",
+  title: "Build your first workflow",
+  description: "Compose multiple actions into a single command with sequential execution and shared state.",
   category: :docs,
   order: 13,
-  prerequisites: ["docs/learn/first-llm-agent"],
+  tags: [:docs, :learn, :tutorial, :workflows],
+  draft: false,
   learning_outcomes: [
     "Compose multiple actions into a single command",
-    "Use Plans to define execution order and dependencies",
-    "Handle directive output from multi-step workflows"
+    "Understand how action outputs flow through a chain",
+    "Handle directives from multi-step workflows"
   ],
-  tags: [:docs, :learn, :tutorial, :workflows, :wave_1]
+  prerequisites: ["/docs/learn/first-agent"]
 }
 ---
-# Build Your First Workflow
-
-## Overview
-Real tasks involve more than one step. Jido lets you compose small [Actions](/docs/concepts/actions) into workflows so you can keep each step focused and testable.
-
-This tutorial shows how to pass multiple actions to `cmd/2`, then build a `Jido.Plan` for more explicit ordering. You will also see how directives accumulate into a single `Jido.Instruction` at the end of a workflow.
-
 ## Prerequisites
-Complete [Build Your First Agent](/docs/learn/first-agent) and review the basics of action execution. If you already worked through the previous tutorial, you have everything you need to continue.
 
-## Why Compose Actions?
-A single large action is easy to start with, but it becomes hard to test and reuse. A workflow lets you isolate each step and still run them as one command.
+Complete [Build your first agent](/docs/learn/first-agent) before starting this tutorial. You need a working agent module and familiarity with single-action execution.
 
-This also gives you a clear place to express dependencies. In `Jido.Plan`, you build a small DAG that is executed by the runtime for you.
+## Why compose actions?
 
-## Create Multiple Actions
-We will build a simple “health check” workflow. Each action does one job and returns a directive.
+A single action that does everything is easy to write and hard to maintain. Splitting work into small actions gives you three things: isolated tests, clear failure boundaries, and reuse across agents.
+
+Jido workflows run a list of actions in sequence. Each action's output merges into the params available to the next action. This is the open validation model: undeclared fields pass through automatically.
+
+## Define the actions
+
+Build three actions for an order processing workflow. Each action declares its inputs with a Zoi schema and returns a state map.
 
 ```elixir
-defmodule CheckConnectivityAction do
-  use Jido.Action
+defmodule MyApp.ValidateOrder do
+  use Jido.Action,
+    name: "validate_order",
+    schema: Zoi.object(%{order_id: Zoi.string()})
 
-  def run(_args) do
-    {:ok, [:log, "Connectivity OK."]}
+  @impl true
+  def run(params, _context) do
+    {:ok, %{order_id: params.order_id, validated: true}}
   end
 end
 ```
 
 ```elixir
-defmodule CheckDiskSpaceAction do
-  use Jido.Action
+defmodule MyApp.ApplyDiscount do
+  use Jido.Action,
+    name: "apply_discount",
+    schema: Zoi.object(%{validated: Zoi.boolean()})
 
-  def run(_args) do
-    {:ok, [:log, "Disk space OK."]}
+  @impl true
+  def run(params, _context) do
+    discount = if params.validated, do: 0.1, else: 0.0
+    {:ok, %{discount: discount}}
   end
 end
 ```
 
 ```elixir
-defmodule GenerateStatusReportAction do
-  use Jido.Action
+defmodule MyApp.CalculateTotal do
+  use Jido.Action,
+    name: "calculate_total",
+    schema: Zoi.object(%{
+      order_id: Zoi.string(),
+      discount: Zoi.float()
+    })
 
-  def run(_args) do
-    {:ok, [:reply, "Server status: All systems nominal."]}
+  @impl true
+  def run(params, _context) do
+    base_price = 100.0
+    total = base_price * (1.0 - params.discount)
+    {:ok, %{order_id: params.order_id, total: total}}
   end
 end
 ```
 
-## Execute with Multiple Actions
-You can pass multiple actions to `cmd/2` as a simple list. The agent will execute them in order and return a single instruction.
+Notice the pattern. `ValidateOrder` outputs `validated: true`. `ApplyDiscount` declares `validated` in its schema and reads it from params. Each action consumes what the previous one produced.
+
+## Chain actions with cmd/2
+
+Pass a list of action tuples to `cmd/2` on your agent struct. The runtime executes them in order, threading state through the chain.
 
 ```elixir
-# Assuming `agent_pid` is a running agent from the earlier tutorial
-{:ok, instruction} =
-  MyAgent.cmd(agent_pid, [
-    CheckConnectivityAction,
-    CheckDiskSpaceAction,
-    GenerateStatusReportAction
-  ])
-
-instruction.directives
+{agent, directives} = MyApp.OrderAgent.cmd(agent, [
+  {MyApp.ValidateOrder, %{order_id: "ord_99"}},
+  MyApp.ApplyDiscount,
+  {MyApp.CalculateTotal, %{}}
+])
 ```
 
-This is the quickest way to chain work. It is also the easiest place to start before you need branching or parallel steps.
+The first tuple provides initial params. `ApplyDiscount` has no extra params, so you pass the module alone. The third action receives an empty override map merged with accumulated state.
 
-## Build a Plan
-When you need clear dependencies, use `Jido.Plan`. A plan models a Directed Acyclic Graph, so you can mix sequential and parallel execution without hand wiring the flow.
+## Inspect the result
 
-In this workflow, the connectivity and disk checks can run in parallel. The report must wait for both, so it is placed after the parallel step in a sequential plan.
+After execution, the agent struct holds the merged state from all three actions. Directives collect any side effects the actions emitted.
 
 ```elixir
-alias Jido.Plan
-
-health_check_plan =
-  Plan.sequential([
-    Plan.parallel([
-      CheckConnectivityAction,
-      CheckDiskSpaceAction
-    ]),
-    GenerateStatusReportAction
-  ])
+IO.inspect(agent.state, label: "Final state")
+IO.inspect(directives, label: "Directives")
 ```
 
-You can nest `Plan.sequential/1` and `Plan.parallel/1` to express more complex dependencies. Each step can be an action module or another plan.
+You should see state containing `order_id`, `validated`, `discount`, and `total`. The values flow forward through the chain without you writing any glue code.
 
-## Execute the Workflow
-Running a plan uses the same `cmd/2` call. The agent interprets the plan and executes the steps in the correct order.
+## Return directives from actions
 
-```elixir
-{:ok, instruction} = MyAgent.cmd(agent_pid, health_check_plan)
-IO.inspect(instruction, label: "Workflow result")
-```
-
-This keeps your call site simple, while allowing a precise execution order. It also makes workflows easier to explain and review in code.
-
-## Handle Directives
-Every action can emit directives, and the runtime collects them during the workflow. The final `Jido.Instruction` contains a flat list of all directives in execution order.
+Actions can return directives alongside state updates. A directive is a struct that tells the agent runtime to perform a side effect like emitting a signal.
 
 ```elixir
-%Jido.Instruction{
-  directives: [
-    {:log, "Connectivity OK."},
-    {:log, "Disk space OK."},
-    {:reply, "Server status: All systems nominal."}
-  ]
-}
-```
+defmodule MyApp.ConfirmOrder do
+  use Jido.Action,
+    name: "confirm_order",
+    schema: Zoi.object(%{order_id: Zoi.string(), total: Zoi.float()})
 
-Parallel steps contribute directives as they complete. Sequential steps appear after the directives from any earlier steps.
+  @impl true
+  def run(params, _context) do
+    signal = Jido.Signal.new!(
+      "order.confirmed",
+      %{order_id: params.order_id, total: params.total},
+      source: "/orders"
+    )
 
-## Verify the Result
-You can verify the workflow by inspecting `instruction.directives` and confirming you got three entries. If you want a quick check, compare the output to the expected list below.
-
-```elixir
-expected = [
-  {:log, "Connectivity OK."},
-  {:log, "Disk space OK."},
-  {:reply, "Server status: All systems nominal."}
-]
-
-if instruction.directives == expected do
-  IO.puts("Workflow directives look correct.")
-else
-  IO.inspect(instruction.directives, label: "Unexpected directives")
+    {:ok, %{status: :confirmed},
+     %Jido.Agent.Directive.Emit{signal: signal}}
+  end
 end
 ```
 
-## Next Steps
-Review [Directives](/docs/concepts/directives) to see how to route each outcome. If you want to continue the onboarding sequence, build a [Stateful Counter Agent](/docs/learn/counter-agent).
+Add this action to the end of your chain. The directive appears in the second element of the `cmd/2` return tuple.
 
----
-<sub>Generated by Jido Documentation Writer Bot | Run ID: `1461064acb98`</sub>
+```elixir
+{agent, directives} = MyApp.OrderAgent.cmd(agent, [
+  {MyApp.ValidateOrder, %{order_id: "ord_99"}},
+  MyApp.ApplyDiscount,
+  {MyApp.CalculateTotal, %{}},
+  MyApp.ConfirmOrder
+])
+
+IO.inspect(directives, label: "Emitted directives")
+```
+
+## Next steps
+
+You now know how to compose actions into workflows with shared state and directive output. Read [Actions](/docs/concepts/actions) for the full action API, or continue to [Directives](/docs/concepts/directives) to learn how the runtime routes emitted signals.
