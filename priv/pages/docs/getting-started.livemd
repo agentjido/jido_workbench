@@ -1,5 +1,5 @@
 %{
-  description: "First successful run and orientation for the Jido docs system.",
+  description: "Onboarding funnel that maps the fastest path to your first working Jido agent.",
   title: "Getting Started",
   category: :docs,
   legacy_paths: [],
@@ -8,16 +8,34 @@
   menu_label: "Get Started"
 }
 ---
-# Getting Started
 
-## What this solves
-This page gets you to first success with a clear, low-friction starting flow.
+By the end of four short tutorials, you'll have a running Jido agent with typed state, composed actions, and optional LLM reasoning - all inside a standard Elixir project. Each step builds on the last and takes under fifteen minutes.
 
-## When to use it
-Use this first when you are new to Jido or re-onboarding your team.
+## The onboarding path
 
-## Next
-- [Concepts](/docs/concepts)
-- [Guides](/docs/guides)
-- [Reference](/docs/reference)
-- [Operations](/docs/operations)
+1. **[Installation and setup](/docs/learn/installation)** - add Jido to a project, configure dependencies, and verify everything compiles.
+2. **[Build your first agent](/docs/learn/first-agent)** - define an agent with typed state and actions. No LLM required.
+3. **[Build your first LLM agent](/docs/learn/first-llm-agent)** - wire up an LLM so your agent can reason about instructions.
+4. **[Build your first workflow](/docs/learn/first-workflow)** - compose actions into a multi-step workflow that runs as a single unit.
+
+Start at step 1 and work through in order. Each tutorial ends with a working result you can run in IEx.
+
+## What you'll need
+
+- **Elixir 1.16+** and **OTP 26+** installed ([elixir-lang.org/install](https://elixir-lang.org/install.html))
+- Basic comfort with Elixir modules, functions, and Mix
+- An LLM API key (OpenAI, Anthropic, or similar) - only needed for step 3
+
+## Where to go after
+
+Once you finish the onboarding path, pick the track that fits what you're building:
+
+- **[Learn](/docs/learn)** - structured training modules that go deeper on agents, sensors, signals, and skills
+- **[Concepts](/docs/concepts)** - the mental model behind Jido's architecture
+- **[Guides](/docs/guides)** - task-oriented recipes for common patterns
+
+## Next steps
+
+- [Start with installation](/docs/learn/installation)
+- [Explore core concepts](/docs/concepts)
+- [Browse the guides](/docs/guides)

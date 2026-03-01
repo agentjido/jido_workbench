@@ -477,27 +477,28 @@ defmodule AgentJidoWeb.PageLive do
   # --- Events ---
 
   @impl true
-  def handle_event("docs_feedback_select", %{"value" => value}, socket) do
-    case normalize_feedback_value(value) do
-      "helpful" ->
-        {:noreply,
-         assign(socket, :docs_feedback, %{
-           submitted: false,
-           value: "helpful",
-           note: nil
-         })}
+  def handle_event("docs_feedback_select", %{"value" => "helpful"}, socket) do
+    analytics_module().track_feedback_safe(socket.assigns.current_scope, %{
+      event: "feedback_submitted",
+      source: "docs",
+      channel: "docs_sidebar",
+      path: socket.assigns.request_path || "/",
+      feedback_value: "helpful",
+      feedback_note: nil,
+      visitor_id: get_in(socket.assigns, [:analytics_identity, :visitor_id]),
+      session_id: get_in(socket.assigns, [:analytics_identity, :session_id]),
+      metadata: %{
+        surface: "docs_page",
+        page_id: Map.get(socket.assigns.selected_document || %{}, :id)
+      }
+    })
 
-      "not_helpful" ->
-        {:noreply,
-         assign(socket, :docs_feedback, %{
-           submitted: false,
-           value: "not_helpful",
-           note: socket.assigns.docs_feedback[:note]
-         })}
+    {:noreply,
+     assign(socket, :docs_feedback, %{submitted: true, value: "helpful", note: nil})}
+  end
 
-      _ ->
-        {:noreply, socket}
-    end
+  def handle_event("docs_feedback_select", _params, socket) do
+    {:noreply, socket}
   end
 
   @impl true
@@ -515,7 +516,7 @@ defmodule AgentJidoWeb.PageLive do
       analytics_module().track_feedback_safe(socket.assigns.current_scope, %{
         event: "feedback_submitted",
         source: "docs",
-        channel: "docs_footer",
+        channel: "docs_sidebar",
         path: socket.assigns.request_path || "/",
         feedback_value: feedback_value,
         feedback_note: feedback_note,

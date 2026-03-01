@@ -53,11 +53,12 @@ config :agent_jido, :agent_runtime_enabled, true
 config :agent_jido, AgentJidoWeb.Endpoint,
   live_reload: [
     patterns: [
-      ~r"priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$",
+      ~r"priv/static/.*$",
       ~r"priv/gettext/.*(po)$",
       ~r"lib/agent_jido_web/(controllers|live|components)/.*(ex|heex)$",
       ~r"priv/blog/.*(md|livemd)$",
-      ~r"priv/documentation/.*(md|livemd)$",
+      ~r"priv/pages/.*(md|livemd)$",
+      ~r"priv/examples/.*(md)$",
       ~r"priv/ecosystem/.*(md)$"
     ]
   ]

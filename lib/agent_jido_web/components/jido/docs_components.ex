@@ -169,6 +169,7 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
   # Right Sidebar Component
   attr(:toc, :list, default: nil)
   attr(:selected_document, :map, default: nil)
+  attr(:docs_feedback, :map, default: nil)
 
   def docs_right_sidebar(assigns) do
     ~H"""
@@ -202,8 +203,8 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
       <% else %>
         <div class="flex-1" />
       <% end %>
-      
-    <!-- Quick Links -->
+
+      <!-- Quick Links -->
       <div class="shrink-0 rounded-md border border-border/80 bg-card/75 p-4 shadow-[0_10px_24px_hsl(var(--background)/0.2)]">
         <div class="mb-2 text-[10px] font-semibold tracking-[0.08em] text-muted-foreground">
           QUICK LINKS
@@ -226,6 +227,22 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
           <% end %>
         </div>
       </div>
+
+      <!-- Feedback -->
+      <%= if @docs_feedback do %>
+        <div class="mt-4 shrink-0 px-1">
+          <.feedback_prompt
+            id="docs-page-feedback"
+            title="Helpful?"
+            value={@docs_feedback.value}
+            note={@docs_feedback.note || ""}
+            submitted={@docs_feedback.submitted}
+            select_event="docs_feedback_select"
+            submit_event="submit_docs_feedback"
+            note_placeholder="What could be improved?"
+          />
+        </div>
+      <% end %>
     </aside>
     """
   end

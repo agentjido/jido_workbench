@@ -1,5 +1,5 @@
 %{
-  description: "Production safety, governance, and incident response for Jido systems.",
+  description: "Production readiness, security, and incident response for Jido systems.",
   title: "Operations",
   category: :docs,
   legacy_paths: [],
@@ -7,15 +7,17 @@
   order: 50
 }
 ---
-# Operations
 
-## What this solves
-Operations pages define launch, security, and incident controls for production systems.
-
-## When to use it
-Use this before go-live and during incident reviews.
+You're shipping to production or already running there. These pages cover what you need before go-live, how to secure your system, and what to do when things go wrong.
 
 ## Operations pages
-- [Production readiness checklist](/docs/operations/production-readiness-checklist)
-- [Security and governance](/docs/operations/security-and-governance)
-- [Incident playbooks](/docs/operations/incident-playbooks)
+
+- [Production readiness checklist](/docs/operations/production-readiness-checklist) - pre-launch verification for supervision trees, config, telemetry, and resource limits
+- [Security and governance](/docs/operations/security-and-governance) - secret management, API key rotation, audit logging, and access controls
+- [Incident playbooks](/docs/operations/incident-playbooks) - step-by-step response procedures for common failure modes
+- [Backup and disaster recovery](/docs/operations/backup-and-disaster-recovery) - data protection, state snapshots, and recovery procedures
+
+## Next steps
+
+- [Reference](/docs/reference) - API details, configuration options, and module specs
+- [Guides](/docs/guides) - hands-on walkthroughs for building with Jido

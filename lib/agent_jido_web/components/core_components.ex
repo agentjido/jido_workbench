@@ -252,10 +252,10 @@ defmodule AgentJidoWeb.CoreComponents do
   end
 
   @doc """
-  Renders a shared helpful/not-helpful feedback prompt.
+  Renders a compact helpful/not-helpful feedback prompt with thumbs up/down icons.
 
-  It uses button selection (not radio inputs) and only reveals
-  the "why" note field when "Not helpful" is selected.
+  Thumbs up auto-submits as "helpful". Thumbs down opens a modal for
+  optional written feedback before submitting.
   """
   attr(:id, :string, required: true)
   attr(:title, :string, default: "Was this helpful?")
@@ -267,9 +267,8 @@ defmodule AgentJidoWeb.CoreComponents do
   attr(:target, :any, default: nil)
   attr(:as, :atom, default: :feedback)
   attr(:form_id, :string, default: nil)
-  attr(:submit_label, :string, default: "Submit feedback")
   attr(:thanks_text, :string, default: "Thanks for the feedback.")
-  attr(:note_placeholder, :string, default: "Why wasn't this helpful?")
+  attr(:note_placeholder, :string, default: "What could be improved?")
   attr(:container_class, :string, default: nil)
 
   def feedback_prompt(assigns) do
@@ -278,68 +277,114 @@ defmodule AgentJidoWeb.CoreComponents do
       |> assign(:form_id, assigns.form_id || "#{assigns.id}-form")
       |> assign(:value, normalize_feedback_value(assigns.value))
       |> assign(:note, assigns.note || "")
+      |> assign(:modal_id, "#{assigns.id}-modal")
 
     ~H"""
-    <div id={@id} class={["rounded-md border border-border bg-background p-3 text-xs", @container_class]}>
-      <p class="mb-2 font-semibold text-foreground">{@title}</p>
-      <.form id={@form_id} for={%{}} as={@as} phx-submit={@submit_event} phx-target={@target} class="space-y-2">
-        <input type="hidden" name={"#{Atom.to_string(@as)}[value]"} value={@value || ""} />
-        <div class="flex flex-wrap items-center gap-2">
+    <div id={@id} class={["text-xs", @container_class]}>
+      <div class="flex items-center gap-3">
+        <span class="text-xs text-muted-foreground">
+          <%= if @submitted do %>
+            {@thanks_text}
+          <% else %>
+            {@title}
+          <% end %>
+        </span>
+        <div class="flex items-center gap-1.5">
           <button
             type="button"
             phx-click={@select_event}
             phx-target={@target}
             phx-value-value="helpful"
+            disabled={@submitted}
+            title="Helpful"
             class={[
-              "rounded-md border px-3 py-1.5 text-xs font-semibold transition",
-              @value == "helpful" && "border-primary bg-primary/15 text-primary",
-              @value != "helpful" && "border-border bg-background text-foreground hover:border-primary/50"
+              "rounded p-1 transition-colors",
+              @value == "helpful" && "text-accent-green",
+              @value != "helpful" && !@submitted && "text-muted-foreground/60 hover:text-foreground",
+              @value != "helpful" && @submitted && "text-muted-foreground/30"
             ]}
           >
-            Helpful
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+              <path d="M1 8.25a1.25 1.25 0 1 1 2.5 0v7.5a1.25 1.25 0 1 1-2.5 0v-7.5ZM5.5 6.854V16.5a.5.5 0 0 0 .404.491l.096.009h5.25a1.75 1.75 0 0 0 1.696-1.32l1.803-7.212a.75.75 0 0 0-.728-.918H10.25a.75.75 0 0 1-.75-.75V3.587a1.337 1.337 0 0 0-2.39-.829L5.5 6.854Z" />
+            </svg>
           </button>
           <button
             type="button"
-            phx-click={@select_event}
-            phx-target={@target}
-            phx-value-value="not_helpful"
+            phx-click={show_modal(@modal_id)}
+            disabled={@submitted}
+            title="Not helpful"
             class={[
-              "rounded-md border px-3 py-1.5 text-xs font-semibold transition",
-              @value == "not_helpful" && "border-primary bg-primary/15 text-primary",
-              @value != "not_helpful" && "border-border bg-background text-foreground hover:border-primary/50"
+              "rounded p-1 transition-colors",
+              @value == "not_helpful" && "text-accent-green",
+              @value != "not_helpful" && !@submitted && "text-muted-foreground/60 hover:text-foreground",
+              @value != "not_helpful" && @submitted && "text-muted-foreground/30"
             ]}
           >
-            Not helpful
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 rotate-180">
+              <path d="M1 8.25a1.25 1.25 0 1 1 2.5 0v7.5a1.25 1.25 0 1 1-2.5 0v-7.5ZM5.5 6.854V16.5a.5.5 0 0 0 .404.491l.096.009h5.25a1.75 1.75 0 0 0 1.696-1.32l1.803-7.212a.75.75 0 0 0-.728-.918H10.25a.75.75 0 0 1-.75-.75V3.587a1.337 1.337 0 0 0-2.39-.829L5.5 6.854Z" />
+            </svg>
           </button>
         </div>
-        <div :if={@value == "not_helpful"} class="space-y-1">
-          <label for={"#{@id}-note"} class="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-            Why was this not helpful?
-          </label>
-          <textarea
-            id={"#{@id}-note"}
-            name={"#{Atom.to_string(@as)}[note]"}
-            rows="2"
-            maxlength="500"
-            placeholder={@note_placeholder}
-            class="w-full resize-y rounded border border-border bg-background px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground"
-          >{@note}</textarea>
-        </div>
-        <div class="flex items-center justify-between gap-2">
-          <button
-            type="submit"
-            disabled={is_nil(@value)}
-            class={[
-              "rounded-md border px-3 py-1.5 text-xs font-semibold transition",
-              is_nil(@value) && "cursor-not-allowed border-border/50 bg-background/60 text-muted-foreground",
-              not is_nil(@value) && "border-border bg-background text-foreground hover:border-primary/50"
-            ]}
+      </div>
+    </div>
+
+    <%!-- Negative feedback modal --%>
+    <div id={@modal_id} phx-remove={hide_modal(@modal_id)} class="relative z-[100] hidden">
+      <div id={"#{@modal_id}-bg"} class="fixed inset-0 bg-background/80 transition-opacity" aria-hidden="true" />
+      <div class="fixed inset-0 overflow-y-auto" role="dialog" aria-modal="true">
+        <div class="flex min-h-full items-center justify-center p-4">
+          <.focus_wrap
+            id={"#{@modal_id}-container"}
+            phx-window-keydown={hide_modal(@modal_id)}
+            phx-key="escape"
+            phx-click-away={hide_modal(@modal_id)}
+            class="relative hidden w-full max-w-sm rounded-lg border border-border bg-card p-6 shadow-lg"
           >
-            {@submit_label}
-          </button>
-          <span :if={@submitted} class="text-accent-green">{@thanks_text}</span>
+            <button
+              type="button"
+              phx-click={hide_modal(@modal_id)}
+              class="absolute top-3 right-3 text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Close"
+            >
+              <.icon name="hero-x-mark-solid" class="w-4 h-4" />
+            </button>
+            <p class="mb-3 text-sm font-semibold text-foreground">What could be improved?</p>
+            <.form
+              id={@form_id}
+              for={%{}}
+              as={@as}
+              phx-submit={JS.push(@submit_event) |> hide_modal(@modal_id)}
+              phx-target={@target}
+              class="space-y-3"
+            >
+              <input type="hidden" name={"#{Atom.to_string(@as)}[value]"} value="not_helpful" />
+              <textarea
+                id={"#{@modal_id}-input"}
+                name={"#{Atom.to_string(@as)}[note]"}
+                rows="3"
+                maxlength="500"
+                placeholder={@note_placeholder}
+                class="w-full resize-y rounded border border-border bg-background px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-0"
+              >{@note}</textarea>
+              <div class="flex justify-end gap-2">
+                <button
+                  type="button"
+                  phx-click={hide_modal(@modal_id)}
+                  class="rounded-md px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  class="rounded-md border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground hover:border-primary/50 transition-colors"
+                >
+                  Submit
+                </button>
+              </div>
+            </.form>
+          </.focus_wrap>
         </div>
-      </.form>
+      </div>
     </div>
     """
   end

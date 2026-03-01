@@ -27,7 +27,7 @@ defmodule AgentJidoWeb.LLMResponsePlugTest do
     assert vary =~ "Accept"
     assert link =~ ~s(</llms.txt>; rel="alternate"; type="text/plain")
     assert body =~ "title: \"Documentation\""
-    assert body =~ "## What this solves"
+    assert body =~ "## Find what you need"
   end
 
   test "legacy docs redirects remain unchanged even with markdown accept header", %{conn: conn} do

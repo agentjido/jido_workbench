@@ -307,44 +307,20 @@ sup = Jido.Supervisor.start_link()
           </div>
 
           <%= if @selected_document do %>
-            <%!-- Content-area footer: edit link, feedback, source link --%>
+            <%!-- Content-area footer: edit link --%>
             <div class="mx-auto w-full max-w-[1040px] px-6 lg:px-10 xl:px-14 pb-10">
               <div class="border-t border-border pt-6">
-                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-[11px] text-muted-foreground mb-6">
-                  <div class="flex items-center gap-4">
-                    <%= if @selected_document.github_url do %>
-                      <a
-                        href={String.replace(@selected_document.github_url, "/blob/", "/edit/")}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="hover:text-foreground transition-colors"
-                      >
-                        Edit this page →
-                      </a>
-                    <% end %>
+                <div class="text-[11px] text-muted-foreground">
+                  <%= if @selected_document.github_url do %>
                     <a
-                      :if={@markdown_action}
-                      href={@markdown_action.url}
+                      href={String.replace(@selected_document.github_url, "/blob/", "/edit/")}
                       target="_blank"
                       rel="noopener noreferrer"
                       class="hover:text-foreground transition-colors"
                     >
-                      {@markdown_action.label} →
+                      Edit this page →
                     </a>
-                  </div>
-                </div>
-                <div class="max-w-md">
-                  <.feedback_prompt
-                    id="docs-page-feedback"
-                    title="Was this page helpful?"
-                    value={@docs_feedback.value}
-                    note={@docs_feedback.note || ""}
-                    submitted={@docs_feedback.submitted}
-                    select_event="docs_feedback_select"
-                    submit_event="submit_docs_feedback"
-                    note_placeholder="What were you trying to learn?"
-                    container_class="rounded-md border border-border bg-card/60 p-4 text-xs"
-                  />
+                  <% end %>
                 </div>
               </div>
             </div>
@@ -353,7 +329,11 @@ sup = Jido.Supervisor.start_link()
         </main>
 
         <%= if @toc && @toc != [] do %>
-          <.docs_right_sidebar toc={@toc} selected_document={@selected_document} />
+          <.docs_right_sidebar
+            toc={@toc}
+            selected_document={@selected_document}
+            docs_feedback={@docs_feedback}
+          />
         <% end %>
         </div>
 

@@ -3,7 +3,7 @@
   description: "The runtime contract for state transitions, command handling, and directives in Jido.",
   category: :docs,
   legacy_paths: ["/docs/agents"],
-  order: 70,
+  order: 80,
   in_menu: true,
   draft: false,
   tags: [:docs, :concepts, :livebook]
@@ -49,16 +49,16 @@ defmodule MyApp.CounterAgent do
   use Jido.Agent,
     name: "counter_agent",
     description: "Tracks command executions",
-    schema: [
-      count: [type: :integer, default: 0],
-      status: [type: :atom, default: :idle]
-    ]
+    schema: Zoi.object(%{
+      count: Zoi.integer() |> Zoi.default(0),
+      status: Zoi.atom() |> Zoi.default(:idle)
+    })
 end
 
 defmodule MyApp.Increment do
   use Jido.Action,
     name: "increment",
-    schema: [by: [type: :integer, default: 1]]
+    schema: Zoi.object(%{by: Zoi.integer() |> Zoi.default(1)})
 
   @impl true
   def run(ctx, params) do
@@ -113,16 +113,16 @@ This example updates agent state and emits a signal directive for the runtime.
 defmodule MyApp.RegistrationAgent do
   use Jido.Agent,
     name: "registration_agent",
-    schema: [
-      processed: [type: :integer, default: 0],
-      last_user_id: [type: :string, required: false]
-    ]
+    schema: Zoi.object(%{
+      processed: Zoi.integer() |> Zoi.default(0),
+      last_user_id: Zoi.string() |> Zoi.optional()
+    })
 end
 
 defmodule MyApp.ProcessRegistration do
   use Jido.Action,
     name: "process_registration",
-    schema: [user_id: [type: :string, required: true]]
+    schema: Zoi.object(%{user_id: Zoi.string()})
 
   alias Jido.Agent.Directive
 
@@ -189,10 +189,9 @@ Key functions you should expect to use most:
 
 For custom strategies, implement `Jido.Agent.Strategy.cmd/3` first, then add `init/2` or `tick/2` only if your runtime model requires them.
 
-## Reference and Next Steps
+## Next steps
 
-- Learn action design in [Actions](/docs/concepts/actions)
-- See event flow patterns in [Signals](/docs/concepts/signals)
-- Understand effect payloads in [Directives](/docs/concepts/directives)
-- Review rollout guardrails in [Production Readiness Checklist](/docs/operations/production-readiness-checklist)
-- Browse API-level details in [Jido package reference](/docs/reference/packages/jido)
+- [Actions](/docs/concepts/actions) - learn how pure functions transform agent state
+- [Directives](/docs/concepts/directives) - understand effect payloads returned by actions
+- [Agent runtime](/docs/concepts/agent-runtime) - run agents under OTP supervision
+- [Strategy](/docs/concepts/strategy) - plug in custom execution models
