@@ -54,6 +54,24 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
       assert html =~ "execute_action.ex"
       assert html =~ "reset_action.ex"
       assert html =~ "address_normalization_agent_live.ex"
+      refute html =~ "file="
+    end
+
+    test "source tab uses clean indexed URL params", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/examples/address-normalization-agent?tab=source")
+
+      view
+      |> element("a", "execute_action.ex")
+      |> render_click()
+
+      patched = assert_patch(view)
+      assert URI.parse(patched).path == "/examples/address-normalization-agent"
+      assert URI.parse(patched).query |> URI.decode_query() == %{"source" => "2", "tab" => "source"}
+
+      html = render(view)
+      assert html =~ "tab=source"
+      assert html =~ "source=2"
+      refute html =~ "file="
     end
 
     test "renders demo tab and validates interaction flow", %{conn: conn} do
@@ -97,22 +115,41 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
     end
   end
 
+  describe "/examples/counter-agent" do
+    test "renders related guides and livebooks", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/counter-agent?tab=explanation")
+
+      assert html =~ "Related guides and notebooks"
+      assert html =~ "/docs/getting-started/first-agent"
+      assert html =~ "/docs/concepts/actions"
+      assert html =~ "/docs/learn/first-workflow"
+      assert html =~ "livebook.dev/run?url="
+    end
+
+    test "tabs patch cleanly for history navigation", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/examples/counter-agent?tab=explanation")
+
+      view
+      |> element("a", "Interactive Demo")
+      |> render_click()
+
+      assert_patch(view, "/examples/counter-agent?tab=demo")
+
+      view
+      |> element("a", "Source Code")
+      |> render_click()
+
+      patched = assert_patch(view)
+      assert URI.parse(patched).path == "/examples/counter-agent"
+      assert URI.parse(patched).query |> URI.decode_query() == %{"source" => "1", "tab" => "source"}
+    end
+  end
+
   describe "/examples/browser-agent" do
-    test "renders simulated demo disclosure and runs deterministic flow", %{conn: conn} do
-      {:ok, view, html} = live(conn, "/examples/browser-agent?tab=demo")
-
-      assert html =~ "Browser Agent"
-      assert html =~ "Simulated demo"
-      assert html =~ "No live LLM, browser, or network calls are executed."
-
-      demo_view = find_live_child(view, "demo-browser-agent")
-
-      html =
-        demo_view
-        |> element("#simulated-showcase-demo-browser-agent button[phx-click='run_demo']")
-        |> render_click()
-
-      assert html =~ "Running…"
+    test "is hidden from public visitors", %{conn: conn} do
+      assert_raise AgentJido.Examples.NotFoundError, fn ->
+        live(conn, "/examples/browser-agent?tab=demo")
+      end
     end
   end
 end

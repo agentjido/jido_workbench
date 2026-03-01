@@ -3,8 +3,6 @@ defmodule AgentJido.Specs.ContentGovernanceContractTest do
 
   @governance_path Path.expand("../../../specs/content-governance.md", __DIR__)
   @specs_readme_path Path.expand("../../../specs/README.md", __DIR__)
-  @community_index_path Path.expand("../../../priv/pages/community/index.md", __DIR__)
-  @adoption_playbooks_path Path.expand("../../../priv/pages/community/adoption-playbooks.md", __DIR__)
 
   test "content governance defines ST-CONT-001 publish DoD hard gate" do
     governance = File.read!(@governance_path)
@@ -37,14 +35,12 @@ defmodule AgentJido.Specs.ContentGovernanceContractTest do
     assert specs_readme =~ "canonical ST-CONT-001 publish hard gate"
   end
 
-  test "published community pages reference ST-CONT-001 as a release gate" do
-    community_index = File.read!(@community_index_path)
-    adoption_playbooks = File.read!(@adoption_playbooks_path)
+  test "governance contract captures publish gate criteria and review evidence" do
+    governance = File.read!(@governance_path)
 
-    assert community_index =~ "ST-CONT-001"
-
-    assert adoption_playbooks =~ "Required proof: ST-CONT-001 checks completed."
-    assert adoption_playbooks =~ "No placeholder markers remain."
-    assert adoption_playbooks =~ "Route/content parity is verified."
+    assert governance =~ "ST-CONT-001"
+    assert governance =~ "Proof alignment requirement."
+    assert governance =~ "Route/content sync requirement."
+    assert governance =~ "Record reviewer sign-off and date"
   end
 end

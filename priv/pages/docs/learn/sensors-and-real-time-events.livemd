@@ -4,7 +4,7 @@
   category: :docs,
   order: 17,
   tags: [:docs, :learn, :sensors, :signals, :livebook],
-  draft: true,
+  draft: false,
   prerequisites: ["/docs/learn/parent-child-agent-hierarchies"]
 } -->
 

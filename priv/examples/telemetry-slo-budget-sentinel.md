@@ -4,6 +4,23 @@
   tags: ["top20", "rank-12", "production", "l1", "ops-governance"],
   category: :production,
   emoji: "PRODUCTION",
+  related_resources: [
+    %{
+      path: "/docs/guides/error-handling-and-recovery",
+      kind: "Guide",
+      description: "Design retries, compensation, and failure boundaries."
+    },
+    %{
+      path: "/docs/operations/production-readiness-checklist",
+      kind: "Operations",
+      description: "Validate production readiness before rollout."
+    },
+    %{
+      path: "/docs/reference/telemetry-and-observability",
+      kind: "Reference",
+      description: "Instrument and monitor agent runtime behavior."
+    }
+  ],
   source_files: [
     "lib/agent_jido/demos/telemetry_slo_budget_sentinel/telemetry_slo_budget_sentinel_agent.ex",
     "lib/agent_jido/demos/telemetry_slo_budget_sentinel/actions/execute_action.ex",

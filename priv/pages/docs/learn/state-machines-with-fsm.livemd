@@ -4,7 +4,7 @@
   category: :docs,
   order: 15,
   tags: [:docs, :learn, :fsm, :strategy, :livebook],
-  draft: true,
+  draft: false,
   prerequisites: ["/docs/learn/plugins-and-composable-agents"]
 } -->
 

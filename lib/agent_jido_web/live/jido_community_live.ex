@@ -1,24 +1,22 @@
 defmodule AgentJidoWeb.JidoCommunityLive do
   @moduledoc """
-  Community hub landing page for onboarding, adoption, and contribution.
+  Standalone community page focused on welcoming contributors into the Jido ecosystem.
   """
-  use AgentJidoWeb, :live_view
 
-  alias AgentJido.Pages
+  use AgentJidoWeb, :live_view
 
   import AgentJidoWeb.Jido.MarketingLayouts
 
   @impl true
   def mount(_params, _session, socket) do
-    hub_page = Pages.get_page_by_path("/community")
-
     {:ok,
      assign(socket,
        page_title: "Jido Community",
-       meta_description: hub_page_description(hub_page),
-       pathways: community_pathways(),
-       engagement_channels: engagement_channels(),
-       contribution_steps: contribution_steps()
+       meta_description: "Build agents with us. Join Discord, collaborate on GitHub, and contribute across the Jido ecosystem.",
+       welcome_actions: welcome_actions(),
+       start_here_steps: start_here_steps(),
+       participation_paths: participation_paths(),
+       collaboration_links: collaboration_links()
      )}
   end
 
@@ -34,128 +32,126 @@ defmodule AgentJidoWeb.JidoCommunityLive do
         <section class="text-center mb-16 animate-fade-in">
           <div class="inline-block px-4 py-2 rounded mb-5 bg-primary/10 border border-primary/30">
             <span class="text-primary text-[11px] font-semibold tracking-widest uppercase">
-              COMMUNITY HUB
+              COMMUNITY
             </span>
           </div>
 
           <h1 class="text-4xl font-bold mb-4 tracking-tight">
-            Build with others, then <span class="text-primary">ship with proof</span>
+            Build agents with us
           </h1>
           <p class="copy-measure-wide mx-auto mb-8 text-lg text-muted-foreground">
-            Use this section to align learning, rollout patterns, and case narratives so your team can move from experiments to repeatable delivery.
+            Whether you're exploring Jido for the first time or already shipping workflows, you're welcome here.
+            Join the conversation, collaborate in public, and grow with the ecosystem.
           </p>
 
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-3xl mx-auto">
-            <div class="feature-card text-center py-4">
-              <div class="text-lg font-bold text-primary">{length(@pathways)}</div>
-              <div class="text-[10px] uppercase tracking-wider text-muted-foreground">guided pathways</div>
-            </div>
-            <div class="feature-card text-center py-4">
-              <div class="text-lg font-bold text-accent-cyan">{length(@engagement_channels)}</div>
-              <div class="text-[10px] uppercase tracking-wider text-muted-foreground">engagement channels</div>
-            </div>
-            <div class="feature-card text-center py-4">
-              <div class="text-lg font-bold text-accent-yellow">{length(@contribution_steps)}</div>
-              <div class="text-[10px] uppercase tracking-wider text-muted-foreground">contribution steps</div>
-            </div>
+          <div class="flex flex-wrap justify-center gap-3">
+            <%= for action <- @welcome_actions do %>
+              <a
+                href={action.href}
+                target={if(action.external?, do: "_blank", else: nil)}
+                rel={if(action.external?, do: "noopener noreferrer", else: nil)}
+                class={action.class}
+              >
+                {action.label}
+              </a>
+            <% end %>
           </div>
         </section>
 
         <section id="community-start-here" class="mb-16 opacity-0" phx-hook="ScrollReveal">
           <div class="flex justify-between items-center mb-6">
-            <span class="text-sm font-bold tracking-wider uppercase">Start here</span>
-            <span class="text-[11px] text-muted-foreground">learn -> adopt -> document</span>
+            <span class="text-sm font-bold tracking-wider uppercase">Start Here</span>
+            <span class="text-[11px] text-muted-foreground">15 minutes to get involved</span>
           </div>
           <div class="grid md:grid-cols-3 gap-4">
-            <%= for pathway <- @pathways do %>
-              <.link navigate={pathway.href} class="feature-card group block h-full">
-                <div class="flex items-start justify-between gap-3 mb-3">
-                  <span class={"text-[10px] px-2 py-1 rounded font-semibold uppercase tracking-wider #{pathway.badge_class}"}>
-                    {pathway.badge}
-                  </span>
-                  <span class="text-[10px] px-2 py-1 rounded border border-border bg-surface text-muted-foreground uppercase tracking-wider">
-                    {pathway.read_time}
-                  </span>
-                </div>
-                <h2 class="font-bold text-[15px] mb-2 group-hover:text-primary transition-colors">
-                  {pathway.title}
-                </h2>
-                <p class="text-muted-foreground text-xs leading-relaxed mb-4">{pathway.description}</p>
-                <div class="text-[11px] text-secondary-foreground">{pathway.focus}</div>
-              </.link>
-            <% end %>
-          </div>
-        </section>
-
-        <section id="community-engage" class="mb-16 opacity-0" phx-hook="ScrollReveal">
-          <div class="flex justify-between items-center mb-6">
-            <span class="text-sm font-bold tracking-wider uppercase">Engage</span>
-            <span class="text-[11px] text-muted-foreground">choose the right channel for intent</span>
-          </div>
-          <div class="grid md:grid-cols-3 gap-4">
-            <%= for channel <- @engagement_channels do %>
-              <article class="feature-card h-full">
-                <h2 class="font-bold text-[15px] mb-2">{channel.title}</h2>
-                <p class="text-muted-foreground text-xs leading-relaxed mb-4">{channel.description}</p>
-                <a
-                  :if={channel.external?}
-                  href={channel.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="inline-block text-xs font-semibold text-primary hover:opacity-80 transition-opacity"
-                >
-                  {channel.cta} ->
-                </a>
-                <.link
-                  :if={not channel.external?}
-                  navigate={channel.href}
-                  class="inline-block text-xs font-semibold text-primary hover:opacity-80 transition-opacity"
-                >
-                  {channel.cta} ->
-                </.link>
-              </article>
-            <% end %>
-          </div>
-        </section>
-
-        <section id="community-contribute" class="mb-16 opacity-0" phx-hook="ScrollReveal">
-          <div class="flex justify-between items-center mb-6">
-            <span class="text-sm font-bold tracking-wider uppercase">Contribute</span>
-            <span class="text-[11px] text-muted-foreground">ship bounded changes with evidence</span>
-          </div>
-          <div class="grid md:grid-cols-3 gap-4">
-            <%= for step <- @contribution_steps do %>
+            <%= for step <- @start_here_steps do %>
               <article class="feature-card h-full">
                 <div class="text-[10px] px-2 py-1 rounded w-fit mb-3 bg-primary/10 border border-primary/30 text-primary font-semibold uppercase tracking-wider">
                   Step {step.number}
                 </div>
                 <h2 class="font-bold text-[15px] mb-2">{step.title}</h2>
-                <p class="text-muted-foreground text-xs leading-relaxed">{step.description}</p>
+                <p class="text-muted-foreground text-xs leading-relaxed mb-4">{step.description}</p>
+                <a
+                  href={step.href}
+                  target={if(step.external?, do: "_blank", else: nil)}
+                  rel={if(step.external?, do: "noopener noreferrer", else: nil)}
+                  class="inline-block text-xs font-semibold text-primary hover:opacity-80 transition-opacity"
+                >
+                  {step.cta}
+                </a>
               </article>
             <% end %>
           </div>
         </section>
 
+        <section id="community-ways" class="mb-16 opacity-0" phx-hook="ScrollReveal">
+          <div class="flex justify-between items-center mb-6">
+            <span class="text-sm font-bold tracking-wider uppercase">Ways To Participate</span>
+            <span class="text-[11px] text-muted-foreground">questions, ideas, and contributions are welcome</span>
+          </div>
+          <div class="feature-card">
+            <ol class="space-y-4">
+              <%= for {path, idx} <- Enum.with_index(@participation_paths, 1) do %>
+                <li class="flex items-start gap-3">
+                  <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 border border-primary/30 text-primary text-[11px] font-semibold shrink-0 mt-0.5">
+                    {idx}
+                  </span>
+                  <div>
+                    <h2 class="font-bold text-[14px] mb-1">{path.title}</h2>
+                    <p class="text-muted-foreground text-xs leading-relaxed">{path.description}</p>
+                  </div>
+                </li>
+              <% end %>
+            </ol>
+          </div>
+        </section>
+
+        <section id="community-github" class="mb-16 opacity-0" phx-hook="ScrollReveal">
+          <div class="cta-glow rounded-lg p-10">
+            <h2 class="text-2xl font-bold mb-3">Work together on GitHub</h2>
+            <p class="text-sm text-secondary-foreground leading-relaxed">
+              We build in public on GitHub across the Agent Jido ecosystem.
+              Pick a package, open an issue, and collaborate with us.
+            </p>
+            <ul class="mt-6 space-y-4">
+              <%= for link <- @collaboration_links do %>
+                <li>
+                  <a
+                    href={link.href}
+                    target={if(link.external?, do: "_blank", else: nil)}
+                    rel={if(link.external?, do: "noopener noreferrer", else: nil)}
+                    class="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:opacity-80 transition-opacity"
+                  >
+                    <.icon name={link.icon} class="h-4 w-4" />
+                    {link.title}
+                    <.icon
+                      :if={link.external?}
+                      name="hero-arrow-top-right-on-square"
+                      class="h-3.5 w-3.5 text-muted-foreground"
+                    />
+                  </a>
+                  <p class="mt-1 ml-6 text-xs text-secondary-foreground">{link.description}</p>
+                </li>
+              <% end %>
+            </ul>
+            <p class="mt-4 text-xs text-secondary-foreground">
+              We're rolling out clear <code>good first issue</code> labels and will aggregate them across repositories.
+            </p>
+          </div>
+        </section>
+
         <section id="community-cta" class="opacity-0" phx-hook="ScrollReveal">
           <div class="cta-glow rounded-lg p-12 text-center">
-            <h2 class="text-2xl font-bold mb-3">Start one path this week</h2>
+            <h2 class="text-2xl font-bold mb-3">Come build with us</h2>
             <p class="copy-measure mx-auto mb-6 text-sm text-secondary-foreground">
-              Pick a role path, complete one proof checkpoint, then capture rollout decisions in an adoption playbook.
+              Join Discord, pick a contribution lane, and ship your first contribution this week.
             </p>
-            <div class="flex flex-wrap justify-center gap-3">
-              <.link
-                navigate="/community/learning-paths"
-                class="bg-primary text-primary-foreground hover:bg-primary/90 text-[13px] font-bold px-7 py-3 rounded transition-colors"
-              >
-                OPEN LEARNING PATHS ->
-              </.link>
-              <.link
-                navigate="/community/adoption-playbooks"
-                class="border border-accent-cyan text-accent-cyan hover:bg-accent-cyan/10 text-[13px] font-medium px-7 py-3 rounded transition-colors"
-              >
-                OPEN ADOPTION PLAYBOOKS
-              </.link>
-            </div>
+            <a
+              href="/discord"
+              class="bg-primary text-primary-foreground hover:bg-primary/90 text-[13px] font-bold px-7 py-3 rounded transition-colors inline-block"
+            >
+              JOIN DISCORD
+            </a>
           </div>
         </section>
       </div>
@@ -163,107 +159,99 @@ defmodule AgentJidoWeb.JidoCommunityLive do
     """
   end
 
-  defp hub_page_description(%{description: description}) when is_binary(description) do
-    description
-  end
-
-  defp hub_page_description(_hub_page) do
-    "Community hub for Jido users: learning paths, adoption playbooks, and case studies."
-  end
-
-  defp community_pathways do
-    Pages.pages_by_category(:community)
-    |> Enum.reject(&(&1.path == "/community"))
-    |> Enum.sort_by(&{&1.order, &1.path})
-    |> Enum.map(fn page ->
-      metadata = pathway_metadata(page.id)
-
-      %{
-        title: page.title,
-        description: page.description,
-        href: page.path,
-        read_time: "#{page.reading_time_minutes} min",
-        badge: metadata.badge,
-        badge_class: metadata.badge_class,
-        focus: metadata.focus
-      }
-    end)
-  end
-
-  defp pathway_metadata("learning-paths") do
-    %{
-      badge: "learn",
-      badge_class: "bg-accent-cyan/10 border border-accent-cyan/30 text-accent-cyan",
-      focus: "Focus: role-based onboarding and checkpoints."
-    }
-  end
-
-  defp pathway_metadata("adoption-playbooks") do
-    %{
-      badge: "adopt",
-      badge_class: "bg-accent-yellow/10 border border-accent-yellow/30 text-accent-yellow",
-      focus: "Focus: bounded rollout, evidence, and review gates."
-    }
-  end
-
-  defp pathway_metadata("case-studies") do
-    %{
-      badge: "prove",
-      badge_class: "bg-accent-green/10 border border-accent-green/30 text-accent-green",
-      focus: "Focus: technical narrative with explicit permission scope."
-    }
-  end
-
-  defp pathway_metadata(_id) do
-    %{
-      badge: "path",
-      badge_class: "bg-primary/10 border border-primary/30 text-primary",
-      focus: "Focus: practical implementation guidance."
-    }
-  end
-
-  defp engagement_channels do
+  defp welcome_actions do
     [
       %{
-        title: "Ask implementation questions",
-        description: "Use Discord for architecture feedback, debugging help, and implementation discussion with maintainers and builders.",
-        cta: "Join Discord",
+        label: "Join Discord",
         href: "/discord",
-        external?: false
+        external?: false,
+        class: "bg-primary text-primary-foreground hover:bg-primary/90 text-[13px] font-bold px-7 py-3 rounded transition-colors"
       },
       %{
-        title: "Report product or docs issues",
-        description: "Open focused issues when you find bugs, stale references, or unclear guidance so fixes can be tracked and shipped.",
-        cta: "Open GitHub Issues",
-        href: "https://github.com/agentjido/agentjido_xyz/issues",
-        external?: true
-      },
-      %{
-        title: "Choose package boundaries",
-        description: "Use the package matrix to align runtime scope, support tier, and dependency choices before expanding adoption.",
-        cta: "View Package Matrix",
-        href: "/ecosystem/matrix",
-        external?: false
+        label: "Collaborate on GitHub",
+        href: "https://github.com/agentjido",
+        external?: true,
+        class: "border border-accent-cyan text-accent-cyan hover:bg-accent-cyan/10 text-[13px] font-medium px-7 py-3 rounded transition-colors"
       }
     ]
   end
 
-  defp contribution_steps do
+  defp start_here_steps do
     [
       %{
         number: 1,
-        title: "Choose one bounded workflow",
-        description: "Start with one path and one proof checkpoint so scope and ownership stay explicit."
+        title: "Join Discord and say hello",
+        description: "Introduce yourself, share what you're building, and ask your first question.",
+        cta: "Open Discord",
+        href: "/discord",
+        external?: false
       },
       %{
         number: 2,
-        title: "Capture evidence and decisions",
-        description: "Record runtime behavior, non-goals, and rollback posture in an adoption playbook before expanding rollout."
+        title: "Pick a getting-started path",
+        description: "Choose a short onboarding path and run one tutorial so you can contribute with confidence.",
+        cta: "Open Getting Started",
+        href: "/docs/getting-started",
+        external?: false
       },
       %{
         number: 3,
-        title: "Contribute improvements upstream",
-        description: "When your pattern is stable, publish a case narrative and open docs or code updates via CONTRIBUTING.md."
+        title: "Open or comment on an issue",
+        description: "Share a bug, docs fix, or idea, then collaborate in the open.",
+        cta: "Open Issues",
+        href: "https://github.com/agentjido/agentjido_xyz/issues",
+        external?: true
+      }
+    ]
+  end
+
+  defp participation_paths do
+    [
+      %{
+        title: "Ask questions in Discord",
+        description: "Get help fast, share progress, and swap ideas."
+      },
+      %{
+        title: "File bugs and docs improvements",
+        description: "Open an issue when something breaks or feels unclear."
+      },
+      %{
+        title: "Test examples and Livebooks",
+        description: "Run examples, test guides, and share what worked."
+      },
+      %{
+        title: "Build ecosystem packages",
+        description: "Create focused integrations and tools that expand the ecosystem."
+      },
+      %{
+        title: "Propose ideas",
+        description: "Bring workflow ideas and use cases to help shape priorities."
+      }
+    ]
+  end
+
+  defp collaboration_links do
+    [
+      %{
+        title: "Agent Jido organization",
+        description: "Explore repositories across the ecosystem.",
+        href: "https://github.com/agentjido",
+        external?: true,
+        icon: "hero-book-open"
+      },
+      %{
+        title: "Browse ecosystem packages",
+        description: "Each package page links to its repository and issue queue.",
+        href: "/ecosystem",
+        external?: false,
+        icon: "hero-command-line"
+      },
+      %{
+        title: "Open an issue",
+        description: "Start with site and docs issues here, then use package issue queues for package-specific work.",
+        href: "https://github.com/agentjido/agentjido_xyz/issues",
+        external?: true,
+        icon: "hero-exclamation-circle-mini"
       }
     ]
   end

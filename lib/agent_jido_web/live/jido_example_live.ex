@@ -5,7 +5,7 @@ defmodule AgentJidoWeb.JidoExampleLive do
   Renders the example's markdown explanation, syntax-highlighted source code,
   and an embedded LiveView running the actual interactive demo.
 
-  Tabs are URL-driven via hash params so the URL changes as users navigate.
+  Tabs are URL-driven via query params so the URL changes as users navigate.
   Source code is syntax-highlighted at compile time via Makeup and embedded
   in the Example struct.
   """
@@ -14,17 +14,19 @@ defmodule AgentJidoWeb.JidoExampleLive do
   import AgentJidoWeb.Jido.MarketingLayouts
 
   alias AgentJido.Examples
+  alias AgentJido.Pages
 
   @valid_tabs ~w(demo explanation source)
 
   @impl true
-  def mount(_params, _session, socket) do
-    {:ok, socket}
+  def mount(_params, session, socket) do
+    {:ok, assign(socket, :include_drafts, Map.get(session, "examples_include_drafts", false))}
   end
 
   @impl true
   def handle_params(%{"slug" => slug} = params, _uri, socket) do
-    example = Examples.get_example!(slug)
+    include_drafts = socket.assigns.include_drafts
+    example = Examples.get_example!(slug, include_drafts: include_drafts)
 
     demo_module =
       example.live_view_module
@@ -37,18 +39,17 @@ defmodule AgentJidoWeb.JidoExampleLive do
         _ -> :explanation
       end
 
-    active_source =
-      case Map.get(params, "file") do
-        nil -> List.first(example.sources)
-        file -> Enum.find(example.sources, List.first(example.sources), &(&1.path == file))
-      end
+    {active_source, active_source_index} = resolve_active_source(example.sources, Map.get(params, "source"))
 
     {:noreply,
      socket
      |> assign(:example, example)
+     |> assign(:admin_draft_preview?, include_drafts and example.status == :draft)
      |> assign(:demo_module, demo_module)
      |> assign(:active_tab, tab)
      |> assign(:active_source, active_source)
+     |> assign(:active_source_index, active_source_index)
+     |> assign(:related_resources, related_resources_for(example))
      |> assign(:page_title, example.title)
      |> assign(:meta_description, example.description)}
   end
@@ -79,6 +80,12 @@ defmodule AgentJidoWeb.JidoExampleLive do
               {@example.category}
             </span>
             <span
+              :if={@admin_draft_preview?}
+              class="text-[10px] px-2 py-1 rounded font-semibold uppercase tracking-wider bg-accent-yellow/10 border border-accent-yellow/30 text-accent-yellow"
+            >
+              draft preview
+            </span>
+            <span
               :if={@example.demo_mode == :simulated}
               class="text-[10px] px-2 py-1 rounded font-semibold uppercase tracking-wider bg-accent-cyan/10 border border-accent-cyan/30 text-accent-cyan"
             >
@@ -103,21 +110,46 @@ defmodule AgentJidoWeb.JidoExampleLive do
           </div>
         </section>
 
+        <section :if={@related_resources != []} class="mb-8 rounded-lg border border-border bg-card p-4">
+          <h2 class="text-sm font-bold mb-3">Related guides and notebooks</h2>
+          <div class="grid gap-2 sm:grid-cols-2">
+            <%= for resource <- @related_resources do %>
+              <.resource_link resource={resource} />
+            <% end %>
+          </div>
+        </section>
+
         <%!-- Tab navigation --%>
-        <div class="flex gap-1 mb-6 border-b border-border">
-          <.tab_link
-            slug={@example.slug}
-            tab="explanation"
-            active_tab={@active_tab}
-            label="Explanation"
-          />
-          <.tab_link slug={@example.slug} tab="demo" active_tab={@active_tab} label="Interactive Demo" />
-          <.tab_link
-            slug={@example.slug}
-            tab="source"
-            active_tab={@active_tab}
-            label="Source Code"
-          />
+        <div class="mb-8 rounded-lg border border-border bg-card/50 p-2">
+          <div class="grid gap-2 sm:grid-cols-3">
+            <.tab_link
+              slug={@example.slug}
+              tab="explanation"
+              active_tab={@active_tab}
+              label="Explanation"
+              hint="What this example teaches"
+              icon="hero-document-text"
+              source_index={@active_source_index}
+            />
+            <.tab_link
+              slug={@example.slug}
+              tab="demo"
+              active_tab={@active_tab}
+              label="Interactive Demo"
+              hint="Run the agent and inspect state"
+              icon="hero-beaker"
+              source_index={@active_source_index}
+            />
+            <.tab_link
+              slug={@example.slug}
+              tab="source"
+              active_tab={@active_tab}
+              label="Source Code"
+              hint="Read the production implementation"
+              icon="hero-code-bracket"
+              source_index={@active_source_index}
+            />
+          </div>
         </div>
 
         <%!-- Demo tab --%>
@@ -145,10 +177,10 @@ defmodule AgentJidoWeb.JidoExampleLive do
         <div :if={@active_tab == :source} class="mb-10">
           <%!-- Source file selector --%>
           <div :if={length(@example.sources) > 1} class="flex gap-1 mb-4 flex-wrap">
-            <%= for src <- @example.sources do %>
+            <%= for {src, source_index} <- Enum.with_index(@example.sources, 1) do %>
               <.link
-                patch={~p"/examples/#{@example.slug}?tab=source&file=#{src.path}"}
-                class={"text-xs px-3 py-2 rounded transition-colors #{if @active_source && @active_source.path == src.path, do: "bg-primary/10 text-primary border border-primary/30", else: "bg-elevated text-muted-foreground hover:text-foreground border border-border"}"}
+                patch={tab_patch(@example.slug, "source", source_index)}
+                class={"text-xs px-3 py-2 rounded transition-colors #{if @active_source_index == source_index, do: "bg-primary/10 text-primary border border-primary/30", else: "bg-elevated text-muted-foreground hover:text-foreground border border-border"}"}
               >
                 {Path.basename(src.path)}
               </.link>
@@ -189,22 +221,229 @@ defmodule AgentJidoWeb.JidoExampleLive do
   attr :tab, :string, required: true
   attr :active_tab, :atom, required: true
   attr :label, :string, required: true
+  attr :hint, :string, required: true
+  attr :icon, :string, required: true
+  attr :source_index, :integer, default: nil
 
   defp tab_link(assigns) do
     active = assigns.active_tab == String.to_existing_atom(assigns.tab)
-    assigns = assign(assigns, :active, active)
+
+    assigns =
+      assigns
+      |> assign(:active, active)
+      |> assign(:patch_target, tab_patch(assigns.slug, assigns.tab, assigns.source_index))
 
     ~H"""
     <.link
-      patch={~p"/examples/#{@slug}?tab=#{@tab}"}
-      class={"px-4 py-2 text-sm font-semibold transition-colors border-b-2 -mb-px #{if @active, do: "border-primary text-primary", else: "border-transparent text-muted-foreground hover:text-foreground"}"}
+      patch={@patch_target}
+      class={"block rounded-md border px-4 py-3 text-left transition-colors #{if @active, do: "border-primary/40 bg-primary/10 text-primary shadow-sm", else: "border-border text-muted-foreground hover:border-primary/20 hover:text-foreground"}"}
     >
-      {@label}
+      <div class="flex items-center gap-2 text-sm font-semibold">
+        <.icon name={@icon} class="h-4 w-4" />
+        <span>{@label}</span>
+      </div>
+      <p class={"mt-1 text-xs #{if @active, do: "text-primary/80", else: "text-muted-foreground"}"}>
+        {@hint}
+      </p>
     </.link>
     """
   end
 
+  attr :resource, :map, required: true
+
+  defp resource_link(assigns) do
+    ~H"""
+    <%= if @resource.external do %>
+      <a
+        href={@resource.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="block rounded-md border border-border bg-elevated/40 p-3 hover:border-primary/30 hover:bg-primary/5 transition-colors"
+      >
+        <div class="flex items-start gap-3">
+          <.icon name={@resource.icon} class="h-4 w-4 text-primary mt-0.5" />
+          <div class="min-w-0">
+            <div class="text-xs uppercase tracking-wider text-muted-foreground">{@resource.kind}</div>
+            <div class="text-sm font-semibold text-foreground">{@resource.label}</div>
+            <div class="text-xs text-secondary-foreground mt-1">{@resource.description}</div>
+          </div>
+        </div>
+      </a>
+    <% else %>
+      <.link
+        navigate={@resource.href}
+        class="block rounded-md border border-border bg-elevated/40 p-3 hover:border-primary/30 hover:bg-primary/5 transition-colors"
+      >
+        <div class="flex items-start gap-3">
+          <.icon name={@resource.icon} class="h-4 w-4 text-primary mt-0.5" />
+          <div class="min-w-0">
+            <div class="text-xs uppercase tracking-wider text-muted-foreground">{@resource.kind}</div>
+            <div class="text-sm font-semibold text-foreground">{@resource.label}</div>
+            <div class="text-xs text-secondary-foreground mt-1">{@resource.description}</div>
+          </div>
+        </div>
+      </.link>
+    <% end %>
+    """
+  end
+
   # ── Helpers ─────────────────────────────────────────────────
+
+  defp resolve_active_source([], _source_param), do: {nil, nil}
+
+  defp resolve_active_source(sources, source_param) do
+    default = {List.first(sources), 1}
+
+    case source_param do
+      nil ->
+        default
+
+      source ->
+        case Integer.parse(source) do
+          {index, ""} when index > 0 and index <= length(sources) ->
+            {Enum.at(sources, index - 1), index}
+
+          _other ->
+            default
+        end
+    end
+  end
+
+  defp tab_patch(slug, tab, source_index) do
+    params =
+      case {tab, source_index} do
+        {"source", index} when is_integer(index) and index > 0 ->
+          %{"tab" => tab, "source" => Integer.to_string(index)}
+
+        _other ->
+          %{"tab" => tab}
+      end
+
+    ~p"/examples/#{slug}?#{params}"
+  end
+
+  defp related_resources_for(example) do
+    example
+    |> Map.get(:related_resources, [])
+    |> List.wrap()
+    |> Enum.flat_map(&expand_related_resource/1)
+    |> Enum.reject(&is_nil/1)
+  end
+
+  defp expand_related_resource(resource) when is_map(resource) do
+    type = normalize_related_resource_type(resource_value(resource, :type, :docs))
+
+    case type do
+      :docs ->
+        path = resource_value(resource, :path)
+
+        if is_binary(path) and path != "" do
+          kind = resource_value(resource, :kind, "Guide")
+          icon = resource_value(resource, :icon, icon_for_kind(kind))
+          description = resource_value(resource, :description, "")
+          label = resource_value(resource, :label)
+          include_livebook = truthy?(resource_value(resource, :include_livebook, false))
+
+          [
+            docs_resource(path, kind, icon, description, label),
+            maybe_docs_livebook_resource(path, resource, include_livebook)
+          ]
+          |> Enum.reject(&is_nil/1)
+        else
+          []
+        end
+
+      :external ->
+        external_resource(resource)
+    end
+  end
+
+  defp expand_related_resource(_resource), do: []
+
+  defp docs_resource(path, kind, icon, description, label_override) do
+    case Pages.get_page_by_path(path) do
+      nil ->
+        nil
+
+      page ->
+        %{
+          kind: kind,
+          label: label_override || page.title,
+          href: path,
+          description: description,
+          icon: icon,
+          external: false
+        }
+    end
+  end
+
+  defp maybe_docs_livebook_resource(path, resource, true) do
+    case Pages.get_page_by_path(path) do
+      %{title: title, livebook_url: livebook_url} when is_binary(livebook_url) and livebook_url != "" ->
+        %{
+          kind: "Livebook",
+          label: resource_value(resource, :livebook_label, title),
+          href: livebook_url,
+          description:
+            resource_value(
+              resource,
+              :livebook_description,
+              "Run the companion notebook in Livebook"
+            ),
+          icon: resource_value(resource, :livebook_icon, "hero-command-line"),
+          external: true
+        }
+
+      _other ->
+        nil
+    end
+  end
+
+  defp maybe_docs_livebook_resource(_path, _resource, false), do: nil
+
+  defp external_resource(resource) do
+    href = resource_value(resource, :href, resource_value(resource, :url))
+    label = resource_value(resource, :label)
+
+    if is_binary(href) and href != "" and is_binary(label) and label != "" do
+      [
+        %{
+          kind: resource_value(resource, :kind, "External"),
+          label: label,
+          href: href,
+          description: resource_value(resource, :description, "Related external resource"),
+          icon: resource_value(resource, :icon, "hero-link"),
+          external: true
+        }
+      ]
+    else
+      []
+    end
+  end
+
+  defp normalize_related_resource_type(type) when type in [:external, "external"], do: :external
+  defp normalize_related_resource_type(_type), do: :docs
+
+  defp icon_for_kind(kind) when kind in ["Guide", "Tutorial", "Next"], do: "hero-book-open"
+  defp icon_for_kind(kind) when kind in ["Concept", "Reference"], do: "hero-light-bulb"
+  defp icon_for_kind("Operations"), do: "hero-server-stack"
+  defp icon_for_kind(_kind), do: "hero-document-text"
+
+  defp resource_value(resource, key, default \\ nil) do
+    cond do
+      Map.has_key?(resource, key) ->
+        Map.get(resource, key)
+
+      Map.has_key?(resource, Atom.to_string(key)) ->
+        Map.get(resource, Atom.to_string(key))
+
+      true ->
+        default
+    end
+  end
+
+  defp truthy?(value) when value in [true, "true", 1, "1"], do: true
+  defp truthy?(_value), do: false
 
   defp category_class(:core),
     do: "bg-accent-cyan/10 border border-accent-cyan/30 text-accent-cyan"

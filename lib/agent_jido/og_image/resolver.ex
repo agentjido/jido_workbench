@@ -73,9 +73,9 @@ defmodule AgentJido.OGImage.Resolver do
     "/community" => %{
       template: :marketing,
       title: "Jido Community",
-      subtitle: "Learning paths, adoption playbooks, and case studies from teams building with Jido.",
+      subtitle: "Build agents with us. Join Discord, collaborate on GitHub, and contribute across the Jido ecosystem.",
       eyebrow: "COMMUNITY",
-      badges: ["Learning", "Adoption", "Case Studies"]
+      badges: ["Discord", "Contributing", "Ecosystem"]
     },
     "/blog" => %{
       template: :marketing,

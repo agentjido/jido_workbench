@@ -1,6 +1,8 @@
 defmodule AgentJidoWeb.Router do
   use AgentJidoWeb, :router
 
+  alias AgentJido.Accounts
+
   import AgentJidoWeb.UserAuth
   import Phoenix.LiveDashboard.Router
   import PhoenixBlog.Web.Router
@@ -49,8 +51,11 @@ defmodule AgentJidoWeb.Router do
     get "/ecosystem/package-matrix", PageController, :ecosystem_matrix_redirect
     live "/ecosystem/:id", JidoEcosystemPackageLive, :show
     live "/getting-started", JidoGettingStartedLive, :index
-    live "/examples", JidoExamplesLive, :index
-    live "/examples/:slug", JidoExampleLive, :show
+
+    live_session :examples_preview, session: {__MODULE__, :examples_live_session, []} do
+      live "/examples", JidoExamplesLive, :index
+      live "/examples/:slug", JidoExampleLive, :show
+    end
 
     live "/features", JidoFeaturesLive, :index
     get("/discord", PageController, :discord)
@@ -167,5 +172,15 @@ defmodule AgentJidoWeb.Router do
     pipe_through :browser
 
     match :*, "/*path", PageController, :not_found
+  end
+
+  def examples_live_session(conn) do
+    %{
+      "examples_include_drafts" =>
+        case conn.assigns[:current_scope] do
+          %{user: user} -> Accounts.admin?(user)
+          _other -> false
+        end
+    }
   end
 end

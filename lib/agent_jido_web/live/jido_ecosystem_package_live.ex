@@ -282,9 +282,12 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLive do
           "github"
       end
 
+    issue_queue_href = issue_queue_url(pkg.github_url)
+
     []
     |> maybe_push_link("docs", pkg.hexdocs_url)
     |> maybe_push_link("hex", pkg.hex_url)
+    |> maybe_push_link("issues", issue_queue_href)
     |> maybe_push_link(github_label, pkg.github_url)
   end
 
@@ -591,10 +594,41 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLive do
   defp cta_link_class("hex"),
     do: "border-accent-yellow/50 bg-accent-yellow/12 text-accent-yellow hover:bg-accent-yellow/20"
 
+  defp cta_link_class("issues"),
+    do: "border-accent-green/50 bg-accent-green/10 text-accent-green hover:bg-accent-green/20"
+
   defp cta_link_class("github"),
     do: "border-border bg-elevated text-foreground hover:text-primary hover:border-primary/40"
 
   defp cta_link_class(_), do: "border-border bg-elevated text-foreground hover:text-primary"
+
+  defp issue_queue_url(nil), do: nil
+  defp issue_queue_url(""), do: nil
+
+  defp issue_queue_url(github_url) when is_binary(github_url) do
+    trimmed = String.trim(github_url)
+
+    case URI.parse(trimmed) do
+      %URI{scheme: scheme, host: host, path: path}
+      when scheme in ["http", "https"] and host in ["github.com", "www.github.com"] ->
+        path
+        |> to_string()
+        |> String.trim("/")
+        |> String.split("/", trim: true)
+        |> case do
+          [owner, repo | _rest] when owner != "" and repo != "" ->
+            "https://github.com/#{owner}/#{String.trim_trailing(repo, ".git")}/issues"
+
+          _other ->
+            nil
+        end
+
+      _other ->
+        nil
+    end
+  end
+
+  defp issue_queue_url(_github_url), do: nil
 
   defp present?(nil), do: false
   defp present?(""), do: false

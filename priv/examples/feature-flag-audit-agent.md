@@ -4,6 +4,25 @@
   tags: ["top20", "rank-5", "core", "l1", "core-mechanics"],
   category: :core,
   emoji: "CORE",
+  related_resources: [
+    %{
+      path: "/docs/getting-started/first-agent",
+      kind: "Guide",
+      description: "Define typed state and run your first command.",
+      include_livebook: true
+    },
+    %{
+      path: "/docs/concepts/actions",
+      kind: "Concept",
+      description: "Understand action contracts, validation, and composition."
+    },
+    %{
+      path: "/docs/learn/first-workflow",
+      kind: "Next",
+      description: "Chain actions into a multi-step workflow.",
+      include_livebook: true
+    }
+  ],
   source_files: [
     "lib/agent_jido/demos/feature_flag_audit/feature_flag_audit_agent.ex",
     "lib/agent_jido/demos/feature_flag_audit/actions/execute_action.ex",

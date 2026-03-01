@@ -4,7 +4,7 @@
   category: :docs,
   order: 34,
   tags: [:docs, :learn, :ai, :"multi-agent", :skills, :planning, :livebook],
-  draft: true,
+  draft: false,
   prerequisites: ["/docs/learn/memory-and-retrieval-augmented-agents"]
 } -->
 

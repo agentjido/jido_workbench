@@ -4,12 +4,29 @@
   tags: ["primary", "showcase", "simulated", "production", "l1", "ops-governance", "incident"],
   category: :production,
   emoji: "🚨",
+  related_resources: [
+    %{
+      path: "/docs/guides/error-handling-and-recovery",
+      kind: "Guide",
+      description: "Design retries, compensation, and failure boundaries."
+    },
+    %{
+      path: "/docs/operations/production-readiness-checklist",
+      kind: "Operations",
+      description: "Validate production readiness before rollout."
+    },
+    %{
+      path: "/docs/reference/telemetry-and-observability",
+      kind: "Reference",
+      description: "Instrument and monitor agent runtime behavior."
+    }
+  ],
   source_files: [
     "lib/agent_jido_web/examples/simulated_showcase_live.ex"
   ],
   live_view_module: "AgentJidoWeb.Examples.SimulatedShowcaseLive",
   difficulty: :beginner,
-  status: :live,
+  status: :draft,
   scenario_cluster: :ops_governance,
   wave: :l1,
   journey_stage: :operationalization,

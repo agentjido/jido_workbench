@@ -3,6 +3,8 @@ defmodule AgentJidoWeb.UserLive.Login do
 
   alias AgentJido.Accounts
 
+  @dev_routes_enabled Application.compile_env(:agent_jido, :dev_routes, false)
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -26,6 +28,18 @@ defmodule AgentJidoWeb.UserLive.Login do
           <p>You are running the local mail adapter.</p>
           <p>
             To see sent emails, visit <.link href="/dev/mailbox" class="underline">the mailbox page</.link>.
+          </p>
+        </div>
+      </div>
+
+      <div :if={@show_dev_bootstrap_help} class="alert alert-outline">
+        <.icon name="hero-wrench-screwdriver" class="size-6 shrink-0" />
+        <div class="space-y-2">
+          <p>Signup is disabled. Bootstrap a dev account with seeds:</p>
+          <pre class="overflow-x-auto rounded bg-base-200 p-2 text-xs"><code>ADMIN_EMAIL=you@example.com ADMIN_PASSWORD='at-least-12-chars' mix run priv/repo/seeds.exs</code></pre>
+          <p :if={@show_mailbox_hint}>
+            <code>ADMIN_PASSWORD</code>
+            is optional. Without it, request a magic link here and open <.link href="/dev/mailbox" class="underline">/dev/mailbox</.link>.
           </p>
         </div>
       </div>
@@ -94,7 +108,13 @@ defmodule AgentJidoWeb.UserLive.Login do
 
     form = to_form(%{"email" => email}, as: "user")
 
-    {:ok, assign(socket, form: form, trigger_submit: false)}
+    {:ok,
+     assign(socket,
+       form: form,
+       trigger_submit: false,
+       show_dev_bootstrap_help: dev_bootstrap_help?(),
+       show_mailbox_hint: local_mail_adapter?()
+     )}
   end
 
   @impl true
@@ -122,4 +142,6 @@ defmodule AgentJidoWeb.UserLive.Login do
   defp local_mail_adapter? do
     Application.get_env(:agent_jido, AgentJido.Mailer)[:adapter] == Swoosh.Adapters.Local
   end
+
+  defp dev_bootstrap_help?, do: @dev_routes_enabled
 end

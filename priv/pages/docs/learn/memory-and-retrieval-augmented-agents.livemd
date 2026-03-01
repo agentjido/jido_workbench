@@ -4,7 +4,7 @@
   category: :docs,
   order: 33,
   tags: [:docs, :learn, :ai, :memory, :retrieval, :rag, :livebook],
-  draft: true,
+  draft: false,
   prerequisites: ["/docs/learn/task-planning-and-execution"]
 } -->
 

@@ -4,12 +4,31 @@
   tags: ["primary", "showcase", "simulated", "core", "l1", "coordination", "workflow"],
   category: :core,
   emoji: "🔄",
+  related_resources: [
+    %{
+      path: "/docs/getting-started/first-agent",
+      kind: "Guide",
+      description: "Define typed state and run your first command.",
+      include_livebook: true
+    },
+    %{
+      path: "/docs/concepts/actions",
+      kind: "Concept",
+      description: "Understand action contracts, validation, and composition."
+    },
+    %{
+      path: "/docs/learn/first-workflow",
+      kind: "Next",
+      description: "Chain actions into a multi-step workflow.",
+      include_livebook: true
+    }
+  ],
   source_files: [
     "lib/agent_jido_web/examples/simulated_showcase_live.ex"
   ],
   live_view_module: "AgentJidoWeb.Examples.SimulatedShowcaseLive",
   difficulty: :beginner,
-  status: :live,
+  status: :draft,
   scenario_cluster: :coordination,
   wave: :l1,
   journey_stage: :activation,

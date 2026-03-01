@@ -386,32 +386,28 @@ defmodule AgentJidoWeb.PageLiveTest do
     test "renders /community community hub route", %{conn: conn} do
       {:ok, _view, html} = live(conn, "/community")
 
-      assert html =~ "COMMUNITY HUB"
-      assert html =~ "Build with others, then"
-      assert html =~ "Learning Paths"
-      assert html =~ "Adoption Playbooks"
-      assert html =~ "Case Studies"
+      assert html =~ "COMMUNITY"
+      assert html =~ "Build agents with us"
+      assert html =~ "Ways To Participate"
       assert html =~ "Join Discord"
-      assert html =~ "Open GitHub Issues"
+      assert html =~ "Collaborate on GitHub"
+      assert html =~ "Work together on GitHub"
     end
 
-    test "smoke routes for all four community pages", %{conn: conn} do
-      target_pages = [
-        {"/community", "Community is where implementation experience gets turned into reusable playbooks."},
-        {"/community/learning-paths", "Learning paths reduce random exploration by pairing one objective with one proof checkpoint."},
-        {"/community/adoption-playbooks", "Adoption playbooks are decision records, not slide decks."},
-        {"/community/case-studies", "Each case study in this page has explicit publication permission for this repository."}
+    test "community subpages are no longer routable", %{conn: conn} do
+      retired_paths = [
+        "/community/learning-paths",
+        "/community/adoption-playbooks",
+        "/community/case-studies"
       ]
 
-      Enum.each(target_pages, fn {path, expected_copy} ->
-        page = Pages.get_page_by_path(path)
-        assert page != nil
+      Enum.each(retired_paths, fn path ->
+        html =
+          conn
+          |> get(path)
+          |> html_response(404)
 
-        {:ok, _view, html} = live(conn, Pages.route_for(page))
-
-        assert html =~ expected_copy
-        assert html =~ "Get Building"
-        refute html =~ "Content coming soon."
+        assert html =~ "Page not found"
       end)
     end
   end

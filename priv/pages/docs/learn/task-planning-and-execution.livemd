@@ -4,7 +4,7 @@
   category: :docs,
   order: 32,
   tags: [:docs, :learn, :ai, :planning, :tasks, :memory, :livebook],
-  draft: true,
+  draft: false,
   prerequisites: ["/docs/learn/ai-agent-with-tools"]
 } -->
 

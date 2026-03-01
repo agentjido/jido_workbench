@@ -534,48 +534,18 @@ defmodule AgentJido.PagesTest do
   end
 
   describe "community content quality" do
-    test "community pages are published and routable" do
-      target_pages = [
-        {"/community", "/community/community"},
-        {"/community/learning-paths", "/community/learning-paths"},
-        {"/community/adoption-playbooks", "/community/adoption-playbooks"},
-        {"/community/case-studies", "/community/case-studies"}
+    test "community subpages are retired from the pages system" do
+      assert Pages.pages_by_category(:community) == []
+
+      retired_paths = [
+        "/community",
+        "/community/learning-paths",
+        "/community/adoption-playbooks",
+        "/community/case-studies"
       ]
 
-      Enum.each(target_pages, fn {path, expected_route} ->
-        page = Pages.get_page_by_path(path)
-
-        assert page != nil
-        assert page.category == :community
-        assert page.draft == false
-        assert Pages.route_for(page) == expected_route
-      end)
-    end
-
-    test "community source files do not contain placeholder markers" do
-      community_files = [
-        Path.expand("../../priv/pages/community/index.md", __DIR__),
-        Path.expand("../../priv/pages/community/learning-paths.md", __DIR__),
-        Path.expand("../../priv/pages/community/adoption-playbooks.md", __DIR__),
-        Path.expand("../../priv/pages/community/case-studies.md", __DIR__)
-      ]
-
-      placeholder_patterns = [
-        ~r/content coming soon/i,
-        ~r/\bcoming soon\b/i,
-        ~r/\bTODO\b/,
-        ~r/\bTBD\b/,
-        ~r/lorem ipsum/i
-      ]
-
-      Enum.each(community_files, fn file ->
-        body = File.read!(file)
-
-        assert body =~ "draft: false"
-
-        Enum.each(placeholder_patterns, fn pattern ->
-          refute body =~ pattern
-        end)
+      Enum.each(retired_paths, fn path ->
+        assert Pages.get_page_by_path(path) == nil
       end)
     end
   end

@@ -24,6 +24,22 @@ mix phx.server
 
 Open http://localhost:4000.
 
+## Development Auth
+
+Self-service signup is intentionally disabled.
+
+Bootstrap a local admin account:
+
+```bash
+ADMIN_EMAIL=you@example.com ADMIN_PASSWORD='at-least-12-chars' mix run priv/repo/seeds.exs
+```
+
+Notes:
+
+- `ADMIN_PASSWORD` is optional. If omitted, log in via magic link.
+- With the local mail adapter, open http://localhost:4000/dev/mailbox to get login links.
+- `mix setup` already runs seeds, so rerun the seed command any time you want to update/bootstrap your dev account.
+
 ## Common Commands
 
 ```bash

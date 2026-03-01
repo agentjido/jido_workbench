@@ -4,7 +4,7 @@
   category: :docs,
   order: 30,
   tags: [:docs, :learn, :ai, :tools, :react, :livebook],
-  draft: true,
+  draft: false,
   prerequisites: ["/docs/getting-started/first-llm-agent"]
 } -->
 

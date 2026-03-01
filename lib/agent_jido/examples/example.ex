@@ -31,6 +31,9 @@ defmodule AgentJido.Examples.Example do
               source_files:
                 Zoi.any(description: "Explicit list of repo-relative source file paths to showcase")
                 |> Zoi.default([]),
+              related_resources:
+                Zoi.any(description: "Optional list of related resource descriptors (docs paths, companion livebooks, or external links)")
+                |> Zoi.default([]),
               sources:
                 Zoi.any(description: "Compile-time embedded source code: list of %{path, content, highlighted}")
                 |> Zoi.default([]),

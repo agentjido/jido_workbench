@@ -4,12 +4,31 @@
   tags: ["primary", "showcase", "simulated", "ai", "l1", "ai-tool-use", "research"],
   category: :ai,
   emoji: "🔬",
+  related_resources: [
+    %{
+      path: "/docs/getting-started/first-llm-agent",
+      kind: "Guide",
+      description: "Set up your first LLM-powered agent."
+    },
+    %{
+      path: "/docs/learn/ai-agent-with-tools",
+      kind: "Tutorial",
+      description: "Build a tool-using AI agent loop.",
+      include_livebook: true
+    },
+    %{
+      path: "/docs/learn/reasoning-strategies-compared",
+      kind: "Concept",
+      description: "Compare strategy tradeoffs for AI decision loops.",
+      include_livebook: true
+    }
+  ],
   source_files: [
     "lib/agent_jido_web/examples/simulated_showcase_live.ex"
   ],
   live_view_module: "AgentJidoWeb.Examples.SimulatedShowcaseLive",
   difficulty: :beginner,
-  status: :live,
+  status: :draft,
   scenario_cluster: :ai_tool_use,
   wave: :l1,
   journey_stage: :evaluation,

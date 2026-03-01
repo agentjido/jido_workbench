@@ -1,13 +1,15 @@
 defmodule AgentJidoWeb.JidoExamplesLiveTest do
   use AgentJidoWeb.ConnCase, async: true
 
+  import AgentJido.AccountsFixtures
   import Phoenix.LiveViewTest
 
   alias AgentJido.Examples
 
   @hidden_slug "budget-guardrail-agent"
-  @visible_slug "workflow-coordinator"
-  @ai_slug "browser-agent"
+  @visible_slug "counter-agent"
+  @secondary_visible_slug "demand-tracker-agent"
+  @draft_slug "browser-agent"
 
   test "draft examples are not listed on /examples", %{conn: conn} do
     hidden = Examples.get_example!(@hidden_slug, include_unpublished: true)
@@ -22,21 +24,40 @@ defmodule AgentJidoWeb.JidoExamplesLiveTest do
     end
   end
 
-  test "taxonomy filters narrow the examples index", %{conn: conn} do
-    {:ok, _view, html} = live(conn, "/examples?scenario=coordination")
+  test "examples index is simplified without browse filters", %{conn: conn} do
+    {:ok, _view, html} = live(conn, "/examples")
 
-    assert html =~ "Workflow Coordinator"
+    refute html =~ "Browse by Taxonomy"
+    refute html =~ "Wave"
+    assert html =~ "Counter Agent"
+    assert html =~ "Demand Tracker Agent"
     refute html =~ "Browser Agent"
   end
 
-  test "simulated live examples are listed with a simulated badge", %{conn: conn} do
+  test "selected live examples are listed", %{conn: conn} do
     visible = Examples.get_example!(@visible_slug)
-    simulated = Examples.get_example!(@ai_slug)
+    secondary_visible = Examples.get_example!(@secondary_visible_slug)
     {:ok, _view, html} = live(conn, "/examples")
 
     assert html =~ visible.title
-    assert html =~ simulated.title
-    assert html =~ "simulated"
+    assert html =~ secondary_visible.title
+    refute html =~ "Browser Agent"
+  end
+
+  test "admin users can see draft examples on /examples", %{conn: conn} do
+    draft = Examples.get_example!(@draft_slug, include_unpublished: true)
+    admin_conn = log_in_user(conn, admin_user_fixture())
+    {:ok, _view, html} = live(admin_conn, "/examples")
+
+    assert html =~ draft.title
+  end
+
+  test "admin users can open draft example routes", %{conn: conn} do
+    admin_conn = log_in_user(conn, admin_user_fixture())
+    {:ok, _view, html} = live(admin_conn, "/examples/#{@draft_slug}?tab=demo")
+
+    assert html =~ "Browser Agent"
+    assert html =~ "draft preview"
   end
 
   test "examples content container matches primary nav width", %{conn: conn} do

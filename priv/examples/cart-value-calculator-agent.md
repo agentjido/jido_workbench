@@ -4,6 +4,25 @@
   tags: ["top20", "rank-4", "core", "l1", "core-mechanics"],
   category: :core,
   emoji: "CORE",
+  related_resources: [
+    %{
+      path: "/docs/getting-started/first-agent",
+      kind: "Guide",
+      description: "Define typed state and run your first command.",
+      include_livebook: true
+    },
+    %{
+      path: "/docs/concepts/actions",
+      kind: "Concept",
+      description: "Understand action contracts, validation, and composition."
+    },
+    %{
+      path: "/docs/learn/first-workflow",
+      kind: "Next",
+      description: "Chain actions into a multi-step workflow.",
+      include_livebook: true
+    }
+  ],
   source_files: [
     "lib/agent_jido/demos/cart_value_calculator/cart_value_calculator_agent.ex",
     "lib/agent_jido/demos/cart_value_calculator/actions/execute_action.ex",

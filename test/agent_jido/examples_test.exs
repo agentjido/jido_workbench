@@ -4,7 +4,7 @@ defmodule AgentJido.ExamplesTest do
   alias AgentJido.Examples
 
   @hidden_slug "budget-guardrail-agent"
-  @simulated_slug "browser-agent"
+  @live_slug "counter-agent"
 
   test "draft examples are hidden from default lookups" do
     assert is_nil(Examples.get_example(@hidden_slug))
@@ -23,22 +23,28 @@ defmodule AgentJido.ExamplesTest do
   end
 
   test "taxonomy filters can narrow visible examples" do
-    filtered =
-      Examples.all_examples(
-        scenario_cluster: :coordination,
-        capability_theme: :coordination_orchestration
-      )
+    filtered = Examples.all_examples(category: :core)
 
-    assert Enum.any?(filtered, &(&1.slug == "workflow-coordinator"))
-    refute Enum.any?(filtered, &(&1.slug == @simulated_slug))
+    assert Enum.any?(filtered, &(&1.slug == "counter-agent"))
+    assert Enum.any?(filtered, &(&1.slug == "demand-tracker-agent"))
+    assert Enum.any?(filtered, &(&1.slug == "address-normalization-agent"))
+    refute Enum.any?(filtered, &(&1.slug == @hidden_slug))
   end
 
-  test "simulated showcase examples are visible and tagged with simulated demo mode" do
-    example = Examples.get_example!(@simulated_slug)
+  test "selected live examples remain visible by default" do
+    example = Examples.get_example!(@live_slug)
 
     assert example.status == :live
-    assert example.demo_mode == :simulated
-    assert example.scenario_cluster == :ai_tool_use
-    assert example.capability_theme == :ai_intelligence
+    assert example.demo_mode == :real
+  end
+
+  test "examples expose related resources metadata from frontmatter" do
+    example = Examples.get_example!(@live_slug)
+
+    assert is_list(example.related_resources)
+
+    assert Enum.any?(example.related_resources, fn resource ->
+             Map.get(resource, :path) == "/docs/getting-started/first-agent"
+           end)
   end
 end

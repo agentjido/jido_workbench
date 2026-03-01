@@ -4,6 +4,25 @@
   tags: ["top20", "rank-17", "ai", "l2", "ai-tool-use"],
   category: :ai,
   emoji: "AI",
+  related_resources: [
+    %{
+      path: "/docs/getting-started/first-llm-agent",
+      kind: "Guide",
+      description: "Set up your first LLM-powered agent."
+    },
+    %{
+      path: "/docs/learn/ai-agent-with-tools",
+      kind: "Tutorial",
+      description: "Build a tool-using AI agent loop.",
+      include_livebook: true
+    },
+    %{
+      path: "/docs/learn/reasoning-strategies-compared",
+      kind: "Concept",
+      description: "Compare strategy tradeoffs for AI decision loops.",
+      include_livebook: true
+    }
+  ],
   source_files: [
     "lib/agent_jido/demos/incident_timeline_narrator/incident_timeline_narrator_agent.ex",
     "lib/agent_jido/demos/incident_timeline_narrator/actions/execute_action.ex",

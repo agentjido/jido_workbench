@@ -4,6 +4,25 @@
   tags: ["top20", "rank-7", "ai", "l1", "liveview-product"],
   category: :ai,
   emoji: "AI",
+  related_resources: [
+    %{
+      path: "/docs/getting-started/first-llm-agent",
+      kind: "Guide",
+      description: "Set up your first LLM-powered agent."
+    },
+    %{
+      path: "/docs/learn/ai-agent-with-tools",
+      kind: "Tutorial",
+      description: "Build a tool-using AI agent loop.",
+      include_livebook: true
+    },
+    %{
+      path: "/docs/learn/reasoning-strategies-compared",
+      kind: "Concept",
+      description: "Compare strategy tradeoffs for AI decision loops.",
+      include_livebook: true
+    }
+  ],
   source_files: [
     "lib/agent_jido/demos/meeting_prep_briefing_console/meeting_prep_briefing_console_agent.ex",
     "lib/agent_jido/demos/meeting_prep_briefing_console/actions/execute_action.ex",

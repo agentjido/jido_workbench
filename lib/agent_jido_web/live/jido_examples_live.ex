@@ -1,10 +1,8 @@
 defmodule AgentJidoWeb.JidoExamplesLive do
   @moduledoc """
   Examples index page, driven by NimblePublisher content from priv/examples/.
-
-  Supports URL-based taxonomy filtering for category, scenario cluster,
-  capability theme, and rollout wave.
   """
+
   use AgentJidoWeb, :live_view
 
   import AgentJidoWeb.Jido.MarketingLayouts
@@ -14,7 +12,9 @@ defmodule AgentJidoWeb.JidoExamplesLive do
   @category_order [:core, :ai, :production]
 
   @impl true
-  def mount(_params, _session, socket) do
+  def mount(_params, session, socket) do
+    include_drafts = Map.get(session, "examples_include_drafts", false)
+
     {:ok,
      socket
      |> assign(:page_title, "Jido Examples")
@@ -22,25 +22,17 @@ defmodule AgentJidoWeb.JidoExamplesLive do
        :meta_description,
        "Run practical examples that show how to design, coordinate, and operate agents with Jido."
      )
-     |> assign(:filter_options, filter_options())
-     |> assign(:filters, default_filters())
+     |> assign(:include_drafts, include_drafts)
      |> assign(:examples, [])
      |> assign(:grouped_examples, %{})
      |> assign(:categories_to_render, [])
      |> assign(:match_count, 0)
-     |> apply_filters(default_filters())}
+     |> load_examples()}
   end
 
   @impl true
-  def handle_params(params, _uri, socket) do
-    filters = parse_filters(params)
-    {:noreply, apply_filters(socket, filters)}
-  end
-
-  @impl true
-  def handle_event("update_filters", params, socket) do
-    filters = parse_filters(params)
-    {:noreply, push_patch(socket, to: ~p"/examples?#{query_map(filters)}")}
+  def handle_params(_params, _uri, socket) do
+    {:noreply, load_examples(socket)}
   end
 
   @impl true
@@ -66,59 +58,19 @@ defmodule AgentJidoWeb.JidoExamplesLive do
             Interactive examples with source code, explanation, and live demos.
             AI/browser demos can run in deterministic simulated mode so no external model calls are required.
           </p>
-        </section>
-
-        <%!-- Taxonomy Filters --%>
-        <section class="mb-12 rounded-lg border border-border bg-card p-4 sm:p-5">
-          <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <h2 class="text-lg font-bold">Browse by Taxonomy</h2>
-            <div class="text-xs text-muted-foreground">{@match_count} example(s)</div>
-          </div>
-
-          <form phx-change="update_filters" class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
-            <.filter_select
-              label="Category"
-              name="category"
-              selected={@filters.category}
-              values={@filter_options.categories}
-            />
-            <.filter_select
-              label="Scenario"
-              name="scenario"
-              selected={@filters.scenario_cluster}
-              values={@filter_options.scenario_clusters}
-            />
-            <.filter_select
-              label="Capability Theme"
-              name="theme"
-              selected={@filters.capability_theme}
-              values={@filter_options.capability_themes}
-            />
-            <.filter_select label="Wave" name="wave" selected={@filters.wave} values={@filter_options.waves} />
-          </form>
-
-          <div :if={filters_active?(@filters)} class="mt-3 flex justify-end">
-            <.link
-              patch={~p"/examples"}
-              class="text-xs text-primary hover:opacity-80 transition-opacity font-semibold"
-            >
-              Clear filters
-            </.link>
+          <div :if={@include_drafts} class="mt-4">
+            <span class="text-[10px] px-2 py-0.5 rounded font-semibold uppercase bg-accent-yellow/10 border border-accent-yellow/30 text-accent-yellow">
+              admin preview
+            </span>
           </div>
         </section>
 
         <%!-- Empty state --%>
         <section :if={@examples == []} class="mb-16 rounded-lg border border-border bg-card p-10 text-center">
-          <h2 class="text-xl font-bold mb-2">No examples match these filters</h2>
-          <p class="text-sm text-muted-foreground mb-4">
-            Try clearing one filter or selecting a broader taxonomy slice.
+          <h2 class="text-xl font-bold mb-2">No examples available yet</h2>
+          <p class="text-sm text-muted-foreground">
+            Check back soon for more runnable examples.
           </p>
-          <.link
-            patch={~p"/examples"}
-            class="inline-block bg-primary text-primary-foreground hover:bg-primary/90 text-[13px] font-bold px-5 py-2 rounded transition-colors"
-          >
-            Show all live examples
-          </.link>
         </section>
 
         <%= for category <- @categories_to_render do %>
@@ -156,33 +108,6 @@ defmodule AgentJidoWeb.JidoExamplesLive do
         </section>
       </div>
     </.marketing_layout>
-    """
-  end
-
-  attr :label, :string, required: true
-  attr :name, :string, required: true
-  attr :selected, :atom, default: nil
-  attr :values, :list, required: true
-
-  defp filter_select(assigns) do
-    ~H"""
-    <div class="space-y-1">
-      <label for={@name} class="block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-        {@label}
-      </label>
-      <select
-        id={@name}
-        name={@name}
-        class="h-9 w-full rounded-md border border-border bg-background px-2.5 text-xs text-foreground transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-      >
-        <option value="" selected={is_nil(@selected)}>All</option>
-        <%= for value <- @values do %>
-          <option value={Atom.to_string(value)} selected={@selected == value}>
-            {labelize(value)}
-          </option>
-        <% end %>
-      </select>
-    </div>
     """
   end
 
@@ -227,8 +152,9 @@ defmodule AgentJidoWeb.JidoExamplesLive do
     """
   end
 
-  defp apply_filters(socket, filters) do
-    examples = Examples.all_examples(filter_to_opts(filters))
+  defp load_examples(socket) do
+    opts = if socket.assigns.include_drafts, do: [include_drafts: true], else: []
+    examples = Examples.all_examples(opts)
     grouped_examples = Enum.group_by(examples, & &1.category)
 
     categories_to_render =
@@ -236,78 +162,10 @@ defmodule AgentJidoWeb.JidoExamplesLive do
       |> Enum.filter(&(Map.get(grouped_examples, &1, []) != []))
 
     socket
-    |> assign(:filters, filters)
     |> assign(:examples, examples)
     |> assign(:grouped_examples, grouped_examples)
     |> assign(:categories_to_render, categories_to_render)
     |> assign(:match_count, length(examples))
-  end
-
-  defp filter_options do
-    %{
-      categories: Examples.all_categories(),
-      scenario_clusters: Examples.all_scenario_clusters(),
-      capability_themes: Examples.all_capability_themes(),
-      waves: Examples.all_waves()
-    }
-  end
-
-  defp parse_filters(params) do
-    %{
-      category: parse_enum(params["category"], Examples.all_categories()),
-      scenario_cluster: parse_enum(params["scenario"], Examples.all_scenario_clusters()),
-      capability_theme: parse_enum(params["theme"], Examples.all_capability_themes()),
-      wave: parse_enum(params["wave"], Examples.all_waves())
-    }
-  end
-
-  defp parse_enum(nil, _allowed), do: nil
-  defp parse_enum("", _allowed), do: nil
-
-  defp parse_enum(value, allowed) when is_binary(value) do
-    normalized = value |> String.trim() |> String.downcase()
-    Enum.find(allowed, fn candidate -> Atom.to_string(candidate) == normalized end)
-  end
-
-  defp parse_enum(_value, _allowed), do: nil
-
-  defp filter_to_opts(filters) do
-    filters
-    |> Enum.reject(fn {_key, value} -> is_nil(value) end)
-    |> Enum.into([])
-  end
-
-  defp query_map(filters) do
-    filters
-    |> Enum.reduce(%{}, fn
-      {_key, nil}, acc ->
-        acc
-
-      {:category, value}, acc ->
-        Map.put(acc, "category", Atom.to_string(value))
-
-      {:scenario_cluster, value}, acc ->
-        Map.put(acc, "scenario", Atom.to_string(value))
-
-      {:capability_theme, value}, acc ->
-        Map.put(acc, "theme", Atom.to_string(value))
-
-      {:wave, value}, acc ->
-        Map.put(acc, "wave", Atom.to_string(value))
-    end)
-  end
-
-  defp default_filters do
-    %{
-      category: nil,
-      scenario_cluster: nil,
-      capability_theme: nil,
-      wave: nil
-    }
-  end
-
-  defp filters_active?(filters) do
-    Enum.any?(filters, fn {_key, value} -> not is_nil(value) end)
   end
 
   defp labelize(value) when is_atom(value) do
