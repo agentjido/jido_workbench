@@ -1,0 +1,256 @@
+%{
+  title: "Building a Weather Agent",
+  description: "Build an end-to-end tool-calling agent that fetches weather data from external APIs.",
+  category: :docs,
+  tags: [:docs, :guides, :livebook],
+  order: 174,
+  draft: false
+}
+---
+## Setup
+
+Install the required dependencies and configure your LLM provider. The weather tools use the free National Weather Service API, so no weather API key is needed.
+
+```elixir
+Mix.install([
+  {:jido, "~> 2.0"},
+  {:jido_ai, "~> 0.2"},
+  {:req, "~> 0.5"}
+])
+```
+
+Configure your LLM provider. This example uses Anthropic, but any provider supported by `jido_ai` works.
+
+```elixir
+Application.put_env(:jido_ai, :providers, [
+  anthropic: [api_key: System.fetch_env!("ANTHROPIC_API_KEY")]
+])
+```
+
+Start the default Jido instance. This is idempotent, so calling it multiple times is safe.
+
+```elixir
+{:ok, _} = Jido.start()
+```
+
+## Understanding tool actions
+
+In Jido, tools are Actions. Any module that `use Jido.Action` can be exposed to an LLM as a callable tool. The LLM sees each action's name, description, and schema, then decides when to invoke it.
+
+Jido ships weather tools that wrap the free NWS (National Weather Service) API:
+
+- `Jido.Tools.Weather` - orchestrates a full weather lookup from coordinates
+- `Jido.Tools.Weather.Geocode` - converts location strings to lat/lng via OpenStreetMap Nominatim
+- `Jido.Tools.Weather.Forecast` - detailed period-by-period forecast from NWS
+- `Jido.Tools.Weather.CurrentConditions` - latest conditions from NWS observation stations
+- `Jido.Tools.Weather.HourlyForecast` - hour-by-hour planning data
+
+The weather tools accept `"lat,lng"` coordinate strings, not city names. The geocode tool bridges the gap by converting human-readable locations to coordinates.
+
+## Defining the weather agent
+
+Define an agent module using `use Jido.AI.Agent`. This wires in the ReAct reasoning strategy, which handles the tool-calling loop automatically.
+
+```elixir
+defmodule MyApp.WeatherAgent do
+  use Jido.AI.Agent,
+    name: "weather_agent",
+    description: "Weather assistant with tool access",
+    tools: [
+      Jido.Tools.Weather,
+      Jido.Tools.Weather.Geocode,
+      Jido.Tools.Weather.Forecast,
+      Jido.Tools.Weather.CurrentConditions
+    ],
+    model: :fast,
+    max_iterations: 6,
+    system_prompt: """
+    You are a helpful weather assistant.
+    The weather tools accept "lat,lng" coordinates.
+    Use weather_geocode to convert city names to coordinates first.
+    Then fetch the forecast or current conditions.
+    Be conversational and provide practical advice.
+    """
+end
+```
+
+The key options control agent behavior:
+
+- `tools` - list of `Jido.Action` modules the LLM can call
+- `model: :fast` - uses Claude Haiku for quick responses (alias defined by `jido_ai`)
+- `max_iterations` - caps the number of ReAct reasoning loops before the agent stops
+- `system_prompt` - guides the LLM on how and when to use each tool
+
+## Starting and querying the agent
+
+Start the agent under the default Jido instance, then send it a natural language query.
+
+```elixir
+{:ok, pid} = Jido.start_agent(
+  Jido.default_instance(),
+  MyApp.WeatherAgent
+)
+```
+
+Use `ask_sync/3` for a blocking call that waits for the final answer:
+
+```elixir
+{:ok, answer} = MyApp.WeatherAgent.ask_sync(
+  pid,
+  "What's the weather in Chicago?",
+  timeout: 60_000
+)
+
+IO.puts(answer)
+```
+
+For non-blocking usage, `ask/3` returns a request handle you can await later:
+
+```elixir
+{:ok, request} = MyApp.WeatherAgent.ask(
+  pid,
+  "Do I need an umbrella in Seattle?"
+)
+
+{:ok, answer} = MyApp.WeatherAgent.await(
+  request,
+  timeout: 60_000
+)
+```
+
+## How tool-calling works
+
+The agent uses a ReAct (Reason + Act) loop to decide when tools are needed:
+
+1. Your query is sent to the LLM along with JSON Schema definitions of all available tools
+2. The LLM either responds directly or requests a tool call
+3. Jido executes the corresponding Action's `run/2` with the LLM-provided arguments
+4. The tool result is sent back to the LLM as context
+5. Steps 2-4 repeat until the LLM gives a final answer or `max_iterations` is reached
+
+For a weather query like "What's the weather in Denver?", the loop typically runs two iterations - one to geocode the city name, one to fetch the forecast.
+
+You can inspect how Actions are converted to LLM tool definitions:
+
+```elixir
+tools = Jido.AI.ToolAdapter.from_actions([
+  Jido.Tools.Weather,
+  Jido.Tools.Weather.Geocode
+])
+
+IO.inspect(hd(tools).name)
+IO.inspect(hd(tools).parameter_schema)
+```
+
+`ToolAdapter` reads each Action's name, description, and schema, then builds the JSON Schema that LLM providers require for structured tool calling.
+
+## Writing a custom tool action
+
+Any `Jido.Action` module can serve as a tool. Define a schema with types and descriptions so the LLM knows what arguments to pass.
+
+```elixir
+defmodule MyApp.TemperatureConverter do
+  use Jido.Action,
+    name: "convert_temperature",
+    description: "Convert between Fahrenheit and Celsius",
+    schema: [
+      value: [type: :float, required: true, doc: "Temperature value"],
+      from: [
+        type: {:in, [:fahrenheit, :celsius]},
+        required: true,
+        doc: "Source unit"
+      ],
+      to: [
+        type: {:in, [:fahrenheit, :celsius]},
+        required: true,
+        doc: "Target unit"
+      ]
+    ]
+
+  @impl true
+  def run(%{value: v, from: :fahrenheit, to: :celsius}, _ctx) do
+    {:ok, %{result: Float.round((v - 32) * 5 / 9, 1), unit: "°C"}}
+  end
+
+  def run(%{value: v, from: :celsius, to: :fahrenheit}, _ctx) do
+    {:ok, %{result: Float.round(v * 9 / 5 + 32, 1), unit: "°F"}}
+  end
+
+  def run(%{value: v, from: same, to: same}, _ctx) do
+    unit = if same == :celsius, do: "°C", else: "°F"
+    {:ok, %{result: v, unit: unit}}
+  end
+end
+```
+
+Add it to your agent by including it in the `tools` list alongside the weather tools.
+
+## Adding convenience functions
+
+Wrap common queries as functions on the agent module. This gives callers a typed API instead of raw string prompts.
+
+```elixir
+defmodule MyApp.WeatherAgent do
+  use Jido.AI.Agent,
+    name: "weather_agent",
+    description: "Weather assistant with tool access",
+    tools: [
+      Jido.Tools.Weather,
+      Jido.Tools.Weather.Geocode,
+      Jido.Tools.Weather.Forecast,
+      Jido.Tools.Weather.CurrentConditions,
+      MyApp.TemperatureConverter
+    ],
+    model: :fast,
+    max_iterations: 6,
+    system_prompt: """
+    You are a helpful weather assistant.
+    The weather tools accept "lat,lng" coordinates.
+    Use weather_geocode to convert city names to coordinates first.
+    Then fetch the forecast or current conditions.
+    Be conversational and provide practical advice.
+    """
+
+  def get_forecast(pid, location, opts \\ []) do
+    ask_sync(pid, "What's the forecast for #{location}?",
+      Keyword.put_new(opts, :timeout, 60_000))
+  end
+
+  def need_umbrella?(pid, location, opts \\ []) do
+    ask_sync(pid, "Should I bring an umbrella in #{location} today?",
+      Keyword.put_new(opts, :timeout, 60_000))
+  end
+end
+```
+
+These functions delegate to `ask_sync/3` internally, so they return the same `{:ok, answer}` or `{:error, reason}` tuples.
+
+## Error handling
+
+`ask_sync/3` returns `{:error, reason}` for provider timeouts, API failures, and max iteration exhaustion. Always pattern match on the result.
+
+```elixir
+case MyApp.WeatherAgent.ask_sync(pid, query, timeout: 60_000) do
+  {:ok, answer} ->
+    IO.puts(answer)
+
+  {:error, reason} ->
+    IO.puts("Failed: #{inspect(reason)}")
+end
+```
+
+Common failure modes include:
+
+- Provider rate limits or network errors from the LLM API
+- Tool execution failures (NWS API downtime, geocoding returning no results)
+- Hitting `max_iterations` without reaching a final answer
+
+The agent state remains intact after errors. You can retry the same query or ask a different question without restarting the agent process.
+
+## Next steps
+
+Now that you have a working tool-calling agent, explore these areas next.
+
+- [Build an AI Chat Agent](/docs/learn/ai-chat-agent) - add multi-turn conversation context
+- [Actions and Workflows](/docs/learn/first-workflow) - learn how Actions compose into multi-step pipelines
+- [Testing Agents and Actions](/docs/guides/testing-agents-and-actions) - write deterministic tests for your agent

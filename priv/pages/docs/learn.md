@@ -1,6 +1,6 @@
 %{
   title: "Learn",
-  description: "Hands-on tutorials from first install to production agent workflows.",
+  description: "Progressive hands-on tutorials from first workflow to multi-agent orchestration.",
   category: :docs,
   order: 25,
   tags: [:docs, :learn],
@@ -8,28 +8,27 @@
 }
 ---
 
-Deeper dives into specific Jido primitives and hands-on project tutorials. If you haven't completed the [Getting Started](/docs/getting-started) onboarding path yet, start there first.
+Hands-on tutorials that progressively build your understanding of Jido, from composing simple workflows to orchestrating multi-agent AI systems. Complete [Getting Started](/docs/getting-started) before diving in.
 
-## Training modules
+## Jido core mastery
 
-Deeper dives into specific Jido primitives. Read them in any order.
+Build increasingly powerful agents using Jido's core primitives.
 
-- [Agent fundamentals](/docs/learn/agent-fundamentals) - mental model for typed state, deterministic transitions, and signal routing
-- [Actions and validation](/docs/learn/actions-validation) - schema validation, composition, and the open validation model
-- [Directives and scheduling](/docs/learn/directives-scheduling) - side-effect isolation, execution timing, and the drain loop
-- [Signals and routing](/docs/learn/signals-routing) - event-driven dispatch, routing tables, and wildcards
-- [Tool use](/docs/learn/tool-use) - integrate external tools and LLM function calling into agent workflows
-- [Why not just a GenServer?](/docs/learn/why-not-just-a-genserver) - the case for separating data from process
+- [Build your first workflow](/docs/learn/first-workflow) - compose actions into a pipeline with shared state
+- [Plugins and composable agents](/docs/learn/plugins-and-composable-agents) - add reusable capabilities to any agent
+- [State machines with FSM](/docs/learn/state-machines-with-fsm) - model stateful workflows with guarded transitions
+- [Parent-child agent hierarchies](/docs/learn/parent-child-agent-hierarchies) - spawn workers, route signals, aggregate results
+- [Sensors and real-time events](/docs/learn/sensors-and-real-time-events) - connect external data sources to agents
 
-## Build guides
+## Jido AI mastery
 
-Hands-on project tutorials that put the pieces together. More guides are coming soon.
+Add LLM reasoning, tools, and multi-agent coordination.
 
-- [Counter agent](/docs/learn/counter-agent) - minimal stateful agent from scratch
-- [Demand tracker agent](/docs/learn/demand-tracker-agent) - real-world data aggregation pattern
-- [AI chat agent](/docs/learn/ai-chat-agent) - conversational agent with streaming responses
-- [Multi-agent workflows](/docs/learn/multi-agent-workflows) - coordinate multiple agents on a shared task
-- [LiveView integration](/docs/learn/liveview-integration) - wire agents into Phoenix LiveView UIs
+- [AI agent with tools](/docs/learn/ai-agent-with-tools) - build a ReAct agent that calls tools iteratively
+- [Reasoning strategies compared](/docs/learn/reasoning-strategies-compared) - CoT, ToT, and Adaptive side-by-side
+- [Task planning and execution](/docs/learn/task-planning-and-execution) - decompose goals into tasks and execute them
+- [Memory and retrieval-augmented agents](/docs/learn/memory-and-retrieval-augmented-agents) - persistent context and RAG patterns
+- [Multi-agent orchestration](/docs/learn/multi-agent-orchestration) - coordinate specialized AI sub-agents
 
 ## Next steps
 

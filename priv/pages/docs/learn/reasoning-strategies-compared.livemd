@@ -1,0 +1,233 @@
+<!-- %{
+  title: "Reasoning strategies compared",
+  description: "Solve the same problem with Chain-of-Thought, Tree-of-Thoughts, and Adaptive strategies.",
+  category: :docs,
+  order: 31,
+  tags: [:docs, :learn, :ai, :strategies, :cot, :tot, :adaptive, :livebook],
+  draft: true,
+  prerequisites: ["/docs/learn/ai-agent-with-tools"]
+} -->
+
+## Prerequisites
+
+Complete [Your first LLM agent](/docs/getting-started/first-llm-agent) and [AI agent with tools](/docs/learn/ai-agent-with-tools) before starting. You need an OpenAI API key configured.
+
+## Setup
+
+```elixir
+Mix.install([
+  {:jido, "~> 2.0"},
+  {:jido_ai, github: "agentjido/jido_ai", branch: "main"},
+  {:req_llm, "~> 1.6"}
+])
+```
+
+## Configure credentials
+
+Set your OpenAI API key. In Livebook, add `OPENAI_API_KEY` as a [Livebook Secret](https://livebook.dev/blog/secrets-in-livebook/) prefixed with `LB_`.
+
+```elixir
+openai_key = System.get_env("LB_OPENAI_API_KEY") || System.get_env("OPENAI_API_KEY")
+
+if openai_key do
+  ReqLLM.put_key(:openai_api_key, openai_key)
+  :configured
+else
+  raise "Set OPENAI_API_KEY as a Livebook Secret or environment variable."
+end
+```
+
+## One problem, many strategies
+
+Consider a question an agent might answer: "Should I bike or drive to work today given the weather forecast?" A basic Agent generates a single answer. Jido ships eight Reasoning Strategies that structure how the LLM thinks before answering.
+
+| Strategy | Module suffix | Approach |
+|---|---|---|
+| ReAct | `Agent` | Reason-Act loop with tool calls |
+| Chain-of-Thought (CoT) | `CoTAgent` | Linear step-by-step reasoning |
+| Chain-of-Draft (CoD) | `CoDAgent` | Minimal drafts refined iteratively |
+| Algorithm-of-Thoughts (AoT) | `AoTAgent` | Algorithmic decomposition |
+| Tree-of-Thoughts (ToT) | `ToTAgent` | Branching exploration with scoring |
+| Graph-of-Thoughts (GoT) | `GoTAgent` | DAG of interdependent thoughts |
+| Thinking with Reflection (TRM) | `TRMAgent` | Self-critique and revision |
+| Adaptive | `AdaptiveAgent` | Automatic strategy selection |
+
+This tutorial focuses on CoT, ToT, and Adaptive. Each solves the same weather question differently.
+
+## Chain-of-Thought
+
+CoT forces the LLM to show its work in ordered steps before reaching a conclusion. Define the Agent with `use Jido.AI.CoTAgent` and a system prompt that separates facts from assumptions.
+
+```elixir
+defmodule MyApp.WeatherCoTAgent do
+  use Jido.AI.CoTAgent,
+    name: "weather_cot_agent",
+    description: "Step-by-step weather decision advisor",
+    system_prompt: """
+    You are a weather decision coach.
+    Think step-by-step and clearly separate:
+    1) known facts
+    2) assumptions
+    3) recommendation
+    """
+
+  def weather_decision_sync(pid, question, opts \\ []) do
+    prompt = """
+    Analyze this weather decision with explicit reasoning:
+    #{question}
+    Return: Key factors, Decision logic, Final recommendation
+    """
+
+    think_sync(pid, prompt, opts)
+  end
+end
+```
+
+The `think_sync/3` function is the CoT equivalent of `ask_sync/3`. It returns the full chain of reasoning steps along with the final answer.
+
+Start the Agent and ask the question:
+
+```elixir
+{:ok, cot_pid} = Jido.AgentServer.start_link(agent: MyApp.WeatherCoTAgent)
+
+{:ok, cot_result} = MyApp.WeatherCoTAgent.weather_decision_sync(
+  cot_pid,
+  "Should I bike or drive to work? It's 45°F with 30% chance of rain.",
+  timeout: 60_000
+)
+
+IO.puts(cot_result)
+```
+
+The output walks through each reasoning step sequentially. You get a single chain of logic ending in one recommendation. CoT works well for decisions with a clear linear path from evidence to conclusion.
+
+## Tree-of-Thoughts
+
+ToT explores multiple branches in parallel, scores them, and surfaces the best options. Configure `branching_factor` (how many branches per node), `max_depth`, and `top_k` (how many top results to keep).
+
+```elixir
+defmodule MyApp.WeatherToTAgent do
+  use Jido.AI.ToTAgent,
+    name: "weather_tot_agent",
+    description: "Weather scenario planner using Tree-of-Thoughts",
+    branching_factor: 3,
+    max_depth: 4,
+    top_k: 3,
+    min_depth: 2,
+    max_nodes: 90,
+    max_duration_ms: 25_000
+
+  def weekend_options_sync(pid, location, opts \\ []) do
+    explore_sync(
+      pid,
+      "Create three weather-resilient weekend plans for #{location}.",
+      opts
+    )
+  end
+
+  def format_top_options(result, limit \\ 3) do
+    result
+    |> Jido.AI.Reasoning.TreeOfThoughts.Result.top_candidates(limit)
+    |> Enum.with_index(1)
+    |> Enum.map_join("\n", fn {candidate, idx} ->
+      "#{idx}. #{candidate[:content]} (score: #{candidate[:score]})"
+    end)
+  end
+end
+```
+
+The `explore_sync/3` function builds a tree of possibilities, evaluates each branch, and returns scored candidates. `format_top_options/2` extracts the top-ranked plans.
+
+```elixir
+{:ok, tot_pid} = Jido.AgentServer.start_link(agent: MyApp.WeatherToTAgent)
+
+{:ok, tot_result} = MyApp.WeatherToTAgent.weekend_options_sync(
+  tot_pid,
+  "Portland, OR",
+  timeout: 60_000
+)
+
+IO.puts(MyApp.WeatherToTAgent.format_top_options(tot_result))
+```
+
+Unlike CoT, the output contains multiple scored alternatives. ToT is the right choice when you want the agent to generate and compare several plans rather than commit to one immediately.
+
+## Adaptive
+
+The Adaptive Strategy selects the best reasoning approach automatically based on the query. Configure it with `default_strategy` and the list of `available_strategies`.
+
+```elixir
+defmodule MyApp.WeatherAdaptiveAgent do
+  use Jido.AI.AdaptiveAgent,
+    name: "weather_adaptive_agent",
+    description: "Adaptive weather assistant across all reasoning modes",
+    tools: [
+      Jido.Tools.Weather.Geocode,
+      Jido.Tools.Weather.Forecast,
+      Jido.Tools.Weather.CurrentConditions,
+      Jido.Tools.Weather.LocationToGrid
+    ],
+    default_strategy: :cot,
+    available_strategies: [:cot, :tot, :got, :trm]
+
+  def coach_sync(pid, request, opts \\ []) do
+    ask_sync(pid, "Handle this weather planning request: #{request}", opts)
+  end
+end
+```
+
+The Adaptive Agent analyzes the incoming request and picks the strategy most likely to produce a good result. A simple factual question might use CoT. A planning question with multiple options might trigger ToT.
+
+```elixir
+{:ok, adaptive_pid} = Jido.AgentServer.start_link(agent: MyApp.WeatherAdaptiveAgent)
+
+{:ok, adaptive_result} = MyApp.WeatherAdaptiveAgent.coach_sync(
+  adaptive_pid,
+  "Should I bike or drive to work? It's 45°F with 30% chance of rain.",
+  timeout: 60_000
+)
+
+IO.puts(adaptive_result)
+```
+
+The Adaptive Agent uses `ask_sync/3` rather than a strategy-specific function. It delegates to the selected strategy internally. This is useful when you want a single Agent to handle diverse query types without the caller choosing a strategy.
+
+## Choosing the right strategy
+
+| Strategy | Best for | Tradeoff |
+|---|---|---|
+| CoT | Linear decisions, explanations, debugging | Single path, may miss alternatives |
+| ToT | Planning, creative options, scenario analysis | Higher latency and token cost |
+| GoT | Complex problems with interdependent factors | Most expensive, highest complexity |
+| TRM | High-stakes decisions needing self-review | Extra LLM round-trip for reflection |
+| Adaptive | Mixed workloads, user-facing agents | Adds a classification step |
+| ReAct | Tool-heavy tasks, data retrieval | Requires well-defined Actions |
+| CoD | Fast iteration on drafts | Less thorough than CoT |
+| AoT | Algorithmic or mathematical reasoning | Narrow use case |
+
+Start with CoT for most applications. Move to ToT when you need the agent to compare alternatives. Use Adaptive when the query type varies and you do not want callers to choose.
+
+## Running from the CLI
+
+Each strategy Agent exposes a `cli_adapter/0` callback that returns the matching CLI adapter module. This lets you run any Agent from the command line with `mix jido_ai`.
+
+```elixir
+# In each agent module:
+def cli_adapter, do: Jido.AI.Reasoning.ChainOfThought.CLIAdapter
+def cli_adapter, do: Jido.AI.Reasoning.TreeOfThoughts.CLIAdapter
+def cli_adapter, do: Jido.AI.Reasoning.Adaptive.CLIAdapter
+```
+
+Run an Agent from the terminal:
+
+```sh
+mix jido_ai --agent MyApp.WeatherCoTAgent "Should I bike or drive?"
+```
+
+The CLI adapter formats the strategy-specific output for terminal display. CoT prints numbered steps. ToT prints scored branches. Adaptive prints the selected strategy and its output.
+
+## Next steps
+
+- Compose agents into workflows in [Build your first workflow](/docs/learn/first-workflow).
+- Dive deeper into the strategy concept in the [Reasoning Strategies reference](/docs/reference/concepts/reasoning-strategies).
+- Add multi-turn conversation context in [Build an AI chat agent](/docs/learn/ai-chat-agent).

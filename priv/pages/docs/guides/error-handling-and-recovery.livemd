@@ -1,0 +1,198 @@
+%{
+  title: "Error Handling",
+  description: "Configure error policies, handle failures, and recover gracefully.",
+  category: :docs,
+  tags: [:docs, :guides, :livebook],
+  order: 172,
+  draft: false
+}
+---
+
+## Setup
+
+```elixir
+Mix.install([
+  {:jido, "~> 2.0"}
+])
+
+Jido.start_link(name: MyApp.Jido)
+```
+
+Define a failing action and a simple agent to use throughout this guide.
+
+```elixir
+defmodule MyApp.FailingAction do
+  use Jido.Action,
+    name: "failing_action",
+    description: "An action that always fails",
+    schema: []
+
+  @impl true
+  def run(_params, _context) do
+    {:error, "something went wrong"}
+  end
+end
+```
+
+```elixir
+defmodule MyApp.CounterAgent do
+  use Jido.Agent,
+    name: "counter_agent",
+    schema: [
+      count: [type: :integer, default: 0]
+    ]
+end
+```
+
+## How errors flow
+
+Actions return `{:error, reason}` from their `run/2` callback. The execution strategy catches the error and wraps it into a `%Jido.Agent.Directive.Error{}` struct containing a `Jido.Error` and a context atom like `:instruction`.
+
+The agent struct is never corrupted by a failed action. `cmd/2` returns the original state alongside the error directive in its directives list.
+
+When running inside an `AgentServer`, the server processes each `Error` directive through the configured `error_policy`. The policy decides whether to log, stop, emit a signal, or run custom recovery logic.
+
+## Error directives from actions
+
+When an action returns `{:error, reason}`, the strategy wraps it into a directive.
+
+```elixir
+agent = MyApp.CounterAgent.new()
+{agent, directives} = MyApp.CounterAgent.cmd(agent, MyApp.FailingAction)
+
+IO.inspect(directives, label: "Directives")
+```
+
+The directives list contains a `%Jido.Agent.Directive.Error{error: %Jido.Error{...}, context: :instruction}`. The agent's state remains unchanged.
+
+## Handling errors in cmd/2
+
+Pattern match on the directives list to detect errors before they reach the runtime.
+
+```elixir
+{agent, directives} = MyApp.CounterAgent.cmd(agent, MyApp.FailingAction)
+
+errors =
+  Enum.filter(directives, &match?(%Jido.Agent.Directive.Error{}, &1))
+
+case errors do
+  [] -> IO.puts("All actions succeeded")
+  [%{error: err} | _] -> IO.puts("Failed: #{err.message}")
+end
+```
+
+This gives you full control at the pure-function layer without needing a running `AgentServer`.
+
+## The five error policies
+
+Error policies apply when an agent runs inside `Jido.AgentServer`. You set the policy with the `:error_policy` option on `start_link/1`.
+
+### :log_only (default)
+
+Logs the error and continues processing. The agent stays alive with its state unchanged.
+
+```elixir
+{:ok, pid} =
+  Jido.AgentServer.start_link(
+    jido: MyApp.Jido,
+    agent: MyApp.CounterAgent,
+    error_policy: :log_only
+  )
+```
+
+The server calls `Logger.error("Agent <id> [instruction]: something went wrong")` and moves on to the next queued signal.
+
+### :stop_on_error
+
+Logs the error and stops the agent process. Use this when any failure is unacceptable and the agent should not continue.
+
+```elixir
+{:ok, pid} =
+  Jido.AgentServer.start_link(
+    jido: MyApp.Jido,
+    agent: MyApp.CounterAgent,
+    error_policy: :stop_on_error
+  )
+```
+
+The process exits with reason `{:agent_error, %Jido.Error{}}`. A supervisor can restart it if configured to do so.
+
+### {:max_errors, n}
+
+Counts errors and stops the agent after `n` accumulated failures. Errors below the threshold are logged as warnings.
+
+```elixir
+{:ok, pid} =
+  Jido.AgentServer.start_link(
+    jido: MyApp.Jido,
+    agent: MyApp.CounterAgent,
+    error_policy: {:max_errors, 5}
+  )
+```
+
+Each error increments `state.error_count`. Below the limit, the server logs `"Agent <id> error 3/5: ..."` and continues. At the threshold, the process stops with reason `{:max_errors_exceeded, 5}`.
+
+### {:emit_signal, dispatch_cfg}
+
+Emits a `jido.agent.error` signal via `Jido.Signal.Dispatch` and continues processing. The signal includes the error message, context, and agent ID.
+
+```elixir
+{:ok, pid} =
+  Jido.AgentServer.start_link(
+    jido: MyApp.Jido,
+    agent: MyApp.CounterAgent,
+    error_policy: {:emit_signal, {:pubsub, topic: "agent_errors"}}
+  )
+```
+
+The dispatched signal looks like this:
+
+```elixir
+%Jido.Signal{
+  type: "jido.agent.error",
+  source: "/agent/<id>",
+  data: %{
+    error: "something went wrong",
+    context: :instruction,
+    agent_id: "<id>"
+  }
+}
+```
+
+The dispatch runs in a supervised task so it does not block the agent.
+
+### Custom function
+
+Pass a 2-arity function that receives the `%Jido.Agent.Directive.Error{}` and the server's internal `%Jido.AgentServer.State{}`. Return `{:ok, state}` to continue or `{:stop, reason, state}` to shut down.
+
+```elixir
+custom_handler = fn error_directive, state ->
+  IO.puts("Custom handler: #{error_directive.error.message}")
+  {:ok, state}
+end
+
+{:ok, pid} =
+  Jido.AgentServer.start_link(
+    jido: MyApp.Jido,
+    agent: MyApp.CounterAgent,
+    error_policy: custom_handler
+  )
+```
+
+If your function raises or throws, the error is logged and the agent continues. This prevents a buggy error handler from crashing the agent process.
+
+## Supervision and restarts
+
+Error policies handle expected failures - actions that return `{:error, reason}`. Unexpected crashes - exceptions, bad pattern matches, killed processes - bypass error policies entirely.
+
+`Jido.AgentServer` processes run under a `DynamicSupervisor` with a `:one_for_one` strategy. If the GenServer process crashes, the supervisor restarts it according to its restart configuration.
+
+Keep this distinction clear: use error policies for application-level failures you can anticipate, and rely on supervision for infrastructure-level crashes you cannot.
+
+## Next steps
+
+Now that you know how to handle failures, explore related patterns.
+
+- [Testing agents and actions](/docs/guides/testing-agents-and-actions) - write deterministic tests for error scenarios
+- [Debugging and troubleshooting](/docs/guides/debugging-and-troubleshooting) - diagnose issues in running agents
+- [Agents concept](/docs/concepts/agents) - understand the data-first agent model

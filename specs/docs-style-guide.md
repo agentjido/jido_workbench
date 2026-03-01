@@ -244,6 +244,40 @@ Never use bare URLs in prose. Always use descriptive link text - never "click he
 
 ---
 
+## Learn vs. Guide - content placement
+
+Learn pages and Guide pages serve different readers with different intent. Use this rubric to decide where content belongs.
+
+**Learn** pages are progressive tutorials. They build on prior pages, teach concepts incrementally, and assume the reader is following a learning path. If a reader needs to understand earlier tutorials to follow the page, it belongs in Learn.
+
+**Guide** pages are standalone recipes. The reader arrives with a specific task - "I need to do X" - and can jump in cold without prior context. Guides are pattern-focused, not story-focused.
+
+### What belongs in Learn
+
+Pages that build on the onboarding ladder or teach Jido primitives progressively:
+
+- Agent fundamentals, Actions, Signals, Directives (concept progression)
+- First workflow, first LLM agent (sequential skill-building)
+- Build guides like counter-agent and demand-tracker (project-based learning that layers concepts)
+
+### What belongs in Guides
+
+| Guide | Why it's a Guide, not Learn |
+|-------|----------------------------|
+| Testing agents and actions | Task: "I need to test my agent." Pattern-focused, no progressive story. |
+| Long-running workflows | Task: "My agent needs to survive restarts." Deployment concern. |
+| Retries and failure recovery | Task: "I need resilience." Operational pattern. |
+| Persistence and vector search | Task: "I need to store agent state in a database." Infrastructure. |
+| MCP integration | Task: "I need to connect to MCP servers." Integration recipe. |
+| Troubleshooting playbook | Task: "Something's broken." Diagnostic reference. |
+| Cookbook recipes | Task: "Show me a snippet for X." Copy-paste patterns. |
+
+### The rule of thumb
+
+If a reader needs to understand prior tutorials to follow it, it belongs in **Learn**. If they can jump in cold with just "I need to do X", it's a **Guide**.
+
+---
+
 ## Prose style
 
 - Write to "you", never "users" or "developers" in third person

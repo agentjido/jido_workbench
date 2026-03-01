@@ -1,0 +1,278 @@
+<!-- %{
+  title: "State machines with FSM",
+  description: "Model stateful workflows with defined transitions using the FSM strategy.",
+  category: :docs,
+  order: 15,
+  tags: [:docs, :learn, :fsm, :strategy, :livebook],
+  draft: true,
+  prerequisites: ["/docs/learn/plugins-and-composable-agents"]
+} -->
+
+## Prerequisites
+
+Complete [Plugins and composable agents](/docs/learn/plugins-and-composable-agents) before starting this tutorial. You should be comfortable defining Agents, Actions, and running commands with `cmd/2`.
+
+## Setup
+
+```elixir
+Mix.install([
+  {:jido, "~> 2.0"}
+])
+```
+
+The FSM Strategy uses `RunInstruction` directives internally, which are normally processed by `AgentServer`. In Livebook, define a helper that runs the same loop without a server.
+
+```elixir
+defmodule FSMHelper do
+  alias Jido.Agent.Directive.RunInstruction
+
+  def run_cmd(agent_mod, agent, action) do
+    {agent, directives} = agent_mod.cmd(agent, action)
+    process_directives(agent_mod, agent, directives, [])
+  end
+
+  defp process_directives(_mod, agent, [], acc), do: {agent, acc}
+
+  defp process_directives(mod, agent, [%RunInstruction{} = ri | rest], acc) do
+    instruction = %{ri.instruction | context: Map.put(ri.instruction.context || %{}, :state, agent.state)}
+    payload = instruction |> Jido.Exec.run() |> normalize_result()
+    payload = Map.merge(payload, %{instruction: ri.instruction, meta: ri.meta || %{}})
+    {agent, new_dirs} = mod.cmd(agent, {ri.result_action, payload})
+    process_directives(mod, agent, new_dirs ++ rest, acc)
+  end
+
+  defp process_directives(mod, agent, [other | rest], acc) do
+    process_directives(mod, agent, rest, acc ++ [other])
+  end
+
+  defp normalize_result({:ok, result}), do: %{status: :ok, result: result, effects: []}
+  defp normalize_result({:ok, result, fx}), do: %{status: :ok, result: result, effects: List.wrap(fx)}
+  defp normalize_result({:error, reason}), do: %{status: :error, reason: reason, effects: []}
+end
+```
+
+This helper calls `cmd/2`, then feeds each `RunInstruction` directive through `Jido.Exec.run/1` and routes the result back into the strategy. Non-FSM directives pass through unchanged.
+
+## When state machines fit
+
+State machines work well when your domain has distinct phases with constrained transitions. Order processing moves through checkout, payment, and fulfillment. Approval workflows gate progression on explicit decisions. Onboarding flows require steps in sequence.
+
+Without an FSM, you enforce these rules with conditional logic scattered across Actions. With the FSM Strategy, transitions are declared once and enforced automatically. Invalid transitions are rejected before any Action runs.
+
+## Default FSM agent
+
+Define an Agent with `strategy: Jido.Agent.Strategy.FSM`. Without extra configuration, the Strategy provides default transitions: `idle -> processing -> idle`.
+
+```elixir
+defmodule MyApp.ProcessWorkAction do
+  use Jido.Action,
+    name: "process_work",
+    schema: Zoi.object(%{
+      work_item: Zoi.string()
+    })
+
+  @impl true
+  def run(params, context) do
+    items = Map.get(context.state, :processed_items, [])
+    {:ok, %{processed_items: items ++ [params.work_item], last_item: params.work_item}}
+  end
+end
+```
+
+```elixir
+defmodule MyApp.SimpleFSMAgent do
+  use Jido.Agent,
+    name: "simple_fsm_agent",
+    description: "Basic FSM agent with default transitions",
+    strategy: Jido.Agent.Strategy.FSM,
+    schema: Zoi.object(%{
+      processed_items: Zoi.list(Zoi.string()) |> Zoi.default([]),
+      last_item: Zoi.string() |> Zoi.optional(),
+      counter: Zoi.integer() |> Zoi.default(0)
+    })
+end
+```
+
+Create the Agent and run a command. The FSM transitions `idle -> processing`, runs the Action, then auto-transitions back to `idle`.
+
+```elixir
+alias Jido.Agent.Strategy.FSM
+
+agent = MyApp.SimpleFSMAgent.new()
+snapshot = MyApp.SimpleFSMAgent.strategy_snapshot(agent)
+IO.inspect(snapshot.details.fsm_state, label: "Initial FSM state")
+```
+
+```elixir
+{agent, directives} =
+  FSMHelper.run_cmd(MyApp.SimpleFSMAgent, agent, {MyApp.ProcessWorkAction, %{work_item: "task-1"}})
+
+snapshot = MyApp.SimpleFSMAgent.strategy_snapshot(agent)
+IO.inspect(agent.state.processed_items, label: "Processed items")
+IO.inspect(snapshot.details.fsm_state, label: "FSM state after cmd")
+IO.inspect(snapshot.status, label: "Status")
+```
+
+The FSM state returns to `"idle"` after execution because `auto_transition` defaults to `true`. The Agent processed the Action and merged the result into state.
+
+## Custom transitions
+
+Define an Agent with a custom transition map. This models an order fulfillment pipeline that moves through `ready -> processing -> done | error`.
+
+```elixir
+defmodule MyApp.IncrementCounter do
+  use Jido.Action,
+    name: "increment_counter",
+    schema: Zoi.object(%{
+      amount: Zoi.integer() |> Zoi.default(1)
+    })
+
+  @impl true
+  def run(params, context) do
+    current = Map.get(context.state, :counter, 0)
+    {:ok, %{counter: current + params.amount}}
+  end
+end
+```
+
+```elixir
+defmodule MyApp.CustomTransitionAgent do
+  use Jido.Agent,
+    name: "custom_transition_agent",
+    strategy: {Jido.Agent.Strategy.FSM,
+      initial_state: "ready",
+      transitions: %{
+        "ready" => ["processing"],
+        "processing" => ["ready", "done", "error"],
+        "done" => ["ready"],
+        "error" => ["ready"]
+      }},
+    schema: Zoi.object(%{
+      counter: Zoi.integer() |> Zoi.default(0)
+    })
+end
+```
+
+Run a command on the custom Agent. It transitions `ready -> processing -> ready` (auto-transition returns to the initial state, which is `"ready"`).
+
+```elixir
+agent = MyApp.CustomTransitionAgent.new()
+
+{agent, _directives} =
+  FSMHelper.run_cmd(MyApp.CustomTransitionAgent, agent, {MyApp.IncrementCounter, %{amount: 5}})
+
+snapshot = MyApp.CustomTransitionAgent.strategy_snapshot(agent)
+IO.inspect(snapshot.details.fsm_state, label: "FSM state")
+IO.inspect(agent.state.counter, label: "Counter")
+```
+
+The transition map constrains which states are reachable. If an Agent is in `"done"`, it can only go back to `"ready"`, never directly to `"processing"` from `"done"` without passing through `"ready"` first.
+
+## Controlling auto-transition
+
+Set `auto_transition: false` to keep the Agent in the `"processing"` state after execution. This is useful for multi-step workflows that span multiple `cmd/2` calls.
+
+```elixir
+defmodule MyApp.NoAutoTransitionAgent do
+  use Jido.Agent,
+    name: "no_auto_transition_agent",
+    strategy: {Jido.Agent.Strategy.FSM, auto_transition: false},
+    schema: Zoi.object(%{
+      counter: Zoi.integer() |> Zoi.default(0)
+    })
+end
+```
+
+```elixir
+agent = MyApp.NoAutoTransitionAgent.new()
+
+{agent, _directives} =
+  FSMHelper.run_cmd(MyApp.NoAutoTransitionAgent, agent, {MyApp.IncrementCounter, %{amount: 1}})
+
+snapshot = MyApp.NoAutoTransitionAgent.strategy_snapshot(agent)
+IO.inspect(snapshot.details.fsm_state, label: "FSM state")
+IO.inspect(snapshot.status, label: "Status")
+```
+
+The Agent stays in `"processing"` with status `:running`. With auto-transition enabled, it would have returned to `"idle"`. This gives you explicit control over when the workflow completes.
+
+## Inspecting FSM state
+
+`strategy_snapshot/1` returns a `Jido.Agent.Strategy.Snapshot` struct that exposes FSM internals without leaking implementation details.
+
+```elixir
+agent = MyApp.SimpleFSMAgent.new()
+
+{agent, _directives} =
+  FSMHelper.run_cmd(MyApp.SimpleFSMAgent, agent, {MyApp.ProcessWorkAction, %{work_item: "item-a"}})
+
+snapshot = MyApp.SimpleFSMAgent.strategy_snapshot(agent)
+
+IO.inspect(snapshot.status, label: "status")
+IO.inspect(snapshot.done?, label: "done?")
+IO.inspect(snapshot.result, label: "result")
+IO.inspect(snapshot.details.fsm_state, label: "fsm_state")
+IO.inspect(snapshot.details.processed_count, label: "processed_count")
+IO.inspect(snapshot.details.error, label: "error")
+```
+
+The snapshot maps FSM states to standard status atoms: `"idle"` becomes `:idle`, `"processing"` becomes `:running`, `"completed"` becomes `:success`, and `"failed"` becomes `:failure`. The `done?` field is `true` only for `:success` or `:failure`.
+
+The `details` map contains `fsm_state` (the raw string), `processed_count` (total Actions run in the last batch), and `error` (the last error, if any). The `result` field holds the output of the most recent Action.
+
+## Multiple actions in FSM
+
+Pass a list of Actions to `cmd/2`. The FSM processes them sequentially within a single `idle -> processing -> idle` transition. Each Action increments the `processed_count`.
+
+```elixir
+defmodule MyApp.CompleteTaskAction do
+  use Jido.Action,
+    name: "complete_task",
+    schema: Zoi.object(%{
+      task_id: Zoi.integer()
+    })
+
+  @impl true
+  def run(params, context) do
+    completed = Map.get(context.state, :completed_tasks, [])
+    {:ok, %{completed_tasks: completed ++ [params.task_id]}}
+  end
+end
+```
+
+```elixir
+defmodule MyApp.BatchAgent do
+  use Jido.Agent,
+    name: "batch_agent",
+    strategy: Jido.Agent.Strategy.FSM,
+    schema: Zoi.object(%{
+      counter: Zoi.integer() |> Zoi.default(0),
+      completed_tasks: Zoi.list(Zoi.integer()) |> Zoi.default([])
+    })
+end
+```
+
+```elixir
+agent = MyApp.BatchAgent.new()
+
+{agent, _directives} =
+  FSMHelper.run_cmd(MyApp.BatchAgent, agent, [
+    {MyApp.IncrementCounter, %{amount: 10}},
+    {MyApp.CompleteTaskAction, %{task_id: 1}},
+    {MyApp.CompleteTaskAction, %{task_id: 2}}
+  ])
+
+snapshot = MyApp.BatchAgent.strategy_snapshot(agent)
+IO.inspect(agent.state.counter, label: "Counter")
+IO.inspect(agent.state.completed_tasks, label: "Completed tasks")
+IO.inspect(snapshot.details.processed_count, label: "Processed count")
+IO.inspect(snapshot.details.fsm_state, label: "FSM state")
+```
+
+Three Actions ran in a single FSM batch. The `processed_count` reflects the total. Mixed Action types work because each Action is independent and only reads from `context.state`.
+
+## Next steps
+
+- [Parent-child agent hierarchies](/docs/learn/parent-child-agent-hierarchies) to coordinate multiple FSM agents
+- [Strategy](/docs/concepts/strategy) for the full Strategy contract and comparison of execution models
+- [Agent runtime](/docs/concepts/agent-runtime) to run FSM agents under OTP supervision with automatic `RunInstruction` processing

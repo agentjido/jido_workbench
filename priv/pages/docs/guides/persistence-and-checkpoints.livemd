@@ -1,0 +1,245 @@
+%{
+  title: "Persistence",
+  description: "Save and restore agent state with ETS, file storage, and hibernate/thaw.",
+  category: :docs,
+  tags: [:docs, :guides, :livebook],
+  order: 173,
+  draft: false
+}
+---
+
+## Setup
+
+```elixir
+Mix.install([
+  {:jido, "~> 2.0"}
+])
+```
+
+Define an agent to use throughout this guide.
+
+```elixir
+defmodule MyApp.CounterAgent do
+  use Jido.Agent,
+    name: "counter_agent",
+    schema: [
+      count: [type: :integer, default: 0],
+      label: [type: :string, default: "untitled"]
+    ]
+end
+```
+
+## Storage adapters
+
+Jido ships two storage adapters that implement the `Jido.Storage` behaviour. Both handle checkpoints (key-value snapshots) and thread journals (append-only logs).
+
+### ETS storage
+
+`Jido.Storage.ETS` stores data in-memory using ETS tables. It is the default adapter when you `use Jido, otp_app: :my_app`.
+
+```elixir
+storage = {Jido.Storage.ETS, table: :my_jido_storage}
+```
+
+This creates three ETS tables behind the scenes:
+
+- `my_jido_storage_checkpoints` - agent state snapshots (set)
+- `my_jido_storage_threads` - thread entries ordered by `{thread_id, seq}` (ordered_set)
+- `my_jido_storage_thread_meta` - thread metadata (set)
+
+Tables are created lazily on first access. All data is lost when the BEAM stops, making ETS ideal for development, testing, and transient state.
+
+### File storage
+
+`Jido.Storage.File` persists data to disk using a directory-based layout. State survives BEAM restarts.
+
+```elixir
+storage = {Jido.Storage.File, path: "priv/jido/storage"}
+```
+
+The adapter organizes files under the base path:
+
+```
+priv/jido/storage/
+├── checkpoints/
+│   └── {key_hash}.term
+└── threads/
+    └── {thread_id}/
+        ├── meta.term
+        └── entries.log
+```
+
+Checkpoint writes are atomic - the adapter writes to a temporary file then renames it. Thread operations use `:global.trans/3` for locking to prevent concurrent corruption.
+
+## Hibernate and thaw
+
+The core persistence API lives in `Jido.Persist`. Call `hibernate/2` to save an agent and `thaw/3` to restore it.
+
+### Save an agent
+
+```elixir
+agent = MyApp.CounterAgent.new(id: "counter-1", state: %{count: 42, label: "prod"})
+
+:ok = Jido.Persist.hibernate({Jido.Storage.ETS, []}, agent)
+```
+
+The hibernate flow:
+
+1. Extract thread from `agent.state[:__thread__]` if present
+2. Flush pending thread entries to storage via `adapter.append_thread/3`
+3. Remove `:__thread__` from state and store only a thread pointer (`%{id, rev}`)
+4. Write the checkpoint via `adapter.put_checkpoint/3`
+
+This invariant guarantees that checkpoints never contain full thread data - only a pointer to the persisted journal.
+
+### Restore an agent
+
+```elixir
+{:ok, restored} = Jido.Persist.thaw({Jido.Storage.ETS, []}, MyApp.CounterAgent, "counter-1")
+
+restored.state.count
+#=> 42
+
+restored.state.label
+#=> "prod"
+```
+
+The thaw flow:
+
+1. Load the checkpoint via `adapter.get_checkpoint/2`
+2. Recreate the agent struct via `agent_module.new/1` and merge saved state
+3. If the checkpoint has a thread pointer, load and reattach the thread
+4. Verify the loaded thread revision matches the checkpoint pointer
+
+If no checkpoint exists, `thaw/3` returns `{:error, :not_found}`.
+
+## Using via a Jido instance
+
+When you define a named Jido instance, `hibernate/1` and `thaw/2` are available directly on the module without passing storage config each time.
+
+```elixir
+defmodule MyApp.Jido do
+  use Jido,
+    otp_app: :my_app,
+    storage: {Jido.Storage.File, path: "/tmp/jido_guide_storage"}
+end
+```
+
+Start the instance, then persist and restore agents through it:
+
+```elixir
+MyApp.Jido.start_link()
+
+agent = MyApp.CounterAgent.new(id: "counter-2", state: %{count: 99})
+:ok = MyApp.Jido.hibernate(agent)
+
+{:ok, restored} = MyApp.Jido.thaw(MyApp.CounterAgent, "counter-2")
+restored.state.count
+#=> 99
+```
+
+The instance reads its storage config from `__jido_storage__/0`, so all agents under the same instance share the same storage backend.
+
+## Direct checkpoint operations
+
+The storage adapters expose a low-level API for custom persistence needs outside of the agent lifecycle.
+
+```elixir
+adapter = Jido.Storage.ETS
+opts = [table: :custom_storage]
+
+:ok = adapter.put_checkpoint("session-abc", %{user: "jane", prefs: %{theme: "dark"}}, opts)
+```
+
+```elixir
+{:ok, data} = adapter.get_checkpoint("session-abc", opts)
+data.user
+#=> "jane"
+```
+
+```elixir
+:ok = adapter.delete_checkpoint("session-abc", opts)
+
+:not_found = adapter.get_checkpoint("session-abc", opts)
+```
+
+Both adapters implement the same six callbacks: `get_checkpoint/2`, `put_checkpoint/3`, `delete_checkpoint/2`, `load_thread/2`, `append_thread/3`, and `delete_thread/2`.
+
+## Thread journals
+
+Threads are append-only journals that record what happened during agent interactions. Each entry has a `kind`, `payload`, and monotonic `seq` number.
+
+### Append entries
+
+```elixir
+alias Jido.Thread
+
+adapter = Jido.Storage.ETS
+opts = [table: :thread_demo]
+
+entries = [
+  %{kind: :message, payload: %{role: "user", content: "Hello"}},
+  %{kind: :message, payload: %{role: "assistant", content: "Hi there!"}}
+]
+
+{:ok, thread} = adapter.append_thread("conv-001", entries, opts)
+thread.rev
+#=> 2
+```
+
+### Load a thread
+
+```elixir
+{:ok, loaded} = adapter.load_thread("conv-001", opts)
+length(loaded.entries)
+#=> 2
+```
+
+If the thread does not exist, `load_thread/2` returns `:not_found`.
+
+### Optimistic concurrency
+
+The `:expected_rev` option prevents conflicting appends. If another process appended entries since you last read, the operation fails with `{:error, :conflict}`.
+
+```elixir
+more_entries = [%{kind: :message, payload: %{role: "user", content: "Tell me more"}}]
+
+{:ok, updated} = adapter.append_thread("conv-001", more_entries, [{:expected_rev, 2} | opts])
+updated.rev
+#=> 3
+```
+
+```elixir
+stale_append = adapter.append_thread("conv-001", more_entries, [{:expected_rev, 1} | opts])
+#=> {:error, :conflict}
+```
+
+### Thread struct
+
+The `%Jido.Thread{}` struct contains:
+
+- `id` - unique thread identifier
+- `rev` - monotonic revision, increments on each append
+- `entries` - ordered list of `%Jido.Thread.Entry{}` structs
+- `created_at` / `updated_at` - timestamps in milliseconds
+- `metadata` - arbitrary metadata map
+- `stats` - cached aggregates like `%{entry_count: n}`
+
+## Choosing an adapter
+
+| | ETS | File |
+|---|---|---|
+| Speed | Fast (in-memory) | Slower (disk I/O) |
+| Persistence | Lost on BEAM stop | Survives restarts |
+| Concurrency | Atomic ETS ops with global locks | Global locks |
+| Use case | Dev, test, transient | Simple production |
+
+Both adapters implement the `Jido.Storage` behaviour, so you can swap between them by changing a single config line. For production systems with high concurrency or replication needs, implement a custom adapter backed by PostgreSQL, Redis, or another durable store.
+
+## Next steps
+
+Now that you can save and restore agent state, explore related topics.
+
+- [Error handling and recovery](/docs/guides/error-handling-and-recovery) - handle failures and retries in agent workflows
+- [Agents concept](/docs/concepts/agents) - understand the data-first agent model
+- [Building a weather agent](/docs/guides/building-a-weather-agent) - build a complete agent with tools and state

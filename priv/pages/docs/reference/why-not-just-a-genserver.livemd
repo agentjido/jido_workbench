@@ -2,8 +2,8 @@
   title: "Why not just a GenServer?",
   description: "When a plain GenServer is enough and when Jido's data-first model pays off.",
   category: :docs,
-  order: 25,
-  tags: [:docs, :learn, :architecture, :livebook],
+  order: 50,
+  tags: [:docs, :reference, :architecture, :livebook],
   draft: false
 }
 ---

@@ -1,0 +1,339 @@
+<!-- %{
+  title: "Memory and retrieval-augmented agents",
+  description: "Add persistent memory and retrieval-based context injection to AI agents.",
+  category: :docs,
+  order: 33,
+  tags: [:docs, :learn, :ai, :memory, :retrieval, :rag, :livebook],
+  draft: true,
+  prerequisites: ["/docs/learn/task-planning-and-execution"]
+} -->
+
+## Prerequisites
+
+Complete [Task planning and execution](/docs/learn/task-planning-and-execution) before starting. You need a working understanding of Agent lifecycle hooks and `cmd/2`.
+
+## Setup
+
+```elixir
+Mix.install([
+  {:jido, "~> 2.0"},
+  {:jido_ai, github: "agentjido/jido_ai", branch: "main"},
+  {:req_llm, "~> 1.6"}
+])
+```
+
+## Why memory matters
+
+A stateless Agent loses all context between turns. Ask it a question, get an answer, ask a follow-up, and it has no idea what you said before. Every interaction starts from zero.
+
+Jido provides three complementary memory layers to solve this:
+
+- **Memory Plugin** stores structured data in named Spaces (key-value maps or ordered lists).
+- **Thread Plugin** maintains an append-only conversation log with typed entries.
+- **Retrieval Store** enables semantic recall over a corpus of text documents.
+
+Each layer solves a different problem. You can use them independently or combine all three for a retrieval-augmented Agent.
+
+## Memory Plugin
+
+The Memory Plugin stores structured data under `agent.state[:__memory__]`, organized into named Spaces. Each Space holds either a map (for key-value lookups) or a list (for ordered collections).
+
+Define an Agent and initialize Memory with `ensure/1`:
+
+```elixir
+alias Jido.Memory.Agent, as: MemAgent
+
+defmodule MyApp.MemoryAgent do
+  use Jido.Agent,
+    name: "memory_agent",
+    description: "Agent with structured memory"
+end
+
+agent = MyApp.MemoryAgent.new()
+agent = MemAgent.ensure(agent)
+```
+
+### Key-value Spaces
+
+Use `put_in_space/4` and `get_in_space/3` for map-based storage. Spaces must already exist, so initialize them with `ensure_space/3` first:
+
+```elixir
+agent = MemAgent.ensure_space(agent, :prefs, %{})
+
+agent = MemAgent.put_in_space(agent, :prefs, :theme, "dark")
+agent = MemAgent.put_in_space(agent, :prefs, :language, "en")
+
+MemAgent.get_in_space(agent, :prefs, :theme)
+# => "dark"
+```
+
+### List Spaces
+
+Use `append_to_space/3` for ordered collections. Initialize the Space with a list:
+
+```elixir
+agent = MemAgent.ensure_space(agent, :notes, [])
+
+agent = MemAgent.append_to_space(agent, :notes, %{id: "n1", text: "Check sensor readings"})
+agent = MemAgent.append_to_space(agent, :notes, %{id: "n2", text: "Update firmware"})
+
+notes_space = MemAgent.space(agent, :notes)
+length(notes_space.data)
+# => 2
+```
+
+### Inspecting Memory
+
+`spaces/1` returns the full map of all named Spaces. Each Space tracks its own revision counter:
+
+```elixir
+all_spaces = MemAgent.spaces(agent)
+Map.keys(all_spaces)
+# => [:notes, :prefs]
+```
+
+## Thread Plugin
+
+The Thread Plugin maintains an append-only log stored at `agent.state[:__thread__]`. Each entry has a `kind` atom and a `payload` map. The Thread auto-increments sequence numbers and revision counters.
+
+```elixir
+alias Jido.Thread.Agent, as: ThreadAgent
+
+agent = MyApp.MemoryAgent.new()
+agent = ThreadAgent.ensure(agent, metadata: %{user_id: "u1"})
+```
+
+Append entries and retrieve the Thread:
+
+```elixir
+agent =
+  ThreadAgent.append(agent, %{
+    kind: :message,
+    payload: %{role: "user", content: "What sensors are online?"}
+  })
+
+agent =
+  ThreadAgent.append(agent, %{
+    kind: :message,
+    payload: %{role: "assistant", content: "Three sensors reporting."}
+  })
+
+ThreadAgent.has_thread?(agent)
+# => true
+```
+
+Filter entries by kind to extract just the conversation messages:
+
+```elixir
+thread = ThreadAgent.get(agent)
+messages = Jido.Thread.filter_by_kind(thread, :message)
+length(messages)
+# => 2
+```
+
+The Thread supports any `kind` you define. Use `:tool_call` for tool invocations, `:system` for internal events, or any domain-specific atom your application needs.
+
+## Retrieval Store
+
+The Retrieval Store is an ETS-backed in-process store for semantic text recall. It uses token-overlap scoring to rank results against a query.
+
+Upsert documents into a namespace:
+
+```elixir
+alias Jido.AI.Retrieval.Store
+
+Store.upsert("kb", %{
+  id: "doc-1",
+  text: "Jido uses typed Signals for inter-agent communication.",
+  metadata: %{source: "architecture"}
+})
+
+Store.upsert("kb", %{
+  id: "doc-2",
+  text: "Actions are pure functions that transform agent state.",
+  metadata: %{source: "actions"}
+})
+
+Store.upsert("kb", %{
+  id: "doc-3",
+  text: "Plugins package reusable capabilities into composable modules.",
+  metadata: %{source: "plugins"}
+})
+```
+
+Recall relevant documents with `recall/3`. The `top_k` option limits results and `min_score` filters low-relevance matches:
+
+```elixir
+results = Store.recall("kb", "how do agents communicate", top_k: 2, min_score: 0.05)
+
+Enum.each(results, fn r ->
+  IO.puts("#{r.id} (score: #{Float.round(r.score, 3)}): #{r.text}")
+end)
+```
+
+The scoring uses Jaccard similarity over tokenized terms. This works well for keyword-heavy queries without requiring an embedding model. For production use cases with large corpora, replace the Store backend with a vector database.
+
+## Building a knowledge-aware Agent
+
+Combine all three layers into a single Agent that retrieves relevant documents before each LLM call. This is the retrieval-augmented generation (RAG) pattern.
+
+```elixir
+defmodule MyApp.KnowledgeAgent do
+  use Jido.AI.Agent,
+    name: "knowledge_agent",
+    description: "RAG agent with memory and thread",
+    tools: [],
+    model: "openai:gpt-4o-mini",
+    max_iterations: 1,
+    system_prompt: """
+    You are a technical assistant. Use the provided context
+    to answer questions accurately. If the context does not
+    contain relevant information, say so.
+    """
+end
+```
+
+Before each command, recall relevant documents and inject them into the prompt context:
+
+```elixir
+defmodule MyApp.KnowledgeAgent do
+  use Jido.AI.Agent,
+    name: "knowledge_agent",
+    description: "RAG agent with memory and thread",
+    tools: [],
+    model: "openai:gpt-4o-mini",
+    max_iterations: 1,
+    system_prompt: """
+    You are a technical assistant. Use the provided context
+    to answer questions accurately. If the context does not
+    contain relevant information, say so.
+    """
+
+  @impl true
+  def on_before_cmd(agent, {:react_start, params}) do
+    query = Map.get(params, :prompt, "")
+    docs = Jido.AI.Retrieval.Store.recall("kb", query, top_k: 3, min_score: 0.05)
+
+    context_block =
+      docs
+      |> Enum.map(& &1.text)
+      |> Enum.join("\n")
+
+    augmented_prompt = """
+    Context:
+    #{context_block}
+
+    Question: #{query}
+    """
+
+    {:ok, agent, {:react_start, Map.put(params, :prompt, augmented_prompt)}}
+  end
+
+  def on_before_cmd(agent, action), do: super(agent, action)
+end
+```
+
+The `on_before_cmd/2` hook fires before each reasoning step. It queries the Retrieval Store, formats matching documents into a context block, and prepends it to the user's prompt. The LLM sees the relevant documents as part of its input without any changes to the model or tool configuration.
+
+## Checkpoint and restore
+
+When persisting Agent state, each Plugin controls what happens to its state slice through the `on_checkpoint/2` callback. Three strategies are available:
+
+- `:keep` includes the state in the checkpoint as-is.
+- `:drop` excludes the state entirely (for transient data like caches).
+- `{:externalize, key, pointer}` replaces the full state with a lightweight pointer.
+
+### Built-in Plugin behavior
+
+The Memory Plugin defaults to `:keep`, serializing all Spaces into the checkpoint. The Thread Plugin uses `:externalize` to store only the Thread's `id` and `rev`:
+
+```elixir
+# Thread Plugin on_checkpoint (built-in):
+# %Thread{id: "t-001", rev: 5} => {:externalize, :thread, %{id: "t-001", rev: 5}}
+```
+
+### Custom Plugin strategies
+
+Write Plugins that control their own checkpoint behavior:
+
+```elixir
+defmodule MyApp.CachePlugin do
+  use Jido.Plugin,
+    name: "cache",
+    state_key: :cache,
+    actions: [],
+    description: "Transient cache, dropped on checkpoint"
+
+  @impl Jido.Plugin
+  def mount(_agent, _config), do: {:ok, %{}}
+
+  @impl Jido.Plugin
+  def on_checkpoint(_state, _ctx), do: :drop
+end
+```
+
+```elixir
+defmodule MyApp.SessionPlugin do
+  use Jido.Plugin,
+    name: "session",
+    state_key: :session,
+    actions: [],
+    description: "Session state with externalized persistence"
+
+  @impl Jido.Plugin
+  def mount(_agent, _config), do: {:ok, %{}}
+
+  @impl Jido.Plugin
+  def on_checkpoint(%{id: session_id}, _ctx) do
+    {:externalize, :session, %{id: session_id}}
+  end
+
+  def on_checkpoint(_, _ctx), do: :keep
+
+  @impl Jido.Plugin
+  def on_restore(%{id: session_id}, _ctx) do
+    {:ok, %{id: session_id, restored: true}}
+  end
+end
+```
+
+### Running a checkpoint
+
+Wire the Plugins into an Agent and call `checkpoint/2`:
+
+```elixir
+defmodule MyApp.CheckpointableAgent do
+  use Jido.Agent,
+    name: "checkpointable_agent",
+    plugins: [MyApp.CachePlugin, MyApp.SessionPlugin]
+end
+
+agent = MyApp.CheckpointableAgent.new()
+agent = %{agent | state: Map.put(agent.state, :cache, %{tmp: "value"})}
+agent = %{agent | state: Map.put(agent.state, :session, %{id: "sess-42"})}
+```
+
+```elixir
+{:ok, checkpoint} = MyApp.CheckpointableAgent.checkpoint(agent, %{})
+IO.inspect(checkpoint, label: "Checkpoint")
+```
+
+The checkpoint map contains:
+
+- `state` with `:cache` removed (`:drop`) and `:session` removed (externalized)
+- `session: %{id: "sess-42"}` as the externalized pointer
+- `externalized_keys` mapping `:session` back to `:session`
+
+Restore rebuilds the Agent and calls `on_restore/2` for each externalized Plugin:
+
+```elixir
+{:ok, restored} = MyApp.CheckpointableAgent.restore(checkpoint, %{})
+IO.inspect(restored.state, label: "Restored state")
+# session state has restored: true from on_restore/2
+```
+
+## Next steps
+
+- [Plugins and composable agents](/docs/learn/plugins-and-composable-agents) for the full Plugin lifecycle and signal routing
+- [AI agent with tools](/docs/learn/ai-agent-with-tools) to add tool-calling to your RAG Agent
+- [Build an AI chat agent](/docs/learn/ai-chat-agent) for multi-turn conversation patterns

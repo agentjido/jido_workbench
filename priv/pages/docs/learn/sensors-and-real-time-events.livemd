@@ -1,0 +1,365 @@
+<!-- %{
+  title: "Sensors and real-time events",
+  description: "Connect external data sources to agents via sensors and dynamic signal routing.",
+  category: :docs,
+  order: 17,
+  tags: [:docs, :learn, :sensors, :signals, :livebook],
+  draft: true,
+  prerequisites: ["/docs/learn/parent-child-agent-hierarchies"]
+} -->
+
+## Prerequisites
+
+Complete [Parent-child agent hierarchies](/docs/learn/parent-child-agent-hierarchies) before starting this tutorial. You should be comfortable with Agents, Actions, Signals, and the Jido runtime.
+
+## Setup
+
+```elixir
+Mix.install([
+  {:jido, "~> 2.0"}
+])
+```
+
+## Why sensors
+
+Agents are reactive. They sit idle until a Signal arrives, then run the matching Action. This works when signals originate from within your system, but most real applications need external data: API polling, webhooks, message queues, file watchers.
+
+A Sensor bridges external events into the Signal model. It is a GenServer that fetches or receives data, wraps it in a Signal, and delivers it to an Agent. The Agent does not know or care where the Signal came from. It matches on the Signal type and runs the appropriate Action.
+
+## Define the actions
+
+Start with two Actions. `HandleQuoteAction` processes incoming quotes from a polling Sensor. `HandleWebhookAction` handles webhook payloads delivered as Signals.
+
+```elixir
+defmodule MyApp.HandleQuoteAction do
+  use Jido.Action,
+    name: "handle_quote",
+    schema: [
+      quote: [type: :string, required: true],
+      category: [type: :string, default: "general"],
+      emit_count: [type: :integer, default: 0],
+      sensor_id: [type: :string, default: "unknown"]
+    ]
+
+  @impl true
+  def run(params, context) do
+    current_quotes = Map.get(context.state, :quotes, [])
+
+    quote_entry = %{
+      quote: params.quote,
+      category: params.category,
+      emit_count: params.emit_count,
+      sensor_id: params.sensor_id,
+      received_at: DateTime.utc_now()
+    }
+
+    {:ok, %{quotes: [quote_entry | current_quotes]}}
+  end
+end
+```
+
+Each quote is prepended to the list in agent state. The Action reads existing quotes from `context.state` and returns the updated list.
+
+```elixir
+defmodule MyApp.HandleWebhookAction do
+  use Jido.Action,
+    name: "handle_webhook",
+    schema: [
+      event: [type: :string, required: true],
+      payload: [type: :map, default: %{}]
+    ]
+
+  @impl true
+  def run(params, context) do
+    current_events = Map.get(context.state, :events, [])
+
+    event_entry = %{
+      event: params.event,
+      payload: params.payload,
+      received_at: DateTime.utc_now()
+    }
+
+    {:ok, %{events: [event_entry | current_events]}}
+  end
+end
+```
+
+Both Actions follow the same pattern: read current state, build a new entry, return an updated list. The runtime merges the result into agent state.
+
+## Build a sensor
+
+A Sensor is a GenServer that polls an external source on a timer and emits Signals to a target Agent. This one cycles through a list of quotes, sending one per interval.
+
+```elixir
+defmodule MyApp.QuoteSensor do
+  use GenServer
+
+  @quotes [
+    "The best way to predict the future is to create it.",
+    "Simplicity is the soul of efficiency.",
+    "Talk is cheap. Show me the code."
+  ]
+
+  def start_link(opts) do
+    GenServer.start_link(__MODULE__, opts)
+  end
+
+  def init(opts) do
+    state = %{
+      target: Keyword.fetch!(opts, :target),
+      interval_ms: Keyword.get(opts, :interval_ms, 100),
+      emit_count: 0,
+      max_emits: Keyword.get(opts, :max_emits, 5)
+    }
+
+    send(self(), :emit)
+    {:ok, state}
+  end
+```
+
+The `init/1` callback stores the target Agent reference, polling interval, and maximum number of emissions. It immediately sends itself the first `:emit` message.
+
+```elixir
+  def handle_info(:emit, %{emit_count: count, max_emits: max} = state)
+      when count >= max do
+    {:stop, :normal, state}
+  end
+
+  def handle_info(:emit, state) do
+    new_count = state.emit_count + 1
+
+    signal =
+      Jido.Signal.new!("sensor.quote", %{
+        quote: Enum.at(@quotes, rem(new_count - 1, length(@quotes))),
+        category: "programming",
+        emit_count: new_count,
+        sensor_id: "quote-sensor"
+      }, source: "/sensor/quote")
+
+    Jido.AgentServer.cast(state.target, signal)
+    Process.send_after(self(), :emit, state.interval_ms)
+    {:noreply, %{state | emit_count: new_count}}
+  end
+end
+```
+
+When `emit_count` reaches `max_emits`, the Sensor stops itself. Otherwise it builds a Signal with type `"sensor.quote"`, delivers it to the Agent via `AgentServer.cast/2`, and schedules the next emission. The `cast` call is fire-and-forget, so the Sensor does not block waiting for the Agent to process the Signal.
+
+## Wire the agent
+
+The Agent declares Signal Routes that map Signal types to Actions. When a Signal arrives, the runtime pattern-matches its type against the routes and runs the corresponding Action.
+
+```elixir
+defmodule MyApp.EventCollectorAgent do
+  use Jido.Agent,
+    name: "event_collector",
+    schema: [
+      quotes: [type: {:list, :map}, default: []],
+      events: [type: {:list, :map}, default: []],
+      status: [type: :atom, default: :idle]
+    ]
+
+  def signal_routes(_ctx) do
+    [
+      {"sensor.quote", MyApp.HandleQuoteAction},
+      {"webhook.github", MyApp.HandleWebhookAction}
+    ]
+  end
+end
+```
+
+`signal_routes/1` returns a list of `{pattern, action}` tuples. The first route matches any Signal with type `"sensor.quote"` and dispatches it to `HandleQuoteAction`. The second matches `"webhook.github"` for webhook payloads.
+
+## Receive sensor data
+
+Start the Jido runtime, spawn the Agent, then start the Sensor pointing at the Agent. The Sensor will emit 5 quotes at 100ms intervals.
+
+```elixir
+{:ok, jido} = Jido.start_link(name: :learn_sensors)
+
+{:ok, agent_pid} =
+  Jido.start_agent(jido, MyApp.EventCollectorAgent, id: "collector-1")
+```
+
+```elixir
+{:ok, sensor_pid} =
+  MyApp.QuoteSensor.start_link(
+    target: {:via, Registry, {Jido.AgentRegistry, "collector-1"}},
+    interval_ms: 100,
+    max_emits: 5
+  )
+```
+
+The Sensor runs asynchronously. Wait for it to finish emitting, then query the Agent state.
+
+```elixir
+Process.sleep(1000)
+
+{:ok, state} =
+  Jido.AgentServer.get_state(
+    {:via, Registry, {Jido.AgentRegistry, "collector-1"}}
+  )
+
+IO.inspect(length(state.quotes), label: "Quotes received")
+IO.inspect(Enum.map(state.quotes, & &1.quote), label: "Quote texts")
+```
+
+You should see 5 quotes. Each one arrived as a Signal, matched the `"sensor.quote"` route, and was processed by `HandleQuoteAction`.
+
+## Webhook injection
+
+You do not need a Sensor to send Signals. Any process can deliver a Signal directly to an Agent. This is how you handle webhooks: your Phoenix controller builds a Signal and sends it.
+
+```elixir
+webhook_signal =
+  Jido.Signal.new!("webhook.github", %{
+    event: "push",
+    payload: %{
+      repo: "agentjido/jido",
+      branch: "main",
+      commits: 3
+    }
+  }, source: "/webhooks/github")
+
+Jido.AgentServer.cast(
+  {:via, Registry, {Jido.AgentRegistry, "collector-1"}},
+  webhook_signal
+)
+```
+
+```elixir
+Process.sleep(200)
+
+{:ok, state} =
+  Jido.AgentServer.get_state(
+    {:via, Registry, {Jido.AgentRegistry, "collector-1"}}
+  )
+
+IO.inspect(state.events, label: "Webhook events")
+```
+
+The Agent processed the webhook Signal through the same routing mechanism as the Sensor data. From the Agent's perspective, both are just Signals with different types.
+
+## Context-aware routing
+
+`signal_routes/1` receives a context map. You can return different routes based on the Agent's current state. This lets you build Agents that change behavior dynamically.
+
+Define Actions for normal and maintenance modes.
+
+```elixir
+defmodule MyApp.ProcessAction do
+  use Jido.Action,
+    name: "process",
+    schema: [value: [type: :integer, default: 1]]
+
+  @impl true
+  def run(%{value: value}, context) do
+    current = Map.get(context.state, :counter, 0)
+    {:ok, %{counter: current + value, message: "processed"}}
+  end
+end
+
+defmodule MyApp.MaintenanceAction do
+  use Jido.Action,
+    name: "maintenance_handler",
+    schema: [value: [type: :integer, default: 0]]
+
+  @impl true
+  def run(_params, _context) do
+    {:ok, %{message: "system in maintenance mode"}}
+  end
+end
+```
+
+```elixir
+defmodule MyApp.SetModeAction do
+  use Jido.Action,
+    name: "set_mode",
+    schema: [mode: [type: :atom, required: true]]
+
+  @impl true
+  def run(%{mode: mode}, _context) do
+    {:ok, %{mode: mode}}
+  end
+end
+```
+
+Now define the Agent with context-aware routing. When the context includes `maintenance: true`, the `"process"` Signal routes to `MaintenanceAction` instead of `ProcessAction`.
+
+```elixir
+defmodule MyApp.GatedAgent do
+  use Jido.Agent,
+    name: "gated_agent",
+    schema: [
+      mode: [type: :atom, default: :normal],
+      counter: [type: :integer, default: 0],
+      message: [type: :string, default: nil]
+    ]
+
+  def signal_routes(ctx) do
+    base_routes = [{"set_mode", MyApp.SetModeAction}]
+
+    process_route =
+      case ctx do
+        %{maintenance: true} -> {"process", MyApp.MaintenanceAction}
+        _ -> {"process", MyApp.ProcessAction}
+      end
+
+    [process_route | base_routes]
+  end
+end
+```
+
+The routing decision happens on every incoming Signal. The runtime calls `signal_routes/1` with the current context, so the Agent can gate behavior based on any context value: feature flags, agent mode, time of day, or accumulated state.
+
+```elixir
+{:ok, gated_pid} =
+  Jido.start_agent(jido, MyApp.GatedAgent, id: "gated-1")
+
+agent_ref = {:via, Registry, {Jido.AgentRegistry, "gated-1"}}
+```
+
+Send a `"process"` Signal in normal mode.
+
+```elixir
+process_signal =
+  Jido.Signal.new!("process", %{value: 42}, source: "/test")
+
+Jido.AgentServer.cast(agent_ref, process_signal)
+Process.sleep(200)
+
+{:ok, state} = Jido.AgentServer.get_state(agent_ref)
+IO.inspect(state.counter, label: "Counter")
+IO.inspect(state.message, label: "Message")
+```
+
+The counter increments because `ProcessAction` handled the Signal. Now switch to maintenance mode and send the same Signal.
+
+```elixir
+mode_signal =
+  Jido.Signal.new!("set_mode", %{mode: :maintenance},
+    source: "/admin"
+  )
+
+Jido.AgentServer.cast(agent_ref, mode_signal)
+Process.sleep(200)
+```
+
+```elixir
+Jido.AgentServer.cast(agent_ref, process_signal)
+Process.sleep(200)
+
+{:ok, state} = Jido.AgentServer.get_state(agent_ref)
+IO.inspect(state.counter, label: "Counter after maintenance")
+IO.inspect(state.message, label: "Message after maintenance")
+```
+
+The counter stays at the previous value. `MaintenanceAction` ran instead of `ProcessAction`, returning a maintenance message without incrementing the counter.
+
+## Next steps
+
+You now know how to bridge external data into Agents with Sensors and how to build context-aware routing that changes Agent behavior at runtime. Explore these topics next:
+
+- [Signals](/docs/concepts/signals) for the full Signal specification and routing patterns
+- [Directives](/docs/concepts/directives) to learn how Actions can emit side effects alongside state updates
+- Build a production Sensor that connects to a real API or message queue using the GenServer pattern from this tutorial

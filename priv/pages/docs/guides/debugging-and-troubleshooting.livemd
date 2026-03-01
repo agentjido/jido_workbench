@@ -1,0 +1,243 @@
+%{
+  title: "Debugging",
+  description: "Diagnose agent issues with debug modes, event buffers, and structured diagnostics.",
+  category: :docs,
+  tags: [:docs, :guides, :livebook],
+  order: 171,
+  draft: false
+}
+---
+
+## Setup
+
+```elixir
+Mix.install([
+  {:jido, "~> 2.0"}
+])
+
+{:ok, _} = Jido.start()
+```
+
+Define a minimal agent for the examples in this guide.
+
+```elixir
+defmodule MyApp.CounterAgent do
+  use Jido.Agent,
+    name: "counter_agent",
+    schema: [
+      count: [type: :integer, default: 0],
+      status: [type: :atom, default: :idle]
+    ]
+end
+```
+
+## Debug levels
+
+Jido has three instance-wide debug levels that control logging verbosity and event capture across all agents in that instance.
+
+| Level | Logging | Argument display | Debug events |
+|-------|---------|-----------------|--------------|
+| `:off` | Configured defaults | N/A | None |
+| `:on` | `:debug` | Keys only | Minimal |
+| `:verbose` | `:trace` | Full values | All |
+
+Toggle the level at runtime with `Jido.debug/1`.
+
+```elixir
+Jido.debug(:on)
+```
+
+Check the current level by calling `Jido.debug/0`.
+
+```elixir
+Jido.debug()
+```
+
+When you need to see full argument values including sensitive fields, disable redaction.
+
+```elixir
+Jido.debug(:on, redact: false)
+```
+
+Turn debug mode off when you are done investigating.
+
+```elixir
+Jido.debug(:off)
+```
+
+> **Warning:** Never leave `redact: false` enabled in production. It exposes sensitive values in log output.
+
+## Per-agent debug mode
+
+Instance-level debug controls verbosity globally. Per-agent debug enables a ring buffer on a specific `AgentServer` process that records internal events as they happen.
+
+### Enable at start
+
+Pass `debug: true` when starting the agent server.
+
+```elixir
+{:ok, pid} = Jido.AgentServer.start_link(
+  agent: MyApp.CounterAgent,
+  debug: true
+)
+```
+
+### Enable at runtime
+
+Toggle debug mode on an already-running agent server.
+
+```elixir
+:ok = Jido.AgentServer.set_debug(pid, true)
+```
+
+The ring buffer holds up to 500 events. When the buffer fills, the oldest events are dropped.
+
+## Reading the event buffer
+
+Retrieve events from the ring buffer with `recent_events/2`. Events arrive newest-first.
+
+```elixir
+{:ok, events} = Jido.AgentServer.recent_events(pid, limit: 10)
+```
+
+Each event is a map with three keys.
+
+```elixir
+%{
+  at: -576460734,
+  type: :signal_received,
+  data: %{signal_type: "counter.increment"}
+}
+```
+
+The `:at` value is a monotonic timestamp in milliseconds. Use it for relative timing between events, not absolute wall-clock time.
+
+### Event types
+
+| Type | Recorded when |
+|------|--------------|
+| `:signal_received` | A signal arrives at the agent server |
+| `:directive_started` | A directive begins execution |
+
+### Filter by event type
+
+Pattern match on the event list to find specific issues.
+
+```elixir
+{:ok, events} = Jido.AgentServer.recent_events(pid)
+
+signals = Enum.filter(events, &(&1.type == :signal_received))
+directives = Enum.filter(events, &(&1.type == :directive_started))
+```
+
+If debug mode is off, `recent_events/2` returns `{:error, :debug_not_enabled}`.
+
+## Instance-level debug status
+
+Inspect the full debug configuration for an instance with `Jido.Debug.status/1`.
+
+```elixir
+Jido.Debug.status(Jido.Default)
+```
+
+This returns a map with the current level and all active overrides.
+
+```elixir
+%{
+  level: :on,
+  overrides: %{
+    telemetry_log_level: :debug,
+    telemetry_log_args: :keys_only,
+    observe_log_level: :debug,
+    observe_debug_events: :minimal
+  }
+}
+```
+
+The override keys control specific subsystems.
+
+| Key | `:on` value | `:verbose` value | Controls |
+|-----|------------|-----------------|----------|
+| `telemetry_log_level` | `:debug` | `:trace` | Logger level for telemetry events |
+| `telemetry_log_args` | `:keys_only` | `:full` | How action arguments appear in logs |
+| `observe_log_level` | `:debug` | `:debug` | Logger level for the observer |
+| `observe_debug_events` | `:minimal` | `:all` | Which debug events are emitted |
+
+Named instances expose this as `MyApp.Jido.debug_status/0`.
+
+## Timeout diagnostics
+
+When `Jido.AgentServer.await_completion/2` times out, it returns a structured diagnostic map instead of a bare `:timeout` error.
+
+```elixir
+{:error, {:timeout, diagnostic}} =
+  Jido.AgentServer.await_completion(pid, timeout: 5_000)
+```
+
+The diagnostic map contains five keys.
+
+```elixir
+%{
+  hint: "Agent is idle but await_completion is blocking",
+  server_status: :idle,
+  queue_length: 0,
+  iteration: nil,
+  waited_ms: 5000
+}
+```
+
+### Interpreting server status
+
+| Status | Queue | Meaning |
+|--------|-------|---------|
+| `:idle` | Empty | Agent finished processing but its state does not match the await condition |
+| `:waiting` | Any | Strategy is waiting for an external response (LLM call, HTTP request) |
+| `:running` | Non-empty | Agent is still processing directives |
+
+An `:idle` timeout with an empty queue usually means the agent completed its work but did not set the expected status field. Check `state.agent.state.status` to see where it ended up.
+
+## Querying agent state
+
+Inspect a running agent directly without waiting for completion.
+
+```elixir
+{:ok, state} = Jido.AgentServer.state(pid)
+```
+
+The return value is the full `AgentServer.State` struct. Access the agent's domain state through `state.agent.state`.
+
+```elixir
+state.agent.state.count
+state.agent.state.status
+```
+
+For a higher-level view, use `status/1` which returns a snapshot of the agent's strategy state along with process metadata.
+
+```elixir
+{:ok, agent_status} = Jido.AgentServer.status(pid)
+agent_status.snapshot.status
+```
+
+## Config-driven debug
+
+Enable debug mode through application config so it activates automatically when the instance starts. This is useful for development environments where you always want verbose output.
+
+```elixir
+config :my_app, MyApp.Jido, debug: true
+```
+
+Set `:verbose` for maximum detail.
+
+```elixir
+config :my_app, MyApp.Jido, debug: :verbose
+```
+
+Jido calls `Jido.Debug.maybe_enable_from_config/2` during instance initialization. The config value maps directly: `true` enables `:on` level, `:verbose` enables `:verbose` level, and any other value (or absence) keeps debug off.
+
+## Next steps
+
+Now that you can inspect agent internals, explore related operational topics.
+
+- [Error handling and recovery](/docs/guides/error-handling-and-recovery) - configure error policies and failure recovery
+- [Testing agents and actions](/docs/guides/testing-agents-and-actions) - write deterministic tests for agent workflows
+- [Agent runtime](/docs/concepts/agent-runtime) - understand the process model behind AgentServer

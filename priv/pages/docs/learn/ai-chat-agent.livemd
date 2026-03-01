@@ -2,7 +2,7 @@
   title: "Build an AI Chat Agent",
   description: "Build a multi-turn conversational agent with Jido, including context, streaming, and failure handling.",
   category: :docs,
-  order: 43,
+  order: 50,
   legacy_paths: ["/build/ai-chat-agent"],
   tags: [:docs, :learn, :build, :ai, :chat],
   prerequisites: ["/docs/getting-started/first-llm-agent"],

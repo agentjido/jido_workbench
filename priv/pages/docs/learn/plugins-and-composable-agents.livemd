@@ -1,0 +1,252 @@
+<!-- %{
+  title: "Plugins and composable agents",
+  description: "Build a reusable plugin that adds capabilities to any Jido agent.",
+  category: :docs,
+  order: 14,
+  tags: [:docs, :learn, :plugins, :livebook],
+  draft: true,
+  prerequisites: ["/docs/learn/first-workflow"]
+} -->
+
+## Prerequisites
+
+Complete [Build your first workflow](/docs/learn/first-workflow) before starting this tutorial. You need a working understanding of `cmd/2`, action chaining, and how `context.state` flows between actions.
+
+## Setup
+
+```elixir
+Mix.install([
+  {:jido, "~> 2.0"}
+])
+```
+
+## Why plugins
+
+Agents that share capabilities end up duplicating action lists, state fields, and signal routes across modules. A Plugin packages all of that into a single reusable module: its own Actions, state slice, and signal routing table. You declare the Plugin on any Agent and the Agent gains those capabilities at compile time.
+
+Here is the end result. Two Agents with different configurations, both gaining note-taking through one Plugin:
+
+```elixir
+# Preview — you will build these modules step by step below
+defmodule MyApp.NotesAgent do
+  use Jido.Agent,
+    name: "notes_agent",
+    plugins: [MyApp.NotesPlugin]
+end
+
+defmodule MyApp.WorkNotesAgent do
+  use Jido.Agent,
+    name: "work_notes_agent",
+    plugins: [{MyApp.NotesPlugin, %{label: "work"}}]
+end
+```
+
+## Define the Actions
+
+Each Plugin bundles Actions that operate on the Plugin's state slice. The Plugin declares a `state_key` (here `:notes`), and Actions read that slice from `context.state`.
+
+`AddNoteAction` appends a timestamped note to the `:entries` list stored under the Plugin's state key:
+
+```elixir
+defmodule MyApp.AddNoteAction do
+  use Jido.Action,
+    name: "add_note",
+    schema: Zoi.object(%{
+      text: Zoi.string()
+    })
+
+  @impl true
+  def run(params, context) do
+    notes = get_in(context.state, [:notes, :entries]) || []
+    note = %{text: params.text, added_at: DateTime.utc_now()}
+    {:ok, %{notes: %{entries: [note | notes]}}}
+  end
+end
+```
+
+The return map uses the `:notes` key, which matches the Plugin's `state_key`. The runtime deep-merges this into the Agent's state.
+
+`ClearNotesAction` resets the entries list:
+
+```elixir
+defmodule MyApp.ClearNotesAction do
+  use Jido.Action,
+    name: "clear_notes",
+    schema: Zoi.object(%{})
+
+  @impl true
+  def run(_params, _context) do
+    {:ok, %{notes: %{entries: []}}}
+  end
+end
+```
+
+## Build the Plugin
+
+A Plugin module declares the Actions it provides, the state key it owns, a Zoi schema for its state slice, and the signal patterns it handles.
+
+```elixir
+defmodule MyApp.NotesPlugin do
+  use Jido.Plugin,
+    name: "notes_plugin",
+    state_key: :notes,
+    actions: [MyApp.AddNoteAction, MyApp.ClearNotesAction],
+    description: "Manages a list of notes",
+    schema: Zoi.object(%{
+      entries: Zoi.list(Zoi.any()) |> Zoi.default([])
+    }),
+    signal_patterns: ["notes.*"]
+
+  @impl Jido.Plugin
+  def mount(_agent, config) do
+    label = Map.get(config, :label, "default")
+    {:ok, %{label: label}}
+  end
+
+  @impl Jido.Plugin
+  def signal_routes(_config) do
+    [
+      {"notes.add", MyApp.AddNoteAction},
+      {"notes.clear", MyApp.ClearNotesAction}
+    ]
+  end
+end
+```
+
+Three things to note:
+
+- `state_key: :notes` isolates this Plugin's state under `agent.state.notes`. Other Plugins cannot collide with it.
+- `mount/2` runs when you call `Agent.new/1`. It receives the Agent struct and any per-Agent config, returning initial state that merges into the Plugin's slice.
+- `signal_routes/1` maps signal type strings to Actions. When a `"notes.add"` Signal arrives, the router dispatches it to `MyApp.AddNoteAction`.
+
+## Wire it to an Agent
+
+Declare the Plugin in the Agent's `plugins` list. No other configuration is needed for the default case.
+
+```elixir
+defmodule MyApp.NotesAgent do
+  use Jido.Agent,
+    name: "notes_agent",
+    plugins: [MyApp.NotesPlugin]
+end
+```
+
+Create an Agent struct and inspect its initial state. The Plugin's `mount/2` callback has already run, setting up the `:notes` slice with default values:
+
+```elixir
+agent = MyApp.NotesAgent.new()
+IO.inspect(agent.state.notes, label: "Initial notes state")
+```
+
+You should see `entries: []` and `label: "default"` in the notes state.
+
+## Plugin configuration
+
+To customize a Plugin per Agent, pass a `{Module, config_map}` tuple. The config map flows through `mount/2` as the second argument.
+
+```elixir
+defmodule MyApp.WorkNotesAgent do
+  use Jido.Agent,
+    name: "work_notes_agent",
+    plugins: [{MyApp.NotesPlugin, %{label: "work"}}]
+end
+```
+
+```elixir
+work_agent = MyApp.WorkNotesAgent.new()
+IO.inspect(work_agent.state.notes, label: "Work notes state")
+```
+
+The label is now `"work"` instead of `"default"`. Both Agents share the same Plugin module but carry independent state and configuration.
+
+## Use the Plugin
+
+### Direct execution with cmd/2
+
+You can call Plugin Actions directly through `cmd/2`, the same way you call any Action. Add two notes and inspect the accumulated state:
+
+```elixir
+agent = MyApp.NotesAgent.new()
+
+{agent, _directives} =
+  MyApp.NotesAgent.cmd(agent, [
+    {MyApp.AddNoteAction, %{text: "Buy groceries"}},
+    {MyApp.AddNoteAction, %{text: "Review PR #42"}}
+  ])
+
+IO.inspect(agent.state.notes.entries, label: "After adding")
+```
+
+The entries list contains both notes in reverse insertion order (most recent first). Now clear them:
+
+```elixir
+{agent, _directives} =
+  MyApp.NotesAgent.cmd(agent, MyApp.ClearNotesAction)
+
+IO.inspect(agent.state.notes.entries, label: "After clearing")
+```
+
+The entries list is empty again.
+
+### Signal routing through the runtime
+
+Plugins define signal routes so you can drive Actions through Signals instead of direct `cmd/2` calls. Start the Jido runtime, spawn an Agent process, and send Signals:
+
+```elixir
+{:ok, jido} = Jido.start_link(name: :learn_plugins)
+
+{:ok, pid} =
+  Jido.start_agent(jido, MyApp.NotesAgent, id: "notes-demo")
+```
+
+Send a `"notes.add"` Signal. The router matches it to `MyApp.AddNoteAction` through the Plugin's `signal_routes/1`:
+
+```elixir
+signal =
+  Jido.Signal.new!(
+    "notes.add",
+    %{text: "Signal-routed note"},
+    source: "/tutorial"
+  )
+
+{:ok, agent} = Jido.AgentServer.call(pid, signal)
+IO.inspect(agent.state.notes.entries, label: "After signal")
+```
+
+Add a second note and then clear all notes through Signals:
+
+```elixir
+add_signal =
+  Jido.Signal.new!(
+    "notes.add",
+    %{text: "Another note via signal"},
+    source: "/tutorial"
+  )
+
+{:ok, agent} = Jido.AgentServer.call(pid, add_signal)
+
+IO.inspect(
+  length(agent.state.notes.entries),
+  label: "Note count"
+)
+```
+
+```elixir
+clear_signal =
+  Jido.Signal.new!(
+    "notes.clear",
+    %{},
+    source: "/tutorial"
+  )
+
+{:ok, agent} = Jido.AgentServer.call(pid, clear_signal)
+IO.inspect(agent.state.notes.entries, label: "After clear")
+```
+
+Both paths (`cmd/2` and Signal routing) produce identical state transitions. Use `cmd/2` when you have a direct reference to the Agent struct. Use Signals when the Agent runs as a supervised process and you want decoupled, type-based dispatch.
+
+## Next steps
+
+- [State machines with FSM](/docs/learn/state-machines-with-fsm) to add state machine behavior to your Agents
+- [Plugins](/docs/concepts/plugins) for the full Plugin API reference, including lifecycle hooks and child processes
+- [Sensors](/docs/concepts/sensors) to learn how external events become Signals that Plugins can route

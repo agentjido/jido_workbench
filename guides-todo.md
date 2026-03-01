@@ -28,7 +28,7 @@ Everything else. Exists in the repo, invisible on the site, shipped incrementall
 
 ## ⚠️ Known issues
 
-1. ~~**Guide stubs are missing `draft: true`**~~ — ✅ Fixed. All guide/cookbook stubs now have `draft: true`.
+1. ~~**Guide stubs are missing `draft: true`**~~ — ✅ Fixed. All guide stubs have `draft: true`. Cookbook removed.
 2. **`operations.md` hub is `draft: true`** — intentional, entire operations section not shipping at release.
 
 ---
@@ -65,17 +65,26 @@ The first-time user path. Sequential, must be airtight.
 - [x] `docs/getting-started/first-agent.livemd` → **done** (working Livebook with Mix.install, HTML comment frontmatter)
 - [x] `docs/getting-started/first-llm-agent.livemd` → **done** (working Livebook, correct jido_ai ~> 0.2, ReqLLM.put_key)
 
-### Tier 3: Learn — Training Modules
+### Tier 3: Learn — Progressive Tutorials
 
-Deepen understanding after the onboarding ladder.
+> **Restructured.** Old training modules (agent-fundamentals, actions-validation, directives-scheduling, signals-routing, tool-use) were deleted — their content lives in Concepts. why-not-just-a-genserver moved to Reference. Learn is now 10 progressive build tutorials. See `specs/learn-content-briefs.md` for full briefs.
 
-- [x] `docs/learn/agent-fundamentals.livemd` → **done** (186 lines — typed state, schemas, signal routing)
-- [x] `docs/learn/actions-validation.livemd` → **done** (327 lines — schemas, composition, output validation)
-- [x] `docs/learn/directives-scheduling.livemd` → **done** (241 lines — drain loop, scheduling, testing)
-- [x] `docs/learn/signals-routing.livemd` → **done** (139 lines — CloudEvents, routing tables, wildcards)
-- [x] `docs/learn/tool-use.livemd` → **done** (108 lines — actions as tools, tool calling flow)
-- [x] `docs/learn/why-not-just-a-genserver.livemd` → **done** (101 lines — GenServer comparison)
-- [x] `docs/learn/first-workflow.livemd` → **done** (working Livebook, fixed action chaining to use context.state)
+#### Jido core mastery
+
+- [x] `docs/learn/first-workflow.livemd` → **done** (working Livebook, action chaining with context.state)
+- [ ] `docs/learn/plugins-and-composable-agents.livemd` → **write** — build a NotesPlugin, compose with agents
+- [ ] `docs/learn/state-machines-with-fsm.livemd` → **write** — FSM strategy, custom transitions, snapshots
+- [ ] `docs/learn/parent-child-agent-hierarchies.livemd` → **write** — 3-layer hierarchy, signal flow, result aggregation
+- [ ] `docs/learn/sensors-and-real-time-events.livemd` → **write** — sensors, webhook injection, context-aware routing
+
+#### Jido AI mastery
+
+- [ ] `docs/learn/ai-agent-with-tools.livemd` → **write** — ReAct agent with tools, lifecycle hooks, testing
+- [ ] `docs/learn/reasoning-strategies-compared.livemd` → **write** — CoT, ToT, Adaptive side-by-side
+- [ ] `docs/learn/task-planning-and-execution.livemd` → **write** — goal decomposition, Memory spaces, task tools
+- [ ] `docs/learn/memory-and-retrieval-augmented-agents.livemd` → **write** — Memory, Thread, Retrieval, checkpoint/restore
+- [ ] `docs/learn/multi-agent-orchestration.livemd` → **write** — Skills system, Planning plugin, specialist coordination
+- [x] `docs/learn/ai-chat-agent.livemd` → **done** (261 lines — will be repositioned into new curriculum)
 
 ### Tier 4: Concepts
 
@@ -94,46 +103,30 @@ Authoritative explanations of each Jido primitive. Not tutorials.
 
 ## Post-MVP — Ships as `draft: true`
 
-### Tier 5: Learn — Build Guides
+### Tier 5: Guides — Task-Oriented Recipes
 
-Hands-on projects. Each build guide teaches via a focused livemd tutorial under `/docs/learn/` and links to the full working implementation under `/examples/`.
+MVP guides (5 pages). Each is a standalone Livebook — reader arrives with "I need to do X" and leaves with a working solution. No progressive story required.
 
-| Build guide                 | Example reference                              |
-| --------------------------- | ---------------------------------------------- |
-| `counter-agent`             | `/examples/counter-agent` (live)               |
-| `demand-tracker-agent`      | `/examples/demand-tracker-agent` (live)        |
-| `ai-chat-agent`             | `/examples/coding-assistant` or similar (live) |
-| `behavior-tree-without-llm` | — (needs example)                              |
-| `multi-agent-workflows`     | `/examples/workflow-coordinator` (live)        |
-| `liveview-integration`      | `/examples/counter-agent` (live, has LiveView) |
-| `mixed-stack-integration`   | — (needs example)                              |
+- [x] `docs/guides/testing-agents-and-actions.livemd` → **drafted** (400 lines, `draft: true`) — Task: "I need to test my agent." Actions in isolation, `cmd/2` state transitions, runtime testing, debug events, directive assertions.
+- [x] `docs/guides/debugging-and-troubleshooting.livemd` → **drafted** (243 lines, `draft: true`) — Task: "Something's wrong." Debug levels, per-agent toggle, ring buffer, timeout diagnostics, state inspection.
+- [x] `docs/guides/error-handling-and-recovery.livemd` → **drafted** (198 lines, `draft: true`) — Task: "I need resilience." 5 error policies with working examples, error directives, supervision.
+- [x] `docs/guides/persistence-and-checkpoints.livemd` → **drafted** (245 lines, `draft: true`) — Task: "I need to save agent state." ETS vs File adapters, `hibernate/thaw`, thread journals, adapter comparison.
+- [x] `docs/guides/building-a-weather-agent.livemd` → **drafted** (256 lines, `draft: true`) — Task: "I need a tool-calling agent." End-to-end ReAct agent with NWS weather tools, custom tools, convenience wrappers.
 
-- [x] `docs/learn/ai-chat-agent.livemd` → **done** (261 lines, published — multi-turn chat, streaming, error handling)
-- [ ] `docs/learn/counter-agent.md` → **write** (no file) — refs `/examples/counter-agent`
-- [ ] `docs/learn/demand-tracker-agent.md` → **write** (no file) — refs `/examples/demand-tracker-agent`
-- [ ] `docs/learn/behavior-tree-without-llm.md` → **write** (no file)
-- [ ] `docs/learn/multi-agent-workflows.md` → **write** (no file) — refs `/examples/workflow-coordinator`
-- [ ] `docs/learn/liveview-integration.md` → **write** (no file) — refs `/examples/counter-agent`
-- [ ] `docs/learn/mixed-stack-integration.md` → **write** (no file)
+Deferred guides (post-MVP, no stubs):
 
-### Tier 6: Guides — Implementation Patterns
+- Long-running workflows — deferred until durability/restart patterns are more mature
+- MCP integration — deferred until `jido_mcp` is stable
+- Mixed-stack runbooks — deferred, niche operational concern
+- Persistence + vector search — vector search deferred until supported in deps
 
-> ⚠️ All stubs below are **missing `draft: true`** in frontmatter — they're visible on the live site as empty pages.
-
-- [ ] `docs/guides/testing-agents-and-actions.livemd` → **stub** (12 lines, needs `draft: true`)
-- [ ] `docs/guides/long-running-agent-workflows.livemd` → **stub** (12 lines, needs `draft: true`)
-- [ ] `docs/guides/retries-backpressure-and-failure-recovery.livemd` → **stub** (12 lines, needs `draft: true`)
-- [ ] `docs/guides/persistence-memory-and-vector-search.livemd` → **stub** (12 lines, needs `draft: true`)
-- [ ] `docs/guides/troubleshooting-and-debugging-playbook.livemd` → **stub** (12 lines, needs `draft: true`)
-- [ ] `docs/guides/mcp-integration.md` → **write** (no file)
-
-### Tier 7: Operations (entire section `draft: true`)
+### Tier 6: Operations (entire section `draft: true`)
 
 - [ ] `docs/operations/production-readiness-checklist.md` → **stub** (13 lines, `draft: true` ✅)
 - [ ] `docs/operations/incident-playbooks.md` → **stub** (13 lines, `draft: true` ✅)
 - [ ] `docs/operations/security-and-governance.md` → **stub** (13 lines, `draft: true` ✅)
 
-### Tier 8: Reference
+### Tier 7: Reference
 
 Live reference pages (shipped):
 
@@ -146,6 +139,7 @@ Live reference pages (shipped):
 Drafted reference pages (hidden, for later):
 
 - [x] `docs/reference/debugging.md` → **done** (29 lines, live) — needs research into `Jido.Debug`, debug event modes, IEx helpers
+- [x] `docs/reference/why-not-just-a-genserver.livemd` → **done** (moved from learn/, GenServer comparison)
 - [ ] `docs/reference/architecture.md` → **stub** (13 lines, `draft: true`) — covered by Concepts for now
 - [ ] `docs/reference/architecture-decision-guides.md` → **stub** (13 lines, `draft: true`)
 - [ ] `docs/reference/data-storage-and-pgvector.md` → **stub** (13 lines, `draft: true`)
@@ -158,26 +152,24 @@ Drafted reference pages (hidden, for later):
 
 | Phase        | Tiers | Pages  | Status                             |
 | ------------ | ----- | ------ | ---------------------------------- |
-| **MVP**      | 1–4   | 29     | `draft: false` — ships published   |
-| **Post-MVP** | 5–8   | 24     | `draft: true` — hidden until ready |
-| **Total**    |       | **53** |                                    |
+| **MVP**      | 1–4   | 22     | `draft: false` — ships published   |
+| **Post-MVP** | 5–7   | 22     | `draft: true` — hidden until ready |
+| **Total**    |       | **44** |                                    |
 
 ### Current progress
 
 | Section | Done | Remaining | Notes |
 | --- | --- | --- | --- |
 | Hub pages (T1) | 6/7 | 0 live | operations drafted, rest done |
-| Getting started (T2) | 5/5 | 0 | ✅ all done (installation, first-agent, first-llm-agent polished) |
-| Training modules (T3) | 7/7 | 0 | ✅ all done (first-workflow fixed with context.state) |
+| Getting started (T2) | 5/5 | 0 | ✅ all done |
+| Learn tutorials (T3) | 2/11 | 9 writes | first-workflow + ai-chat-agent done; 9 new tutorials need writing. See `specs/learn-content-briefs.md` |
 | Concepts (T4) | 8/8 | 0 | ✅ all done |
-| Build guides (T5) | 1/7 | 6 writes | ai-chat-agent done; 6 no file yet |
-| Guides (T6) | 0/6 | 5 stubs + 1 no file | ⚠️ stubs need `draft: true` |
-| Operations (T7) | 0/3 | 3 stubs | correctly drafted |
-| Reference (T8) | 6/11 | 5 stubs | 6 done + shipped (incl. debugging), 5 drafted |
+| Guides (T5) | 5/5 | 0 | ✅ all drafted (`draft: true`), cookbook removed |
+| Operations (T6) | 0/3 | 3 stubs | correctly drafted |
+| Reference (T7) | 7/12 | 5 stubs | 7 done + shipped (incl. debugging, why-not-genserver), 5 drafted |
 
 ### Recommended writing order (remaining work)
 
-1. **Fix stubs** — add `draft: true` to guide/cookbook stubs so empty pages aren't live
-2. **Tier 5 build guides** (6 pages) — write counter-agent, demand-tracker, etc.
-3. **Tier 6 guides** (6 pages) — write when ready, flip `draft: false`
-4. Remaining reference + operations pages as needed
+1. **Learn tutorials** (9 pages) — Write in order: plugins → FSM → hierarchies → sensors → AI tools → strategies → task planning → memory/RAG → orchestration. See `specs/learn-content-briefs.md` for full briefs.
+2. **Guides** (5 pages) — Testing → Debugging → Error handling → Persistence → Weather agent
+3. Remaining reference + operations pages as needed

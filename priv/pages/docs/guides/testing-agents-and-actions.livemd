@@ -1,13 +1,400 @@
 %{
-  description: "Deterministic testing for agent workflows.",
-  title: "Testing Agents and Actions",
+  title: "Testing Agents",
+  description: "Unit and integration test patterns for agents, actions, and runtime workflows.",
   category: :docs,
-  legacy_paths: ["/docs/testing-agents-and-actions"],
   tags: [:docs, :guides, :livebook],
   order: 170,
-  draft: true
+  draft: false
 }
 ---
-# Testing Agents and Actions
 
-Testing patterns for action contracts, agent flows, and deterministic behavior.
+## Setup
+
+```elixir
+Mix.install([
+  {:jido, "~> 2.0"},
+  {:jido_ai, "~> 0.2"}
+])
+
+Jido.start()
+```
+
+Agents are immutable structs. Most tests need no processes, no mocks, and no async coordination. Call `cmd/2`, pattern match the result, and assert.
+
+## Testing actions in isolation
+
+Actions are pure functions. Test them by calling `run/2` directly with a params map and a context map.
+
+### Define an action
+
+```elixir
+defmodule MyApp.IncrementAction do
+  use Jido.Action,
+    name: "increment",
+    description: "Increments a counter",
+    schema: [
+      by: [type: :integer, default: 1, doc: "Amount to increment by"]
+    ]
+
+  @impl true
+  def run(%{by: amount}, context) do
+    current = Map.get(context.state, :count, 0)
+    {:ok, %{count: current + amount}}
+  end
+end
+```
+
+### Assert success cases
+
+Pass the validated params and a context map containing the state your action reads from.
+
+```elixir
+assert {:ok, %{count: 5}} =
+  MyApp.IncrementAction.run(%{by: 5}, %{state: %{count: 0}})
+
+assert {:ok, %{count: 13}} =
+  MyApp.IncrementAction.run(%{by: 3}, %{state: %{count: 10}})
+```
+
+### Assert error cases
+
+Define an action that rejects invalid input and test the error path.
+
+```elixir
+defmodule MyApp.DivideAction do
+  use Jido.Action,
+    name: "divide",
+    description: "Divides value by divisor",
+    schema: [
+      divisor: [type: :integer, required: true, doc: "Divisor"]
+    ]
+
+  @impl true
+  def run(%{divisor: 0}, _context), do: {:error, :division_by_zero}
+
+  def run(%{divisor: d}, context) do
+    value = Map.get(context.state, :value, 100)
+    {:ok, %{value: div(value, d)}}
+  end
+end
+```
+
+```elixir
+assert {:error, :division_by_zero} =
+  MyApp.DivideAction.run(%{divisor: 0}, %{state: %{}})
+
+assert {:ok, %{value: 50}} =
+  MyApp.DivideAction.run(%{divisor: 2}, %{state: %{value: 100}})
+```
+
+## Testing agent state transitions
+
+Define an agent and exercise it with `cmd/2`. Every call returns `{agent, directives}` where `agent` is a new immutable struct with updated state.
+
+### Define the agent
+
+```elixir
+defmodule MyApp.CounterAgent do
+  use Jido.Agent,
+    name: "counter_agent",
+    description: "Counts things",
+    schema: [
+      count: [type: :integer, default: 0]
+    ]
+end
+```
+
+### Create and inspect initial state
+
+```elixir
+agent = MyApp.CounterAgent.new()
+assert agent.state.count == 0
+
+agent = MyApp.CounterAgent.new(state: %{count: 10})
+assert agent.state.count == 10
+```
+
+### Run actions and assert state changes
+
+```elixir
+agent = MyApp.CounterAgent.new()
+
+{agent, _directives} =
+  MyApp.CounterAgent.cmd(agent, {MyApp.IncrementAction, %{by: 3}})
+
+assert agent.state.count == 3
+```
+
+State accumulates across sequential calls. Each `cmd/2` returns a fresh struct.
+
+```elixir
+agent = MyApp.CounterAgent.new()
+{agent, _} = MyApp.CounterAgent.cmd(agent, {MyApp.IncrementAction, %{by: 2}})
+{agent, _} = MyApp.CounterAgent.cmd(agent, {MyApp.IncrementAction, %{by: 5}})
+
+assert agent.state.count == 7
+```
+
+### Pass custom IDs
+
+Override the agent ID for deterministic test assertions.
+
+```elixir
+agent = MyApp.CounterAgent.new(id: "test-counter-1")
+assert agent.id == "test-counter-1"
+```
+
+## Asserting on directives
+
+`cmd/2` returns a list of directive structs alongside the updated agent. Directives describe external effects the runtime should execute - they are bare structs, not wrapped in tuples.
+
+### Match directive types
+
+```elixir
+alias Jido.Agent.Directive
+
+defmodule MyApp.EmitAction do
+  use Jido.Action,
+    name: "emit_result",
+    description: "Emits a signal with the current count",
+    schema: []
+
+  @impl true
+  def run(_params, context) do
+    signal = Jido.Signal.new!("counter.updated", %{count: context.state.count}, source: "/counter")
+    {:ok, %{}, [Directive.emit(signal)]}
+  end
+end
+```
+
+```elixir
+agent = MyApp.CounterAgent.new(state: %{count: 42})
+{_agent, directives} = MyApp.CounterAgent.cmd(agent, MyApp.EmitAction)
+
+assert [%Directive.Emit{signal: signal}] = directives
+assert signal.type == "counter.updated"
+assert signal.data.count == 42
+```
+
+### Match error directives
+
+When an action fails validation or returns an error, `cmd/2` emits an `Error` directive instead of raising.
+
+```elixir
+defmodule MyApp.BadAction do
+  use Jido.Action,
+    name: "bad_action",
+    description: "Always fails",
+    schema: []
+
+  @impl true
+  def run(_params, _context), do: {:error, :something_went_wrong}
+end
+```
+
+```elixir
+agent = MyApp.CounterAgent.new()
+{_agent, directives} = MyApp.CounterAgent.cmd(agent, MyApp.BadAction)
+
+assert [%Directive.Error{error: error}] = directives
+assert error.type == :action_error
+```
+
+### Empty directives
+
+Most actions produce no directives. Assert on the empty list to confirm no side effects.
+
+```elixir
+agent = MyApp.CounterAgent.new()
+{agent, directives} = MyApp.CounterAgent.cmd(agent, {MyApp.IncrementAction, %{by: 1}})
+
+assert directives == []
+assert agent.state.count == 1
+```
+
+## Testing with the runtime
+
+When you need to test signal routing, process lifecycle, or async behavior, start the agent in an `AgentServer`.
+
+### Start an agent server
+
+```elixir
+{:ok, _} = Jido.start()
+
+{:ok, pid} =
+  Jido.start_agent(Jido.default_instance(), MyApp.CounterAgent)
+```
+
+### Query state
+
+`state/1` returns the full server state struct. The agent struct lives at `state.agent`.
+
+```elixir
+{:ok, server_state} = Jido.AgentServer.state(pid)
+assert server_state.agent.state.count == 0
+```
+
+### Send signals synchronously
+
+`call/2` sends a signal and waits for processing. It returns the updated agent struct.
+
+```elixir
+defmodule MyApp.SignalCounterAgent do
+  use Jido.Agent,
+    name: "signal_counter",
+    description: "Routes increment signals",
+    schema: [
+      count: [type: :integer, default: 0]
+    ]
+
+  @impl true
+  def signal_routes(_ctx) do
+    [{"counter.increment", MyApp.IncrementAction}]
+  end
+end
+```
+
+```elixir
+{:ok, _} = Jido.start()
+
+{:ok, pid} =
+  Jido.start_agent(Jido.default_instance(), MyApp.SignalCounterAgent)
+
+signal = Jido.Signal.new!("counter.increment", %{by: 10}, source: "/test")
+{:ok, agent} = Jido.AgentServer.call(pid, signal)
+
+assert agent.state.count == 10
+```
+
+### Send signals asynchronously
+
+`cast/2` returns `:ok` immediately. Query state after a short wait to verify processing.
+
+```elixir
+signal = Jido.Signal.new!("counter.increment", %{by: 5}, source: "/test")
+:ok = Jido.AgentServer.cast(pid, signal)
+
+Process.sleep(100)
+
+{:ok, server_state} = Jido.AgentServer.state(pid)
+assert server_state.agent.state.count == 15
+```
+
+## Using debug mode in tests
+
+Debug mode records internal events in a ring buffer. Use it to verify that signals were received and directives were processed without inspecting internal state.
+
+### Enable at startup
+
+```elixir
+{:ok, pid} = Jido.AgentServer.start_link(
+  agent: MyApp.SignalCounterAgent,
+  debug: true
+)
+```
+
+### Enable at runtime
+
+```elixir
+:ok = Jido.AgentServer.set_debug(pid, true)
+```
+
+### Retrieve recent events
+
+Each event has `:at` (monotonic timestamp in ms), `:type` (atom), and `:data` (map).
+
+```elixir
+signal = Jido.Signal.new!("counter.increment", %{by: 1}, source: "/test")
+{:ok, _agent} = Jido.AgentServer.call(pid, signal)
+
+{:ok, events} = Jido.AgentServer.recent_events(pid, limit: 10)
+types = Enum.map(events, & &1.type)
+
+assert :signal_received in types
+```
+
+### Verify debug is required
+
+`recent_events/2` returns an error when debug mode is off. Use this to confirm your test setup.
+
+```elixir
+{:ok, pid} = Jido.AgentServer.start_link(
+  agent: MyApp.CounterAgent
+)
+
+assert {:error, :debug_not_enabled} =
+  Jido.AgentServer.recent_events(pid, limit: 5)
+```
+
+## ExUnit patterns
+
+These patterns translate directly into ExUnit test files in a Mix project.
+
+### Test module skeleton
+
+```elixir
+defmodule MyApp.CounterAgentTest do
+  use ExUnit.Case, async: true
+
+  alias MyApp.{CounterAgent, IncrementAction}
+
+  describe "state transitions" do
+    test "increments count" do
+      agent = CounterAgent.new()
+      {agent, _} = CounterAgent.cmd(agent, {IncrementAction, %{by: 3}})
+      assert agent.state.count == 3
+    end
+  end
+end
+```
+
+### Testing signal routes
+
+Verify that your agent maps signal types to the correct actions.
+
+```elixir
+defmodule MyApp.SignalCounterAgentTest do
+  use ExUnit.Case, async: true
+
+  test "routes counter.increment to IncrementAction" do
+    agent = MyApp.SignalCounterAgent.new()
+    routes = MyApp.SignalCounterAgent.signal_routes(%{agent: agent})
+
+    assert {"counter.increment", MyApp.IncrementAction} in routes
+  end
+end
+```
+
+### Runtime tests with setup
+
+For tests that need a running agent server, start the instance in a setup block.
+
+```elixir
+defmodule MyApp.CounterServerTest do
+  use ExUnit.Case, async: false
+
+  setup do
+    {:ok, _} = Jido.start()
+    {:ok, pid} = Jido.start_agent(
+      Jido.default_instance(),
+      MyApp.SignalCounterAgent
+    )
+    %{pid: pid}
+  end
+
+  test "processes signals", %{pid: pid} do
+    signal = Jido.Signal.new!("counter.increment", %{by: 7}, source: "/test")
+    {:ok, agent} = Jido.AgentServer.call(pid, signal)
+    assert agent.state.count == 7
+  end
+end
+```
+
+## Next steps
+
+Now that you have test patterns for agents and actions, explore related topics.
+
+- [Error handling and recovery](/docs/guides/error-handling-and-recovery) - test failure modes and retry policies
+- [Debugging](/docs/guides/debugging-and-troubleshooting) - use debug mode and diagnostics beyond tests
+- [Actions concept](/docs/concepts/actions) - understand action schemas and lifecycle hooks
+- [Agent runtime](/docs/concepts/agent-runtime) - learn how AgentServer processes signals
