@@ -1,6 +1,8 @@
 defmodule AgentJido.GithubStarsTrackerTest do
   use ExUnit.Case, async: false
 
+  @moduletag :slow
+
   alias AgentJido.GithubStarsTracker
 
   @table :github_stars_tracker_test_fetches

@@ -1,5 +1,7 @@
 defmodule AgentJido.ContentGen.RunTest do
-  use ExUnit.Case, async: false
+  use ExUnit.Case, async: true
+
+  @moduletag :slow
 
   alias AgentJido.ContentGen.Run
   alias AgentJido.Pages.LivebookParser

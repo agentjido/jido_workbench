@@ -204,24 +204,55 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
         <div class="flex-1" />
       <% end %>
       
+    <!-- Livebook CTA -->
+      <%= if livebook_url = livebook_url(@selected_document) do %>
+        <div class="shrink-0">
+          <a
+            href={livebook_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-livebook-run="true"
+            data-analytics-source="docs"
+            data-analytics-channel="quick_links"
+            data-analytics-target-url={livebook_url}
+            class="group flex w-full items-center justify-between gap-3 rounded-lg bg-[#e8457c] px-3.5 py-2.5 text-[12px] font-semibold text-white shadow-sm ring-1 ring-black/10 transition hover:bg-[#f06292] hover:shadow-md"
+          >
+            <span class="flex items-center gap-2.5">
+              <span class="inline-flex h-6 w-6 items-center justify-center rounded bg-white/20">
+                <.icon name="hero-book-open" class="h-3.5 w-3.5 text-white" />
+              </span>
+              <span>Run in Livebook</span>
+            </span>
+            <.icon
+              name="hero-arrow-top-right-on-square"
+              class="h-3.5 w-3.5 opacity-80 group-hover:opacity-100"
+            />
+          </a>
+          <%= if notice = livebook_notice(@selected_document) do %>
+            <div class="mt-1.5 px-1 text-[10px] leading-4 text-muted-foreground">
+              {notice}
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+      
     <!-- Quick Links -->
       <div class="shrink-0 rounded-md border border-border/80 bg-card/75 p-4 shadow-[0_10px_24px_hsl(var(--background)/0.2)]">
         <div class="mb-2 text-[10px] font-semibold tracking-[0.08em] text-muted-foreground">
           QUICK LINKS
         </div>
         <div class="flex flex-col gap-2.5">
-          <%= for {label, icon, href} <- quick_links(@selected_document) do %>
+          <%= for {label, icon_name, href} <- quick_links(@selected_document) do %>
             <a
               href={href}
               target="_blank"
               rel="noopener noreferrer"
-              data-livebook-run={if label == "Run this in Livebook", do: "true", else: nil}
               data-analytics-source="docs"
               data-analytics-channel="quick_links"
               data-analytics-target-url={href}
               class="group flex items-center gap-2 text-[12px] leading-5 text-muted-foreground transition-colors hover:text-primary"
             >
-              <span class="text-[11px]">{icon}</span>
+              <.icon name={icon_name} class="h-3.5 w-3.5" />
               <span>{label}</span>
             </a>
           <% end %>
@@ -247,19 +278,84 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
     """
   end
 
+  defp livebook_url(nil), do: nil
+
+  defp livebook_url(doc) do
+    case Map.get(doc, :livebook_url) do
+      url when is_binary(url) and url != "" -> url
+      _ -> nil
+    end
+  end
+
+  defp livebook_notice(nil), do: nil
+
+  defp livebook_notice(doc) do
+    livebook_meta = Map.get(doc, :livebook, %{}) || %{}
+    parts = []
+
+    parts =
+      case Map.get(livebook_meta, :elixir_version) do
+        v when is_binary(v) and v != "" -> ["Elixir #{v}" | parts]
+        _ -> parts
+      end
+
+    parts =
+      case Map.get(livebook_meta, :required_env_vars, []) do
+        vars when is_list(vars) and vars != [] ->
+          shown = Enum.take(vars, 2) |> Enum.join(", ")
+          extra = if length(vars) > 2, do: " +#{length(vars) - 2} more", else: ""
+          ["Env: #{shown}#{extra}" | parts]
+
+        _ ->
+          parts
+      end
+
+    case parts do
+      [] -> nil
+      _ -> Enum.reverse(parts) |> Enum.join(" · ")
+    end
+  end
+
   defp quick_links(selected_document) do
-    base_links = [
-      {"HexDocs", "◇", Nav.hexdocs_url()},
-      {"GitHub", "◈", Nav.github_url()},
-      {"Hex.pm", "⬡", Nav.hex_url()}
+    doc = selected_document || %{}
+
+    # Page-specific "View source" link replaces generic GitHub
+    github_url =
+      case Map.get(doc, :github_url) do
+        url when is_binary(url) and url != "" -> url
+        _ -> Nav.github_url()
+      end
+
+    default_links = [
+      {"View source", "hero-code-bracket", github_url},
+      {"HexDocs", "hero-book-open", Nav.hexdocs_url()},
+      {"Hex.pm", "hero-cube", Nav.hex_url()}
     ]
 
-    case Map.get(selected_document || %{}, :livebook_url) do
-      url when is_binary(url) and url != "" ->
-        [{"Run this in Livebook", "▶", url} | base_links]
+    # Per-page control
+    mode = Map.get(doc, :quick_links_mode, :append)
+    hide = Map.get(doc, :quick_links_hide_defaults, []) |> Enum.map(&to_string/1)
+
+    custom =
+      (Map.get(doc, :quick_links, []) || [])
+      |> Enum.map(fn link ->
+        {
+          to_string(Map.get(link, :label, "")),
+          to_string(Map.get(link, :icon, "hero-link")),
+          to_string(Map.get(link, :href, ""))
+        }
+      end)
+      |> Enum.filter(fn {label, _icon, href} -> label != "" and href != "" end)
+
+    case mode do
+      :replace ->
+        custom
 
       _ ->
-        base_links
+        defaults_filtered =
+          Enum.reject(default_links, fn {label, _icon, _href} -> label in hide end)
+
+        defaults_filtered ++ custom
     end
   end
 

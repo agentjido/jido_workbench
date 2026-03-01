@@ -30,10 +30,12 @@ defmodule AgentJidoWeb.ContentGenerator.EntryStatusTest do
     tmp_dir = tmp_dir!("entry_status_generated")
     plan_path = Path.join(tmp_dir, "entry.md")
     artifact_path = Path.join(tmp_dir, "generated.livemd")
+    base_mtime = System.os_time(:second)
 
     :ok = File.write(plan_path, "plan")
-    Process.sleep(1_100)
     :ok = File.write(artifact_path, "artifact")
+    :ok = File.touch(plan_path, base_mtime)
+    :ok = File.touch(artifact_path, base_mtime + 2)
 
     latest = %{
       run_id: "run_ok",
@@ -65,10 +67,12 @@ defmodule AgentJidoWeb.ContentGenerator.EntryStatusTest do
     tmp_dir = tmp_dir!("entry_status_stale")
     plan_path = Path.join(tmp_dir, "entry.md")
     artifact_path = Path.join(tmp_dir, "stale.livemd")
+    base_mtime = System.os_time(:second)
 
     :ok = File.write(artifact_path, "artifact")
-    Process.sleep(1_100)
     :ok = File.write(plan_path, "plan")
+    :ok = File.touch(artifact_path, base_mtime)
+    :ok = File.touch(plan_path, base_mtime + 2)
 
     latest = %{
       run_id: "run_bad",

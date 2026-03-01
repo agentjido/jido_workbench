@@ -88,6 +88,16 @@ defmodule AgentJido.Pages.Page do
               legacy_paths:
                 Zoi.any(description: "Legacy URL paths that should redirect to this page")
                 |> Zoi.default([]),
+              # Per-page quick links control
+              quick_links:
+                Zoi.any(description: "Custom quick links list of maps with :label, :href, and optional :icon keys")
+                |> Zoi.default([]),
+              quick_links_mode:
+                Zoi.atom(description: "How custom quick_links merge with defaults: :append or :replace")
+                |> Zoi.default(:append),
+              quick_links_hide_defaults:
+                Zoi.any(description: "List of default link labels to hide (e.g. [\"HexDocs\", \"Hex.pm\"])")
+                |> Zoi.default([]),
               # Document metadata
               doc_type:
                 Zoi.atom(description: "Document type (:guide, :reference, :tutorial, :explanation, :cookbook)")
@@ -243,7 +253,7 @@ defmodule AgentJido.Pages.Page do
     menu_path = derive_menu_path(path)
 
     github_url = build_github_url(doc_root, path, is_livebook)
-    livebook_url = build_livebook_url(github_url, is_livebook)
+    livebook_url = Map.get(attrs, :livebook_url) || build_livebook_url(github_url, is_livebook)
 
     word_count = compute_word_count(body)
     reading_time_minutes = max(1, div(word_count, 200))

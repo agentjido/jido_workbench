@@ -1,4 +1,4 @@
-%{
+<!-- %{
   title: "Your first LLM agent",
   description: "Add LLM reasoning to a Jido agent with jido_ai, configure a provider, and run your first AI-enhanced command.",
   category: :docs,
@@ -12,80 +12,55 @@
     "Run an AI-enhanced agent command"
   ],
   prerequisites: ["/docs/getting-started/first-agent"]
-}
----
-In [Your first agent](/docs/getting-started/first-agent) you built a deterministic agent with `cmd/2`. This tutorial adds LLM reasoning to the same pattern using `jido_ai`, while keeping the runtime boundaries intact.
-
-You will add the AI dependencies, configure a provider, define an AI agent, and run a single command that returns an LLM-generated response.
+} -->
 
 ## Prerequisites
 
-Before starting, you need:
+Complete [Your first agent](/docs/getting-started/first-agent) before starting. You need an API key for OpenAI or another supported provider.
 
-- An Elixir project that compiles and runs.
-- The agent module from [Your first agent](/docs/getting-started/first-agent).
-- An API key for OpenAI (or another supported provider).
-
-## Add AI dependencies
+## Install dependencies
 
 `jido_ai` adds LLM reasoning on top of the core Jido runtime. `req_llm` is the provider-agnostic transport layer that `jido_ai` uses underneath.
 
-Add both to your `mix.exs`:
-
 ```elixir
-# mix.exs
-defp deps do
-  [
-    {:jido, "~> 2.0"},
-    {:jido_ai, "~> 2.0"},
-    {:req_llm, "~> 1.0"}
-  ]
-end
+Mix.install([
+  {:jido, "~> 2.0"},
+  {:jido_ai, github: "agentjido/jido_ai", branch: "main"},
+  {:req_llm, "~> 1.6"}
+])
 ```
 
-Fetch and compile:
+## Configure credentials
 
-```shell
-mix deps.get
-```
-
-## Configure a provider
-
-Set up OpenAI in `config/runtime.exs`. The API key comes from the environment, so secrets stay out of source control.
+Set your OpenAI API key. In Livebook, add `OPENAI_API_KEY` as a
+[Livebook Secret](https://livebook.dev/blog/secrets-in-livebook/) prefixed with `LB_`.
+The cell below checks both the Livebook secret and a plain environment variable.
 
 ```elixir
-# config/runtime.exs
-import Config
-
-openai_key = System.get_env("OPENAI_API_KEY")
+openai_key = System.get_env("LB_OPENAI_API_KEY") || System.get_env("OPENAI_API_KEY")
 
 if openai_key do
-  config :jido_ai, :providers,
-    openai: [
-      api_key: openai_key
-    ]
+  ReqLLM.put_key(:openai_api_key, openai_key)
+  :configured
+else
+  IO.puts("Set OPENAI_API_KEY as a Livebook Secret or environment variable to run the LLM cells.")
+  :no_key
 end
-```
-
-Export the key in the shell session where you run your app:
-
-```shell
-export OPENAI_API_KEY="your-api-key-here"
 ```
 
 ## Define an AI agent
 
-Replace the greeter module from the first tutorial with one that uses `Jido.AI.Agent`. This single macro gives your agent a system prompt, a model, and the full Jido lifecycle.
+In the previous tutorial you built a deterministic agent with typed state and actions. This tutorial adds LLM reasoning to a Jido agent.
+
+The `Jido.AI.Agent` macro gives your agent a system prompt, a model, and the full Jido lifecycle. The module below defines a greeter that generates a short welcome message.
 
 ```elixir
-# lib/my_app/greeter.ex
 defmodule MyApp.Greeter do
   use Jido.AI.Agent,
     name: "greeter",
-    description: "Greets users with AI-generated messages",
+    description: "Generates a friendly greeting",
     tools: [],
-    model: :fast,
-    max_iterations: 1,
+    model: "openai:gpt-4o-mini",
     system_prompt: """
     You are a friendly greeter.
     Generate a short, warm welcome message.
@@ -94,33 +69,59 @@ defmodule MyApp.Greeter do
 end
 ```
 
-`model: :fast` resolves to a fast, inexpensive model (like `gpt-4o-mini`). You can also pass a string like `"openai:gpt-4o-mini"` for explicit control. `tools: []` means no external tool calls for now. `max_iterations: 1` keeps the agent to a single reasoning step.
+`model: "openai:gpt-4o-mini"` selects a fast, inexpensive model. You can swap in any model string supported by `req_llm` (for example `"anthropic:claude-haiku-4-5"`). `tools: []` means no external tool calls for now.
 
-## Run a command
+## Run the agent
 
 Start the agent through `Jido.AgentServer` and send it a prompt:
 
 ```elixir
-# iex -S mix
-{:ok, pid} =
-  Jido.AgentServer.start_link(agent: MyApp.Greeter)
-
-MyApp.Greeter.ask_sync(pid, "Say hello to a new user.")
-#=> {:ok, "Welcome! Great to have you here."}
+{:ok, pid} = Jido.AgentServer.start_link(agent: MyApp.Greeter)
+MyApp.Greeter.ask_sync(pid, "Say hello to someone just getting started with Jido.")
 ```
 
-If you see a greeting string, your AI integration is working. If you get a provider error, verify that `OPENAI_API_KEY` is set in the same shell session.
+If you see a greeting string, your AI integration is working. If you get a provider error, verify that your API key is set correctly.
 
 ## What happened
 
-Here is the flow you just exercised:
+Here is the flow you just ran:
 
 1. `Jido.AgentServer.start_link/1` spawned a supervised process for your agent.
-2. `ask_sync/3` sent the prompt to the agent process.
-3. The agent's system prompt and your user message were combined and sent to the configured LLM provider via `req_llm`.
+2. `ask_sync/2` sent the prompt to the agent process.
+3. The agent's system prompt and your message were combined and sent to the configured LLM provider via `req_llm`.
 4. The provider response was returned through the agent lifecycle.
 
 Your agent module contains no HTTP calls, no API client code, and no mutable state. The LLM interaction is handled by the runtime. Your agent definition stays declarative and testable.
+
+## Using this in a Mix project
+
+When you move from Livebook to a Mix project, add the dependencies to `mix.exs` and configure the provider key in `config/runtime.exs`.
+
+**mix.exs**
+
+```elixir
+defp deps do
+  [
+    {:jido, "~> 2.0"},
+    {:jido_ai, github: "agentjido/jido_ai", branch: "main"},
+    {:req_llm, "~> 1.6"}
+  ]
+end
+```
+
+**config/runtime.exs**
+
+```elixir
+import Config
+
+config :req_llm, openai_api_key: System.get_env("OPENAI_API_KEY")
+```
+
+Export the key in the shell session where you run your app:
+
+```shell
+export OPENAI_API_KEY="your-api-key-here"
+```
 
 ## Next steps
 

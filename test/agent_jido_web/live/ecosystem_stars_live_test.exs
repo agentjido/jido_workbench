@@ -1,6 +1,8 @@
 defmodule AgentJidoWeb.EcosystemStarsLiveTest do
   use AgentJidoWeb.ConnCase, async: false
 
+  @moduletag :slow
+
   import Phoenix.LiveViewTest
 
   alias AgentJido.GithubStarsTracker

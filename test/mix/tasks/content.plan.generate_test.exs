@@ -1,6 +1,8 @@
 defmodule Mix.Tasks.Content.Plan.GenerateTest do
   use ExUnit.Case, async: false
 
+  @moduletag :slow
+
   import ExUnit.CaptureIO
 
   setup do

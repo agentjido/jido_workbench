@@ -1,4 +1,4 @@
-%{
+<!-- %{
   title: "Your first agent",
   description: "Define typed state, implement a validated action, and run your first command.",
   category: :docs,
@@ -12,18 +12,26 @@
     "Interpret updated state and returned directives"
   ],
   prerequisites: ["/docs/getting-started/installation"]
-}
----
+} -->
+
 ## Prerequisites
 
-Complete [Installation and setup](/docs/getting-started/installation) before starting this tutorial. You only need the core `jido` package and a local `iex` session.
+Complete [Installation and setup](/docs/getting-started/installation) before starting this tutorial. Run this notebook top to bottom. You do not need a Mix project.
 
-## Define your agent
+## Setup
+
+```elixir
+Mix.install([
+  {:jido, "~> 2.0"}
+])
+```
+
+## Define the agent
 
 An agent is an immutable struct backed by a typed schema. The schema enforces types and defaults so state transitions stay consistent across runs.
 
 ```elixir
-defmodule MyApp.CounterAgent do
+defmodule CounterAgent do
   use Jido.Agent,
     name: "counter_agent",
     description: "Tracks a simple counter",
@@ -35,12 +43,12 @@ end
 
 This module provides `new/1`, `set/2`, `validate/2`, and `cmd/2`. The agent is data, not a process. When you need supervision or long-lived runtime state, wrap it in a `Jido.AgentServer`.
 
-## Create an action
+## Define an action
 
-Actions are the only way to change agent state. Each action defines a schema for its inputs and implements `run/2`. The first argument is validated params. The second is the execution context, which includes `context.state`.
+Actions are the only way to change agent state. Each action defines a schema for its inputs and implements `run/2`. The first argument is validated params. The second is the execution context, which includes `context.state` - the current agent state.
 
 ```elixir
-defmodule MyApp.IncrementAction do
+defmodule IncrementAction do
   use Jido.Action,
     name: "increment",
     description: "Increments the counter by a specified amount",
@@ -58,33 +66,51 @@ end
 
 Params are schema-validated before `run/2` is called, so `params.by` is always an integer. The return value is a partial state map that `cmd/2` merges into the agent.
 
-## Execute with `cmd/2`
+## Create an agent and run a command
 
-`cmd/2` is the core contract for agent evolution. It takes the current agent and an action instruction, runs the action, and returns a new agent plus any directives. The original agent is unchanged.
+`cmd/2` takes the current agent and an action instruction, runs the action, and returns a two-element tuple: the updated agent and a list of directives. The original agent is unchanged.
 
 ```elixir
-agent = MyApp.CounterAgent.new()
-#=> %MyApp.CounterAgent{state: %{count: 0}, ...}
-
-{updated_agent, directives} =
-  MyApp.CounterAgent.cmd(agent, {MyApp.IncrementAction, %{by: 3}})
+agent = CounterAgent.new()
 ```
 
-The same input always produces the same output. If validation fails, `cmd/2` returns a directive describing the error instead of mutating state.
+```elixir
+{updated_agent, directives} =
+  CounterAgent.cmd(agent, {IncrementAction, %{by: 3}})
+```
 
-## Understand the output
+## Inspect the results
 
-`cmd/2` returns `{agent, directives}`. The agent reflects the new state. Directives are outbound instructions that describe side effects for the runtime to handle later.
+The updated agent reflects the new state. Directives are outbound instructions that describe side effects for the runtime to handle later.
 
 ```elixir
 updated_agent.state
-#=> %{count: 3}
+```
 
+```elixir
 directives
-#=> []
 ```
 
 The directives list is empty because this action is pure. If an action needed to emit an event or schedule work, it would return `Jido.Agent.Directive` structs alongside the state changes.
+
+## Handle validation errors
+
+If you pass params that fail schema validation, `cmd/2` returns the original agent unchanged and a list containing a `Directive.Error` struct.
+
+```elixir
+{error_agent, error_directives} =
+  CounterAgent.cmd(agent, {IncrementAction, %{by: "not_a_number"}})
+```
+
+```elixir
+error_agent.state
+```
+
+```elixir
+error_directives
+```
+
+The agent state remains `%{count: 0}` - the same as before the failed command. The error directive wraps a `Jido.Error` with context about what went wrong.
 
 ## Next steps
 

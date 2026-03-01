@@ -300,6 +300,7 @@ defmodule AgentJidoWeb.DevRoutesAuthTest do
       assert Phoenix.Flash.get(conn.assigns.flash, :error) =~ "You must be an admin"
     end
 
+    @tag :slow
     test "allows authenticated admin users", %{conn: conn} do
       admin_user = admin_user_fixture()
 

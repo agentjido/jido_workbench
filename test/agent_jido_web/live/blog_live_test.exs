@@ -36,6 +36,7 @@ defmodule AgentJidoWeb.BlogLiveTest do
       assert render(view) =~ "Engineering Blog"
     end
 
+    @tag :slow
     test "blog tag page mounts as LiveView", %{conn: conn} do
       tag = Blog.all_tags() |> hd()
       tag_path = ~p"/blog/tags/#{tag}"

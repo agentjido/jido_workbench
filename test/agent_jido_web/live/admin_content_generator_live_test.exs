@@ -1,6 +1,8 @@
 defmodule AgentJidoWeb.AdminContentGeneratorLiveTest do
   use AgentJidoWeb.ConnCase, async: false
 
+  @moduletag :slow
+
   import AgentJido.AccountsFixtures
   import Phoenix.LiveViewTest
 

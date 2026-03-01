@@ -12,9 +12,9 @@ This section is the authoritative reference for Jido's primitives. These pages a
 
 ## The core model
 
-Jido separates concerns that most agent frameworks collapse together. Actions are pure functions - validated, composable units of work that transform data. Signals are the universal message format, built on CloudEvents, that carry events and commands through the system. Agents are typed state structs with a behavior contract: pass in an action, get back updated state and directives. Directives are declarative descriptions of side effects - the agent never executes them directly. The runtime picks up those directives and executes them inside a supervised GenServer, keeping your domain logic deterministic and testable.
+Jido separates concerns that most agent frameworks collapse together. Actions are pure functions - validated, composable units of work that transform data. Signals are the universal message format, built on CloudEvents, that carry events and commands through the system. Agents are typed state structs with a behavior contract: pass in an action, get back updated state and directives. Directives are declarative descriptions of side effects - the agent never executes them directly. The runtime picks up those directives and executes them inside a supervised GenServer, keeping your domain logic deterministic and testable. Execution, the pipeline that actually runs actions, handles validation, chaining, retry, and compensation so callers don't have to.
 
-Beyond the core, Sensors bridge external events into the signal layer, Strategies control how agents execute actions, and Plugins package reusable capabilities for composition across agents.
+Beyond the core, Jido has three cognitive pillars: Thread records what happened (the append-only interaction log), Memory stores what the agent currently believes and intends (the mutable cognitive substrate), and Strategy controls how actions execute. Sensors bridge external events into the signal layer, Plugins package reusable capabilities for composition across agents, and Persistence lets agents survive restarts through hibernate, thaw, and storage adapters.
 
 ## Recommended reading order
 
@@ -26,6 +26,10 @@ Beyond the core, Sensors bridge external events into the signal layer, Strategie
 6. **[Sensors](/docs/concepts/sensors)** - Stateless modules that transform external events into signals.
 7. **[Strategy](/docs/concepts/strategy)** - Pluggable execution models that control how agents process actions.
 8. **[Plugins](/docs/concepts/plugins)** - Composable behavior bundles that extend agents with actions, routes, and state.
+9. **[Execution](/docs/concepts/execution)** - The pipeline that runs actions: validation, chaining, retry, compensation, and async.
+10. **[Thread](/docs/concepts/thread)** - The append-only interaction log that records what happened during agent operation.
+11. **[Memory](/docs/concepts/memory)** - The mutable cognitive substrate where agents store current beliefs and goals.
+12. **[Persistence](/docs/concepts/persistence)** - How agents survive restarts through hibernate, thaw, and storage adapters.
 
 ## Next steps
 

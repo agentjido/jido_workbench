@@ -27,7 +27,8 @@ Add `jido` and `jido_ai` to `mix.exs`:
 defp deps do
   [
     {:jido, "~> 2.0"},
-    {:jido_ai, "~> 0.2"}
+    {:jido_ai, github: "agentjido/jido_ai", branch: "main"},
+    {:req_llm, "~> 1.6"}
   ]
 end
 ```
@@ -43,19 +44,14 @@ mix compile
 
 Runtime configuration belongs in `config/runtime.exs`, not `config/config.exs`. That separation keeps secrets out of compiled artifacts.
 
-Add a minimal provider block for `jido_ai`:
+Add a minimal provider block for ReqLLM, the credential layer that `jido_ai` uses under the hood:
 
 ```elixir
+# config/runtime.exs
 import Config
 
-openai_api_key = System.get_env("OPENAI_API_KEY")
-
-if openai_api_key do
-  config :jido_ai, :providers,
-    openai: [
-      api_key: openai_api_key
-    ]
-end
+config :req_llm,
+  openai_api_key: System.get_env("OPENAI_API_KEY")
 ```
 
 Set the environment variable in your shell or a `.env` file:
@@ -63,6 +59,8 @@ Set the environment variable in your shell or a `.env` file:
 ```shell
 export OPENAI_API_KEY="your-api-key"
 ```
+
+See [req_llm HexDocs](https://hexdocs.pm/req_llm) for the full list of supported providers and their key names.
 
 ## Verify installation
 
@@ -73,28 +71,49 @@ iex -S mix
 ```
 
 ```elixir
-Application.ensure_all_started(:jido)
-Application.ensure_all_started(:jido_ai)
+iex> Application.ensure_all_started(:jido)
+#=> {:ok, _}
+iex> Application.ensure_all_started(:jido_ai)
+#=> {:ok, _}
 ```
 
-Both calls should return `{:ok, _}`. If you see errors, check the troubleshooting section below.
+Both calls return `{:ok, _}`. If you see errors, check the troubleshooting section below.
 
-For Phoenix apps, boot the server and confirm the endpoint starts:
+Run a quick smoke test. Define a trivial agent and action inline, execute a command, and confirm the state changes:
 
-```shell
-iex -S mix phx.server
+```elixir
+iex> defmodule SmokeAgent do
+...>   use Jido.Agent,
+...>     name: "smoke_agent",
+...>     schema: Zoi.object(%{
+...>       status: Zoi.string() |> Zoi.default("pending")
+...>     })
+...> end
+
+iex> defmodule MarkReady do
+...>   use Jido.Action,
+...>     name: "mark_ready",
+...>     schema: Zoi.object(%{})
+...>   @impl true
+...>   def run(_params, _context), do: {:ok, %{status: "ready"}}
+...> end
+
+iex> agent = SmokeAgent.new()
+iex> {updated, _directives} = SmokeAgent.cmd(agent, {MarkReady, %{}})
+iex> updated.state.status
+#=> "ready"
 ```
 
-Visit `http://localhost:4000` or check the logs for the endpoint startup line.
+The state moved from `"pending"` to `"ready"`. Jido is working.
 
 ## Common failures
 
-- **`UndefinedFunctionError` for a Jido module** — Run `mix deps.get && mix compile` again, then restart IEx.
-- **`{:error, {:jido_ai, ...}}`** — Confirm `jido_ai` is listed in `mix.exs` and the dependency was fetched.
-- **`nil` provider config** — Your `OPENAI_API_KEY` is not set in the shell session running `iex -S mix`.
-- **Production boot failures** — Ensure `DATABASE_URL` and `SECRET_KEY_BASE` are set in the runtime environment.
+- **`UndefinedFunctionError` for a Jido module** - Run `mix deps.get && mix compile` again, then restart IEx.
+- **`{:error, {:jido_ai, ...}}`** - Confirm `jido_ai` is listed in `mix.exs` and the dependency was fetched.
+- **`nil` provider config** - Your `OPENAI_API_KEY` is not set in the shell session running `iex -S mix`. ReqLLM reads keys at runtime from application config.
+- **Version conflicts** - Confirm you are on Elixir 1.18+ and OTP 27+. Run `elixir --version` to check.
 
 ## Next steps
 
-- [Your first agent](/docs/getting-started/first-agent)
-- [Core concepts](/docs/concepts)
+- [Your first agent](/docs/getting-started/first-agent) - define typed state and run a validated Action
+- [Core concepts](/docs/concepts) - understand Agents, Actions, and Signals

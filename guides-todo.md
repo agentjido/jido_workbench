@@ -61,9 +61,9 @@ The first-time user path. Sequential, must be airtight.
 
 - [x] `docs/getting-started/new-to-elixir.md` → **done** (185 lines, essential Elixir context for newcomers)
 - [x] `docs/getting-started/elixir-developers.md` → **done** (93 lines, maps Jido to OTP patterns)
-- [ ] `docs/getting-started/installation.md` → **rewrite** (100 lines, solid draft → manifesto polish)
-- [ ] `docs/getting-started/first-agent.livemd` → **rewrite** (93 lines, solid draft → manifesto polish)
-- [x] `docs/getting-started/first-llm-agent.livemd` → **done** (129 lines, live)
+- [x] `docs/getting-started/installation.md` → **done** (manifesto polish, correct req_llm config, inline smoke test)
+- [x] `docs/getting-started/first-agent.livemd` → **done** (working Livebook with Mix.install, HTML comment frontmatter)
+- [x] `docs/getting-started/first-llm-agent.livemd` → **done** (working Livebook, correct jido_ai ~> 0.2, ReqLLM.put_key)
 
 ### Tier 3: Learn — Training Modules
 
@@ -75,7 +75,7 @@ Deepen understanding after the onboarding ladder.
 - [x] `docs/learn/signals-routing.livemd` → **done** (139 lines — CloudEvents, routing tables, wildcards)
 - [x] `docs/learn/tool-use.livemd` → **done** (108 lines — actions as tools, tool calling flow)
 - [x] `docs/learn/why-not-just-a-genserver.livemd` → **done** (101 lines — GenServer comparison)
-- [ ] `docs/learn/workflows.livemd` → **rewrite** (141 lines, moved from getting-started/first-workflow)
+- [x] `docs/learn/first-workflow.livemd` → **done** (working Livebook, fixed action chaining to use context.state)
 
 ### Tier 4: Concepts
 
@@ -167,8 +167,8 @@ Drafted reference pages (hidden, for later):
 | Section | Done | Remaining | Notes |
 | --- | --- | --- | --- |
 | Hub pages (T1) | 6/7 | 0 live | operations drafted, rest done |
-| Getting started (T2) | 3/5 | 2 rewrites | new-to-elixir, elixir-devs, first-llm-agent done; installation + first-agent need polish |
-| Training modules (T3) | 6/7 | 1 rewrite | workflows moved from getting-started |
+| Getting started (T2) | 5/5 | 0 | ✅ all done (installation, first-agent, first-llm-agent polished) |
+| Training modules (T3) | 7/7 | 0 | ✅ all done (first-workflow fixed with context.state) |
 | Concepts (T4) | 8/8 | 0 | ✅ all done |
 | Build guides (T5) | 1/7 | 6 writes | ai-chat-agent done; 6 no file yet |
 | Guides (T6) | 0/6 | 5 stubs + 1 no file | ⚠️ stubs need `draft: true` |
@@ -177,9 +177,7 @@ Drafted reference pages (hidden, for later):
 
 ### Recommended writing order (remaining work)
 
-1. **Fix stubs** — add `draft: true` to Tier 6 guide stubs so empty pages aren't live
-2. **Tier 2 rewrites** (2 pages) — manifesto polish on installation, first-agent
-3. **Tier 3 rewrite** (1 page) — workflows (moved from getting-started)
-4. **Tier 5 build guides** (6 pages) — write counter-agent, demand-tracker, etc.
-5. **Tier 6 guides** (6 pages) — write when ready, flip `draft: false`
-6. Remaining reference + operations pages as needed
+1. **Fix stubs** — add `draft: true` to guide/cookbook stubs so empty pages aren't live
+2. **Tier 5 build guides** (6 pages) — write counter-agent, demand-tracker, etc.
+3. **Tier 6 guides** (6 pages) — write when ready, flip `draft: false`
+4. Remaining reference + operations pages as needed

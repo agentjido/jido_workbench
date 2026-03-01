@@ -95,6 +95,7 @@ defmodule AgentJido.ContentGen.Audit.ContentAuditorTest do
     assert audit.score > 0.9
   end
 
+  @tag :slow
   test "accepts planned internal links that are not yet in route patterns" do
     entry = %{
       section: "build",
@@ -183,6 +184,7 @@ defmodule AgentJido.ContentGen.Audit.ContentAuditorTest do
     refute Enum.any?(audit.errors, &(&1.code == :unknown_module_export))
   end
 
+  @tag :slow
   test "ignores alias-style references without full module path" do
     entry = %{section: "docs", source_modules: [], source_files: [], prompt_overrides: relaxed_contract_overrides()}
     target = %{route: "/docs/reference/example", format: :md}
