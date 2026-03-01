@@ -2,7 +2,7 @@
   title: "Learn",
   description: "Hands-on tutorials from first install to production agent workflows.",
   category: :docs,
-  order: 1,
+  order: 25,
   tags: [:docs, :learn],
   draft: false
 }

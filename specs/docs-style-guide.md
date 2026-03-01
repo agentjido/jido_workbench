@@ -106,6 +106,15 @@ end
 agent |> cmd({ValidateAction, %{data: data}})
 ```
 
+### Platform version requirements
+
+All docs must reference the canonical minimum versions:
+
+- **Elixir 1.18+**
+- **OTP 27+**
+
+Never reference older versions (1.14, 1.16, OTP 25, OTP 26, etc.) in any guide, tutorial, or reference page.
+
 ### Dependencies in examples
 
 All examples use Hex dependencies, never workspace/git references:

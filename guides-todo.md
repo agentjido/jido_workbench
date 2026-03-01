@@ -1,5 +1,9 @@
 # Jido Documentation Guides — Master TODO
 
+**IMPORTANT**
+
+Reference `specs/docs-style-guide.md`, `specs/style-voice.md` and `specs/docs-manifesto.md` when writing guides and documentation.
+
 ## Status key
 
 - **write** = no page exists or is a 12-line stub
@@ -80,15 +84,15 @@ Authoritative explanations of each Jido primitive. Not tutorials.
 
 Hands-on projects. Each build guide teaches via a focused livemd tutorial under `/docs/learn/` and links to the full working implementation under `/examples/`.
 
-| Build guide | Example reference |
-|-------------|-------------------|
-| `counter-agent` | `/examples/counter-agent` (live) |
-| `demand-tracker-agent` | `/examples/demand-tracker-agent` (live) |
-| `ai-chat-agent` | `/examples/coding-assistant` or similar (live) |
-| `behavior-tree-without-llm` | — (needs example) |
-| `multi-agent-workflows` | `/examples/workflow-coordinator` (live) |
-| `liveview-integration` | `/examples/counter-agent` (live, has LiveView) |
-| `mixed-stack-integration` | — (needs example) |
+| Build guide                 | Example reference                              |
+| --------------------------- | ---------------------------------------------- |
+| `counter-agent`             | `/examples/counter-agent` (live)               |
+| `demand-tracker-agent`      | `/examples/demand-tracker-agent` (live)        |
+| `ai-chat-agent`             | `/examples/coding-assistant` or similar (live) |
+| `behavior-tree-without-llm` | — (needs example)                              |
+| `multi-agent-workflows`     | `/examples/workflow-coordinator` (live)        |
+| `liveview-integration`      | `/examples/counter-agent` (live, has LiveView) |
+| `mixed-stack-integration`   | — (needs example)                              |
 
 - [ ] `docs/learn/counter-agent.md` → **write** — refs `/examples/counter-agent`
 - [ ] `docs/learn/demand-tracker-agent.md` → **write** — refs `/examples/demand-tracker-agent`
@@ -147,11 +151,11 @@ Hands-on projects. Each build guide teaches via a focused livemd tutorial under 
 
 ## Summary
 
-| Phase | Tiers | Pages | Status |
-|-------|-------|-------|--------|
-| **MVP** | 1–4 | 29 | `draft: false` — ships published |
-| **Post-MVP** | 5–10 | 35 | `draft: true` — hidden until ready |
-| **Total** | | **64** | |
+| Phase        | Tiers | Pages  | Status                             |
+| ------------ | ----- | ------ | ---------------------------------- |
+| **MVP**      | 1–4   | 29     | `draft: false` — ships published   |
+| **Post-MVP** | 5–10  | 35     | `draft: true` — hidden until ready |
+| **Total**    |       | **64** |                                    |
 
 ### Recommended MVP writing order
 

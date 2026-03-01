@@ -325,7 +325,12 @@ defmodule AgentJido.Pages do
     |> pages_by_category()
     |> Enum.filter(&docs_page_in_section?(&1, normalized_section))
     |> Enum.filter(& &1.in_menu)
-    |> Enum.sort_by(&{&1.order, &1.path})
+    |> Enum.sort_by(fn page ->
+      # Section root pages always sort first (0), regardless of their order value.
+      # This decouples section-tab ordering (controlled by order) from sidebar position.
+      root_priority = if docs_section_root_page?(page), do: 0, else: 1
+      {root_priority, page.order, page.path}
+    end)
   end
 
   @doc """

@@ -493,8 +493,7 @@ defmodule AgentJidoWeb.PageLive do
       }
     })
 
-    {:noreply,
-     assign(socket, :docs_feedback, %{submitted: true, value: "helpful", note: nil})}
+    {:noreply, assign(socket, :docs_feedback, %{submitted: true, value: "helpful", note: nil})}
   end
 
   def handle_event("docs_feedback_select", _params, socket) do
