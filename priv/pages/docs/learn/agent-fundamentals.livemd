@@ -3,7 +3,7 @@
   description: "The mental model for Jido agents: typed state, deterministic transitions, signal routing, and supervised execution.",
   category: :docs,
   order: 20,
-  tags: [:docs, :learn, :fundamentals],
+  tags: [:docs, :learn, :fundamentals, :livebook],
   draft: false
 }
 ---

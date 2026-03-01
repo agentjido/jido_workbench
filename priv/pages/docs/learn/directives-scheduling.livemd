@@ -3,7 +3,7 @@
   description: "Isolate side effects from action logic and control execution timing with directives.",
   category: :docs,
   order: 22,
-  tags: [:docs, :learn, :directives, :scheduling],
+  tags: [:docs, :learn, :directives, :scheduling, :livebook],
   draft: false
 }
 ---

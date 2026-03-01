@@ -59,9 +59,9 @@ The first-time user path. Sequential, must be airtight.
 
 > **Note**: These files live in `docs/getting-started/`, not `docs/learn/`. Legacy paths redirect.
 
-- [x] `docs/getting-started/new-to-elixir.livemd` → **done** (185 lines, essential Elixir context for newcomers)
-- [x] `docs/getting-started/elixir-developers.livemd` → **done** (93 lines, maps Jido to OTP patterns)
-- [ ] `docs/getting-started/installation.livemd` → **rewrite** (100 lines, solid draft → manifesto polish)
+- [x] `docs/getting-started/new-to-elixir.md` → **done** (185 lines, essential Elixir context for newcomers)
+- [x] `docs/getting-started/elixir-developers.md` → **done** (93 lines, maps Jido to OTP patterns)
+- [ ] `docs/getting-started/installation.md` → **rewrite** (100 lines, solid draft → manifesto polish)
 - [ ] `docs/getting-started/first-agent.livemd` → **rewrite** (93 lines, solid draft → manifesto polish)
 - [x] `docs/getting-started/first-llm-agent.livemd` → **done** (129 lines, live)
 
@@ -69,23 +69,23 @@ The first-time user path. Sequential, must be airtight.
 
 Deepen understanding after the onboarding ladder.
 
-- [x] `docs/learn/agent-fundamentals.md` → **done** (186 lines — typed state, schemas, signal routing)
-- [x] `docs/learn/actions-validation.md` → **done** (327 lines — schemas, composition, output validation)
-- [x] `docs/learn/directives-scheduling.md` → **done** (241 lines — drain loop, scheduling, testing)
-- [x] `docs/learn/signals-routing.md` → **done** (139 lines — CloudEvents, routing tables, wildcards)
-- [x] `docs/learn/tool-use.md` → **done** (108 lines — actions as tools, tool calling flow)
-- [x] `docs/learn/why-not-just-a-genserver.md` → **done** (101 lines — GenServer comparison)
+- [x] `docs/learn/agent-fundamentals.livemd` → **done** (186 lines — typed state, schemas, signal routing)
+- [x] `docs/learn/actions-validation.livemd` → **done** (327 lines — schemas, composition, output validation)
+- [x] `docs/learn/directives-scheduling.livemd` → **done** (241 lines — drain loop, scheduling, testing)
+- [x] `docs/learn/signals-routing.livemd` → **done** (139 lines — CloudEvents, routing tables, wildcards)
+- [x] `docs/learn/tool-use.livemd` → **done** (108 lines — actions as tools, tool calling flow)
+- [x] `docs/learn/why-not-just-a-genserver.livemd` → **done** (101 lines — GenServer comparison)
 - [ ] `docs/learn/workflows.livemd` → **rewrite** (141 lines, moved from getting-started/first-workflow)
 
 ### Tier 4: Concepts
 
 Authoritative explanations of each Jido primitive. Not tutorials.
 
-- [x] `docs/concepts/actions.livemd` → **done**
-- [x] `docs/concepts/signals.livemd` → **done**
-- [x] `docs/concepts/agents.livemd` → **done**
-- [x] `docs/concepts/directives.livemd` → **done**
-- [x] `docs/concepts/agent-runtime.livemd` → **done**
+- [x] `docs/concepts/actions.md` → **done**
+- [x] `docs/concepts/signals.md` → **done**
+- [x] `docs/concepts/agents.md` → **done**
+- [x] `docs/concepts/directives.md` → **done**
+- [x] `docs/concepts/agent-runtime.md` → **done**
 - [x] `docs/concepts/sensors.md` → **done**
 - [x] `docs/concepts/strategy.md` → **done**
 - [x] `docs/concepts/plugins.md` → **done**

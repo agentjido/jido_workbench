@@ -3,7 +3,7 @@
   description: "Turn Actions into LLM-callable tools and integrate function calling into agent workflows.",
   category: :docs,
   order: 24,
-  tags: [:docs, :learn, :tools, :ai],
+  tags: [:docs, :learn, :tools, :ai, :livebook],
   draft: false
 }
 ---

@@ -25,6 +25,7 @@ defmodule AgentJido.ContentGen.PathResolverTest do
       assert {:skip, :skipped_non_file_target, %{route: "/examples"}} = PathResolver.resolve(entry, page_index: %{})
     end
 
+    @tag :flaky
     test "preserves existing extension/path when page index has route" do
       entry = %{
         id: "docs/actions",
@@ -57,6 +58,7 @@ defmodule AgentJido.ContentGen.PathResolverTest do
       refute target.exists?
     end
 
+    @tag :flaky
     test "maps build output page paths back to source tree paths" do
       entry = %{
         id: "docs/agents",

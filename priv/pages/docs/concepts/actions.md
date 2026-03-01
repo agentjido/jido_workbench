@@ -4,7 +4,7 @@
   category: :docs,
   legacy_paths: ["/docs/actions"],
   order: 70,
-  tags: [:docs, :concepts, :livebook]
+  tags: [:docs, :concepts]
 }
 ---
 ## What actions solve

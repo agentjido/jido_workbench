@@ -3,7 +3,7 @@
   title: "Cookbook",
   category: :docs,
   legacy_paths: ["/docs/cookbook", "/docs/cookbook-index"],
-  tags: [:docs, :guides],
+  tags: [:docs, :guides, :livebook],
   order: 160,
   draft: true
 }

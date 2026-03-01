@@ -3,7 +3,7 @@
   description: "When a plain GenServer is enough and when Jido's data-first model pays off.",
   category: :docs,
   order: 25,
-  tags: [:docs, :learn, :architecture],
+  tags: [:docs, :learn, :architecture, :livebook],
   draft: false
 }
 ---

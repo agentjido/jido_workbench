@@ -3,7 +3,7 @@
   description: "Define schemas, validate inputs and outputs, and compose actions into chains.",
   category: :docs,
   order: 21,
-  tags: [:docs, :learn, :actions, :validation],
+  tags: [:docs, :learn, :actions, :validation, :livebook],
   draft: false
 }
 ---

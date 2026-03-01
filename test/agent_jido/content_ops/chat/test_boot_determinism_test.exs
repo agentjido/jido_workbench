@@ -1,6 +1,8 @@
 defmodule AgentJido.ContentOps.Chat.TestBootDeterminismTest do
   use ExUnit.Case, async: false
 
+  @moduletag :content_ops
+
   test "chat subsystem remains disabled by default in MIX_ENV=test" do
     chat_cfg = Application.get_env(:agent_jido, AgentJido.ContentOps.Chat, [])
 

@@ -1,6 +1,8 @@
 defmodule AgentJido.ContentOps.Chat.IntegrationTest do
   use ExUnit.Case, async: false
 
+  @moduletag :content_ops
+
   alias AgentJido.ContentOps.Messaging
   alias AgentJido.ContentOps.Chat.{BindingBootstrapper, Bridge, RunNotifier, RunStore, SessionManager}
   alias JidoMessaging.RoomServer

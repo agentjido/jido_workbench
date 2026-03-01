@@ -4,7 +4,7 @@
   menu_label: "I know Elixir",
   category: :docs,
   order: 20,
-  tags: [:docs, :getting_started, :elixir, :livebook],
+  tags: [:docs, :getting_started, :elixir],
   draft: false
 }
 ---

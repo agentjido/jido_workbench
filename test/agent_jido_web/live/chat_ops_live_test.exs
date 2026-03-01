@@ -1,6 +1,8 @@
 defmodule AgentJidoWeb.ChatOpsLiveTest do
   use ExUnit.Case, async: true
 
+  @moduletag :content_ops
+
   import Phoenix.ConnTest
   import Phoenix.LiveViewTest
 

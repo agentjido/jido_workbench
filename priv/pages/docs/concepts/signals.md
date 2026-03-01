@@ -4,7 +4,7 @@
   category: :docs,
   legacy_paths: ["/docs/signals"],
   order: 75,
-  tags: [:docs, :concepts, :livebook]
+  tags: [:docs, :concepts]
 }
 ---
 ## What signals solve

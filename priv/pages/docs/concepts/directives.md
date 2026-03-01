@@ -3,7 +3,7 @@
   description: "Pure descriptions of external effects that keep agent logic separated from runtime side effects.",
   category: :docs,
   order: 85,
-  tags: [:docs, :concepts, :livebook],
+  tags: [:docs, :concepts],
   legacy_paths: ["/docs/directives"]
 }
 ---

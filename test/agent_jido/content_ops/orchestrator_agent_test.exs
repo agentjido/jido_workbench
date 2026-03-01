@@ -1,6 +1,8 @@
 defmodule AgentJido.ContentOps.OrchestratorAgentTest do
   use ExUnit.Case, async: false
 
+  @moduletag :content_ops
+
   alias AgentJido.ContentOps.OrchestratorAgent
 
   alias AgentJido.ContentOps.Actions.{

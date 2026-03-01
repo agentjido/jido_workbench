@@ -1,6 +1,8 @@
 defmodule AgentJido.ContentOps.RunicStrategyTest do
   use ExUnit.Case, async: false
 
+  @moduletag :content_ops
+
   alias AgentJido.ContentOps.{OrchestratorAgent, RunicStrategy}
 
   @server_name AgentJido.ContentOps.OrchestratorServer

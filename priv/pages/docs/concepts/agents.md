@@ -6,7 +6,7 @@
   order: 80,
   in_menu: true,
   draft: false,
-  tags: [:docs, :concepts, :livebook]
+  tags: [:docs, :concepts]
 }
 ---
 ## Agents are pure data

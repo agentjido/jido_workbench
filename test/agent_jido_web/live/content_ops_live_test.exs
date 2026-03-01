@@ -1,6 +1,8 @@
 defmodule AgentJidoWeb.ContentOpsLiveTest do
   use AgentJidoWeb.ConnCase, async: false
 
+  @moduletag :content_ops
+
   import AgentJido.AccountsFixtures
   import Phoenix.LiveViewTest
 

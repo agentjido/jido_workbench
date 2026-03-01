@@ -3,7 +3,7 @@
   description: "How AgentServer runs agents as OTP processes, routes signals, and executes directives.",
   category: :docs,
   order: 90,
-  tags: [:docs, :concepts, :livebook],
+  tags: [:docs, :concepts],
   legacy_paths: ["/docs/agent-server"]
 }
 ---

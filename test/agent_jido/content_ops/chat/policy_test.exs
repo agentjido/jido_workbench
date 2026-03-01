@@ -1,6 +1,8 @@
 defmodule AgentJido.ContentOps.Chat.PolicyTest do
   use ExUnit.Case, async: false
 
+  @moduletag :content_ops
+
   alias AgentJido.ContentOps.Chat.Policy
 
   setup do

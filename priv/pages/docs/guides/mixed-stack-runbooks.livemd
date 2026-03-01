@@ -3,7 +3,7 @@
   title: "Mixed-Stack Runbooks",
   category: :docs,
   legacy_paths: ["/docs/mixed-stack-runbooks"],
-  tags: [:docs, :guides],
+  tags: [:docs, :guides, :livebook],
   order: 200,
   draft: true
 }

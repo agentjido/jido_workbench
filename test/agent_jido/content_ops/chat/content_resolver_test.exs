@@ -1,6 +1,8 @@
 defmodule AgentJido.ContentOps.Chat.ContentResolverTest do
   use ExUnit.Case, async: true
 
+  @moduletag :content_ops
+
   alias AgentJido.ContentOps.Chat.ContentResolver
 
   @pages [

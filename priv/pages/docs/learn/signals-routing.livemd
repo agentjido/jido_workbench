@@ -3,7 +3,7 @@
   description: "Create typed event envelopes and route them to actions with pattern-matched dispatch.",
   category: :docs,
   order: 23,
-  tags: [:docs, :learn, :signals, :routing],
+  tags: [:docs, :learn, :signals, :routing, :livebook],
   draft: false
 }
 ---

@@ -1,6 +1,8 @@
 defmodule AgentJido.ContentOps.Chat.OpsServiceTest do
   use ExUnit.Case, async: false
 
+  @moduletag :content_ops
+
   alias AgentJido.ContentOps.Chat.OpsService
 
   defmodule GithubClientStub do
