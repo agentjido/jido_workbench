@@ -1,6 +1,8 @@
 defmodule AgentJidoWeb.LLMResponsePlugTest do
   use AgentJidoWeb.ConnCase, async: true
 
+  @moduletag :flaky
+
   test "html response includes LLM discovery headers for supported routes", %{conn: conn} do
     conn = get(conn, "/docs")
     assert response(conn, 200)

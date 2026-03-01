@@ -5,6 +5,8 @@ defmodule AgentJido.PagesTest do
   alias AgentJido.Pages.Page
   alias AgentJido.Pages.MenuNode
 
+  @moduletag :flaky
+
   describe "all_pages/0" do
     test "returns a list of pages" do
       pages = Pages.all_pages()

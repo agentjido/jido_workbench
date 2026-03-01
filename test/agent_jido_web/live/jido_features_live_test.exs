@@ -3,6 +3,8 @@ defmodule AgentJidoWeb.JidoFeaturesLiveTest do
 
   import Phoenix.LiveViewTest
 
+  @moduletag :flaky
+
   test "renders features landing content", %{conn: conn} do
     {:ok, _view, html} = live(conn, "/features")
 

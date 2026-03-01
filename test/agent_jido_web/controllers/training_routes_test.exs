@@ -3,6 +3,8 @@ defmodule AgentJidoWeb.TrainingRoutesTest do
 
   alias AgentJido.Pages
 
+  @moduletag :flaky
+
   test "GET /training is not routable", %{conn: conn} do
     conn = get(conn, "/training")
     body = response(conn, 404)

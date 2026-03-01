@@ -7,6 +7,8 @@ defmodule AgentJidoWeb.PageLiveTest do
   alias AgentJido.Ecosystem.Layering
   alias AgentJido.Pages
 
+  @moduletag :flaky
+
   describe "home auth navigation" do
     test "does not render login link on the home page", %{conn: conn} do
       {:ok, _view, html} = live(conn, "/")

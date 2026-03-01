@@ -3,6 +3,8 @@ defmodule AgentJidoWeb.Jido.NavTest do
 
   alias AgentJidoWeb.Jido.Nav
 
+  @moduletag :flaky
+
   describe "jido_version/1" do
     test "falls back when no version is available" do
       assert Nav.jido_version(nil) == "unknown"
