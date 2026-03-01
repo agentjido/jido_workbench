@@ -141,6 +141,35 @@ function parsePositiveInt(value) {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
 }
 
+const analyticsQueue = [];
+let analyticsFlushTimer = null;
+const ANALYTICS_FLUSH_INTERVAL_MS = 1000;
+
+function flushAnalyticsQueue() {
+  analyticsFlushTimer = null;
+
+  while (analyticsQueue.length > 0) {
+    const payload = analyticsQueue.shift();
+
+    fetch("/analytics/events", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-csrf-token": csrfToken,
+      },
+      credentials: "same-origin",
+      keepalive: true,
+      body: JSON.stringify(payload),
+    }).catch(() => {});
+  }
+}
+
+function scheduleAnalyticsFlush() {
+  if (analyticsFlushTimer === null) {
+    analyticsFlushTimer = setTimeout(flushAnalyticsQueue, ANALYTICS_FLUSH_INTERVAL_MS);
+  }
+}
+
 function trackAnalyticsEvent(eventName, properties = {}) {
   if (!eventName || typeof eventName !== "string") {
     return;
@@ -154,16 +183,8 @@ function trackAnalyticsEvent(eventName, properties = {}) {
     },
   };
 
-  fetch("/analytics/events", {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-csrf-token": csrfToken,
-    },
-    credentials: "same-origin",
-    keepalive: true,
-    body: JSON.stringify(payload),
-  }).catch(() => {});
+  analyticsQueue.push(payload);
+  scheduleAnalyticsFlush();
 }
 
 window.__agentJidoTrackEvent = trackAnalyticsEvent;

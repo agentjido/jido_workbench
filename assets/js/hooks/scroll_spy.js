@@ -4,7 +4,8 @@ export default {
     this.navLinks = Array.from(this.el.querySelectorAll("[data-toc-link]"));
     this.activeClasses = ["text-primary", "border-l-primary", "bg-primary/5"];
     this.inactiveClasses = ["text-muted-foreground", "border-l-transparent"];
-    this.viewedSectionIds = new Set();
+    this.viewedSectionIds = this.loadViewedSections();
+    this.trackDebounceTimer = null;
 
     this.setupSmoothScroll();
     this.setupScrollSpy();
@@ -21,6 +22,11 @@ export default {
       this.observer = null;
     }
 
+    if (this.trackDebounceTimer) {
+      clearTimeout(this.trackDebounceTimer);
+      this.trackDebounceTimer = null;
+    }
+
     if (this.clickHandlers) {
       this.clickHandlers.forEach(({ anchor, handler }) => {
         anchor.removeEventListener("click", handler);
@@ -29,7 +35,6 @@ export default {
 
     this.clickHandlers = [];
     this.navLinks = [];
-    this.viewedSectionIds = new Set();
   },
 
   resolveTarget() {
@@ -125,7 +130,17 @@ export default {
       }
     });
 
-    this.trackSectionView(activeLink);
+    this.debouncedTrackSectionView(activeLink);
+  },
+
+  debouncedTrackSectionView(activeLink) {
+    if (this.trackDebounceTimer) {
+      clearTimeout(this.trackDebounceTimer);
+    }
+
+    this.trackDebounceTimer = setTimeout(() => {
+      this.trackSectionView(activeLink);
+    }, 500);
   },
 
   trackSectionView(activeLink) {
@@ -136,6 +151,7 @@ export default {
     }
 
     this.viewedSectionIds.add(targetId);
+    this.saveViewedSections();
 
     if (typeof window.__agentJidoTrackEvent === "function") {
       window.__agentJidoTrackEvent("docs_section_viewed", {
@@ -145,6 +161,30 @@ export default {
         path: window.location.pathname,
         metadata: { surface: "docs_page" },
       });
+    }
+  },
+
+  sessionStorageKey() {
+    return `docs_sections_viewed:${window.location.pathname}`;
+  },
+
+  loadViewedSections() {
+    try {
+      const stored = sessionStorage.getItem(this.sessionStorageKey());
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch {
+      return new Set();
+    }
+  },
+
+  saveViewedSections() {
+    try {
+      sessionStorage.setItem(
+        this.sessionStorageKey(),
+        JSON.stringify([...this.viewedSectionIds])
+      );
+    } catch {
+      // sessionStorage full or unavailable — ignore
     }
   },
 };
