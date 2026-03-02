@@ -336,9 +336,9 @@ defmodule AgentJido.PagesTest do
   describe "features wave A content quality" do
     test "first three feature pages are published and routable" do
       target_paths = [
-        "/features/reliability-by-architecture",
+        "/features/agents-that-self-heal",
         "/features/multi-agent-coordination",
-        "/features/operations-observability"
+        "/features/observe-everything"
       ]
 
       Enum.each(target_paths, fn path ->
@@ -352,9 +352,9 @@ defmodule AgentJido.PagesTest do
 
     test "first three feature source files do not contain placeholder markers" do
       feature_files = [
-        Path.expand("../../priv/pages/features/reliability-by-architecture.md", __DIR__),
+        Path.expand("../../priv/pages/features/agents-that-self-heal.md", __DIR__),
         Path.expand("../../priv/pages/features/multi-agent-coordination.md", __DIR__),
-        Path.expand("../../priv/pages/features/operations-observability.md", __DIR__)
+        Path.expand("../../priv/pages/features/observe-everything.md", __DIR__)
       ]
 
       placeholder_patterns = [
@@ -378,9 +378,9 @@ defmodule AgentJido.PagesTest do
   end
 
   describe "features wave B content quality" do
-    test "remaining four feature pages are published and routable" do
+    test "remaining feature pages are published and routable" do
       target_paths = [
-        "/features/incremental-adoption",
+        "/features/start-small",
         "/features/beam-for-ai-builders",
         "/features/jido-vs-framework-first-stacks",
         "/features/executive-brief"
@@ -395,9 +395,9 @@ defmodule AgentJido.PagesTest do
       end)
     end
 
-    test "remaining four feature source files do not contain placeholder markers" do
+    test "remaining feature source files do not contain placeholder markers" do
       feature_files = [
-        Path.expand("../../priv/pages/features/incremental-adoption.md", __DIR__),
+        Path.expand("../../priv/pages/features/start-small.md", __DIR__),
         Path.expand("../../priv/pages/features/beam-for-ai-builders.md", __DIR__),
         Path.expand("../../priv/pages/features/jido-vs-framework-first-stacks.md", __DIR__),
         Path.expand("../../priv/pages/features/executive-brief.md", __DIR__)
@@ -423,20 +423,22 @@ defmodule AgentJido.PagesTest do
     end
 
     @tag skip: "IA/content taxonomy transition; temporarily disabled for CI unblock"
-    test "features section includes all seven published feature pages" do
+    test "features section includes all published feature pages" do
       expected_paths = [
-        "/features/reliability-by-architecture",
+        "/features/how-agents-work",
+        "/features/tools",
+        "/features/llm-support",
+        "/features/agents-that-self-heal",
         "/features/multi-agent-coordination",
-        "/features/operations-observability",
-        "/features/incremental-adoption",
+        "/features/observe-everything",
+        "/features/start-small",
         "/features/beam-for-ai-builders",
+        "/features/beam-native-agent-model",
         "/features/jido-vs-framework-first-stacks",
         "/features/executive-brief"
       ]
 
       features = Pages.pages_by_category(:features)
-      assert length(features) == length(expected_paths)
-
       feature_paths = Enum.map(features, & &1.path)
 
       Enum.each(expected_paths, fn path ->

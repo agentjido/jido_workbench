@@ -50,7 +50,7 @@ Pick the persona path that matches your current bottleneck, finish one milestone
 ### Platform and SRE engineer
 
 - First milestone: define runtime health checks and incident response expectations before launch.
-- Start: [Operations and Observability](/features/operations-observability)
+- Start: [Observe everything](/features/observe-everything)
 - Next training: [Production Readiness: Supervision, Telemetry, and Failure Modes](/training/production-readiness)
 - Ops/reference follow-up: [Incident Playbooks](/docs/operations/incident-playbooks)
 

@@ -27,7 +27,7 @@ This page is for engineering managers, CTOs, and architecture leads evaluating w
 | Reliability by architecture | Lower blast radius and clearer recovery posture | [jido](/ecosystem/jido) |
 | Explicit coordination | Easier code review, ownership boundaries, and testing | [jido_signal](/ecosystem/jido_signal), [jido_action](/ecosystem/jido_action) |
 | Operations visibility | Better incident workflows and readiness gates | [jido_otel](/ecosystem/jido_otel), [docs checklist](/docs/operations/production-readiness-checklist) |
-| Incremental adoption | Avoid full-platform rewrite before proving value | [Incremental adoption](/features/incremental-adoption) |
+| Incremental adoption | Avoid full-platform rewrite before proving value | [Start small, grow safely](/features/start-small) |
 
 ## Decision criteria matrix
 
@@ -84,4 +84,4 @@ This is the same runtime model used for larger adoption phases.
 
 ## Get Building
 
-If you can fund one bounded pilot with explicit success criteria, start at [getting started](/getting-started) and track outcomes against the 30/60/90 plan above.
+If you can fund one bounded pilot with explicit success criteria, start at [getting started](/docs/getting-started) and track outcomes against the 30/60/90 plan above.

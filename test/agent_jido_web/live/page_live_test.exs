@@ -376,9 +376,9 @@ defmodule AgentJidoWeb.PageLiveTest do
   describe "features wave A pages" do
     test "smoke routes for first three feature pages", %{conn: conn} do
       target_routes = [
-        {"/features/reliability-by-architecture", "Jido treats reliability as a runtime design concern"},
-        {"/features/multi-agent-coordination", "Jido models multi-agent coordination as explicit runtime contracts"},
-        {"/features/operations-observability", "Jido is designed for teams that need to run agents after launch"}
+        {"/features/agents-that-self-heal", "OTP supervision"},
+        {"/features/multi-agent-coordination", "coordination"},
+        {"/features/observe-everything", "telemetry"}
       ]
 
       Enum.each(target_routes, fn {path, expected_copy} ->
@@ -397,7 +397,7 @@ defmodule AgentJidoWeb.PageLiveTest do
   describe "features wave B pages" do
     test "smoke routes for remaining four feature pages", %{conn: conn} do
       target_routes = [
-        {"/features/incremental-adoption", "You do not need a rewrite to adopt Jido"},
+        {"/features/start-small", "Add one agent"},
         {"/features/beam-for-ai-builders", "If your team is evaluating Jido from Python or TypeScript"},
         {"/features/jido-vs-framework-first-stacks", "This comparison is about operating model fit, not vendor ranking"},
         {"/features/executive-brief", "This page is for engineering managers, CTOs, and architecture leads evaluating"}

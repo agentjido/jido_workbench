@@ -10,13 +10,12 @@ defmodule AgentJidoWeb.Jido.HomeSections do
 
   attr :title, :string, default: "Build your first agent"
 
-  attr :description, :string,
-    default: "Go from zero to a supervised, fault-tolerant agent workflow. Start with the getting started guide or explore the training modules."
+  attr :description, :string, default: "Go from zero to a running, supervised agent in under ten minutes."
 
   attr :primary_label, :string, default: "GET BUILDING →"
   attr :primary_path, :string, default: "/docs/getting-started"
-  attr :secondary_label, :string, default: "START TRAINING"
-  attr :secondary_path, :string, default: "/training"
+  attr :secondary_label, :string, default: "SEE EXAMPLES"
+  attr :secondary_path, :string, default: "/examples"
 
   @doc """
   Marketing CTA used on the home page, extracted for reuse on additional pages.

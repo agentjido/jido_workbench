@@ -249,6 +249,7 @@ defmodule AgentJidoWeb.PageLive do
   defp layout_for(:features), do: :marketing_shell
   defp layout_for(:build), do: :marketing_shell
   defp layout_for(:community), do: :marketing_shell
+  defp layout_for(:compare), do: :marketing_shell
 
   # --- TOC building ---
 

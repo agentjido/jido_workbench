@@ -4,7 +4,7 @@ defmodule AgentJido.Pages.Page do
 
   Represents a page parsed from a Markdown or Livebook file under `priv/pages/`.
   Category is derived from the first subdirectory (docs/, training/, features/,
-  build/, community/).
+  build/, community/, compare/).
 
   Uses Zoi-validated schemas with rich metadata for validation, freshness
   tracking, SEO, quality assessment, and Livebook integration.
@@ -15,7 +15,7 @@ defmodule AgentJido.Pages.Page do
   - `id` - Unique identifier derived from path (e.g., "chat-response")
   - `title` - Page title from frontmatter
   - `description` - Optional description
-  - `category` - Category atom derived from path (:docs, :training, :features, :build, :community)
+  - `category` - Category atom derived from path (:docs, :training, :features, :build, :community, :compare)
   - `tags` - List of tag atoms for filtering
   - `order` - Sort order within category (default: 9999)
   - `body` - Parsed HTML content
@@ -62,7 +62,7 @@ defmodule AgentJido.Pages.Page do
               id: Zoi.string(description: "Unique identifier derived from path"),
               title: Zoi.string(description: "Page title from frontmatter"),
               description: Zoi.string(description: "Optional description") |> Zoi.optional(),
-              category: Zoi.atom(description: "Category atom derived from path (:docs, :training, :features, :build, :community)"),
+              category: Zoi.atom(description: "Category atom derived from path (:docs, :training, :features, :build, :community, :compare)"),
               tags: Zoi.any(description: "List of tag atoms for filtering") |> Zoi.default([]),
               order: Zoi.integer(description: "Sort order within category") |> Zoi.default(9999),
               body: Zoi.string(description: "Rendered HTML content") |> Zoi.default(""),
@@ -298,6 +298,7 @@ defmodule AgentJido.Pages.Page do
       ["features" | _] -> :features
       ["build" | _] -> :build
       ["community" | _] -> :community
+      ["compare" | _] -> :compare
       _ -> :docs
     end
   end
