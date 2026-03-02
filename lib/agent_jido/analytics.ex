@@ -187,6 +187,47 @@ defmodule AgentJido.Analytics do
   end
 
   @doc """
+  Returns the latest feedback event for a visitor/session on a specific path.
+
+  This is used to prevent duplicate "helpful/not helpful" submissions when the
+  same visitor revisits a page.
+  """
+  @spec latest_feedback_for_identity(String.t() | nil, String.t() | nil, String.t() | nil, keyword()) ::
+          %{feedback_value: String.t() | nil, feedback_note: String.t() | nil} | nil
+  def latest_feedback_for_identity(visitor_id, session_id, path, opts \\ [])
+
+  def latest_feedback_for_identity(visitor_id, session_id, path, opts) when is_binary(path) do
+    with {:ok, identity_filter} <- feedback_identity_filter(visitor_id, session_id) do
+      surface = opts |> Keyword.get(:surface) |> normalize_feedback_surface_filter()
+
+      query =
+        from(e in AnalyticsEvent,
+          where: e.event == "feedback_submitted" and e.path == ^path and ^identity_filter,
+          order_by: [desc: e.inserted_at, desc: e.id],
+          limit: 1,
+          select: %{feedback_value: e.feedback_value, feedback_note: e.feedback_note}
+        )
+
+      query =
+        if is_binary(surface) do
+          from(e in query, where: fragment("?->>'surface' = ?", e.metadata, ^surface))
+        else
+          query
+        end
+
+      Repo.one(query)
+    else
+      :error -> nil
+    end
+  rescue
+    _ -> nil
+  catch
+    _, _ -> nil
+  end
+
+  def latest_feedback_for_identity(_visitor_id, _session_id, _path, _opts), do: nil
+
+  @doc """
   Prunes raw analytics and query-log records older than the retention window.
   """
   @spec prune_older_than(pos_integer()) :: %{cutoff: NaiveDateTime.t(), deleted_events: non_neg_integer(), deleted_query_logs: non_neg_integer()}
@@ -359,6 +400,43 @@ defmodule AgentJido.Analytics do
     |> where([e], e.event == "feedback_submitted" and e.feedback_value == ^feedback_value)
     |> Repo.aggregate(:count, :id)
   end
+
+  defp feedback_identity_filter(visitor_id, session_id) do
+    normalized_visitor_id = normalize_feedback_identity(visitor_id)
+    normalized_session_id = normalize_feedback_identity(session_id)
+
+    cond do
+      is_binary(normalized_visitor_id) and is_binary(normalized_session_id) ->
+        {:ok, dynamic([e], e.visitor_id == ^normalized_visitor_id or e.session_id == ^normalized_session_id)}
+
+      is_binary(normalized_visitor_id) ->
+        {:ok, dynamic([e], e.visitor_id == ^normalized_visitor_id)}
+
+      is_binary(normalized_session_id) ->
+        {:ok, dynamic([e], e.session_id == ^normalized_session_id)}
+
+      true ->
+        :error
+    end
+  end
+
+  defp normalize_feedback_identity(value) when is_binary(value) do
+    case String.trim(value) do
+      "" -> nil
+      identity -> identity
+    end
+  end
+
+  defp normalize_feedback_identity(_value), do: nil
+
+  defp normalize_feedback_surface_filter(value) when is_binary(value) do
+    case String.trim(value) do
+      "" -> nil
+      surface -> surface
+    end
+  end
+
+  defp normalize_feedback_surface_filter(_value), do: nil
 
   defp gap_row(%{demand_count: demand_count, success_count: success_count, failure_count: failure_count} = row) do
     failure_rate = if demand_count > 0, do: failure_count / demand_count, else: 0.0

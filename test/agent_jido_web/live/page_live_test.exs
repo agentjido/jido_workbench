@@ -1,11 +1,15 @@
 defmodule AgentJidoWeb.PageLiveTest do
   use AgentJidoWeb.ConnCase, async: true
 
+  import Ecto.Query
   import Phoenix.LiveViewTest
 
+  alias AgentJido.Analytics
+  alias AgentJido.Analytics.AnalyticsEvent
   alias AgentJido.Ecosystem
   alias AgentJido.Ecosystem.Layering
   alias AgentJido.Pages
+  alias AgentJido.Repo
 
   @moduletag :flaky
 
@@ -211,6 +215,59 @@ defmodule AgentJidoWeb.PageLiveTest do
       refute html =~ ~s(<span class="w"></span>)
     end
 
+    test "docs helpful feedback gives visible confirmation and records once", %{conn: conn} do
+      path = "/docs/concepts/agents"
+      session_id = Ecto.UUID.generate()
+
+      conn =
+        init_test_session(conn, %{
+          analytics_session_id: session_id
+        })
+
+      {:ok, view, _html} = live(conn, path)
+
+      assert has_element?(view, "#docs-page-feedback button[title='Helpful']")
+
+      render_click(view, "docs_feedback_select", %{"value" => "helpful"})
+
+      assert render(view) =~ "Thanks for the feedback."
+
+      assert docs_feedback_count(path, "helpful", session_id) == 1
+
+      render_click(view, "docs_feedback_select", %{"value" => "helpful"})
+
+      assert docs_feedback_count(path, "helpful", session_id) == 1
+    end
+
+    test "docs feedback remains locked on revisit for the same visitor session", %{conn: conn} do
+      path = "/docs/concepts/agents"
+      session_id = Ecto.UUID.generate()
+
+      conn =
+        init_test_session(conn, %{
+          analytics_session_id: session_id
+        })
+
+      {:ok, view, _html} = live(conn, path)
+
+      render_click(view, "docs_feedback_select", %{"value" => "helpful"})
+
+      assert docs_feedback_count(path, "helpful", session_id) == 1
+      assert analytics_identity(view).session_id == session_id
+      assert docs_feedback_assign(view).submitted
+      assert Analytics.latest_feedback_for_identity(nil, session_id, path, surface: "docs_page")
+
+      {:ok, revisit_view, _revisit_html} = live(conn, path)
+
+      assert analytics_identity(revisit_view).session_id == session_id
+      assert docs_feedback_assign(revisit_view).submitted
+      assert has_element?(revisit_view, "#docs-page-feedback button[title='Helpful'][disabled]")
+
+      render_click(revisit_view, "docs_feedback_select", %{"value" => "helpful"})
+
+      assert docs_feedback_count(path, "helpful", session_id) == 1
+    end
+
     test "smoke routes for required docs IA stubs", %{conn: conn} do
       sections = ~w(getting-started concepts guides reference operations)
 
@@ -265,6 +322,34 @@ defmodule AgentJidoWeb.PageLiveTest do
         assert redirected_to(redirected_conn, 301) == canonical
       end)
     end
+  end
+
+  defp docs_feedback_count(path, feedback_value, session_id) do
+    from(e in AnalyticsEvent,
+      where:
+        e.event == "feedback_submitted" and
+          e.path == ^path and
+          e.session_id == ^session_id and
+          e.feedback_value == ^feedback_value and
+          fragment("?->>'surface' = ?", e.metadata, "docs_page")
+    )
+    |> Repo.aggregate(:count, :id)
+  end
+
+  defp analytics_identity(view) do
+    view.pid
+    |> :sys.get_state()
+    |> Map.fetch!(:socket)
+    |> Map.fetch!(:assigns)
+    |> Map.fetch!(:analytics_identity)
+  end
+
+  defp docs_feedback_assign(view) do
+    view.pid
+    |> :sys.get_state()
+    |> Map.fetch!(:socket)
+    |> Map.fetch!(:assigns)
+    |> Map.fetch!(:docs_feedback)
   end
 
   describe "disabled public routes" do

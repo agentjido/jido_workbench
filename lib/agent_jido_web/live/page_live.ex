@@ -170,9 +170,15 @@ defmodule AgentJidoWeb.PageLive do
               documents = Pages.pages_by_category(:docs)
               secondary_tabs = docs_secondary_tabs()
               sidebar = sidebar_nav(path)
+              docs_feedback = existing_docs_feedback(socket, path)
 
               assigns ++
-                [documents: documents, docs_secondary_tabs: secondary_tabs, docs_sidebar_nav: sidebar, docs_feedback: empty_docs_feedback()]
+                [
+                  documents: documents,
+                  docs_secondary_tabs: secondary_tabs,
+                  docs_sidebar_nav: sidebar,
+                  docs_feedback: docs_feedback
+                ]
 
             :training ->
               {prev, next} = Pages.neighbors(page.id)
@@ -540,22 +546,29 @@ defmodule AgentJidoWeb.PageLive do
 
   @impl true
   def handle_event("docs_feedback_select", %{"value" => "helpful"}, socket) do
-    analytics_module().track_feedback_safe(socket.assigns.current_scope, %{
-      event: "feedback_submitted",
-      source: "docs",
-      channel: "docs_sidebar",
-      path: socket.assigns.request_path || "/",
-      feedback_value: "helpful",
-      feedback_note: nil,
-      visitor_id: get_in(socket.assigns, [:analytics_identity, :visitor_id]),
-      session_id: get_in(socket.assigns, [:analytics_identity, :session_id]),
-      metadata: %{
-        surface: "docs_page",
-        page_id: Map.get(socket.assigns.selected_document || %{}, :id)
-      }
-    })
+    if docs_feedback_locked?(socket) do
+      {:noreply, assign(socket, :docs_feedback, existing_docs_feedback(socket, socket.assigns.request_path || "/"))}
+    else
+      analytics_module().track_feedback_safe(socket.assigns.current_scope, %{
+        event: "feedback_submitted",
+        source: "docs",
+        channel: "docs_sidebar",
+        path: socket.assigns.request_path || "/",
+        feedback_value: "helpful",
+        feedback_note: nil,
+        visitor_id: get_in(socket.assigns, [:analytics_identity, :visitor_id]),
+        session_id: get_in(socket.assigns, [:analytics_identity, :session_id]),
+        metadata: %{
+          surface: "docs_page",
+          page_id: Map.get(socket.assigns.selected_document || %{}, :id)
+        }
+      })
 
-    {:noreply, assign(socket, :docs_feedback, %{submitted: true, value: "helpful", note: nil})}
+      {:noreply,
+       socket
+       |> put_flash(:info, "Thanks. Your feedback was recorded.")
+       |> assign(:docs_feedback, %{submitted: true, value: "helpful", note: nil})}
+    end
   end
 
   def handle_event("docs_feedback_select", _params, socket) do
@@ -573,7 +586,7 @@ defmodule AgentJidoWeb.PageLive do
         nil
       end
 
-    if feedback_value in ["helpful", "not_helpful"] do
+    if feedback_value in ["helpful", "not_helpful"] and not docs_feedback_locked?(socket) do
       analytics_module().track_feedback_safe(socket.assigns.current_scope, %{
         event: "feedback_submitted",
         source: "docs",
@@ -590,13 +603,15 @@ defmodule AgentJidoWeb.PageLive do
       })
 
       {:noreply,
-       assign(socket, :docs_feedback, %{
+       socket
+       |> put_flash(:info, "Thanks. Your feedback was recorded.")
+       |> assign(:docs_feedback, %{
          submitted: true,
          value: feedback_value,
          note: feedback_note
        })}
     else
-      {:noreply, socket}
+      {:noreply, assign(socket, :docs_feedback, existing_docs_feedback(socket, socket.assigns.request_path || "/"))}
     end
   end
 
@@ -626,6 +641,48 @@ defmodule AgentJidoWeb.PageLive do
   end
 
   defp normalize_feedback_note(_value), do: nil
+
+  defp docs_feedback_locked?(socket) do
+    current_feedback = socket.assigns[:docs_feedback] || %{}
+
+    if Map.get(current_feedback, :submitted, false) do
+      true
+    else
+      existing_docs_feedback(socket, socket.assigns.request_path || "/").submitted
+    end
+  end
+
+  defp existing_docs_feedback(socket, path) when is_binary(path) do
+    module = analytics_module()
+    visitor_id = get_in(socket.assigns, [:analytics_identity, :visitor_id])
+    session_id = get_in(socket.assigns, [:analytics_identity, :session_id])
+
+    if function_exported?(module, :latest_feedback_for_identity, 4) do
+      case module.latest_feedback_for_identity(visitor_id, session_id, path, surface: "docs_page") do
+        %{feedback_value: value, feedback_note: note} ->
+          case normalize_feedback_value(value) do
+            nil ->
+              empty_docs_feedback()
+
+            normalized_value ->
+              %{
+                submitted: true,
+                value: normalized_value,
+                note: normalize_feedback_note(note)
+              }
+          end
+
+        _other ->
+          empty_docs_feedback()
+      end
+    else
+      empty_docs_feedback()
+    end
+  rescue
+    _ -> empty_docs_feedback()
+  end
+
+  defp existing_docs_feedback(_socket, _path), do: empty_docs_feedback()
 
   defp empty_docs_feedback do
     %{submitted: false, value: nil, note: nil}
