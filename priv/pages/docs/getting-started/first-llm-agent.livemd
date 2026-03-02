@@ -123,6 +123,37 @@ Export the key in the shell session where you run your app:
 export OPENAI_API_KEY="your-api-key-here"
 ```
 
+Then add your Jido app to your application's supervision tree:
+
+**my_app/jido.ex**
+
+```elixir
+defmodule MyApp.Jido do
+  use Jido, otp_app: :my_app
+end
+```
+
+**my_app/application.ex**
+
+```elixir
+defmodule MyApp.Application do
+
+  use Application
+
+    @impl true
+    def start(_type, _args) do
+      children =
+        [
+          ...
+          {MyApp.Jido, name: Jido}
+        ]
+
+      opts = [strategy: :one_for_one, name: MyApp.Supervisor]
+      Supervisor.start_link(children, opts)
+    end
+end
+```
+
 ## Next steps
 
 - Build a multi-step orchestration in [Build your first workflow](/docs/learn/first-workflow).
