@@ -20,6 +20,13 @@ function applyTheme(theme) {
   localStorage.setItem("theme", theme);
 }
 
+function syncUtilityTopBarHeight() {
+  const utilityBar = document.getElementById("logged-in-utility-bar");
+  const height = utilityBar ? Math.ceil(utilityBar.getBoundingClientRect().height) : 0;
+
+  document.documentElement.style.setProperty("--utility-top-bar-height", `${height}px`);
+}
+
 let Hooks = {
   ...PhoenixBlogHooks,
   ScrollSpy,
@@ -123,6 +130,10 @@ let liveSocket = new LiveSocket("/live", Socket, {
 topbar.config({ barColors: { 0: "#29d" }, shadowColor: "rgba(0, 0, 0, .3)" });
 window.addEventListener("phx:page-loading-start", (_info) => topbar.show(300));
 window.addEventListener("phx:page-loading-stop", (_info) => topbar.hide());
+window.addEventListener("phx:page-loading-stop", syncUtilityTopBarHeight);
+window.addEventListener("resize", syncUtilityTopBarHeight);
+
+syncUtilityTopBarHeight();
 
 liveSocket.connect();
 

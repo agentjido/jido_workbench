@@ -1,7 +1,7 @@
 <%= case @layout_type do %>
   <% :docs_shell -> %>
     <%!-- Docs layout (sidebar + TOC) --%>
-    <div class="docs-shell h-dvh min-h-screen bg-background flex flex-col overflow-hidden">
+    <div class="docs-shell bg-background flex flex-col overflow-hidden">
       <.docs_header current_path={@request_path} />
       <AgentJidoWeb.Jido.Nav.primary_nav_modals
         current_scope={@current_scope}

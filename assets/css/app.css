@@ -139,6 +139,7 @@
     --sidebar-accent-foreground: 0 0% 90%;
     --sidebar-border: 0 0% 16%;
     --sidebar-ring: 152 100% 50%;
+    --utility-top-bar-height: 0px;
   }
 
   .prose {
@@ -1701,10 +1702,21 @@
 
 @layer utilities {
   .docs-shell {
+    /*
+     * Account for the authenticated utility bar so docs pages don't create
+     * a second page-level scrollbar when that bar is present.
+     */
+    height: calc(100vh - var(--utility-top-bar-height, 0px));
+    height: calc(100dvh - var(--utility-top-bar-height, 0px));
     background:
       radial-gradient(90rem 40rem at -10% -25%, hsl(var(--accent-cyan) / 0.12), transparent 70%),
       radial-gradient(85rem 38rem at 115% -20%, hsl(var(--accent-green) / 0.1), transparent 72%),
       hsl(var(--background));
+  }
+
+  .docs-column-height {
+    height: calc(100vh - 6rem - var(--utility-top-bar-height, 0px));
+    height: calc(100dvh - 6rem - var(--utility-top-bar-height, 0px));
   }
 
   .light .docs-shell {
