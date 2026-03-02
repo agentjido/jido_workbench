@@ -67,13 +67,21 @@ defmodule AgentJidoWeb.Jido.AdminNav do
   end
 
   attr :current_path, :string, required: true
+  attr :exclude_paths, :list, default: []
   slot :inner_block, required: true
 
   @spec admin_shell(map()) :: Phoenix.LiveView.Rendered.t()
   def admin_shell(assigns) do
+    exclude_paths = Map.get(assigns, :exclude_paths, []) || []
+
     assigns =
       assigns
-      |> assign(:core_links, @core_links)
+      |> assign(
+        :core_links,
+        Enum.reject(@core_links, fn link ->
+          link.path in exclude_paths
+        end)
+      )
       |> assign(:external_links, @external_links)
 
     ~H"""

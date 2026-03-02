@@ -74,7 +74,7 @@ defmodule AgentJido.ContentAssistant.RetrievalTest do
                %Result{
                  title: "Jido Core",
                  snippet: "ecosystem snippet",
-                 url: "/ecosystem#jido-core",
+                 url: "/ecosystem/jido-core",
                  source_type: :ecosystem,
                  score: nil
                }

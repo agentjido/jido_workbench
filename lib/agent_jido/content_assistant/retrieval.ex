@@ -325,7 +325,7 @@ defmodule AgentJido.ContentAssistant.Retrieval do
       %Result{
         title: title,
         snippet: snippet_for(snippet_source, query_downcase),
-        url: URL.normalize_href("/ecosystem##{package.id}") || "/",
+        url: URL.normalize_href("/ecosystem/#{package.id}") || "/",
         source_type: :ecosystem,
         score: score
       }
@@ -551,7 +551,7 @@ defmodule AgentJido.ContentAssistant.Retrieval do
       "site_ecosystem" ->
         case string_value(metadata, :id) || source_id_suffix(source_id, "ecosystem:") do
           nil -> nil
-          id -> normalize_internal_url("/ecosystem#" <> id)
+          id -> normalize_internal_url("/ecosystem/" <> id)
         end
 
       _ ->

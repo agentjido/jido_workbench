@@ -44,7 +44,7 @@ defmodule AgentJidoWeb.ContentAssistantLiveTest do
            %Result{
              title: "Jido Core",
              snippet: "Main runtime package details.",
-             url: "/ecosystem#jido-core",
+             url: "/ecosystem/jido-core",
              source_type: :ecosystem,
              score: 0.77
            }
@@ -205,7 +205,7 @@ defmodule AgentJidoWeb.ContentAssistantLiveTest do
       assert html =~ "Ecosystem"
       assert html =~ ~s(href="/docs/getting-started")
       assert html =~ ~s(href="/blog/release-notes")
-      assert html =~ ~s(href="/ecosystem#jido-core")
+      assert html =~ ~s(href="/ecosystem/jido-core")
     end
 
     test "submitting a query persists state in URL and reloads from params", %{conn: conn} do

@@ -31,7 +31,10 @@ defmodule AgentJidoWeb.AdminDashboardLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <AgentJidoWeb.Jido.AdminNav.admin_shell current_path="/dashboard">
+    <AgentJidoWeb.Jido.AdminNav.admin_shell
+      current_path="/dashboard"
+      exclude_paths={["/dashboard/contentops", "/dashboard/contentops/github", "/dashboard/content-generator"]}
+    >
       <div class="container mx-auto max-w-5xl space-y-8 px-6 py-12">
         <header class="space-y-2">
           <p class="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Admin Control Plane</p>
@@ -80,46 +83,10 @@ defmodule AgentJidoWeb.AdminDashboardLive do
             </.link>
           </article>
 
-          <article class="space-y-2 rounded-lg border border-border bg-card p-6">
-            <h2 class="text-lg font-semibold text-foreground">ContentOps dashboard</h2>
-            <p class="text-sm text-muted-foreground">
-              Monitor orchestration health, execution pipeline state, and run history.
-            </p>
-            <.link href="/dashboard/contentops" class="text-sm font-semibold text-primary hover:text-primary/80">
-              Open ContentOps dashboard
-            </.link>
-          </article>
-
-          <article class="space-y-2 rounded-lg border border-border bg-card p-6">
-            <h2 class="text-lg font-semibold text-foreground">ContentOps GitHub dashboard</h2>
-            <p class="text-sm text-muted-foreground">
-              Review linked GitHub issues and pull requests for ContentOps operations.
-            </p>
-            <.link
-              href="/dashboard/contentops/github"
-              class="text-sm font-semibold text-primary hover:text-primary/80"
-            >
-              Open ContentOps GitHub dashboard
-            </.link>
-          </article>
-
-          <article class="space-y-2 rounded-lg border border-border bg-card p-6 md:col-span-2">
-            <h2 class="text-lg font-semibold text-foreground">Content Generator</h2>
-            <p class="text-sm text-muted-foreground">
-              Run `content.plan.generate` with admin controls and queue shortcuts.
-            </p>
-            <.link
-              href="/dashboard/content-generator"
-              class="text-sm font-semibold text-primary hover:text-primary/80"
-            >
-              Open Content Generator
-            </.link>
-          </article>
-
           <article id="dashboard-content-ingest" class="space-y-2 rounded-lg border border-border bg-card p-6 md:col-span-2">
             <h2 class="text-lg font-semibold text-foreground">Content Ingestion</h2>
             <p class="text-sm text-muted-foreground">
-              Browse every ingestible source, re-ingest a single source, or run ingest-all.
+              Review ingestion health, see what is stale, and trigger targeted or full refresh.
             </p>
             <.link
               navigate="/dashboard/content-ingestion"

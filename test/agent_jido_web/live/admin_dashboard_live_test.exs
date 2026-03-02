@@ -30,23 +30,12 @@ defmodule AgentJidoWeb.AdminDashboardLiveTest do
     assert has_element?(view, "a[data-admin-nav-path='/dashboard'][data-admin-nav-active='true']", "Dashboard")
     assert has_element?(view, "a[data-admin-nav-path='/dashboard/analytics']", "Analytics")
     assert has_element?(view, "a[data-admin-nav-path='/dashboard/content-ingestion']", "Content Ingestion")
-    assert has_element?(view, "a[data-admin-nav-path='/dashboard/contentops']", "ContentOps")
-    assert has_element?(view, "a[data-admin-nav-path='/dashboard/contentops/github']", "ContentOps GitHub")
-    assert has_element?(view, "a[data-admin-nav-path='/dashboard/content-generator']", "Content Generator")
     assert has_element?(view, "a[data-admin-nav-path='/dashboard/chatops']", "ChatOps")
     assert has_element?(view, "a[data-admin-nav-path='/arcana']", "Arcana")
     assert has_element?(view, "a[href='/arcana']", "Open Arcana dashboard")
     assert has_element?(view, "a[href='/dev/jido']", "Open Jido Studio")
-    assert has_element?(view, "a[href='/dashboard/contentops']", "Open ContentOps dashboard")
-
-    assert has_element?(
-             view,
-             "a[href='/dashboard/contentops/github']",
-             "Open ContentOps GitHub dashboard"
-           )
 
     assert has_element?(view, "a[href='/dashboard/content-ingestion']", "Open Content Ingestion")
-    assert has_element?(view, "a[href='/dashboard/content-generator']", "Open Content Generator")
     assert has_element?(view, "a[href='/dashboard/analytics']", "Open analytics dashboard")
     assert has_element?(view, "#dashboard-live-presence", "Live Presence")
     assert has_element?(view, "#dashboard-query-tracking", "Query Tracking")

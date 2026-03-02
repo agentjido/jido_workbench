@@ -10,9 +10,10 @@ defmodule AgentJido.ContentIngest.InventoryTest do
   describe "build/1" do
     test "returns all managed sources with unique ids" do
       sources = Inventory.build()
+      docs_pages = ingestible_docs_pages()
 
       expected_count =
-        length(Pages.all_pages()) +
+        length(docs_pages) +
           length(Blog.all_posts()) +
           length(Ecosystem.public_packages())
 
@@ -38,12 +39,27 @@ defmodule AgentJido.ContentIngest.InventoryTest do
 
     test "supports docs-only scope" do
       sources = Inventory.build(only: [:docs])
+      docs_pages = ingestible_docs_pages()
 
-      assert length(sources) == length(Pages.all_pages())
+      assert length(sources) == length(docs_pages)
 
       assert Enum.all?(sources, fn source ->
                String.starts_with?(source.source_id, "docs:") and source.collection == "site_docs"
              end)
     end
+
+    test "excludes retired build and training pages from docs inventory" do
+      sources = Inventory.build(only: [:docs])
+
+      refute Enum.any?(sources, &String.starts_with?(&1.source_id, "docs:/build"))
+      refute Enum.any?(sources, &String.starts_with?(&1.source_id, "docs:/training"))
+    end
+  end
+
+  defp ingestible_docs_pages do
+    Pages.all_pages()
+    |> Enum.reject(fn page ->
+      String.starts_with?(page.path, "/build") or String.starts_with?(page.path, "/training")
+    end)
   end
 end

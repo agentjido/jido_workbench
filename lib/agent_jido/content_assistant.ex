@@ -209,10 +209,10 @@ defmodule AgentJido.ContentAssistant do
 
     response =
       cond do
-        function_exported?(retrieval_module, :query_with_status, 2) ->
+        module_function_exported?(retrieval_module, :query_with_status, 2) ->
           retrieval_module.query_with_status(query, retrieval_opts)
 
-        function_exported?(retrieval_module, :query, 2) ->
+        module_function_exported?(retrieval_module, :query, 2) ->
           retrieval_module.query(query, retrieval_opts)
 
         true ->
@@ -276,7 +276,7 @@ defmodule AgentJido.ContentAssistant do
 
   defp allow_llm?(module, context) when is_atom(module) do
     cond do
-      function_exported?(module, :allow_llm?, 1) ->
+      module_function_exported?(module, :allow_llm?, 1) ->
         module.allow_llm?(context)
 
       true ->
@@ -706,7 +706,7 @@ defmodule AgentJido.ContentAssistant do
     retrieval_module = Keyword.get(opts, :retrieval_module, retrieval_module())
     retrieval_opts = Keyword.get(opts, :retrieval_opts, [])
 
-    if function_exported?(retrieval_module, :suggest_related_queries, 2) do
+    if module_function_exported?(retrieval_module, :suggest_related_queries, 2) do
       retrieval_module.suggest_related_queries(query, retrieval_opts)
     else
       []
@@ -720,4 +720,11 @@ defmodule AgentJido.ContentAssistant do
   defp retrieval_module do
     Application.get_env(:agent_jido, :content_assistant_retrieval_module, Retrieval)
   end
+
+  defp module_function_exported?(module, function, arity)
+       when is_atom(module) and is_atom(function) and is_integer(arity) and arity >= 0 do
+    Code.ensure_loaded?(module) and function_exported?(module, function, arity)
+  end
+
+  defp module_function_exported?(_module, _function, _arity), do: false
 end

@@ -118,6 +118,7 @@ defmodule AgentJidoWeb.Router do
       live "/dashboard", AdminDashboardLive, :index
       live "/dashboard/analytics", AdminAnalyticsLive, :index
       live "/dashboard/content-ingestion", AdminContentIngestionLive, :index
+      live "/dashboard/content-ingestion/audit", AdminContentIngestionLive, :index
       live "/dashboard/contentops", ContentOpsLive, :index
       live "/dashboard/contentops/github", ContentOpsGithubLive, :index
       live "/dashboard/content-generator", AdminContentGeneratorLive, :plan

@@ -15,6 +15,7 @@ defmodule AgentJido.ContentIngest.Inventory do
     blog: {"site_blog", "AgentJido blog posts"},
     ecosystem: {"site_ecosystem", "AgentJido ecosystem package pages"}
   }
+  @excluded_doc_path_prefixes ["/build", "/training"]
 
   @valid_scopes Map.keys(@doc_collections)
 
@@ -63,7 +64,7 @@ defmodule AgentJido.ContentIngest.Inventory do
   defp build_docs do
     {collection, description} = @doc_collections.docs
 
-    for doc <- Pages.all_pages() do
+    for doc <- Pages.all_pages(), include_docs_page?(doc) do
       body_text = html_to_text(doc.body)
 
       metadata =
@@ -90,6 +91,14 @@ defmodule AgentJido.ContentIngest.Inventory do
       }
     end
   end
+
+  defp include_docs_page?(%{path: path}) when is_binary(path) do
+    Enum.all?(@excluded_doc_path_prefixes, fn prefix ->
+      not String.starts_with?(path, prefix)
+    end)
+  end
+
+  defp include_docs_page?(_page), do: true
 
   defp build_blog do
     {collection, description} = @doc_collections.blog
@@ -139,7 +148,7 @@ defmodule AgentJido.ContentIngest.Inventory do
 
     for pkg <- Ecosystem.public_packages() do
       body_text = html_to_text(pkg.body)
-      package_url = "/ecosystem##{pkg.id}"
+      package_url = "/ecosystem/#{pkg.id}"
 
       metadata =
         %{
@@ -162,15 +171,16 @@ defmodule AgentJido.ContentIngest.Inventory do
           "github_url" => pkg.github_url
         }
         |> with_content_hash(
-          hash_payload(
+          hash_payload([
             pkg.id,
             pkg.version,
             pkg.tagline,
             pkg.description,
+            package_url,
             pkg.ecosystem_deps,
             pkg.tags,
             body_text
-          )
+          ])
         )
 
       %Source{
@@ -224,7 +234,6 @@ defmodule AgentJido.ContentIngest.Inventory do
   end
 
   defp hash_payload(a, b, c, d, e), do: hash_payload([a, b, c, d, e])
-  defp hash_payload(a, b, c, d, e, f, g), do: hash_payload([a, b, c, d, e, f, g])
 
   defp with_content_hash(metadata, hash), do: Map.put(metadata, "content_hash", hash)
 

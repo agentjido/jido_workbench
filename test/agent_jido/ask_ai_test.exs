@@ -32,7 +32,7 @@ defmodule AgentJido.ContentAssistantTest do
     %Result{
       title: "ReqLLM",
       snippet: "ReqLLM provides provider-agnostic LLM calls with structured output support.",
-      url: "/ecosystem#req-llm",
+      url: "/ecosystem/req-llm",
       source_type: :ecosystem,
       score: 0.82
     }

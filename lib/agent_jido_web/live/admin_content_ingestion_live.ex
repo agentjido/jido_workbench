@@ -1,14 +1,26 @@
 defmodule AgentJidoWeb.AdminContentIngestionLive do
   @moduledoc """
-  Admin UI for inspecting local content inventory and running Arcana ingestion.
+  Unified admin status page for content ingestion health and recovery actions.
   """
   use AgentJidoWeb, :live_view
 
+  alias AgentJido.ContentIngest
   alias AgentJido.ContentIngest.Inventory
 
   @task_supervisor_key :content_ingest_task_supervisor
   @task_ref_key :content_ingest_task_ref
   @running_key :content_ingest_running
+
+  @issue_order [
+    :missing,
+    :orphaned,
+    :collection_mismatch,
+    :stale_hash,
+    :duplicate_source_id,
+    :errored_or_unchunked
+  ]
+
+  @status_order [:ok | @issue_order]
 
   @impl true
   def mount(_params, _session, socket) do
@@ -20,31 +32,34 @@ defmodule AgentJidoWeb.AdminContentIngestionLive do
      |> assign(:current_run_label, nil)
      |> assign(:last_ingest_summary, nil)
      |> assign(:last_ingest_label, nil)
-     |> assign(:source_rows, [])
+     |> assign(:audit_rows, [])
+     |> assign(:audit_summary, empty_audit_summary())
      |> assign(:source_lookup, %{})
      |> assign(:collection_counts, %{})
-     |> load_sources()}
+     |> assign(:needs_refresh_count, 0)
+     |> assign(:orphaned_count, 0)
+     |> load_status()}
   end
 
   @impl true
   def render(assigns) do
     ~H"""
     <AgentJidoWeb.Jido.AdminNav.admin_shell current_path="/dashboard/content-ingestion">
-      <div class="container mx-auto max-w-6xl space-y-8 px-6 py-12">
+      <div class="container mx-auto max-w-7xl space-y-8 px-6 py-12">
         <header class="space-y-2">
           <p class="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Admin Control Plane</p>
-          <h1 class="text-3xl font-semibold text-foreground">Content Ingestion</h1>
-          <p class="max-w-3xl text-sm text-muted-foreground">
-            Inspect every ingestible content source and run Arcana sync for all sources or a single source.
+          <h1 class="text-3xl font-semibold text-foreground">Content Ingestion Status</h1>
+          <p class="max-w-4xl text-sm text-muted-foreground">
+            Shows what is ingested, what is out of date, and lets you trigger targeted or full refresh.
           </p>
         </header>
 
         <section class="space-y-4 rounded-lg border border-border bg-card p-6">
           <div class="flex flex-wrap items-start justify-between gap-3">
-            <div class="space-y-2">
-              <h2 class="text-lg font-semibold text-foreground">Actions</h2>
+            <div class="space-y-1">
+              <h2 class="text-lg font-semibold text-foreground">Current state</h2>
               <p class="text-sm text-muted-foreground">
-                Use ingest-all for a full sync, or re-ingest a single source from the inventory table.
+                Out-of-date rows are missing/stale/unhealthy compared to expected local inventory.
               </p>
             </div>
 
@@ -53,30 +68,38 @@ defmodule AgentJidoWeb.AdminContentIngestionLive do
             </div>
           </div>
 
+          <div class="grid grid-cols-2 gap-2 text-xs text-muted-foreground md:grid-cols-5">
+            <span>expected: {@audit_summary.expected_count}</span>
+            <span>ingested: {@audit_summary.ingested_count}</span>
+            <span>ok: {@audit_summary.ok_count}</span>
+            <span>out_of_date: {@audit_summary.blocking_count}</span>
+            <span>refreshable: {@needs_refresh_count}</span>
+          </div>
+
           <div class="grid grid-cols-2 gap-2 text-xs text-muted-foreground md:grid-cols-4">
-            <span>total: {length(@source_rows)}</span>
             <span>docs: {Map.get(@collection_counts, "site_docs", 0)}</span>
             <span>blog: {Map.get(@collection_counts, "site_blog", 0)}</span>
             <span>ecosystem: {Map.get(@collection_counts, "site_ecosystem", 0)}</span>
+            <span>orphaned: {@orphaned_count}</span>
           </div>
 
           <div class="flex flex-wrap items-center gap-3">
             <button
               type="button"
-              phx-click="refresh_sources"
+              phx-click="refresh_status"
               disabled={@content_ingest_running}
               class="rounded-md border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground hover:border-primary/50 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Refresh inventory
+              Refresh status
             </button>
 
             <button
               type="button"
-              phx-click="preview_all"
-              disabled={@content_ingest_running}
+              phx-click="ingest_needs_refresh"
+              disabled={@content_ingest_running or @needs_refresh_count == 0}
               class="rounded-md border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground hover:border-primary/50 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Preview ingest all
+              Ingest needs refresh
             </button>
 
             <button
@@ -88,6 +111,10 @@ defmodule AgentJidoWeb.AdminContentIngestionLive do
               Ingest all
             </button>
           </div>
+
+          <p :if={@orphaned_count > 0} class="text-xs font-semibold text-accent-yellow">
+            Orphaned rows found. Run "Ingest all" to reconcile stale managed documents.
+          </p>
 
           <section :if={@last_ingest_summary} class="space-y-2 rounded-md border border-border bg-background p-4">
             <h3 class="text-sm font-semibold text-foreground">Last run: {@last_ingest_label}</h3>
@@ -107,9 +134,9 @@ defmodule AgentJidoWeb.AdminContentIngestionLive do
 
         <section class="space-y-4 rounded-lg border border-border bg-card p-6">
           <div class="space-y-1">
-            <h2 class="text-lg font-semibold text-foreground">Local Content Inventory</h2>
+            <h2 class="text-lg font-semibold text-foreground">Source status</h2>
             <p class="text-sm text-muted-foreground">
-              Each row is a source that can be re-ingested independently.
+              One row per source id. Re-ingest is available when source still exists in local inventory.
             </p>
           </div>
 
@@ -118,35 +145,43 @@ defmodule AgentJidoWeb.AdminContentIngestionLive do
               <thead class="bg-elevated text-muted-foreground">
                 <tr>
                   <th class="w-[10%] px-2 py-1.5 font-semibold">Action</th>
-                  <th class="w-[12%] px-2 py-1.5 font-semibold">Collection</th>
-                  <th class="w-[22%] px-2 py-1.5 font-semibold">Title</th>
-                  <th class="w-[33%] px-2 py-1.5 font-semibold">Path</th>
-                  <th class="w-[23%] px-2 py-1.5 font-semibold">Source ID</th>
+                  <th class="w-[10%] px-2 py-1.5 font-semibold">Status</th>
+                  <th class="w-[11%] px-2 py-1.5 font-semibold">Collection</th>
+                  <th class="w-[17%] px-2 py-1.5 font-semibold">Title</th>
+                  <th class="w-[17%] px-2 py-1.5 font-semibold">Path</th>
+                  <th class="w-[18%] px-2 py-1.5 font-semibold">Source ID</th>
+                  <th class="w-[17%] px-2 py-1.5 font-semibold">Details</th>
                 </tr>
               </thead>
               <tbody>
-                <tr :for={source <- @source_rows} class="border-t border-border/70">
+                <tr :for={row <- @audit_rows} class="border-t border-border/70 align-top">
                   <td class="px-2 py-1.5">
                     <button
+                      :if={row.refreshable?}
                       type="button"
                       phx-click="ingest_source"
-                      phx-value-source-id={source.source_id}
+                      phx-value-source-id={row.source_id}
                       disabled={@content_ingest_running}
                       class="whitespace-nowrap rounded-md border border-border bg-background px-2 py-0.5 text-[11px] font-semibold text-foreground hover:border-primary/50 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       Re-ingest
                     </button>
+                    <span :if={!row.refreshable?} class="text-muted-foreground">—</span>
                   </td>
-                  <td class="whitespace-nowrap px-2 py-1.5 text-muted-foreground">{source.collection}</td>
-                  <td class="truncate px-2 py-1.5 text-foreground" title={source.title}>{source.title}</td>
-                  <td class="truncate px-2 py-1.5 text-muted-foreground" title={source.path}>{source.path}</td>
-                  <td class="truncate px-2 py-1.5 font-mono text-muted-foreground" title={source.source_id}>
-                    {source.source_id}
+                  <td class="px-2 py-1.5">
+                    <span class={status_badge_class(row.status)}>{status_label(row.status)}</span>
                   </td>
+                  <td class="px-2 py-1.5 text-muted-foreground">{row.collection}</td>
+                  <td class="truncate px-2 py-1.5 text-foreground" title={row.title}>{row.title}</td>
+                  <td class="truncate px-2 py-1.5 text-muted-foreground" title={row.path}>{row.path}</td>
+                  <td class="truncate px-2 py-1.5 font-mono text-muted-foreground" title={row.source_id}>
+                    {row.source_id}
+                  </td>
+                  <td class="px-2 py-1.5 text-muted-foreground">{row.details}</td>
                 </tr>
-                <tr :if={@source_rows == []}>
-                  <td colspan="5" class="px-2 py-2 text-muted-foreground">
-                    No ingestible sources found in local inventory.
+                <tr :if={@audit_rows == []}>
+                  <td colspan="7" class="px-2 py-2 text-muted-foreground">
+                    No content sources found.
                   </td>
                 </tr>
               </tbody>
@@ -159,16 +194,16 @@ defmodule AgentJidoWeb.AdminContentIngestionLive do
   end
 
   @impl true
-  def handle_event("refresh_sources", _params, socket) do
-    {:noreply, load_sources(socket)}
-  end
-
-  def handle_event("preview_all", _params, socket) do
-    trigger_ingest(socket, :preview_all, nil)
+  def handle_event("refresh_status", _params, socket) do
+    {:noreply, load_status(socket)}
   end
 
   def handle_event("ingest_all", _params, socket) do
     trigger_ingest(socket, :ingest_all, nil)
+  end
+
+  def handle_event("ingest_needs_refresh", _params, socket) do
+    trigger_ingest(socket, :ingest_needs_refresh, nil)
   end
 
   def handle_event("ingest_source", %{"source-id" => source_id}, socket) do
@@ -188,7 +223,7 @@ defmodule AgentJidoWeb.AdminContentIngestionLive do
         |> assign(:current_run_label, nil)
         |> assign(:last_ingest_summary, normalized)
         |> assign(:last_ingest_label, run_label(mode, source_id))
-        |> load_sources()
+        |> load_status()
 
       flash_type = if normalized.failed_count > 0, do: :error, else: :info
       {:noreply, put_flash(socket, flash_type, run_complete_text(mode, source_id))}
@@ -234,7 +269,7 @@ defmodule AgentJidoWeb.AdminContentIngestionLive do
 
       true ->
         with {:ok, socket} <- ensure_task_supervisor(socket),
-             {:ok, opts} <- ingest_opts(mode, source_id, socket.assigns.source_lookup),
+             {:ok, opts} <- ingest_opts(mode, source_id, socket),
              {:ok, ref} <- start_ingest_task(socket, mode, source_id, opts) do
           {:noreply,
            socket
@@ -287,11 +322,37 @@ defmodule AgentJidoWeb.AdminContentIngestionLive do
       {:error, "Failed to start ingestion task: #{Exception.message(error)}"}
   end
 
-  defp ingest_opts(:preview_all, _source_id, _lookup), do: {:ok, [dry_run: true, graph: false]}
-  defp ingest_opts(:ingest_all, _source_id, _lookup), do: {:ok, [dry_run: false, graph: false]}
+  defp ingest_opts(:ingest_all, _source_id, _socket), do: {:ok, [dry_run: false]}
 
-  defp ingest_opts(:ingest_source, source_id, source_lookup) do
-    case Map.get(source_lookup, source_id) do
+  defp ingest_opts(:ingest_needs_refresh, _source_id, socket) do
+    source_lookup = socket.assigns.source_lookup
+
+    source_ids =
+      socket.assigns.audit_rows
+      |> Enum.filter(&(&1.status != :ok and &1.refreshable?))
+      |> Enum.map(& &1.source_id)
+      |> Enum.uniq()
+
+    sources =
+      source_ids
+      |> Enum.map(&Map.get(source_lookup, &1))
+      |> Enum.filter(&is_map/1)
+
+    if sources == [] do
+      {:error, "No out-of-date rows are directly refreshable."}
+    else
+      {:ok,
+       [
+         dry_run: false,
+         reconcile_stale: false,
+         sources: sources,
+         managed_collections: sources |> Enum.map(& &1.collection) |> Enum.uniq()
+       ]}
+    end
+  end
+
+  defp ingest_opts(:ingest_source, source_id, socket) do
+    case Map.get(socket.assigns.source_lookup, source_id) do
       nil ->
         {:error, "Could not find source #{source_id} in current inventory."}
 
@@ -299,7 +360,6 @@ defmodule AgentJidoWeb.AdminContentIngestionLive do
         {:ok,
          [
            dry_run: false,
-           graph: false,
            reconcile_stale: false,
            sources: [source],
            managed_collections: [source.collection]
@@ -307,59 +367,108 @@ defmodule AgentJidoWeb.AdminContentIngestionLive do
     end
   end
 
-  defp ingest_opts(_mode, _source_id, _lookup), do: {:ok, [dry_run: true, graph: false]}
+  defp ingest_opts(_mode, _source_id, _socket), do: {:error, "Unsupported ingestion action."}
 
-  defp run_label(:preview_all, _source_id), do: "Preview all sources"
   defp run_label(:ingest_all, _source_id), do: "Ingest all sources"
+  defp run_label(:ingest_needs_refresh, _source_id), do: "Ingest needs refresh"
   defp run_label(:ingest_source, source_id), do: "Re-ingest #{source_id}"
   defp run_label(_mode, _source_id), do: "Ingestion run"
 
-  defp run_complete_text(:preview_all, _source_id), do: "Ingestion preview completed."
   defp run_complete_text(:ingest_all, _source_id), do: "Ingest all completed."
+  defp run_complete_text(:ingest_needs_refresh, _source_id), do: "Ingest needs refresh completed."
   defp run_complete_text(:ingest_source, source_id), do: "Re-ingest completed for #{source_id}."
   defp run_complete_text(_mode, _source_id), do: "Ingestion completed."
 
-  defp load_sources(socket) do
+  defp load_status(socket) do
     sources =
       Inventory.build()
       |> Enum.sort_by(&{&1.collection, &1.source_id})
 
-    source_rows =
-      Enum.map(sources, fn source ->
-        metadata = source.metadata || %{}
+    source_lookup = Enum.into(sources, %{}, &{&1.source_id, &1})
+    collection_counts = Enum.frequencies_by(sources, & &1.collection)
 
-        %{
-          source_id: source.source_id,
-          collection: source.collection,
-          title: metadata_value(metadata, "title") || metadata_value(metadata, "name") || source.source_id,
-          path: metadata_value(metadata, "path") || metadata_value(metadata, "url") || "—"
-        }
-      end)
-
-    source_lookup =
-      Enum.into(sources, %{}, fn source -> {source.source_id, source} end)
-
-    collection_counts =
-      Enum.frequencies_by(sources, & &1.collection)
+    audit_report = audit_module().audit(sources: sources)
+    audit_rows = build_audit_rows(Map.get(audit_report, :rows, []), source_lookup)
 
     socket
-    |> assign(:source_rows, source_rows)
     |> assign(:source_lookup, source_lookup)
     |> assign(:collection_counts, collection_counts)
+    |> assign(:audit_rows, audit_rows)
+    |> assign(:audit_summary, normalize_audit_summary(Map.get(audit_report, :summary, %{})))
+    |> assign(:needs_refresh_count, Enum.count(audit_rows, &(&1.status != :ok and &1.refreshable?)))
+    |> assign(:orphaned_count, Enum.count(audit_rows, &(&1.status == :orphaned)))
   rescue
     _error ->
       socket
-      |> assign(:source_rows, [])
       |> assign(:source_lookup, %{})
       |> assign(:collection_counts, %{})
+      |> assign(:audit_rows, [])
+      |> assign(:audit_summary, empty_audit_summary())
+      |> assign(:needs_refresh_count, 0)
+      |> assign(:orphaned_count, 0)
   end
 
-  defp metadata_value(metadata, key) when is_map(metadata) do
-    Map.get(metadata, key) || Map.get(metadata, String.to_atom(key))
-  rescue
-    ArgumentError ->
-      Map.get(metadata, key)
+  defp build_audit_rows(rows, source_lookup) do
+    rows
+    |> Enum.map(fn row ->
+      expected = Map.get(row, :expected)
+      ingested = Map.get(row, :ingested)
+      source_id = Map.get(row, :source_id, "")
+      status = Map.get(row, :status, :ok)
+      issues = Map.get(row, :issues, [])
+
+      collection = value(expected, :collection) || value(ingested, :collection) || "—"
+      title = value(expected, :title) || value(ingested, :title) || source_id
+      path = value(expected, :path) || value(ingested, :path) || "—"
+      refreshable? = is_map(expected) and Map.has_key?(source_lookup, source_id)
+
+      %{
+        source_id: source_id,
+        status: status,
+        issues: issues,
+        collection: collection,
+        title: title,
+        path: path,
+        refreshable?: refreshable?,
+        details: detail_text(issues, ingested)
+      }
+    end)
+    |> Enum.sort_by(&{status_rank(&1.status), &1.source_id})
   end
+
+  defp detail_text(issues, ingested) do
+    issue_text =
+      case issues do
+        [] -> "ok"
+        list when is_list(list) -> Enum.map_join(list, ", ", &issue_label/1)
+        _other -> "unknown"
+      end
+
+    chunk_text =
+      case ingested do
+        %{actual_chunk_count: count} when is_integer(count) -> "chunks=#{count}"
+        _ -> "chunks=—"
+      end
+
+    dup_text =
+      case ingested do
+        %{duplicate_count: count} when is_integer(count) -> "dup=#{count}"
+        _ -> "dup=—"
+      end
+
+    error_text =
+      case ingested do
+        %{document_error: error} when is_binary(error) and error != "" -> "error=#{error}"
+        _ -> ""
+      end
+
+    [issue_text, chunk_text, dup_text, error_text]
+    |> Enum.reject(&(&1 == ""))
+    |> Enum.join(" • ")
+  end
+
+  defp value(map, key) when is_map(map), do: Map.get(map, key)
+  defp value(_map, _key), do: nil
 
   defp normalize_summary(summary) when is_map(summary) do
     failed = Map.get(summary, :failed, [])
@@ -378,15 +487,38 @@ defmodule AgentJidoWeb.AdminContentIngestionLive do
     %{total_sources: 0, inserted: 0, updated: 0, deleted: 0, skipped: 0, failed_count: 0}
   end
 
+  defp normalize_audit_summary(summary) when is_map(summary) do
+    status_counts = Map.get(summary, :status_counts, %{})
+
+    %{
+      expected_count: Map.get(summary, :expected_count, 0),
+      ingested_count: Map.get(summary, :ingested_count, 0),
+      compared_count: Map.get(summary, :compared_count, 0),
+      ok_count: Map.get(summary, :ok_count, Map.get(status_counts, :ok, 0)),
+      blocking_count:
+        Map.get(
+          summary,
+          :blocking_count,
+          max(Map.get(summary, :compared_count, 0) - Map.get(summary, :ok_count, 0), 0)
+        )
+    }
+  end
+
+  defp normalize_audit_summary(_summary), do: empty_audit_summary()
+
+  defp empty_audit_summary do
+    %{expected_count: 0, ingested_count: 0, compared_count: 0, ok_count: 0, blocking_count: 0}
+  end
+
   defp summary_status_text(summary) do
-    pending = summary.inserted + summary.updated + summary.deleted
+    changed = summary.inserted + summary.updated + summary.deleted
 
     cond do
       summary.failed_count > 0 ->
         "Run completed with failures. Check logs and retry."
 
-      pending > 0 ->
-        "Run completed successfully with #{pending} total content changes."
+      changed > 0 ->
+        "Run completed successfully with #{changed} total content changes."
 
       true ->
         "Run completed with no content changes."
@@ -401,7 +533,32 @@ defmodule AgentJidoWeb.AdminContentIngestionLive do
     end
   end
 
+  defp status_rank(status) do
+    Enum.find_index(@status_order, &(&1 == status)) || length(@status_order)
+  end
+
+  defp status_badge_class(:ok),
+    do: "rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent-green bg-accent-green/10 border border-accent-green/30"
+
+  defp status_badge_class(_status),
+    do: "rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent-red bg-accent-red/10 border border-accent-red/30"
+
+  defp status_label(status) when is_atom(status), do: issue_label(status)
+  defp status_label(status), do: to_string(status)
+
+  defp issue_label(issue) when is_atom(issue) do
+    issue
+    |> Atom.to_string()
+    |> String.replace("_", " ")
+  end
+
+  defp issue_label(issue) when is_binary(issue), do: String.replace(issue, "_", " ")
+
   defp ingest_module do
-    Application.get_env(:agent_jido, :dashboard_ingest_module, AgentJido.ContentIngest)
+    Application.get_env(:agent_jido, :dashboard_ingest_module, ContentIngest)
+  end
+
+  defp audit_module do
+    Application.get_env(:agent_jido, :dashboard_content_audit_module, ContentIngest)
   end
 end
