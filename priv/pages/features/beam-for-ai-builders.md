@@ -72,7 +72,7 @@ This is runtime coordination and scheduling behavior with no required LLM depend
 ## What to explore next
 
 - **Architecture contrast:** [Jido vs framework-first stacks](/features/jido-vs-framework-first-stacks)
-- **Adoption planning:** [Incremental adoption](/features/incremental-adoption)
+- **Adoption planning:** [Start small, grow safely](/features/start-small)
 - **Build path:** [Mixed-stack integration](/build/mixed-stack-integration)
 - **Agent model foundations:** [BEAM-native agent model](/features/beam-native-agent-model)
 - **Training:** [LiveView integration](/training/liveview-integration), [Production readiness](/training/production-readiness)

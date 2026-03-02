@@ -1,8 +1,6 @@
 defmodule AgentJidoWeb.JidoHomeLive do
   use AgentJidoWeb, :live_view
 
-  alias AgentJido.LandingContent
-
   import AgentJidoWeb.Jido.HomeSections
   import AgentJidoWeb.Jido.MarketingLayouts
 
@@ -10,10 +8,9 @@ defmodule AgentJidoWeb.JidoHomeLive do
   def mount(_params, _session, socket) do
     {:ok,
      assign(socket,
-       page_title: "A Runtime for Reliable Multi-Agent Systems",
+       page_title: "Build AI Agents That Run in Production",
        meta_description:
-         "Jido is a runtime for reliable, multi-agent systems, built on Elixir/OTP for fault isolation, concurrency, and production uptime.",
-       ecosystem_overview: LandingContent.home_ecosystem_overview()
+         "Jido is an open-source agent framework for Elixir. Build supervised AI agents with fault tolerance, tool calling, and multi-agent coordination built in."
      )}
   end
 
@@ -28,10 +25,11 @@ defmodule AgentJidoWeb.JidoHomeLive do
     >
       <div id="home-page" class="container max-w-[1000px] mx-auto px-6">
         <.hero_section />
-        <.pillars_section />
-        <.ecosystem_section ecosystem_overview={@ecosystem_overview} />
+        <.what_you_can_build_section />
         <.quick_start_code />
+        <.pillars_section />
         <.why_elixir_otp_section />
+        <.ecosystem_section />
         <.build_first_agent_cta />
       </div>
     </.marketing_layout>
@@ -43,31 +41,31 @@ defmodule AgentJidoWeb.JidoHomeLive do
     <section class="text-center mb-16 animate-fade-in">
       <div class="inline-block bg-primary/10 border border-primary/30 px-4 py-2 rounded mb-6">
         <span class="home-eyebrow-label text-[11px] font-semibold tracking-widest">
-          RELIABLE MULTI-AGENT RUNTIME
+          OPEN-SOURCE ELIXIR FRAMEWORK
         </span>
       </div>
 
       <h1 class="text-4xl sm:text-[42px] font-bold leading-tight mb-5 tracking-tight">
-        A runtime for reliable, <br />
-        <span class="text-primary">multi-agent systems.</span>
+        Build AI agents that <br />
+        <span class="text-primary">run in production.</span>
       </h1>
 
       <p class="text-secondary-foreground text-[15px] leading-relaxed mb-6 max-w-lg mx-auto">
-        Build supervised agents that crash and recover automatically.
+        Jido is an agent framework for Elixir. Define agents, give them tools, and let them work together, with fault tolerance and supervision built in.
       </p>
 
       <div class="flex items-center gap-4 justify-center mb-12">
         <.link
-          navigate="/getting-started"
+          navigate="/docs/getting-started"
           class="bg-primary text-primary-foreground hover:bg-primary/90 text-[13px] font-bold px-7 py-5 rounded transition-colors"
         >
-          GET BUILDING →
+          GET STARTED →
         </.link>
         <.link
-          navigate="/features"
+          navigate="/examples"
           class="home-subtle-link text-[13px] font-semibold transition-colors"
         >
-          EXPLORE FEATURES →
+          SEE EXAMPLES →
         </.link>
       </div>
 
@@ -80,15 +78,74 @@ defmodule AgentJidoWeb.JidoHomeLive do
           Start here.
         </.link>
         <span class="mx-2">•</span>
-        Already an Elixir expert?
+        Already an Elixir developer?
         <.link
           id="home-elixir-expert-guide-link"
           navigate="/docs/getting-started/elixir-developers"
           class="text-primary hover:underline font-semibold ml-1"
         >
-          Jump to the Elixir expert getting started guide.
+          Jump to the expert guide.
         </.link>
       </p>
+    </section>
+    """
+  end
+
+  defp what_you_can_build_section(assigns) do
+    cards = [
+      %{
+        title: "Coding agents",
+        desc: "Agents that read, analyze, and refactor code across repositories."
+      },
+      %{
+        title: "Research and synthesis",
+        desc: "Multi-step research agents that find sources, verify facts, and produce reports."
+      },
+      %{
+        title: "Document processing",
+        desc: "Extract, classify, and route documents: invoices, contracts, support tickets."
+      },
+      %{
+        title: "Customer support",
+        desc: "Agents that resolve issues using your knowledge base and escalate when needed."
+      },
+      %{
+        title: "DevOps and monitoring",
+        desc: "Agents that watch systems, diagnose problems, and run remediation playbooks."
+      },
+      %{
+        title: "Data pipelines",
+        desc: "Agents that collect, transform, and load data from multiple sources on schedule."
+      }
+    ]
+
+    assigns = assign(assigns, :cards, cards)
+
+    ~H"""
+    <section
+      id="what-you-can-build"
+      class="home-pillars-section mb-20 opacity-0"
+      phx-hook="ScrollReveal"
+    >
+      <div class="text-center mb-16">
+        <h2 class="text-3xl font-bold tracking-tight mb-4">What people build with Jido</h2>
+        <p class="home-muted-copy text-sm leading-relaxed max-w-lg mx-auto">
+          From single-purpose assistants to teams of agents that coordinate autonomously.
+        </p>
+      </div>
+
+      <div class="home-pillars-grid">
+        <%= for card <- @cards do %>
+          <.link navigate="/examples" class="home-pillar-card group">
+            <h3 class="text-lg sm:text-xl font-bold mb-3 leading-tight group-hover:text-primary transition-colors duration-200">
+              {card.title}
+            </h3>
+            <p class="home-muted-copy text-[15px] leading-relaxed max-w-md mx-auto">
+              {card.desc}
+            </p>
+          </.link>
+        <% end %>
+      </div>
     </section>
     """
   end
@@ -97,19 +154,18 @@ defmodule AgentJidoWeb.JidoHomeLive do
     pillars = [
       %{
         icon: "◉",
-        title: "Reliability by architecture",
-        desc:
-          "Each agent runs in its own BEAM process with isolated state. When agents crash, OTP supervisors restart them in milliseconds — no external orchestrator needed.",
+        title: "Agents that self-heal",
+        desc: "When an agent crashes, its supervisor restarts it automatically with clean state. No orchestrator, no manual recovery, no downtime.",
         icon_color_class: "text-accent-green",
         chip_class: "home-pillar-chip home-pillar-chip-green",
         link_class: "home-pillar-link home-pillar-link-green",
-        link: "/features/reliability-by-architecture"
+        link: "/features/agents-that-self-heal"
       },
       %{
         icon: "⧉",
-        title: "Coordination you can reason about",
+        title: "Multi-agent workflows you can test",
         desc:
-          "Multi-agent behavior is explicit and testable. Actions define capabilities, Signals handle communication, and Directives model orchestration — not role-play in a single prompt.",
+          "Agents coordinate through typed Actions and Signals, not prompt chains. Debug and test each step independently, just like regular code.",
         icon_color_class: "text-accent-cyan",
         chip_class: "home-pillar-chip home-pillar-chip-cyan",
         link_class: "home-pillar-link home-pillar-link-cyan",
@@ -117,23 +173,23 @@ defmodule AgentJidoWeb.JidoHomeLive do
       },
       %{
         icon: "⬡",
-        title: "Production operations built in",
+        title: "Observe everything",
         desc:
-          "Telemetry, debugging workflows, and operational controls are first-class. Observe agent behavior, trace workflows across processes, and run with confidence under real load.",
+          "Built-in telemetry and tracing across every agent. See what's happening, trace workflows across processes, catch problems before users do.",
         icon_color_class: "text-accent-yellow",
         chip_class: "home-pillar-chip home-pillar-chip-yellow",
         link_class: "home-pillar-link home-pillar-link-yellow",
-        link: "/features/operations-observability"
+        link: "/features/observe-everything"
       },
       %{
         icon: "▣",
-        title: "Composable, incremental adoption",
+        title: "Start small, grow safely",
         desc:
-          "Adopt only what you need now, expand safely later. Start with the core runtime, add AI capabilities, layer on tooling — each package composes without lock-in.",
+          "Add one agent to your existing Elixir app. No rewrite, no platform migration. Add more agents, tools, and packages only when you need them.",
         icon_color_class: "text-accent-red",
         chip_class: "home-pillar-chip home-pillar-chip-red",
         link_class: "home-pillar-link home-pillar-link-red",
-        link: "/features/incremental-adoption"
+        link: "/features/start-small"
       }
     ]
 
@@ -142,9 +198,9 @@ defmodule AgentJidoWeb.JidoHomeLive do
     ~H"""
     <section id="pillars" class="home-pillars-section mb-20 opacity-0" phx-hook="ScrollReveal">
       <div class="text-center mb-16">
-        <h2 class="text-3xl font-bold tracking-tight mb-4">Why Jido</h2>
+        <h2 class="text-3xl font-bold tracking-tight mb-4">Why teams choose Jido</h2>
         <p class="home-muted-copy text-sm leading-relaxed max-w-lg mx-auto">
-          Prototyping is common. Reliable operation is rare. <br /> Jido is built for operation.
+          Agent frameworks are everywhere. Here's what makes this one different.
         </p>
       </div>
 
@@ -167,30 +223,15 @@ defmodule AgentJidoWeb.JidoHomeLive do
   end
 
   defp ecosystem_section(assigns) do
-    layer_rows =
-      assigns.ecosystem_overview.rows
-      |> Enum.filter(&(&1.id in [:app, :ai, :foundation]))
-
-    core_package =
-      assigns.ecosystem_overview.rows
-      |> Enum.find(&(&1.id == :core))
-      |> case do
-        nil -> nil
-        row -> List.first(row.packages)
-      end
-
-    assigns =
-      assigns
-      |> assign(:ecosystem_layer_rows, layer_rows)
-      |> assign(:ecosystem_core_package, core_package)
-
     ~H"""
     <section id="ecosystem" class="home-ecosystem-section mb-16 opacity-0" phx-hook="ScrollReveal">
       <div id="home-ecosystem-section">
         <div class="home-ecosystem-header">
           <div>
-            <h2 class="text-2xl font-bold tracking-tight">Ecosystem</h2>
-            <p class="home-ecosystem-summary">composable by design · ground up</p>
+            <h2 class="text-2xl font-bold tracking-tight">One framework, many packages</h2>
+            <p class="home-ecosystem-summary">
+              Start with the core. Add AI, tools, and integrations as you need them.
+            </p>
           </div>
 
           <.link navigate="/ecosystem" class="home-ecosystem-explore-link">
@@ -199,54 +240,43 @@ defmodule AgentJidoWeb.JidoHomeLive do
         </div>
 
         <div class="home-ecosystem-rows">
-          <%= for row <- @ecosystem_layer_rows do %>
-            <article id={"home-ecosystem-row-#{row.id}"} class={"home-ecosystem-row home-ecosystem-row-#{row.id}"}>
-              <div class="home-ecosystem-row-header">
-                <h3 class="home-ecosystem-row-title">{row.label}</h3>
-                <span class={"home-ecosystem-count-badge home-ecosystem-count-badge-#{row.id}"}>
-                  {package_count_label(row.package_count)}
-                </span>
-                <div class="home-ecosystem-chips">
-                  <span :for={chip <- row.chips} class={"home-ecosystem-chip home-ecosystem-chip-#{row.id}"}>
-                    {chip}
-                  </span>
-                </div>
-              </div>
+          <article class="home-ecosystem-row">
+            <div class="home-ecosystem-row-header">
+              <h3 class="home-ecosystem-row-title">Core</h3>
+            </div>
+            <p class="home-ecosystem-packages">
+              <span>jido</span>
+              <span class="home-ecosystem-separator" aria-hidden="true">·</span>
+              <span>jido_action</span>
+              <span class="home-ecosystem-separator" aria-hidden="true">·</span>
+              <span>jido_signal</span>
+            </p>
+          </article>
 
-              <p class="home-ecosystem-packages">
-                <%= for {pkg, idx} <- Enum.with_index(row.packages) do %>
-                  <span :if={idx > 0} class="home-ecosystem-separator" aria-hidden="true">·</span>
-                  <.link
-                    id={"home-ecosystem-package-#{pkg.id}"}
-                    navigate={pkg.path}
-                    class="home-ecosystem-package-link"
-                  >
-                    {pkg.name}
-                  </.link>
-                <% end %>
-              </p>
-            </article>
-          <% end %>
+          <article class="home-ecosystem-row">
+            <div class="home-ecosystem-row-header">
+              <h3 class="home-ecosystem-row-title">Add AI when ready</h3>
+            </div>
+            <p class="home-ecosystem-packages">
+              <span>jido_ai</span>
+              <span class="home-ecosystem-separator" aria-hidden="true">·</span>
+              <span>req_llm</span>
+              <span class="home-ecosystem-separator" aria-hidden="true">·</span>
+              <span>llm_db</span>
+            </p>
+          </article>
 
-          <div :if={@ecosystem_core_package} class="home-ecosystem-connector" aria-hidden="true">
-            <div class="home-ecosystem-connector-line"></div>
-            <span class="home-ecosystem-connector-arrow">↓</span>
-          </div>
-
-          <article :if={@ecosystem_core_package} id="home-ecosystem-core-anchor" class="home-ecosystem-core-row">
-            <.link
-              id={"home-ecosystem-package-#{@ecosystem_core_package.id}"}
-              navigate={@ecosystem_core_package.path}
-              class="home-ecosystem-core-hit"
-            >
-              <div class="home-ecosystem-core-header">
-                <span class="home-ecosystem-core-link">{@ecosystem_core_package.name}</span>
-                <p class="home-ecosystem-core-copy">
-                  <span class="home-ecosystem-core-kanji">自動</span>
-                  <span>Autonomous agent framework</span>
-                </p>
-              </div>
-            </.link>
+          <article class="home-ecosystem-row">
+            <div class="home-ecosystem-row-header">
+              <h3 class="home-ecosystem-row-title">Integrate and extend</h3>
+            </div>
+            <p class="home-ecosystem-packages">
+              <span>ash_jido</span>
+              <span class="home-ecosystem-separator" aria-hidden="true">·</span>
+              <span>jido_messaging</span>
+              <span class="home-ecosystem-separator" aria-hidden="true">·</span>
+              <span>jido_otel</span>
+            </p>
           </article>
         </div>
       </div>
@@ -254,27 +284,24 @@ defmodule AgentJidoWeb.JidoHomeLive do
     """
   end
 
-  defp package_count_label(1), do: "1 pkg"
-  defp package_count_label(count), do: "#{count} pkgs"
-
   defp why_elixir_otp_section(assigns) do
     features = [
       %{
         icon: "◉",
         title: "Process isolation",
-        desc: "Each agent runs in its own BEAM process with isolated state and memory. One agent failing never corrupts another.",
+        desc: "Each agent runs in its own lightweight process with isolated memory. One agent failing never takes down another.",
         tone: :green
       },
       %{
         icon: "⟳",
-        title: "OTP supervision",
-        desc: "Supervisors restart crashed agents in milliseconds with clean state. Failure containment and recovery are built into the runtime.",
+        title: "Supervision and recovery",
+        desc: "OTP supervisors detect crashes and restart agents in milliseconds. Failure recovery is built into the runtime, not bolted on.",
         tone: :yellow
       },
       %{
         icon: "⚡",
-        title: "Fault-tolerant concurrency",
-        desc: "The BEAM's preemptive scheduler handles thousands of long-lived agent processes with true parallelism on multi-core hardware.",
+        title: "Massive concurrency",
+        desc: "The BEAM scheduler handles thousands of concurrent agent processes with true parallelism. No thread pools, no async/await gymnastics.",
         tone: :cyan
       }
     ]
@@ -284,9 +311,9 @@ defmodule AgentJidoWeb.JidoHomeLive do
     ~H"""
     <section id="why-elixir-otp" class="home-why-otp-section mb-16 opacity-0" phx-hook="ScrollReveal">
       <div class="home-why-otp-header">
-        <h2 class="text-2xl font-bold tracking-tight mb-3">Why Elixir/OTP</h2>
+        <h2 class="text-2xl font-bold tracking-tight mb-3">Why an agent framework on Elixir?</h2>
         <p class="home-muted-copy text-sm max-w-md mx-auto leading-relaxed">
-          The runtime model that makes reliability claims credible.
+          The same runtime that powers WhatsApp and Discord turns out to be ideal for agent workloads.
         </p>
       </div>
 
@@ -302,16 +329,22 @@ defmodule AgentJidoWeb.JidoHomeLive do
 
       <div class="home-why-otp-links">
         <.link
-          navigate="/features/beam-native-agent-model"
+          navigate="/docs/getting-started/new-to-elixir"
           class="home-why-otp-link-primary"
         >
-          The BEAM-native agent model →
+          New to Elixir? Here's why it's worth learning. →
         </.link>
         <.link
           navigate="/features/beam-for-ai-builders"
           class="home-why-otp-link-secondary"
         >
-          Why Elixir/OTP for agent workloads →
+          Coming from Python or TypeScript? →
+        </.link>
+        <.link
+          navigate="/docs/getting-started/elixir-developers"
+          class="home-why-otp-link-secondary"
+        >
+          Already an Elixir developer? →
         </.link>
       </div>
     </section>
@@ -319,28 +352,31 @@ defmodule AgentJidoWeb.JidoHomeLive do
   end
 
   @quick_start_define_html ~S"""
-  <span class="syntax-keyword">defmodule</span> <span class="syntax-type">MyApp.WeatherAgent</span> <span class="syntax-keyword">do</span>
+  <span class="syntax-keyword">defmodule</span> <span class="syntax-type">MyApp.SupportAgent</span> <span class="syntax-keyword">do</span>
     <span class="syntax-keyword">use</span> <span class="syntax-type">Jido.AI.Agent</span>,
-      name: <span class="syntax-string">"weather_agent"</span>,
-      description: <span class="syntax-string">"Weather Q&amp;A agent"</span>,
-      tools: &lbrack;<span class="syntax-type">Jido.Tools.Weather.Forecast</span>,
-             <span class="syntax-type">Jido.Tools.Weather.CurrentConditions</span>&rbrack;,
-      system_prompt: <span class="syntax-string">"You are a weather planning assistant."</span>
+      name: <span class="syntax-string">"support_agent"</span>,
+      description: <span class="syntax-string">"Customer support agent"</span>,
+      tools: &lbrack;<span class="syntax-type">MyApp.Tools.KnowledgeBase</span>,
+             <span class="syntax-type">MyApp.Tools.TicketSystem</span>&rbrack;,
+      system_prompt: <span class="syntax-string">"You help customers resolve product issues."</span>
   <span class="syntax-keyword">end</span>
   """
 
   @quick_start_terminal_lines [
     %{type: :comment, text: "# Start a supervised agent"},
-    %{type: :input, text: "{:ok, pid} = Jido.AgentServer.start(agent: MyApp.WeatherAgent)"},
+    %{type: :input, text: "{:ok, pid} = Jido.AgentServer.start(agent: MyApp.SupportAgent)"},
     %{type: :output, text: "{:ok, #PID<0.452.0>}"},
     %{type: :spacer, text: nil},
-    %{type: :comment, text: "# Async ask"},
-    %{type: :input, text: "MyApp.WeatherAgent.ask(pid, \"Weather in Tokyo?\")"},
-    %{type: :output, text: "{:ok, \"Currently 18 C, partly cloudy. Rain expected tonight.\"}"},
-    %{type: :spacer, text: nil},
-    %{type: :comment, text: "# Sync shorthand"},
-    %{type: :input, text: "MyApp.WeatherAgent.ask_sync(pid, \"Umbrella?\")"},
-    %{type: :output, text: "{:ok, \"Yes - 80% chance of rain after 6pm.\"}"}
+    %{type: :comment, text: "# Ask it a question"},
+    %{
+      type: :input,
+      text: "MyApp.SupportAgent.ask(pid, \"My order hasn't arrived\")"
+    },
+    %{
+      type: :output,
+      text:
+        "{:ok, \"I found your order #4821. It shipped yesterday and is currently in transit. Expected delivery is tomorrow by 5pm. Want me to send you the tracking link?\"}"
+    }
   ]
 
   defp quick_start_code(assigns) do
@@ -365,7 +401,7 @@ defmodule AgentJidoWeb.JidoHomeLive do
 
       <div class="code-block overflow-hidden home-quickstart-shell">
         <div class="code-header">
-          <span class="home-muted-copy text-xs">lib/my_app/weather_agent.ex</span>
+          <span class="home-muted-copy text-xs">lib/my_app/support_agent.ex</span>
           <.link navigate="/docs/getting-started" class="home-quickstart-header-link">
             View full example →
           </.link>

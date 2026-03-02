@@ -64,7 +64,8 @@ defmodule AgentJidoWeb.Jido.Nav do
   def footer_resource_links do
     [
       {"Docs", primary_nav_path!("Docs")},
-      {"Examples", primary_nav_path!("Examples")}
+      {"Examples", primary_nav_path!("Examples")},
+      {"Compare", "/compare"}
     ]
   end
 

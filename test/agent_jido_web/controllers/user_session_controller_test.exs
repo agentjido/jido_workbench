@@ -23,7 +23,7 @@ defmodule AgentJidoWeb.UserSessionControllerTest do
       # Logged-in users are redirected to the public homepage.
       conn = get(conn, ~p"/")
       response = html_response(conn, 200)
-      assert response =~ "A Runtime for Reliable Multi-Agent Systems"
+      assert response =~ "Build AI Agents That Run in Production"
       assert get_session(conn, :user_token)
     end
 
@@ -111,7 +111,7 @@ defmodule AgentJidoWeb.UserSessionControllerTest do
       # Logged-in users are redirected to the public homepage.
       conn = get(conn, ~p"/")
       response = html_response(conn, 200)
-      assert response =~ "A Runtime for Reliable Multi-Agent Systems"
+      assert response =~ "Build AI Agents That Run in Production"
       assert get_session(conn, :user_token)
     end
 
@@ -134,7 +134,7 @@ defmodule AgentJidoWeb.UserSessionControllerTest do
       # Logged-in users are redirected to the public homepage.
       conn = get(conn, ~p"/")
       response = html_response(conn, 200)
-      assert response =~ "A Runtime for Reliable Multi-Agent Systems"
+      assert response =~ "Build AI Agents That Run in Production"
       assert get_session(conn, :user_token)
     end
 

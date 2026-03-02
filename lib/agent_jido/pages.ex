@@ -4,7 +4,7 @@ defmodule AgentJido.Pages do
 
   Replaces the separate Documentation and Training pipelines with a single
   content system that loads pages from `priv/pages/`. Category is derived
-  from the first subdirectory: docs/, training/, features/, build/, community/.
+  from the first subdirectory: docs/, training/, features/, build/, community/, compare/.
 
   Provides:
   - Compile-time parsing and validation of .md and .livemd files
@@ -160,6 +160,9 @@ defmodule AgentJido.Pages do
 
                         :community ->
                           "/community/#{page.id}"
+
+                        :compare ->
+                          "/compare/#{page.id}"
                       end
 
                     {route, page}
@@ -476,6 +479,7 @@ defmodule AgentJido.Pages do
   def route_for(%Page{category: :features} = p), do: "/features/#{p.id}"
   def route_for(%Page{category: :build} = p), do: "/build/#{p.id}"
   def route_for(%Page{category: :community} = p), do: "/community/#{p.id}"
+  def route_for(%Page{category: :compare} = p), do: "/compare/#{p.id}"
 
   # --- Private helpers ---
 

@@ -1,14 +1,14 @@
 %{
-  title: "Multi-Agent Coordination",
+  title: "Agents that work together",
   category: :features,
-  description: "Coordinate agent workflows with explicit Signals, typed Actions, and strategy-driven orchestration.",
+  description: "Coordinate agent workflows with typed Signals, Actions, and explicit routing contracts.",
   doc_type: :explanation,
   audience: :intermediate,
   draft: false,
   order: 20
 }
 ---
-Jido models multi-agent coordination as explicit runtime contracts. Signals define message boundaries, Actions define capability boundaries, and Directives define effect boundaries.
+When agents need to work together, Jido keeps the contracts explicit. Signals define the messages agents exchange, Actions define what each agent can do, and Directives declare the side effects. No hidden callbacks, no implicit coupling. You can inspect and test every coordination boundary.
 
 ## At a glance
 
@@ -66,15 +66,15 @@ This proves a concrete route mapping and an explicit emitted side effect using t
 
 ## Directives: explicit side-effect control
 
-When an Agent processes a command via `cmd/2`, side effects are not executed inline. Instead, `cmd/2` returns Directives — structured instructions the runtime evaluates separately:
+When an Agent processes a command via `cmd/2`, side effects are not executed inline. Instead, `cmd/2` returns Directives: structured instructions the runtime evaluates separately.
 
-- `%Directive.Emit{}` — publish a Signal to other agents or systems.
-- `%Directive.EnqueueAction{}` — schedule follow-up work.
+- `%Directive.Emit{}`: publish a Signal to other agents or systems.
+- `%Directive.EnqueueAction{}`: schedule follow-up work.
 - Custom directives for domain-specific effects.
 
 This separation means coordination logic is deterministic and testable. You can assert what Directives an Agent produces without triggering any external side effects.
 
-For scheduling and recurring behaviors, Directives also model time-based orchestration — agents can declare periodic work through plugin schedules without custom cron infrastructure.
+For scheduling and recurring behaviors, Directives also model time-based orchestration. Agents can declare periodic work through plugin schedules without custom cron infrastructure.
 
 ## Tradeoffs and non-goals
 
@@ -85,8 +85,8 @@ For scheduling and recurring behaviors, Directives also model time-based orchest
 ## What to explore next
 
 - **Agent model foundations:** [BEAM-native agent model](/features/beam-native-agent-model)
-- **Reliability boundary design:** [Reliability by architecture](/features/reliability-by-architecture)
-- **Operational posture:** [Operations and observability](/features/operations-observability)
+- **Fault tolerance:** [Agents that self-heal](/features/agents-that-self-heal)
+- **Observability:** [Observe everything](/features/observe-everything)
 - **Training paths:** [Signals routing](/training/signals-routing), [Directives scheduling](/training/directives-scheduling)
 - **Reference docs:** [Architecture](/docs/reference/architecture), [Guides](/docs/guides)
 

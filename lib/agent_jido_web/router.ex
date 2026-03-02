@@ -63,6 +63,7 @@ defmodule AgentJidoWeb.Router do
     # Pages system — index routes
     live "/docs", PageLive, :index
     live "/build", PageLive, :index
+    live "/compare", PageLive, :index
     live "/community", JidoCommunityLive, :index
     live "/about", JidoAboutLive, :index
 

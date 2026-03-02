@@ -9,12 +9,12 @@ defmodule AgentJidoWeb.MetadataTagsTest do
     conn = get(conn, "/")
     body = response(conn, 200)
 
-    assert body =~ "A Runtime for Reliable Multi-Agent Systems · Agent Jido"
+    assert body =~ "Build AI Agents That Run in Production · Agent Jido"
 
     assert_meta_content(
       body,
       "description",
-      "Jido is a runtime for reliable, multi-agent systems, built on Elixir/OTP for fault isolation, concurrency, and production uptime."
+      "Jido is an open-source agent framework for Elixir. Build supervised AI agents with fault tolerance, tool calling, and multi-agent coordination built in."
     )
 
     assert body =~ ~r/<link rel="canonical" href="#{Regex.escape(AgentJidoWeb.Endpoint.url() <> "/")}"\s*\/?>/
@@ -32,12 +32,12 @@ defmodule AgentJidoWeb.MetadataTagsTest do
     conn = get(conn, "/features")
     body = response(conn, 200)
 
-    assert body =~ "Jido Features · Agent Jido"
+    assert body =~ "How Jido Works · Agent Jido"
 
     assert_meta_content(
       body,
       "description",
-      "Explore runtime capabilities, orchestration strategies, and ecosystem packages for building reliable multi-agent systems with Jido."
+      "The architecture behind agents that stay up, recover from crashes, and coordinate under real load."
     )
 
     assert body =~

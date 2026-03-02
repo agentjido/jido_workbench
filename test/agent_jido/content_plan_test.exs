@@ -19,8 +19,8 @@ defmodule AgentJido.ContentPlanTest do
     "features/directives-and-scheduling",
     "features/liveview-integration-patterns",
     "features/composable-ecosystem",
-    "features/reliability-by-architecture",
-    "features/operations-observability"
+    "features/agents-that-self-heal",
+    "features/observe-everything"
   ]
 
   @docs_hub_tags [:hub_getting_started, :hub_concepts, :hub_guides, :hub_reference, :hub_operations]
