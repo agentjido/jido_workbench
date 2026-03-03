@@ -90,7 +90,7 @@ defmodule AgentJidoWeb.Jido.MarketingLayouts do
 
           <%!-- Project --%>
           <div>
-            <h4 class="text-xs font-bold tracking-wider text-foreground mb-4">PROJECT</h4>
+            <p class="text-xs font-bold tracking-wider text-foreground mb-4">PROJECT</p>
             <ul class="space-y-3">
               <%= for {label, href} <- @company_links do %>
                 <li>
@@ -104,7 +104,7 @@ defmodule AgentJidoWeb.Jido.MarketingLayouts do
 
           <%!-- Resources --%>
           <div>
-            <h4 class="text-xs font-bold tracking-wider text-foreground mb-4">RESOURCES</h4>
+            <p class="text-xs font-bold tracking-wider text-foreground mb-4">RESOURCES</p>
             <ul class="space-y-3">
               <%= for {label, href} <- @resource_links do %>
                 <li>
@@ -118,7 +118,7 @@ defmodule AgentJidoWeb.Jido.MarketingLayouts do
 
           <%!-- Social --%>
           <div>
-            <h4 class="text-xs font-bold tracking-wider text-foreground mb-4">SOCIAL</h4>
+            <p class="text-xs font-bold tracking-wider text-foreground mb-4">SOCIAL</p>
             <ul class="space-y-3">
               <%= for {icon, label, href} <- @social_links do %>
                 <li>
@@ -137,7 +137,7 @@ defmodule AgentJidoWeb.Jido.MarketingLayouts do
 
           <%!-- Packages --%>
           <div>
-            <h4 class="text-xs font-bold tracking-wider text-foreground mb-4">PACKAGES</h4>
+            <p class="text-xs font-bold tracking-wider text-foreground mb-4">PACKAGES</p>
             <ul class="space-y-3">
               <%= for {label, href} <- @package_links do %>
                 <li>

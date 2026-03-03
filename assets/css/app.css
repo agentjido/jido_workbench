@@ -170,7 +170,7 @@
     --card-foreground: 24 10% 10%;
     --popover: 0 0% 100%;
     --popover-foreground: 24 10% 10%;
-    --primary: 160 84% 39%;
+    --primary: 160 84% 26%;
     --primary-foreground: 0 0% 98%;
     --secondary: 40 20% 94%;
     --secondary-foreground: 24 10% 10%;
@@ -187,7 +187,7 @@
     --border: 24 6% 91%;
     --border-strong: 24 6% 84%;
     --input: 24 6% 91%;
-    --ring: 160 84% 39%;
+    --ring: 160 84% 26%;
     --code-bg: 40 20% 96%;
     --code-border: 24 6% 91%;
     --code-keyword: 160 84% 39%;
