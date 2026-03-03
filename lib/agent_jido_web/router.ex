@@ -44,44 +44,46 @@ defmodule AgentJidoWeb.Router do
   scope "/", AgentJidoWeb do
     pipe_through(:browser)
 
-    live "/", JidoHomeLive, :index
-    live "/ecosystem", JidoEcosystemLive, :index
-    # Keep static route above /ecosystem/:id so this page never collides with package ids.
-    live "/ecosystem/matrix", JidoEcosystemPackageMatrixLive, :index
-    get "/ecosystem/package-matrix", PageController, :ecosystem_matrix_redirect
-    live "/ecosystem/:id", JidoEcosystemPackageLive, :show
-    live "/getting-started", JidoGettingStartedLive, :index
+    live_session :public_site, session: {__MODULE__, :examples_live_session, []} do
+      live "/", JidoHomeLive, :index
+      live "/ecosystem", JidoEcosystemLive, :index
+      # Keep static route above /ecosystem/:id so this page never collides with package ids.
+      live "/ecosystem/matrix", JidoEcosystemPackageMatrixLive, :index
+      live "/ecosystem/:id", JidoEcosystemPackageLive, :show
+      live "/getting-started", JidoGettingStartedLive, :index
 
-    live_session :examples_preview, session: {__MODULE__, :examples_live_session, []} do
       live "/examples", JidoExamplesLive, :index
       live "/examples/:slug", JidoExampleLive, :show
+
+      live "/features", JidoFeaturesLive, :index
+
+      # Pages system — index routes
+      live "/docs", PageLive, :index
+      live "/build", PageLive, :index
+      live "/compare", PageLive, :index
+      live "/community", JidoCommunityLive, :index
+      live "/about", JidoAboutLive, :index
+
+      # Pages system — compile-time show routes
+      for route_path <- @page_routes do
+        live route_path, PageLive, :show
+      end
+
+      live "/blog", BlogLive, :index
+      live "/blog/tags/:tag", BlogLive, :tag
+      live "/blog/:slug", BlogLive, :show
     end
 
-    live "/features", JidoFeaturesLive, :index
+    get "/ecosystem/package-matrix", PageController, :ecosystem_matrix_redirect
     get("/discord", PageController, :discord)
-
-    # Pages system — index routes
-    live "/docs", PageLive, :index
-    live "/build", PageLive, :index
-    live "/compare", PageLive, :index
-    live "/community", JidoCommunityLive, :index
-    live "/about", JidoAboutLive, :index
 
     # Docs legacy aliases redirect to canonical section routes.
     for {legacy_path, _canonical} <- @legacy_docs_routes do
       get legacy_path, PageController, :docs_legacy_redirect
     end
 
-    # Pages system — compile-time show routes
-    for route_path <- @page_routes do
-      live route_path, PageLive, :show
-    end
-
     get "/og/render/*path", OGImageController, :render
 
-    live "/blog", BlogLive, :index
-    live "/blog/tags/:tag", BlogLive, :tag
-    live "/blog/:slug", BlogLive, :show
     post "/analytics/events", AnalyticsEventController, :create
     get("/feed", BlogController, :feed)
     get("/sitemap.xml", SitemapController, :index)
