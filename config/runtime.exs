@@ -10,6 +10,8 @@ dotenv_sources =
 
 source!(dotenv_sources)
 
+config :agent_jido, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
+
 # config/runtime.exs is executed for all environments, including
 # during releases. It is executed after compilation and before the
 # system starts, so it is typically used to load production configuration

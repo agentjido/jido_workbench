@@ -5,10 +5,13 @@ defmodule AgentJido.Application do
 
   @impl true
   def start(_type, _args) do
+    dns_cluster_query = Application.get_env(:agent_jido, :dns_cluster_query) || :ignore
+
     children =
       [
         AgentJido.Repo,
         AgentJidoWeb.Telemetry,
+        {DNSCluster, query: dns_cluster_query},
         {Phoenix.PubSub, name: AgentJido.PubSub},
         AgentJidoWeb.Presence,
         {Finch, name: AgentJido.Finch},
