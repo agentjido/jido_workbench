@@ -328,6 +328,7 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
 
     default_links = [
       {"View source", "hero-code-bracket", github_url},
+      {"For Agents", "hero-link", "/llms.txt"},
       {"HexDocs", "hero-book-open", Nav.hexdocs_url()},
       {"Hex.pm", "hero-cube", Nav.hex_url()}
     ]
