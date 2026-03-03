@@ -12,8 +12,9 @@ defmodule AgentJidoWeb.LLMSTxtController do
     Agent Jido (#{endpoint_url}) is a site for building reliable multi-agent systems on Elixir/OTP.
 
     Preferred retrieval
-    - Send `Accept: text/markdown` on public content routes.
-    - Canonical markdown negotiation routes:
+    - Append `.md` to canonical public routes to request markdown directly.
+      - Example: #{endpoint_url}/docs/reference/why-not-just-a-genserver.md
+    - Public routes with markdown support:
       - /
       - /docs*
       - /blog*
@@ -23,6 +24,8 @@ defmodule AgentJidoWeb.LLMSTxtController do
       - /community*
       - /getting-started
       - /examples*
+    - For clients that do content negotiation, the canonical route also supports:
+      - Accept: text/markdown
 
     Primary content hubs
     - Docs: #{endpoint_url}/docs
@@ -38,7 +41,7 @@ defmodule AgentJidoWeb.LLMSTxtController do
     - Feed: #{endpoint_url}/feed
 
     Rendered fallback pattern
-    - If direct source markdown is unavailable, request the canonical route with:
+    - If source markdown is unavailable, request the canonical route with:
       - Accept: text/markdown
     """
 

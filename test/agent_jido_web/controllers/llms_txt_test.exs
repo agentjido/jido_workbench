@@ -8,8 +8,10 @@ defmodule AgentJidoWeb.LLMSTxtTest do
 
     assert get_resp_header(conn, "content-type") |> List.first() =~ "text/plain"
     assert body =~ "Preferred retrieval"
+    assert body =~ "Append `.md` to canonical public routes"
+    assert body =~ "#{endpoint_url}/docs/reference/why-not-just-a-genserver.md"
     assert body =~ "Accept: text/markdown"
     assert body =~ "#{endpoint_url}/sitemap.xml"
-    assert body =~ "If direct source markdown is unavailable"
+    assert body =~ "If source markdown is unavailable"
   end
 end

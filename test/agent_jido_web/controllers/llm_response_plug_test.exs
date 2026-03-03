@@ -12,10 +12,10 @@ defmodule AgentJidoWeb.LLMResponsePlugTest do
 
     assert vary =~ "Accept"
     assert link =~ ~s(</llms.txt>; rel="alternate"; type="text/plain")
-    assert link =~ "<#{AgentJidoWeb.Endpoint.url()}/docs>; rel=\"alternate\"; type=\"text/markdown\""
+    assert link =~ "<#{AgentJidoWeb.Endpoint.url()}/docs.md>; rel=\"alternate\"; type=\"text/markdown\""
   end
 
-  test "markdown negotiation returns source markdown with proper content type", %{conn: conn} do
+  test "markdown negotiation returns source markdown with discovery and SEO headers", %{conn: conn} do
     conn =
       conn
       |> put_req_header("accept", "text/markdown")
@@ -26,10 +26,26 @@ defmodule AgentJidoWeb.LLMResponsePlugTest do
     link = get_resp_header(conn, "link") |> List.first()
 
     assert get_resp_header(conn, "content-type") |> List.first() =~ "text/markdown"
+    assert get_resp_header(conn, "x-robots-tag") == ["noindex"]
     assert vary =~ "Accept"
     assert link =~ ~s(</llms.txt>; rel="alternate"; type="text/plain")
+    assert link =~ "<#{AgentJidoWeb.Endpoint.url()}/docs.md>; rel=\"alternate\"; type=\"text/markdown\""
+    assert link =~ "<#{AgentJidoWeb.Endpoint.url()}/docs>; rel=\"canonical\""
     assert body =~ "title: \"Documentation\""
     assert body =~ "## Find what you need"
+  end
+
+  test "explicit .md routes return markdown without accept header", %{conn: conn} do
+    conn = get(conn, "/docs.md")
+
+    body = response(conn, 200)
+    link = get_resp_header(conn, "link") |> List.first()
+
+    assert get_resp_header(conn, "content-type") |> List.first() =~ "text/markdown"
+    assert get_resp_header(conn, "x-robots-tag") == ["noindex"]
+    assert link =~ "<#{AgentJidoWeb.Endpoint.url()}/docs.md>; rel=\"alternate\"; type=\"text/markdown\""
+    assert link =~ "<#{AgentJidoWeb.Endpoint.url()}/docs>; rel=\"canonical\""
+    assert body =~ "title: \"Documentation\""
   end
 
   test "legacy docs redirects remain unchanged even with markdown accept header", %{conn: conn} do
@@ -68,8 +84,12 @@ defmodule AgentJidoWeb.LLMResponsePlugTest do
       |> get("/features")
 
     body = response(conn, 200)
+    link = get_resp_header(conn, "link") |> List.first()
 
     assert get_resp_header(conn, "content-type") |> List.first() =~ "text/markdown"
+    assert get_resp_header(conn, "x-robots-tag") == ["noindex"]
+    assert link =~ "<#{AgentJidoWeb.Endpoint.url()}/features.md>; rel=\"alternate\"; type=\"text/markdown\""
+    assert link =~ "<#{AgentJidoWeb.Endpoint.url()}/features>; rel=\"canonical\""
     assert body =~ "# Jido Features"
     assert body =~ "Canonical URL: #{AgentJidoWeb.Endpoint.url()}/features"
     refute body =~ "Markdown URL:"

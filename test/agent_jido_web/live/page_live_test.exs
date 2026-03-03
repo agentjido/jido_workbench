@@ -207,6 +207,13 @@ defmodule AgentJidoWeb.PageLiveTest do
       assert html =~ ~s(id="what-this-solves")
     end
 
+    test "docs right rail quick links include For Agents entry", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/docs/concepts/agents")
+
+      assert html =~ "For Agents"
+      assert html =~ ~s(href="/llms.txt")
+    end
+
     test "docs code blocks preserve syntax highlighter whitespace tokens", %{conn: conn} do
       conn = get(conn, "/docs/concepts/agents")
       html = response(conn, 200)
