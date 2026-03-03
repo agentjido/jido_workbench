@@ -38,6 +38,7 @@ defmodule AgentJidoWeb.ContentAssistantLive do
       |> assign(:assistant_task_ref, nil)
       |> assign(:assistant_task_pid, nil)
       |> assign(:assistant_timeout_ref, nil)
+      |> assign(:assistant_started_at, nil)
       |> assign(:assistant_query_log_id, nil)
       |> assign(:assistant_origin, nil)
       |> assign(:assistant_cache_key, nil)
@@ -509,6 +510,7 @@ defmodule AgentJidoWeb.ContentAssistantLive do
             assistant_task_ref: task.ref,
             assistant_task_pid: task.pid,
             assistant_timeout_ref: timeout_ref,
+            assistant_started_at: System.monotonic_time(),
             assistant_query_log_id: query_log_id,
             assistant_origin: origin,
             assistant_cache_key: cache_key,
@@ -523,6 +525,7 @@ defmodule AgentJidoWeb.ContentAssistantLive do
 
             socket_for_run =
               assign(socket,
+                assistant_started_at: System.monotonic_time(),
                 assistant_query_log_id: query_log_id,
                 assistant_origin: origin,
                 assistant_cache_key: cache_key
@@ -594,6 +597,7 @@ defmodule AgentJidoWeb.ContentAssistantLive do
       assistant_task_ref: nil,
       assistant_task_pid: nil,
       assistant_timeout_ref: nil,
+      assistant_started_at: nil,
       assistant_query_log_id: nil,
       assistant_origin: nil,
       assistant_cache_key: nil
@@ -664,6 +668,7 @@ defmodule AgentJidoWeb.ContentAssistantLive do
       assistant_task_ref: nil,
       assistant_task_pid: nil,
       assistant_timeout_ref: nil,
+      assistant_started_at: nil,
       assistant_query_log_id: nil,
       assistant_origin: nil,
       assistant_cache_key: nil,
@@ -731,10 +736,14 @@ defmodule AgentJidoWeb.ContentAssistantLive do
   end
 
   defp elapsed_since_query_start(socket) do
-    socket.assigns
-    |> Map.get(:assistant_timeout_ref)
-    |> case do
-      _ -> 0
+    case Map.get(socket.assigns, :assistant_started_at) do
+      started_at when is_integer(started_at) ->
+        System.monotonic_time()
+        |> Kernel.-(started_at)
+        |> System.convert_time_unit(:native, :millisecond)
+
+      _ ->
+        0
     end
   end
 
@@ -1017,14 +1026,19 @@ defmodule AgentJidoWeb.ContentAssistantLive do
   defp analytics_metadata(_response, metadata) when is_map(metadata), do: metadata
 
   defp assistant_opts(socket, turnstile_token) do
-    default_opts = [
-      citation_limit: @default_citation_limit,
-      turnstile_token: turnstile_token,
-      surface: "content_assistant_page",
-      metadata: %{surface: "content_assistant_page"},
-      assistant_timeout_ms: assistant_timeout_ms(),
-      query_max_length: query_max_length()
-    ]
+    retrieval_opts = [mode: search_retrieval_mode()]
+
+    default_opts =
+      [
+        citation_limit: @default_citation_limit,
+        turnstile_token: turnstile_token,
+        surface: "content_assistant_page",
+        metadata: %{surface: "content_assistant_page"},
+        assistant_timeout_ms: assistant_timeout_ms(),
+        query_max_length: query_max_length(),
+        retrieval_opts: retrieval_opts
+      ]
+      |> maybe_disable_llm_for_search()
 
     session_opts =
       case socket.assigns[:assistant_opts] do
@@ -1036,7 +1050,11 @@ defmodule AgentJidoWeb.ContentAssistantLive do
   end
 
   defp response_cache_key(query, content_assistant_module, opts) do
-    model_id = Keyword.get(opts, :llm) || Application.get_env(:arcana, :llm)
+    model_id =
+      case Keyword.fetch(opts, :llm) do
+        {:ok, llm} -> llm
+        :error -> Application.get_env(:arcana, :llm)
+      end
 
     fingerprint =
       opts
@@ -1070,9 +1088,12 @@ defmodule AgentJidoWeb.ContentAssistantLive do
   end
 
   defp require_turnstile? do
-    content_assistant_config()
-    |> config_value(:require_turnstile, false)
-    |> truthy?()
+    turnstile_required =
+      content_assistant_config()
+      |> config_value(:require_turnstile, false)
+      |> truthy?()
+
+    search_response_mode() == :enhanced and turnstile_required
   end
 
   defp turnstile_site_key do
@@ -1089,6 +1110,32 @@ defmodule AgentJidoWeb.ContentAssistantLive do
   defp config_value(_config, _key, default), do: default
 
   defp truthy?(value), do: value in [true, "true", 1, "1", "on"]
+
+  defp maybe_disable_llm_for_search(opts) when is_list(opts) do
+    case search_response_mode() do
+      :enhanced ->
+        opts
+
+      :deterministic ->
+        opts
+        |> Keyword.put(:llm, nil)
+        |> Keyword.put(:require_turnstile, false)
+    end
+  end
+
+  defp search_response_mode do
+    case content_assistant_config() |> config_value(:search_response_mode, :deterministic) do
+      mode when mode in [:enhanced, "enhanced"] -> :enhanced
+      _ -> :deterministic
+    end
+  end
+
+  defp search_retrieval_mode do
+    case content_assistant_config() |> config_value(:search_retrieval_mode, :fulltext) do
+      mode when mode in [:hybrid, "hybrid"] -> :hybrid
+      _ -> :fulltext
+    end
+  end
 
   defp analytics_module do
     Application.get_env(:agent_jido, :analytics_module, Analytics)

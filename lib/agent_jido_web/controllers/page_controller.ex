@@ -1,29 +1,9 @@
 defmodule AgentJidoWeb.PageController do
   use AgentJidoWeb, :controller
 
-  alias AgentJido.Pages
-
   def discord(conn, _params) do
     discord_invite_link = Application.get_env(:agent_jido, :discord_invite_link)
     redirect(conn, external: discord_invite_link)
-  end
-
-  def ecosystem_matrix_redirect(conn, _params) do
-    conn
-    |> put_status(:moved_permanently)
-    |> redirect(to: "/ecosystem/matrix")
-  end
-
-  def docs_legacy_redirect(conn, _params) do
-    case Pages.resolve_page_for_path(conn.request_path) do
-      {:ok, page, :legacy} ->
-        conn
-        |> put_status(:moved_permanently)
-        |> redirect(to: Pages.route_for(page))
-
-      _other ->
-        not_found(conn, %{})
-    end
   end
 
   def not_found(conn, _params) do

@@ -4,6 +4,7 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
   """
   use AgentJidoWeb, :html
 
+  alias AgentJidoWeb.MarkdownLinks
   alias AgentJidoWeb.Jido.Nav
 
   attr(:current_path, :string, default: nil)
@@ -326,9 +327,11 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
         _ -> Nav.github_url()
       end
 
+    for_agents_link = for_agents_link(doc)
+
     default_links = [
       {"View source", "hero-code-bracket", github_url},
-      {"For Agents", "hero-link", "/llms.txt"},
+      {"For Agents", "hero-link", for_agents_link},
       {"HexDocs", "hero-book-open", Nav.hexdocs_url()},
       {"Hex.pm", "hero-cube", Nav.hex_url()}
     ]
@@ -357,6 +360,13 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
           Enum.reject(default_links, fn {label, _icon, _href} -> label in hide end)
 
         defaults_filtered ++ custom
+    end
+  end
+
+  defp for_agents_link(doc) when is_map(doc) do
+    case Map.get(doc, :path) || Map.get(doc, "path") do
+      path when is_binary(path) and path != "" -> MarkdownLinks.markdown_path(path)
+      _other -> "/docs.md"
     end
   end
 

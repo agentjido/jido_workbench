@@ -16,7 +16,6 @@ defmodule AgentJidoWeb.Router do
                     not String.starts_with?(route, "/training/") do
                   route
                 end)
-  @legacy_docs_routes AgentJido.Pages.docs_legacy_redirects()
   @admin_on_mount [
     {AgentJidoWeb.UserAuth, :require_authenticated},
     {AgentJidoWeb.UserAuth, :require_admin}
@@ -31,7 +30,7 @@ defmodule AgentJidoWeb.Router do
     plug(:protect_from_forgery)
     plug(:put_secure_browser_headers)
     plug(:fetch_current_scope_for_user)
-    plug(AgentJidoWeb.Plugs.LegacyEcosystemRouteRedirect)
+    plug(AgentJidoWeb.Plugs.LegacyRouteRedirect)
     plug(AgentJidoWeb.Plugs.LegacyBlogTagRedirect)
     plug(AgentJidoWeb.Plugs.LegacyBlogSlugRedirect)
     plug(AgentJidoWeb.Plugs.LLMResponse)
@@ -75,13 +74,7 @@ defmodule AgentJidoWeb.Router do
       live "/blog/:slug", BlogLive, :show
     end
 
-    get "/ecosystem/package-matrix", PageController, :ecosystem_matrix_redirect
     get("/discord", PageController, :discord)
-
-    # Docs legacy aliases redirect to canonical section routes.
-    for {legacy_path, _canonical} <- @legacy_docs_routes do
-      get legacy_path, PageController, :docs_legacy_redirect
-    end
 
     get "/og/render/*path", OGImageController, :render
 

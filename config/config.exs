@@ -65,6 +65,10 @@ config :agent_jido,
   content_gen_writer_model: "google:gemini-2.5-pro",
   content_gen_prompt_root: "priv/prompts/content_gen"
 
+config :agent_jido, AgentJido.ContentAssistant,
+  search_response_mode: :deterministic,
+  search_retrieval_mode: :fulltext
+
 config :agent_jido, AgentJidoWeb.ContentOpsGithubLive,
   owner: "agentjido",
   repo: "agentjido_xyz",

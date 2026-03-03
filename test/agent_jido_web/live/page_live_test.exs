@@ -211,7 +211,7 @@ defmodule AgentJidoWeb.PageLiveTest do
       {:ok, _view, html} = live(conn, "/docs/concepts/agents")
 
       assert html =~ "For Agents"
-      assert html =~ ~s(href="/llms.txt")
+      assert html =~ ~s(href="/docs/concepts/agents.md")
     end
 
     test "docs code blocks preserve syntax highlighter whitespace tokens", %{conn: conn} do
@@ -327,6 +327,11 @@ defmodule AgentJidoWeb.PageLiveTest do
       Enum.each(legacy_to_canonical, fn {legacy, canonical} ->
         redirected_conn = get(recycle(conn), legacy)
         assert redirected_to(redirected_conn, 301) == canonical
+      end)
+
+      Enum.each(legacy_to_canonical, fn {legacy, canonical} ->
+        redirected_conn = get(recycle(conn), legacy <> ".md")
+        assert redirected_to(redirected_conn, 301) == canonical <> ".md"
       end)
     end
   end

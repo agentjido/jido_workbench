@@ -40,6 +40,11 @@ defmodule AgentJidoWeb.JidoEcosystemPackageMatrixLiveTest do
     assert redirected_to(redirected_conn, 301) == "/ecosystem/matrix"
   end
 
+  test "legacy package-matrix markdown route redirects to markdown matrix endpoint", %{conn: conn} do
+    redirected_conn = get(conn, "/ecosystem/package-matrix.md")
+    assert redirected_to(redirected_conn, 301) == "/ecosystem/matrix.md"
+  end
+
   test "static matrix path wins over /ecosystem/:id route", %{conn: conn} do
     {:ok, _view, html} = live(conn, "/ecosystem/matrix")
 

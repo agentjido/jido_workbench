@@ -57,6 +57,11 @@ defmodule AgentJidoWeb.LLMResponsePlugTest do
     assert redirected_to(conn, 301) == "/docs/concepts"
   end
 
+  test "legacy markdown routes redirect to canonical markdown routes", %{conn: conn} do
+    conn = get(conn, "/docs/core-concepts.md")
+    assert redirected_to(conn, 301) == "/docs/concepts.md"
+  end
+
   test "excluded routes do not negotiate markdown", %{conn: conn} do
     conn =
       conn

@@ -165,6 +165,31 @@ defmodule AgentJidoWeb.ContentAssistantLiveTest do
     end
   end
 
+  defmodule AssistantOptsCaptureStub do
+    @moduledoc false
+
+    @spec respond(String.t(), keyword()) :: {:ok, Response.t()}
+    def respond(query, opts \\ []) do
+      if pid = :persistent_term.get({__MODULE__, :test_pid}, nil) do
+        send(pid, {:assistant_opts_capture, query, opts})
+      end
+
+      {:ok,
+       %Response{
+         query: query,
+         answer_markdown: "Captured options for #{query}",
+         answer_html: "<p>Captured options for #{query}</p>",
+         answer_mode: :deterministic,
+         citations: [],
+         retrieval_status: :success,
+         llm_attempted?: false,
+         llm_enhanced?: false,
+         enhancement_blocked_reason: :llm_unconfigured,
+         query_log_id: nil
+       }}
+    end
+  end
+
   describe "ContentAssistantLive" do
     test "renders idle state by default", %{conn: conn} do
       {:ok, _view, html} = mount_live(conn)
@@ -251,6 +276,26 @@ defmodule AgentJidoWeb.ContentAssistantLiveTest do
 
       assert html =~ "Cached answer for arcana"
       refute_receive {:counting_stub_called, "arcana"}, 200
+    end
+
+    test "uses fast defaults for global search execution", %{conn: conn} do
+      :persistent_term.put({AssistantOptsCaptureStub, :test_pid}, self())
+
+      on_exit(fn ->
+        :persistent_term.erase({AssistantOptsCaptureStub, :test_pid})
+      end)
+
+      conn = with_content_assistant_module(conn, AssistantOptsCaptureStub)
+      {:ok, view, _html} = mount_live(conn)
+
+      view
+      |> form("#content-assistant-form", assistant: %{q: "arcana"})
+      |> render_submit()
+
+      assert_receive {:assistant_opts_capture, "arcana", opts}, 1_000
+      assert Keyword.get(opts, :llm) == nil
+      assert Keyword.get(opts, :require_turnstile) == false
+      assert opts |> Keyword.get(:retrieval_opts, []) |> Keyword.get(:mode) == :fulltext
     end
 
     test "renders no-results state when query returns no matches", %{conn: conn} do

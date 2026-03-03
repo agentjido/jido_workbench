@@ -472,12 +472,17 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
   end
 
   defp assistant_opts(socket, turnstile_token) do
-    default_opts = [
-      citation_limit: @default_citation_limit,
-      turnstile_token: turnstile_token,
-      surface: "content_assistant_modal",
-      metadata: %{surface: "content_assistant_modal"}
-    ]
+    retrieval_opts = [mode: search_retrieval_mode()]
+
+    default_opts =
+      [
+        citation_limit: @default_citation_limit,
+        turnstile_token: turnstile_token,
+        surface: "content_assistant_modal",
+        metadata: %{surface: "content_assistant_modal"},
+        retrieval_opts: retrieval_opts
+      ]
+      |> maybe_disable_llm_for_search()
 
     session_opts =
       case socket.assigns[:assistant_opts] do
@@ -636,9 +641,12 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
   end
 
   defp require_turnstile? do
-    content_assistant_config()
-    |> config_value(:require_turnstile, false)
-    |> truthy?()
+    turnstile_required =
+      content_assistant_config()
+      |> config_value(:require_turnstile, false)
+      |> truthy?()
+
+    search_response_mode() == :enhanced and turnstile_required
   end
 
   defp turnstile_site_key do
@@ -671,6 +679,32 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
   defp config_value(_config, _key, default), do: default
 
   defp truthy?(value), do: value in [true, "true", 1, "1", "on"]
+
+  defp maybe_disable_llm_for_search(opts) when is_list(opts) do
+    case search_response_mode() do
+      :enhanced ->
+        opts
+
+      :deterministic ->
+        opts
+        |> Keyword.put(:llm, nil)
+        |> Keyword.put(:require_turnstile, false)
+    end
+  end
+
+  defp search_response_mode do
+    case content_assistant_config() |> config_value(:search_response_mode, :deterministic) do
+      mode when mode in [:enhanced, "enhanced"] -> :enhanced
+      _ -> :deterministic
+    end
+  end
+
+  defp search_retrieval_mode do
+    case content_assistant_config() |> config_value(:search_retrieval_mode, :fulltext) do
+      mode when mode in [:hybrid, "hybrid"] -> :hybrid
+      _ -> :fulltext
+    end
+  end
 
   defp analytics_module do
     Application.get_env(:agent_jido, :analytics_module, Analytics)

@@ -67,6 +67,31 @@ defmodule AgentJidoWeb.ContentAssistantModalComponentTest do
     end
   end
 
+  defmodule AssistantOptsCaptureStub do
+    @moduledoc false
+
+    @spec respond(String.t(), keyword()) :: {:ok, Response.t()}
+    def respond(query, opts \\ []) do
+      if pid = :persistent_term.get({__MODULE__, :test_pid}, nil) do
+        send(pid, {:modal_opts_capture, query, opts})
+      end
+
+      {:ok,
+       %Response{
+         query: query,
+         answer_markdown: "Captured options for #{query}",
+         answer_html: "<p>Captured options for #{query}</p>",
+         answer_mode: :deterministic,
+         citations: [],
+         retrieval_status: :success,
+         llm_attempted?: false,
+         llm_enhanced?: false,
+         enhancement_blocked_reason: :llm_unconfigured,
+         query_log_id: nil
+       }}
+    end
+  end
+
   defmodule ModalHarnessLive do
     use AgentJidoWeb, :live_view
 
@@ -166,6 +191,33 @@ defmodule AgentJidoWeb.ContentAssistantModalComponentTest do
       query_log = latest_query_log()
       query_log && query_log.source == "content_assistant" && query_log.status == "no_results"
     end)
+  end
+
+  test "uses fast defaults for modal search execution", %{conn: conn} do
+    :persistent_term.put({AssistantOptsCaptureStub, :test_pid}, self())
+    original_module = Application.get_env(:agent_jido, :content_assistant_module)
+    Application.put_env(:agent_jido, :content_assistant_module, AssistantOptsCaptureStub)
+
+    on_exit(fn ->
+      :persistent_term.erase({AssistantOptsCaptureStub, :test_pid})
+
+      if original_module do
+        Application.put_env(:agent_jido, :content_assistant_module, original_module)
+      else
+        Application.delete_env(:agent_jido, :content_assistant_module)
+      end
+    end)
+
+    {:ok, view, _html} = live_isolated(conn, ModalHarnessLive)
+
+    view
+    |> form("form[phx-submit='submit']", assistant: %{q: "agents"})
+    |> render_submit()
+
+    assert_receive {:modal_opts_capture, "agents", opts}, 1_000
+    assert Keyword.get(opts, :llm) == nil
+    assert Keyword.get(opts, :require_turnstile) == false
+    assert opts |> Keyword.get(:retrieval_opts, []) |> Keyword.get(:mode) == :fulltext
   end
 
   defp latest_query_log do

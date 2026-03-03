@@ -32,6 +32,21 @@ defmodule AgentJidoWeb.MarkdownLinks do
   end
 
   @doc """
+  Returns the deterministic markdown route for a canonical path.
+  """
+  @spec markdown_path(String.t()) :: String.t()
+  def markdown_path(path) when is_binary(path) do
+    normalized_path =
+      if String.starts_with?(path, "/"), do: path, else: "/" <> path
+
+    cond do
+      normalized_path == "/" -> "/index.md"
+      String.ends_with?(normalized_path, ".md") -> normalized_path
+      true -> normalized_path <> ".md"
+    end
+  end
+
+  @doc """
   Converts an in-repo GitHub blob URL to the corresponding raw content URL.
   """
   @spec github_blob_to_raw(String.t() | nil) :: String.t() | nil

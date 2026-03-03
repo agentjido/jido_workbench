@@ -238,14 +238,38 @@ defmodule AgentJidoWeb.MarkdownContent do
   defp plain_text(_value), do: ""
 
   defp read_source_markdown(path) when is_binary(path) and path != "" do
-    if File.regular?(path) do
-      File.read(path)
-    else
-      {:error, :missing}
+    case read_if_regular(path) do
+      {:ok, markdown} ->
+        {:ok, markdown}
+
+      {:error, :missing} ->
+        with reconstructed when is_binary(reconstructed) <- reconstruct_packaged_path(path),
+             {:ok, markdown} <- read_if_regular(reconstructed) do
+          {:ok, markdown}
+        else
+          _other -> {:error, :missing}
+        end
     end
   end
 
   defp read_source_markdown(_path), do: {:error, :missing}
+
+  defp read_if_regular(path) do
+    if File.regular?(path), do: File.read(path), else: {:error, :missing}
+  end
+
+  # Pages are compiled with absolute source paths from the build host.
+  # At runtime (e.g. release image), that absolute root changes. Rebuild
+  # a runtime-local path from the first `/priv/...` suffix if present.
+  defp reconstruct_packaged_path(path) when is_binary(path) do
+    case String.split(path, "/priv/", parts: 2) do
+      [_prefix, suffix] when suffix != "" ->
+        Path.join(Application.app_dir(:agent_jido), Path.join("priv", suffix))
+
+      _other ->
+        nil
+    end
+  end
 
   defp map_get(map, key) when is_map(map) do
     Map.get(map, key) || Map.get(map, Atom.to_string(key))

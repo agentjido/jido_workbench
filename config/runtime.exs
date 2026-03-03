@@ -155,7 +155,7 @@ openai_api_key = env!("OPENAI_API_KEY", :string, nil)
 
 arcana_llm =
   env!("ARCANA_LLM", :string, nil) ||
-    if(config_env() == :dev and openai_api_key, do: "openai:gpt-4o-mini")
+    if(config_env() == :dev and openai_api_key, do: "openai:gpt-4.1-nano")
 
 if arcana_llm do
   config :arcana, llm: arcana_llm

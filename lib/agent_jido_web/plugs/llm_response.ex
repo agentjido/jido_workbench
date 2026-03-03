@@ -137,12 +137,9 @@ defmodule AgentJidoWeb.Plugs.LLMResponse do
         end
 
       true ->
-        {path, suffix_markdown_path(path)}
+        {path, MarkdownLinks.markdown_path(path)}
     end
   end
-
-  defp suffix_markdown_path("/"), do: "/index.md"
-  defp suffix_markdown_path(path), do: path <> ".md"
 
   defp markdown_route_request?(path) when is_binary(path) do
     String.ends_with?(path, ".md")

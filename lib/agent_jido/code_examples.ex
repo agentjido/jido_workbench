@@ -15,7 +15,7 @@ defmodule AgentJido.CodeExamples do
           Jido.AI.Agent.start_link(
             agent: __MODULE__,
             ai: [
-              model: {:openai, model: "gpt-4o-mini"},
+              model: {:openai, model: "gpt-4.1-nano"},
               prompt: \"""
               You are an enthusiastic weather reporter.
               <%= @message %>
@@ -73,7 +73,7 @@ defmodule AgentJido.CodeExamples do
           Agent.start_link(
             agent: __MODULE__,
             ai: [
-              model: {:openai, model: "gpt-4o-mini"},
+              model: {:openai, model: "gpt-4.1-nano"},
               prompt: "You help customers solve product issues."
             ],
             tools: [
