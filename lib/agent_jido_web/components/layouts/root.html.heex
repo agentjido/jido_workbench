@@ -41,16 +41,16 @@
     <% end %>
 
     <%= if Application.get_env(:agent_jido, :enable_analytics) do %>
-      <script
-        defer
-        data-domain={AgentJido.Site.canonical_host()}
-        src="https://plausible.io/js/script.outbound-links.js"
-      >
+      <!-- Privacy-friendly analytics by Plausible -->
+      <script async src="https://plausible.io/js/pa-rWEdo2cnsZEgMDZ956LgN.js">
       </script>
       <script>
         window.plausible = window.plausible || function() {
-          (window.plausible.q = window.plausible.q || []).push(arguments)
-        }
+          (plausible.q = plausible.q || []).push(arguments)
+        }, plausible.init = plausible.init || function(i) {
+          plausible.o = i || {}
+        };
+        plausible.init()
       </script>
     <% end %>
 

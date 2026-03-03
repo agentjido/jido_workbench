@@ -339,12 +339,25 @@ if config_env() == :prod do
   host = System.get_env("PHX_HOST") || "example.com"
   port = String.to_integer(System.get_env("PORT") || "4000")
 
+  allowed_origin_hosts =
+    [host, canonical_host, "agentjido.xyz"]
+    |> Enum.filter(&is_binary/1)
+    |> Enum.map(&String.trim/1)
+    |> Enum.reject(&(&1 == ""))
+    |> Enum.uniq()
+
+  check_origin =
+    Enum.flat_map(allowed_origin_hosts, fn origin_host ->
+      ["https://#{origin_host}", "//#{origin_host}"]
+    end)
+
   config :agent_jido, AgentJidoWeb.Endpoint,
     url: [host: host, port: 443, scheme: "https"],
     http: [
       ip: {0, 0, 0, 0, 0, 0, 0, 0},
       port: port
     ],
+    check_origin: check_origin,
     secret_key_base: secret_key_base
 
   brevo_api_key =
