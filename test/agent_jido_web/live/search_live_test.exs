@@ -190,6 +190,63 @@ defmodule AgentJidoWeb.ContentAssistantLiveTest do
     end
   end
 
+  defmodule ProgressiveContentAssistantStub do
+    @moduledoc false
+
+    @spec respond(String.t(), keyword()) :: {:ok, Response.t()}
+    def respond("progressive", opts) do
+      if Keyword.get(opts, :llm) do
+        Process.sleep(160)
+
+        {:ok,
+         %Response{
+           query: "progressive",
+           answer_markdown: "Enhanced answer",
+           answer_html: "<p>Enhanced answer</p>",
+           answer_mode: :llm,
+           citations: [
+             %Result{
+               title: "Enhanced docs",
+               snippet: "Enhanced docs snippet.",
+               url: "/docs/getting-started",
+               source_type: :docs,
+               score: 0.95
+             }
+           ],
+           retrieval_status: :success,
+           llm_attempted?: true,
+           llm_enhanced?: true,
+           enhancement_blocked_reason: nil,
+           query_log_id: nil
+         }}
+      else
+        {:ok,
+         %Response{
+           query: "progressive",
+           answer_markdown: "Fast answer",
+           answer_html: "<p>Fast answer</p>",
+           answer_mode: :deterministic,
+           citations: [
+             %Result{
+               title: "Fast docs",
+               snippet: "Fast docs snippet.",
+               url: "/docs/getting-started",
+               source_type: :docs,
+               score: 0.7
+             }
+           ],
+           retrieval_status: :success,
+           llm_attempted?: false,
+           llm_enhanced?: false,
+           enhancement_blocked_reason: :llm_unconfigured,
+           query_log_id: nil
+         }}
+      end
+    end
+
+    def respond(_query, _opts), do: ContentAssistantStub.respond("missing", [])
+  end
+
   describe "ContentAssistantLive" do
     test "renders idle state by default", %{conn: conn} do
       {:ok, _view, html} = mount_live(conn)
@@ -296,6 +353,38 @@ defmodule AgentJidoWeb.ContentAssistantLiveTest do
       assert Keyword.get(opts, :llm) == nil
       assert Keyword.get(opts, :require_turnstile) == false
       assert opts |> Keyword.get(:retrieval_opts, []) |> Keyword.get(:mode) == :fulltext
+      assert opts |> Keyword.get(:retrieval_opts, []) |> Keyword.get(:graph) == false
+    end
+
+    test "renders fast answer first, then swaps to enhanced answer in progressive mode", %{conn: conn} do
+      original_llm = Application.get_env(:arcana, :llm)
+      Application.put_env(:arcana, :llm, "openai:gpt-4.1-nano")
+
+      on_exit(fn ->
+        if original_llm do
+          Application.put_env(:arcana, :llm, original_llm)
+        else
+          Application.delete_env(:arcana, :llm)
+        end
+      end)
+
+      conn = with_content_assistant_module(conn, ProgressiveContentAssistantStub)
+      {:ok, view, _html} = mount_live(conn)
+
+      view
+      |> form("#content-assistant-form", assistant: %{q: "progressive"})
+      |> render_submit()
+
+      fast_html = assert_state(view, ~s(id="content-assistant-answer-state"))
+      assert fast_html =~ "Fast answer"
+      assert fast_html =~ ~s(id="content-assistant-enhancing-state")
+
+      enhanced_html =
+        assert_eventually_render(view, fn html ->
+          html =~ "Enhanced answer" and not String.contains?(html, ~s(id="content-assistant-enhancing-state"))
+        end)
+
+      assert enhanced_html =~ "Enhanced answer"
     end
 
     test "renders no-results state when query returns no matches", %{conn: conn} do
@@ -481,6 +570,23 @@ defmodule AgentJidoWeb.ContentAssistantLiveTest do
     else
       Process.sleep(10)
       assert_state(view, state_id_fragment, attempts - 1)
+    end
+  end
+
+  defp assert_eventually_render(view, predicate, attempts \\ 60)
+
+  defp assert_eventually_render(_view, _predicate, 0) do
+    flunk("expected rendered content to satisfy predicate")
+  end
+
+  defp assert_eventually_render(view, predicate, attempts) do
+    html = render(view)
+
+    if predicate.(html) do
+      html
+    else
+      Process.sleep(20)
+      assert_eventually_render(view, predicate, attempts - 1)
     end
   end
 end

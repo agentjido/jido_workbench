@@ -92,6 +92,63 @@ defmodule AgentJidoWeb.ContentAssistantModalComponentTest do
     end
   end
 
+  defmodule ProgressiveModalAssistantStub do
+    @moduledoc false
+
+    @spec respond(String.t(), keyword()) :: {:ok, Response.t()}
+    def respond("progressive", opts) do
+      if Keyword.get(opts, :llm) do
+        Process.sleep(160)
+
+        {:ok,
+         %Response{
+           query: "progressive",
+           answer_markdown: "Enhanced modal answer",
+           answer_html: "<p>Enhanced modal answer</p>",
+           answer_mode: :llm,
+           citations: [
+             %Result{
+               title: "Enhanced modal docs",
+               snippet: "Enhanced modal docs snippet.",
+               url: "/docs/concepts/agents",
+               source_type: :docs,
+               score: 0.96
+             }
+           ],
+           retrieval_status: :success,
+           llm_attempted?: true,
+           llm_enhanced?: true,
+           enhancement_blocked_reason: nil,
+           query_log_id: nil
+         }}
+      else
+        {:ok,
+         %Response{
+           query: "progressive",
+           answer_markdown: "Fast modal answer",
+           answer_html: "<p>Fast modal answer</p>",
+           answer_mode: :deterministic,
+           citations: [
+             %Result{
+               title: "Fast modal docs",
+               snippet: "Fast modal docs snippet.",
+               url: "/docs/concepts/agents",
+               source_type: :docs,
+               score: 0.7
+             }
+           ],
+           retrieval_status: :success,
+           llm_attempted?: false,
+           llm_enhanced?: false,
+           enhancement_blocked_reason: :llm_unconfigured,
+           query_log_id: nil
+         }}
+      end
+    end
+
+    def respond(_query, _opts), do: ContentAssistantStub.respond("none", [])
+  end
+
   defmodule ModalHarnessLive do
     use AgentJidoWeb, :live_view
 
@@ -154,7 +211,7 @@ defmodule AgentJidoWeb.ContentAssistantModalComponentTest do
     end)
 
     assert_eventually(fn ->
-      query_log = latest_query_log()
+      query_log = latest_query_log("agents")
       query_log && query_log.source == "content_assistant" && query_log.status == "success"
     end)
   end
@@ -188,7 +245,7 @@ defmodule AgentJidoWeb.ContentAssistantModalComponentTest do
     end)
 
     assert_eventually(fn ->
-      query_log = latest_query_log()
+      query_log = latest_query_log("none")
       query_log && query_log.source == "content_assistant" && query_log.status == "no_results"
     end)
   end
@@ -218,12 +275,52 @@ defmodule AgentJidoWeb.ContentAssistantModalComponentTest do
     assert Keyword.get(opts, :llm) == nil
     assert Keyword.get(opts, :require_turnstile) == false
     assert opts |> Keyword.get(:retrieval_opts, []) |> Keyword.get(:mode) == :fulltext
+    assert opts |> Keyword.get(:retrieval_opts, []) |> Keyword.get(:graph) == false
   end
 
-  defp latest_query_log do
+  test "renders fast modal answer first, then swaps to enhanced answer in progressive mode", %{conn: conn} do
+    original_module = Application.get_env(:agent_jido, :content_assistant_module)
+    original_llm = Application.get_env(:arcana, :llm)
+
+    Application.put_env(:agent_jido, :content_assistant_module, ProgressiveModalAssistantStub)
+    Application.put_env(:arcana, :llm, "openai:gpt-4.1-nano")
+
+    on_exit(fn ->
+      if original_module do
+        Application.put_env(:agent_jido, :content_assistant_module, original_module)
+      else
+        Application.delete_env(:agent_jido, :content_assistant_module)
+      end
+
+      if original_llm do
+        Application.put_env(:arcana, :llm, original_llm)
+      else
+        Application.delete_env(:arcana, :llm)
+      end
+    end)
+
+    {:ok, view, _html} = live_isolated(conn, ModalHarnessLive)
+
+    view
+    |> form("form[phx-submit='submit']", assistant: %{q: "progressive"})
+    |> render_submit()
+
+    assert_eventually(fn ->
+      html = render(view)
+      html =~ "Fast modal answer" and html =~ ~s(id="primary-nav-content-assistant-modal-enhancing")
+    end)
+
+    assert_eventually(fn ->
+      html = render(view)
+      html =~ "Enhanced modal answer" and not String.contains?(html, ~s(id="primary-nav-content-assistant-modal-enhancing"))
+    end)
+  end
+
+  defp latest_query_log(query) when is_binary(query) do
+    # Scope to the submitted query so this assertion is stable across files.
     AgentJido.Repo.one(
       from(q in QueryLog,
-        where: q.source == "content_assistant",
+        where: q.source == "content_assistant" and q.query == ^query,
         order_by: [desc: q.inserted_at],
         limit: 1
       )

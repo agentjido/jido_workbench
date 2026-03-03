@@ -75,7 +75,9 @@ defmodule AgentJido.ContentAssistant.Retrieval do
     document_lookup_fun = Keyword.get(opts, :document_lookup_fun, &fetch_document_index/2)
     fallback_fun = Keyword.get(opts, :fallback_fun, &local_fallback_query/2)
 
-    search_opts = [repo: repo, collections: collections, limit: limit, mode: mode]
+    search_opts =
+      [repo: repo, collections: collections, limit: limit, mode: mode]
+      |> maybe_put_graph_opt(opts)
 
     try do
       with {:ok, rows} when is_list(rows) <- safe_search(search_fun, query, search_opts) do
@@ -201,6 +203,17 @@ defmodule AgentJido.ContentAssistant.Retrieval do
   end
 
   defp normalize_fallback_results(_results, _limit), do: []
+
+  defp maybe_put_graph_opt(search_opts, retrieval_opts)
+       when is_list(search_opts) and is_list(retrieval_opts) do
+    if Keyword.has_key?(retrieval_opts, :graph) do
+      Keyword.put(search_opts, :graph, Keyword.get(retrieval_opts, :graph))
+    else
+      search_opts
+    end
+  end
+
+  defp maybe_put_graph_opt(search_opts, _retrieval_opts), do: search_opts
 
   defp local_fallback_query(query, opts) do
     limit = normalize_limit(Keyword.get(opts, :limit, @default_limit))

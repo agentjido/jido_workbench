@@ -27,6 +27,8 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
       |> assign_new(:response, fn -> nil end)
       |> assign_new(:assistant_ref, fn -> nil end)
       |> assign_new(:assistant_started_at, fn -> nil end)
+      |> assign_new(:enhancement_ref, fn -> nil end)
+      |> assign_new(:enhancement_status, fn -> :idle end)
       |> assign_new(:query_log_id, fn -> nil end)
       |> assign_new(:last_query_log_id, fn -> nil end)
       |> assign_new(:thread, fn -> [] end)
@@ -36,12 +38,13 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
       |> assign_new(:turnstile_token, fn -> "" end)
       |> assign_new(:current_scope, fn -> nil end)
       |> assign_new(:analytics_identity, fn -> %{visitor_id: nil, session_id: nil, referrer_host: nil, path: nil} end)
-      |> assign(Map.drop(assigns, [:assistant_complete]))
+      |> assign(Map.drop(assigns, [:assistant_complete, :assistant_enhancement_complete]))
       |> assign(:turnstile_required, require_turnstile?())
       |> assign(:turnstile_site_key, turnstile_site_key())
       |> assign(:turnstile_widget_id, turnstile_widget_id(component_id))
       |> assign(:turnstile_input_id, turnstile_input_id(component_id))
       |> maybe_apply_assistant_complete(assigns)
+      |> maybe_apply_assistant_enhancement_complete(assigns)
 
     {:ok, socket}
   end
@@ -62,6 +65,8 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
          response: nil,
          assistant_ref: nil,
          assistant_started_at: nil,
+         enhancement_ref: nil,
+         enhancement_status: :idle,
          query_log_id: nil,
          last_query_log_id: nil,
          feedback_value: nil,
@@ -76,7 +81,7 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
       live_view_pid = socket.root_pid || self()
       query_log_id = track_query_id(query, socket)
       assistant_module = content_assistant_module()
-      assistant_opts = assistant_opts(socket, turnstile_token)
+      assistant_opts = assistant_opts(socket, turnstile_token, :fast)
 
       Task.start(fn ->
         response = run_content_assistant(assistant_module, query, query_log_id, assistant_opts)
@@ -90,6 +95,8 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
          response: nil,
          assistant_ref: assistant_ref,
          assistant_started_at: System.monotonic_time(),
+         enhancement_ref: nil,
+         enhancement_status: :idle,
          query_log_id: query_log_id,
          last_query_log_id: nil,
          feedback_value: nil,
@@ -181,6 +188,8 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
        response: nil,
        assistant_ref: nil,
        assistant_started_at: nil,
+       enhancement_ref: nil,
+       enhancement_status: :idle,
        query_log_id: nil,
        last_query_log_id: nil,
        thread: [],
@@ -201,6 +210,8 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
        response: nil,
        assistant_ref: nil,
        assistant_started_at: nil,
+       enhancement_ref: nil,
+       enhancement_status: :idle,
        query_log_id: nil,
        last_query_log_id: nil,
        feedback_value: nil,
@@ -308,6 +319,21 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
               </div>
             </div>
 
+            <div
+              :if={@enhancement_status == :running}
+              id={"#{@id}-enhancing"}
+              class="rounded-lg border border-primary/30 bg-primary/5 p-3 text-xs text-foreground"
+            >
+              <div class="assistant-loading-indicator">
+                <span class="assistant-loading-dots" aria-hidden="true">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </span>
+                <span>Improving this answer with the LLM...</span>
+              </div>
+            </div>
+
             <div class="space-y-2">
               <p class="text-xs font-semibold uppercase tracking-wide text-primary">Citations</p>
               <div class="search-modal-scrollbar max-h-[34vh] overflow-y-auto pr-1 space-y-2">
@@ -387,6 +413,7 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
   @spec maybe_apply_assistant_complete(Phoenix.LiveView.Socket.t(), map()) :: Phoenix.LiveView.Socket.t()
   defp maybe_apply_assistant_complete(socket, %{assistant_complete: {assistant_ref, query, response}}) do
     if socket.assigns.assistant_ref == assistant_ref do
+      response = maybe_prepare_progressive_fast_response(socket, response)
       apply_assistant_response(socket, query, response)
     else
       socket
@@ -394,6 +421,17 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
   end
 
   defp maybe_apply_assistant_complete(socket, _assigns), do: socket
+
+  @spec maybe_apply_assistant_enhancement_complete(Phoenix.LiveView.Socket.t(), map()) :: Phoenix.LiveView.Socket.t()
+  defp maybe_apply_assistant_enhancement_complete(socket, %{assistant_enhancement_complete: {enhancement_ref, _query, response}}) do
+    if socket.assigns.enhancement_ref == enhancement_ref do
+      apply_enhancement_response(socket, response)
+    else
+      socket
+    end
+  end
+
+  defp maybe_apply_assistant_enhancement_complete(socket, _assigns), do: socket
 
   @spec apply_assistant_response(Phoenix.LiveView.Socket.t(), String.t(), Response.t()) :: Phoenix.LiveView.Socket.t()
   defp apply_assistant_response(socket, query, %Response{} = response) do
@@ -414,12 +452,15 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
       response: response,
       assistant_ref: nil,
       assistant_started_at: nil,
+      enhancement_ref: nil,
+      enhancement_status: :idle,
       query_log_id: nil,
       last_query_log_id: socket.assigns.query_log_id,
       thread: append_thread(socket.assigns.thread, response),
       turnstile_token: ""
     )
     |> reset_turnstile_widget()
+    |> maybe_start_progressive_enhancement(query, response)
   end
 
   defp apply_assistant_response(socket, query, _response) do
@@ -432,6 +473,8 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
       response: nil,
       assistant_ref: nil,
       assistant_started_at: nil,
+      enhancement_ref: nil,
+      enhancement_status: :idle,
       query_log_id: nil,
       last_query_log_id: socket.assigns.query_log_id,
       turnstile_token: ""
@@ -471,8 +514,82 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
     }
   end
 
-  defp assistant_opts(socket, turnstile_token) do
-    retrieval_opts = [mode: search_retrieval_mode()]
+  defp maybe_prepare_progressive_fast_response(socket, %Response{} = response) do
+    enhancement_opts = assistant_opts(socket, "", :enhancement)
+
+    if should_start_progressive_enhancement?(response, enhancement_opts) do
+      %Response{
+        response
+        | enhancement_blocked_reason: nil
+      }
+    else
+      response
+    end
+  end
+
+  defp maybe_prepare_progressive_fast_response(_socket, response), do: response
+
+  defp maybe_start_progressive_enhancement(socket, query, %Response{} = response) do
+    enhancement_opts = assistant_opts(socket, "", :enhancement)
+
+    if should_start_progressive_enhancement?(response, enhancement_opts) do
+      enhancement_ref = System.unique_integer([:positive, :monotonic])
+      component_id = socket.assigns.id
+      live_view_pid = socket.root_pid || self()
+      assistant_module = content_assistant_module()
+
+      Task.start(fn ->
+        enhancement_response = run_content_assistant(assistant_module, query, nil, enhancement_opts)
+
+        send_update(
+          live_view_pid,
+          __MODULE__,
+          id: component_id,
+          assistant_enhancement_complete: {enhancement_ref, query, enhancement_response}
+        )
+      end)
+
+      assign(socket, enhancement_ref: enhancement_ref, enhancement_status: :running)
+    else
+      assign(socket, enhancement_ref: nil, enhancement_status: :idle)
+    end
+  end
+
+  defp maybe_start_progressive_enhancement(socket, _query, _response), do: assign(socket, enhancement_ref: nil, enhancement_status: :idle)
+
+  defp apply_enhancement_response(socket, %Response{answer_mode: :llm} = response) do
+    assign(socket,
+      response: response,
+      thread: replace_latest_thread_entry(socket.assigns.thread, response),
+      enhancement_ref: nil,
+      enhancement_status: :complete
+    )
+  end
+
+  defp apply_enhancement_response(socket, _response) do
+    assign(socket, enhancement_ref: nil, enhancement_status: :failed)
+  end
+
+  defp should_start_progressive_enhancement?(%Response{} = response, enhancement_opts) when is_list(enhancement_opts) do
+    progressive_mode?() and
+      response.answer_mode != :llm and
+      length(response.citations || []) > 0 and
+      llm_enabled?(enhancement_opts)
+  end
+
+  defp should_start_progressive_enhancement?(_response, _enhancement_opts), do: false
+
+  defp llm_enabled?(opts) when is_list(opts) do
+    case Keyword.fetch(opts, :llm) do
+      {:ok, llm} -> not is_nil(llm)
+      :error -> not is_nil(Application.get_env(:arcana, :llm))
+    end
+  end
+
+  defp llm_enabled?(_opts), do: false
+
+  defp assistant_opts(socket, turnstile_token, stage) do
+    retrieval_opts = [mode: search_retrieval_mode(), graph: false]
 
     default_opts =
       [
@@ -482,7 +599,7 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
         metadata: %{surface: "content_assistant_modal"},
         retrieval_opts: retrieval_opts
       ]
-      |> maybe_disable_llm_for_search()
+      |> maybe_apply_search_response_mode(stage)
 
     session_opts =
       case socket.assigns[:assistant_opts] do
@@ -505,6 +622,19 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
   end
 
   defp append_thread(thread, _response), do: List.wrap(thread)
+
+  defp replace_latest_thread_entry([_latest | rest], %Response{} = response) do
+    [
+      %{
+        query: response.query,
+        mode_label: mode_label(response.answer_mode),
+        citations_count: length(response.citations || [])
+      }
+      | rest
+    ]
+  end
+
+  defp replace_latest_thread_entry(thread, _response), do: thread
 
   defp fallback_banner(%Response{answer_mode: :quota_fallback}) do
     "LLM quota or rate limits are active. Showing citation-grounded fallback."
@@ -680,24 +810,39 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
 
   defp truthy?(value), do: value in [true, "true", 1, "1", "on"]
 
-  defp maybe_disable_llm_for_search(opts) when is_list(opts) do
-    case search_response_mode() do
-      :enhanced ->
+  defp maybe_apply_search_response_mode(opts, stage) when is_list(opts) do
+    case {search_response_mode(), stage} do
+      {:enhanced, _stage} ->
         opts
 
-      :deterministic ->
+      {:deterministic, _stage} ->
+        opts
+        |> Keyword.put(:llm, nil)
+        |> Keyword.put(:require_turnstile, false)
+
+      {:progressive, :enhancement} ->
+        opts
+        |> Keyword.put_new(:llm, Application.get_env(:arcana, :llm))
+        |> Keyword.put(:require_turnstile, false)
+
+      {:progressive, _stage} ->
         opts
         |> Keyword.put(:llm, nil)
         |> Keyword.put(:require_turnstile, false)
     end
   end
 
+  defp maybe_apply_search_response_mode(opts, _stage), do: opts
+
   defp search_response_mode do
-    case content_assistant_config() |> config_value(:search_response_mode, :deterministic) do
+    case content_assistant_config() |> config_value(:search_response_mode, :progressive) do
+      mode when mode in [:progressive, "progressive"] -> :progressive
       mode when mode in [:enhanced, "enhanced"] -> :enhanced
       _ -> :deterministic
     end
   end
+
+  defp progressive_mode?, do: search_response_mode() == :progressive
 
   defp search_retrieval_mode do
     case content_assistant_config() |> config_value(:search_retrieval_mode, :fulltext) do

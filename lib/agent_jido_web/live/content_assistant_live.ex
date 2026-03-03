@@ -39,6 +39,10 @@ defmodule AgentJidoWeb.ContentAssistantLive do
       |> assign(:assistant_task_pid, nil)
       |> assign(:assistant_timeout_ref, nil)
       |> assign(:assistant_started_at, nil)
+      |> assign(:enhancement_task_ref, nil)
+      |> assign(:enhancement_task_pid, nil)
+      |> assign(:enhancement_timeout_ref, nil)
+      |> assign(:enhancement_status, :idle)
       |> assign(:assistant_query_log_id, nil)
       |> assign(:assistant_origin, nil)
       |> assign(:assistant_cache_key, nil)
@@ -188,6 +192,21 @@ defmodule AgentJidoWeb.ContentAssistantLive do
               <summary class="cursor-pointer">Why this answer mode?</summary>
               <p class="mt-2">{mode_reason(@response, @turnstile_available)}</p>
             </details>
+          </div>
+
+          <div
+            :if={@enhancement_status == :running}
+            id="content-assistant-enhancing-state"
+            class="rounded-md border border-primary/30 bg-primary/5 p-3 text-xs text-foreground"
+          >
+            <div class="assistant-loading-indicator">
+              <span class="assistant-loading-dots" aria-hidden="true">
+                <span></span>
+                <span></span>
+                <span></span>
+              </span>
+              <span>Improving this answer with the LLM...</span>
+            </div>
           </div>
 
           <div
@@ -428,8 +447,10 @@ defmodule AgentJidoWeb.ContentAssistantLive do
   def handle_info({ref, response}, %{assigns: %{assistant_task_ref: ref}} = socket) do
     Process.demonitor(ref, [:flush])
     cancel_timeout_timer(socket.assigns.assistant_timeout_ref)
+    turnstile_token = socket.assigns.turnstile_token
 
     assistant_response = normalize_response(response, socket.assigns.query)
+    assistant_response = maybe_prepare_progressive_fast_response(socket, assistant_response, turnstile_token)
 
     socket =
       socket
@@ -438,6 +459,20 @@ defmodule AgentJidoWeb.ContentAssistantLive do
       |> maybe_cache_response(assistant_response)
       |> maybe_track_restore(assistant_response, false)
       |> apply_response(assistant_response)
+      |> maybe_start_progressive_enhancement(assistant_response, turnstile_token)
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info({ref, response}, %{assigns: %{enhancement_task_ref: ref}} = socket) do
+    Process.demonitor(ref, [:flush])
+    cancel_timeout_timer(socket.assigns.enhancement_timeout_ref)
+    enhancement_response = normalize_response(response, socket.assigns.query)
+
+    socket =
+      socket
+      |> apply_enhancement_response(enhancement_response)
 
     {:noreply, socket}
   end
@@ -464,6 +499,18 @@ defmodule AgentJidoWeb.ContentAssistantLive do
   end
 
   @impl true
+  def handle_info({:DOWN, ref, :process, _pid, reason}, %{assigns: %{enhancement_task_ref: ref}} = socket) do
+    case reason do
+      :normal ->
+        {:noreply, socket}
+
+      _ ->
+        cancel_timeout_timer(socket.assigns.enhancement_timeout_ref)
+        {:noreply, clear_enhancement_state(socket, :failed)}
+    end
+  end
+
+  @impl true
   def handle_info({:assistant_timeout, ref}, %{assigns: %{assistant_task_ref: ref}} = socket) do
     if is_pid(socket.assigns.assistant_task_pid) do
       Process.exit(socket.assigns.assistant_task_pid, :kill)
@@ -482,11 +529,20 @@ defmodule AgentJidoWeb.ContentAssistantLive do
   end
 
   @impl true
+  def handle_info({:assistant_enhancement_timeout, ref}, %{assigns: %{enhancement_task_ref: ref}} = socket) do
+    if is_pid(socket.assigns.enhancement_task_pid) do
+      Process.exit(socket.assigns.enhancement_task_pid, :kill)
+    end
+
+    {:noreply, clear_enhancement_state(socket, :failed)}
+  end
+
+  @impl true
   def handle_info(_message, socket), do: {:noreply, socket}
 
   defp begin_assistant(socket, query, origin, turnstile_token) do
     socket = socket |> cancel_inflight() |> assign(query_error: nil, query: query, turnstile_token: turnstile_token)
-    assistant_opts = assistant_opts(socket, turnstile_token)
+    assistant_opts = assistant_opts(socket, turnstile_token, :fast)
     cache_key = response_cache_key(query, socket.assigns.content_assistant_module, assistant_opts)
 
     case maybe_restore_from_cache(socket, query, origin, cache_key) do
@@ -517,7 +573,11 @@ defmodule AgentJidoWeb.ContentAssistantLive do
             last_query_log_id: nil,
             feedback_value: nil,
             feedback_note: "",
-            feedback_submitted: false
+            feedback_submitted: false,
+            enhancement_task_ref: nil,
+            enhancement_task_pid: nil,
+            enhancement_timeout_ref: nil,
+            enhancement_status: :idle
           )
         else
           {:error, reason} ->
@@ -528,7 +588,11 @@ defmodule AgentJidoWeb.ContentAssistantLive do
                 assistant_started_at: System.monotonic_time(),
                 assistant_query_log_id: query_log_id,
                 assistant_origin: origin,
-                assistant_cache_key: cache_key
+                assistant_cache_key: cache_key,
+                enhancement_task_ref: nil,
+                enhancement_task_pid: nil,
+                enhancement_timeout_ref: nil,
+                enhancement_status: :idle
               )
 
             response =
@@ -539,12 +603,15 @@ defmodule AgentJidoWeb.ContentAssistantLive do
                 query_log_id
               )
 
+            response = maybe_prepare_progressive_fast_response(socket_for_run, response, turnstile_token)
+
             socket_for_run
             |> maybe_cache_response(response)
             |> maybe_finalize_query_log(response)
             |> maybe_emit_query_outcome(response)
             |> maybe_track_restore(response, false)
             |> apply_response(response)
+            |> maybe_start_progressive_enhancement(response, turnstile_token)
         end
     end
   end
@@ -593,11 +660,25 @@ defmodule AgentJidoWeb.ContentAssistantLive do
 
     cancel_timeout_timer(socket.assigns.assistant_timeout_ref)
 
+    if is_reference(socket.assigns.enhancement_task_ref) do
+      Process.demonitor(socket.assigns.enhancement_task_ref, [:flush])
+    end
+
+    if is_pid(socket.assigns.enhancement_task_pid) do
+      Process.exit(socket.assigns.enhancement_task_pid, :kill)
+    end
+
+    cancel_timeout_timer(socket.assigns.enhancement_timeout_ref)
+
     assign(socket,
       assistant_task_ref: nil,
       assistant_task_pid: nil,
       assistant_timeout_ref: nil,
       assistant_started_at: nil,
+      enhancement_task_ref: nil,
+      enhancement_task_pid: nil,
+      enhancement_timeout_ref: nil,
+      enhancement_status: :idle,
       assistant_query_log_id: nil,
       assistant_origin: nil,
       assistant_cache_key: nil
@@ -669,9 +750,13 @@ defmodule AgentJidoWeb.ContentAssistantLive do
       assistant_task_pid: nil,
       assistant_timeout_ref: nil,
       assistant_started_at: nil,
+      enhancement_task_ref: nil,
+      enhancement_task_pid: nil,
+      enhancement_timeout_ref: nil,
       assistant_query_log_id: nil,
       assistant_origin: nil,
       assistant_cache_key: nil,
+      enhancement_status: :idle,
       feedback_value: nil,
       feedback_note: "",
       feedback_submitted: false,
@@ -746,6 +831,101 @@ defmodule AgentJidoWeb.ContentAssistantLive do
         0
     end
   end
+
+  defp maybe_prepare_progressive_fast_response(socket, %Response{} = response, turnstile_token) do
+    enhancement_opts = assistant_opts(socket, turnstile_token, :enhancement)
+
+    if should_start_progressive_enhancement?(socket, response, enhancement_opts) do
+      %Response{
+        response
+        | enhancement_blocked_reason: nil
+      }
+    else
+      response
+    end
+  end
+
+  defp maybe_prepare_progressive_fast_response(_socket, response, _turnstile_token), do: response
+
+  defp maybe_start_progressive_enhancement(socket, %Response{} = response, turnstile_token) do
+    enhancement_opts = assistant_opts(socket, turnstile_token, :enhancement)
+
+    if should_start_progressive_enhancement?(socket, response, enhancement_opts) do
+      with :ok <- ensure_assistant_task_supervisor(),
+           task <-
+             Task.Supervisor.async_nolink(@assistant_task_supervisor, fn ->
+               run_assistant(socket.assigns.content_assistant_module, response.query, enhancement_opts, nil)
+             end) do
+        timeout_ref = Process.send_after(self(), {:assistant_enhancement_timeout, task.ref}, assistant_timeout_ms())
+
+        assign(socket,
+          enhancement_task_ref: task.ref,
+          enhancement_task_pid: task.pid,
+          enhancement_timeout_ref: timeout_ref,
+          enhancement_status: :running
+        )
+      else
+        _ -> clear_enhancement_state(socket, :failed)
+      end
+    else
+      clear_enhancement_state(socket, :idle)
+    end
+  end
+
+  defp maybe_start_progressive_enhancement(socket, _response, _turnstile_token), do: clear_enhancement_state(socket, :idle)
+
+  defp apply_enhancement_response(socket, %Response{answer_mode: :llm} = response) do
+    socket
+    |> assign(
+      response: response,
+      thread: replace_latest_thread_entry(socket.assigns.thread, response)
+    )
+    |> clear_enhancement_state(:complete)
+  end
+
+  defp apply_enhancement_response(socket, _response), do: clear_enhancement_state(socket, :failed)
+
+  defp clear_enhancement_state(socket, status) do
+    assign(socket,
+      enhancement_task_ref: nil,
+      enhancement_task_pid: nil,
+      enhancement_timeout_ref: nil,
+      enhancement_status: status
+    )
+  end
+
+  defp should_start_progressive_enhancement?(socket, %Response{} = response, enhancement_opts) when is_list(enhancement_opts) do
+    progressive_mode?() and
+      status_from_response(response) == :answer and
+      response.answer_mode != :llm and
+      length(response.citations || []) > 0 and
+      llm_enabled?(enhancement_opts) and
+      not is_reference(socket.assigns.enhancement_task_ref)
+  end
+
+  defp should_start_progressive_enhancement?(_socket, _response, _enhancement_opts), do: false
+
+  defp llm_enabled?(opts) when is_list(opts) do
+    case Keyword.fetch(opts, :llm) do
+      {:ok, llm} -> not is_nil(llm)
+      :error -> not is_nil(Application.get_env(:arcana, :llm))
+    end
+  end
+
+  defp llm_enabled?(_opts), do: false
+
+  defp replace_latest_thread_entry([_latest | rest], %Response{} = response) do
+    [
+      %{
+        query: response.query,
+        mode_label: mode_label(response.answer_mode),
+        citations_count: length(response.citations || [])
+      }
+      | rest
+    ]
+  end
+
+  defp replace_latest_thread_entry(thread, _response), do: thread
 
   defp resolve_content_assistant_module(session) do
     case Map.get(session, "content_assistant_module") do
@@ -1025,8 +1205,8 @@ defmodule AgentJidoWeb.ContentAssistantLive do
 
   defp analytics_metadata(_response, metadata) when is_map(metadata), do: metadata
 
-  defp assistant_opts(socket, turnstile_token) do
-    retrieval_opts = [mode: search_retrieval_mode()]
+  defp assistant_opts(socket, turnstile_token, stage \\ :default) do
+    retrieval_opts = [mode: search_retrieval_mode(), graph: false]
 
     default_opts =
       [
@@ -1038,7 +1218,7 @@ defmodule AgentJidoWeb.ContentAssistantLive do
         query_max_length: query_max_length(),
         retrieval_opts: retrieval_opts
       ]
-      |> maybe_disable_llm_for_search()
+      |> maybe_apply_search_response_mode(stage)
 
     session_opts =
       case socket.assigns[:assistant_opts] do
@@ -1111,24 +1291,39 @@ defmodule AgentJidoWeb.ContentAssistantLive do
 
   defp truthy?(value), do: value in [true, "true", 1, "1", "on"]
 
-  defp maybe_disable_llm_for_search(opts) when is_list(opts) do
-    case search_response_mode() do
-      :enhanced ->
+  defp maybe_apply_search_response_mode(opts, stage) when is_list(opts) do
+    case {search_response_mode(), stage} do
+      {:enhanced, _stage} ->
         opts
 
-      :deterministic ->
+      {:deterministic, _stage} ->
+        opts
+        |> Keyword.put(:llm, nil)
+        |> Keyword.put(:require_turnstile, false)
+
+      {:progressive, :enhancement} ->
+        opts
+        |> Keyword.put_new(:llm, Application.get_env(:arcana, :llm))
+        |> Keyword.put(:require_turnstile, false)
+
+      {:progressive, _stage} ->
         opts
         |> Keyword.put(:llm, nil)
         |> Keyword.put(:require_turnstile, false)
     end
   end
 
+  defp maybe_apply_search_response_mode(opts, _stage), do: opts
+
   defp search_response_mode do
-    case content_assistant_config() |> config_value(:search_response_mode, :deterministic) do
+    case content_assistant_config() |> config_value(:search_response_mode, :progressive) do
+      mode when mode in [:progressive, "progressive"] -> :progressive
       mode when mode in [:enhanced, "enhanced"] -> :enhanced
       _ -> :deterministic
     end
   end
+
+  defp progressive_mode?, do: search_response_mode() == :progressive
 
   defp search_retrieval_mode do
     case content_assistant_config() |> config_value(:search_retrieval_mode, :fulltext) do

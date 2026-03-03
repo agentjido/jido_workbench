@@ -103,8 +103,11 @@ defmodule AgentJido.ContentAssistant do
               |> Keyword.get(:llm_opts, [])
               |> Keyword.put_new(:temperature, @default_temperature)
               |> Keyword.put_new(:system_prompt, llm_system_prompt())
+              # ReqLLM emits translation warnings (for example max_tokens -> max_completion_tokens)
+              # that are expected for some providers/models. Keep logs focused on actionable issues.
+              |> Keyword.put_new(:on_unsupported, :ignore)
 
-            llm_complete_fun = Keyword.get(opts, :llm_complete_fun, &Arcana.LLM.complete/4)
+            llm_complete_fun = Keyword.get(opts, :llm_complete_fun, &default_llm_complete/4)
             timeout_ms = assistant_timeout_ms(opts)
 
             case safe_llm_complete(llm_complete_fun, llm, llm_prompt(query, citations), llm_opts, timeout_ms) do
@@ -320,6 +323,42 @@ defmodule AgentJido.ContentAssistant do
   end
 
   defp safe_llm_complete(_llm_complete_fun, _llm, _prompt, _llm_opts, _timeout_ms), do: {:error, :invalid_llm_complete_fun}
+
+  defp default_llm_complete(llm, prompt, context, llm_opts)
+       when is_binary(llm) and is_binary(prompt) and is_list(llm_opts) do
+    if Code.ensure_loaded?(ReqLLM) do
+      system_prompt =
+        Keyword.get(llm_opts, :system_prompt) ||
+          Arcana.LLM.Helpers.default_system_prompt(List.wrap(context))
+
+      req_llm_context =
+        ReqLLM.Context.new([
+          ReqLLM.Context.system(system_prompt),
+          ReqLLM.Context.user(prompt)
+        ])
+
+      req_llm_opts =
+        llm_opts
+        |> Keyword.take([
+          :api_key,
+          :temperature,
+          :max_tokens,
+          :max_completion_tokens,
+          :provider_options,
+          :on_unsupported
+        ])
+
+      case ReqLLM.generate_text(llm, req_llm_context, req_llm_opts) do
+        {:ok, response} -> {:ok, ReqLLM.Response.text(response)}
+        {:error, reason} -> {:error, reason}
+      end
+    else
+      Arcana.LLM.complete(llm, prompt, context, llm_opts)
+    end
+  end
+
+  defp default_llm_complete(llm, prompt, context, llm_opts),
+    do: Arcana.LLM.complete(llm, prompt, context, llm_opts)
 
   defp turnstile_blocked?(opts) do
     require_turnstile =
