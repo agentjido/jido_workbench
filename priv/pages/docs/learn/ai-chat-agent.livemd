@@ -42,7 +42,7 @@ defmodule MyApp.ChatAgent do
 end
 ```
 
-This agent does not use tools, which keeps the focus on conversation flow. If you want tool use later, see [Tool Use](/docs/learn/tool-use).
+This agent does not use tools, which keeps the focus on conversation flow. If you want tool use later, see [AI agent with tools](/docs/learn/ai-agent-with-tools).
 
 ## Conversation Context
 
@@ -256,6 +256,6 @@ Run these checks in `iex -S mix` to confirm the end-to-end flow works.
 Now that you have a stable chat loop, continue with these focused guides.
 
 - Review the minimal [Chat Response recipe](/docs/guides/cookbook/chat-response) for a quick reference.
-- Add tool use in [Tool Use](/docs/learn/tool-use) when you want actions or external data.
+- Add tool use in [AI agent with tools](/docs/learn/ai-agent-with-tools) when you want actions or external data.
 - Revisit [Your First LLM Agent](/docs/getting-started/first-llm-agent) if you need to adjust provider configuration.
 - Explore the full surface area of [`jido_ai`](/docs/reference/packages/jido-ai).

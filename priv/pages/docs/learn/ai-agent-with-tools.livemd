@@ -3,6 +3,7 @@
   description: "Build a ReAct agent that reasons iteratively and calls tools to answer questions.",
   category: :docs,
   order: 30,
+  legacy_paths: ["/docs/learn/tool-use"],
   tags: [:docs, :learn, :ai, :tools, :react, :livebook],
   draft: false,
   prerequisites: ["/docs/getting-started/first-llm-agent"]
