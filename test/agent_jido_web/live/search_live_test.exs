@@ -358,7 +358,14 @@ defmodule AgentJidoWeb.ContentAssistantLiveTest do
 
     test "renders fast answer first, then swaps to enhanced answer in progressive mode", %{conn: conn} do
       original_llm = Application.get_env(:arcana, :llm)
+      original_content_assistant_config = Application.get_env(:agent_jido, AgentJido.ContentAssistant, [])
       Application.put_env(:arcana, :llm, "openai:gpt-4.1-nano")
+
+      Application.put_env(
+        :agent_jido,
+        AgentJido.ContentAssistant,
+        Keyword.put(original_content_assistant_config, :progressive_swap_min_ms, 500)
+      )
 
       on_exit(fn ->
         if original_llm do
@@ -366,6 +373,12 @@ defmodule AgentJidoWeb.ContentAssistantLiveTest do
         else
           Application.delete_env(:arcana, :llm)
         end
+
+        Application.put_env(
+          :agent_jido,
+          AgentJido.ContentAssistant,
+          original_content_assistant_config
+        )
       end)
 
       conn = with_content_assistant_module(conn, ProgressiveContentAssistantStub)
@@ -379,10 +392,19 @@ defmodule AgentJidoWeb.ContentAssistantLiveTest do
       assert fast_html =~ "Fast answer"
       assert fast_html =~ ~s(id="content-assistant-enhancing-state")
 
+      Process.sleep(220)
+      interim_html = render(view)
+      assert interim_html =~ "Fast answer"
+      assert interim_html =~ ~s(id="content-assistant-enhancing-state")
+
       enhanced_html =
-        assert_eventually_render(view, fn html ->
-          html =~ "Enhanced answer" and not String.contains?(html, ~s(id="content-assistant-enhancing-state"))
-        end)
+        assert_eventually_render(
+          view,
+          fn html ->
+            html =~ "Enhanced answer" and not String.contains?(html, ~s(id="content-assistant-enhancing-state"))
+          end,
+          120
+        )
 
       assert enhanced_html =~ "Enhanced answer"
     end
@@ -573,7 +595,7 @@ defmodule AgentJidoWeb.ContentAssistantLiveTest do
     end
   end
 
-  defp assert_eventually_render(view, predicate, attempts \\ 60)
+  defp assert_eventually_render(view, predicate, attempts)
 
   defp assert_eventually_render(_view, _predicate, 0) do
     flunk("expected rendered content to satisfy predicate")

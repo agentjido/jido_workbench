@@ -12,6 +12,7 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
 
   @default_citation_limit 6
   @default_thread_limit 8
+  @default_progressive_swap_min_ms 1_200
 
   @type assistant_status :: :idle | :loading | :answer | :empty | :error
 
@@ -539,7 +540,9 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
       assistant_module = content_assistant_module()
 
       Task.start(fn ->
+        enhancement_started_at_ms = monotonic_ms()
         enhancement_response = run_content_assistant(assistant_module, query, nil, enhancement_opts)
+        maybe_wait_for_progressive_dwell(enhancement_started_at_ms)
 
         send_update(
           live_view_pid,
@@ -754,6 +757,28 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
   end
 
   defp query_latency_ms(_started_at), do: 0
+
+  defp progressive_swap_min_ms do
+    case content_assistant_config() |> config_value(:progressive_swap_min_ms, @default_progressive_swap_min_ms) do
+      value when is_integer(value) and value >= 0 -> value
+      _ -> @default_progressive_swap_min_ms
+    end
+  end
+
+  defp maybe_wait_for_progressive_dwell(started_at_ms) when is_integer(started_at_ms) do
+    remaining_ms = progressive_swap_min_ms() - (monotonic_ms() - started_at_ms)
+
+    if remaining_ms > 0 do
+      Process.sleep(remaining_ms)
+    end
+  end
+
+  defp maybe_wait_for_progressive_dwell(_started_at_ms), do: :ok
+
+  defp monotonic_ms do
+    System.monotonic_time()
+    |> System.convert_time_unit(:native, :millisecond)
+  end
 
   defp reset_turnstile_widget(socket) do
     if socket.assigns[:turnstile_required] do

@@ -281,9 +281,16 @@ defmodule AgentJidoWeb.ContentAssistantModalComponentTest do
   test "renders fast modal answer first, then swaps to enhanced answer in progressive mode", %{conn: conn} do
     original_module = Application.get_env(:agent_jido, :content_assistant_module)
     original_llm = Application.get_env(:arcana, :llm)
+    original_content_assistant_config = Application.get_env(:agent_jido, AgentJido.ContentAssistant, [])
 
     Application.put_env(:agent_jido, :content_assistant_module, ProgressiveModalAssistantStub)
     Application.put_env(:arcana, :llm, "openai:gpt-4.1-nano")
+
+    Application.put_env(
+      :agent_jido,
+      AgentJido.ContentAssistant,
+      Keyword.put(original_content_assistant_config, :progressive_swap_min_ms, 500)
+    )
 
     on_exit(fn ->
       if original_module do
@@ -297,6 +304,12 @@ defmodule AgentJidoWeb.ContentAssistantModalComponentTest do
       else
         Application.delete_env(:arcana, :llm)
       end
+
+      Application.put_env(
+        :agent_jido,
+        AgentJido.ContentAssistant,
+        original_content_assistant_config
+      )
     end)
 
     {:ok, view, _html} = live_isolated(conn, ModalHarnessLive)
@@ -309,6 +322,11 @@ defmodule AgentJidoWeb.ContentAssistantModalComponentTest do
       html = render(view)
       html =~ "Fast modal answer" and html =~ ~s(id="primary-nav-content-assistant-modal-enhancing")
     end)
+
+    Process.sleep(220)
+    interim_html = render(view)
+    assert interim_html =~ "Fast modal answer"
+    assert interim_html =~ ~s(id="primary-nav-content-assistant-modal-enhancing")
 
     assert_eventually(fn ->
       html = render(view)

@@ -67,7 +67,8 @@ config :agent_jido,
 
 config :agent_jido, AgentJido.ContentAssistant,
   search_response_mode: :progressive,
-  search_retrieval_mode: :fulltext
+  search_retrieval_mode: :fulltext,
+  progressive_swap_min_ms: 1_200
 
 config :agent_jido, AgentJidoWeb.ContentOpsGithubLive,
   owner: "agentjido",

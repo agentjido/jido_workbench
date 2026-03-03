@@ -17,6 +17,7 @@ defmodule AgentJidoWeb.ContentAssistantLive do
   @default_query_max_length 500
   @default_assistant_timeout_ms 12_000
   @default_citation_limit 6
+  @default_progressive_swap_min_ms 1_200
   @assistant_task_supervisor AgentJido.ContentAssistant.TaskSupervisor
 
   @telemetry_issued_event [:agent_jido, :content_assistant, :query, :issued]
@@ -854,7 +855,10 @@ defmodule AgentJidoWeb.ContentAssistantLive do
       with :ok <- ensure_assistant_task_supervisor(),
            task <-
              Task.Supervisor.async_nolink(@assistant_task_supervisor, fn ->
-               run_assistant(socket.assigns.content_assistant_module, response.query, enhancement_opts, nil)
+               enhancement_started_at_ms = monotonic_ms()
+               enhancement_response = run_assistant(socket.assigns.content_assistant_module, response.query, enhancement_opts, nil)
+               maybe_wait_for_progressive_dwell(enhancement_started_at_ms)
+               enhancement_response
              end) do
         timeout_ref = Process.send_after(self(), {:assistant_enhancement_timeout, task.ref}, assistant_timeout_ms())
 
@@ -1257,6 +1261,28 @@ defmodule AgentJidoWeb.ContentAssistantLive do
       value when is_integer(value) and value > 0 -> value
       _ -> @default_query_max_length
     end
+  end
+
+  defp progressive_swap_min_ms do
+    case content_assistant_config() |> config_value(:progressive_swap_min_ms, @default_progressive_swap_min_ms) do
+      value when is_integer(value) and value >= 0 -> value
+      _ -> @default_progressive_swap_min_ms
+    end
+  end
+
+  defp maybe_wait_for_progressive_dwell(started_at_ms) when is_integer(started_at_ms) do
+    remaining_ms = progressive_swap_min_ms() - (monotonic_ms() - started_at_ms)
+
+    if remaining_ms > 0 do
+      Process.sleep(remaining_ms)
+    end
+  end
+
+  defp maybe_wait_for_progressive_dwell(_started_at_ms), do: :ok
+
+  defp monotonic_ms do
+    System.monotonic_time()
+    |> System.convert_time_unit(:native, :millisecond)
   end
 
   defp reset_turnstile_widget(socket) do
