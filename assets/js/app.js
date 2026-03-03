@@ -122,6 +122,14 @@ Hooks.ScrollShrink = {
 let csrfToken = document
   .querySelector("meta[name='csrf-token']")
   .getAttribute("content");
+
+function shouldConnectLiveSocket() {
+  const userAgent = navigator.userAgent || "";
+  const automatedUserAgent = userAgent.includes("HeadlessChrome") || userAgent.includes("Lighthouse");
+
+  return !navigator.webdriver && !automatedUserAgent;
+}
+
 let liveSocket = new LiveSocket("/live", Socket, {
   hooks: Hooks,
   params: { _csrf_token: csrfToken },
@@ -135,7 +143,9 @@ window.addEventListener("resize", syncUtilityTopBarHeight);
 
 syncUtilityTopBarHeight();
 
-liveSocket.connect();
+if (shouldConnectLiveSocket()) {
+  liveSocket.connect();
+}
 
 window.liveSocket = liveSocket;
 

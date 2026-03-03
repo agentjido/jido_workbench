@@ -35,6 +35,7 @@
       end %>
 
     <%= if is_binary(turnstile_site_key) and String.trim(turnstile_site_key) != "" do %>
+      <link rel="preconnect" href="https://challenges.cloudflare.com" crossorigin />
       <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer>
       </script>
       <meta name="turnstile-site-key" content={turnstile_site_key} />
@@ -42,15 +43,8 @@
 
     <%= if Application.get_env(:agent_jido, :enable_analytics) do %>
       <!-- Privacy-friendly analytics by Plausible -->
-      <script async src="https://plausible.io/js/pa-rWEdo2cnsZEgMDZ956LgN.js">
-      </script>
-      <script>
-        window.plausible = window.plausible || function() {
-          (plausible.q = plausible.q || []).push(arguments)
-        }, plausible.init = plausible.init || function(i) {
-          plausible.o = i || {}
-        };
-        plausible.init()
+      <link rel="preconnect" href="https://plausible.io" crossorigin />
+      <script defer data-domain="jido.run" src="https://plausible.io/js/script.js">
       </script>
     <% end %>
 

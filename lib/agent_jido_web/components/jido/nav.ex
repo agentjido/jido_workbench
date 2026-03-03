@@ -164,14 +164,14 @@ defmodule AgentJidoWeb.Jido.Nav do
             id="primary-nav-content-assistant-trigger"
             type="button"
             phx-click={show_modal(@content_assistant_modal_id)}
-            class="inline-flex items-center gap-2 rounded border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-medium text-primary transition-colors hover:bg-primary/20"
-            aria-label="Open content assistant"
+            class="inline-flex items-center gap-2 rounded border border-primary/30 bg-primary/5 px-3 py-2 text-xs font-medium text-primary transition-colors hover:bg-primary/[0.12]"
+            aria-label="Search Cmd+K"
             title="Search and ask (Ctrl/Cmd+K)"
           >
             <.icon name="hero-magnifying-glass" class="h-3.5 w-3.5" />
             <.icon name="hero-sparkles" class="h-3 w-3" />
             <span>Search</span>
-            <span class="ml-1 hidden rounded border border-primary/30 bg-primary/5 px-1.5 py-0.5 text-[10px] font-normal text-primary/80 lg:inline-flex">
+            <span class="ml-1 hidden rounded border border-primary/30 bg-primary/5 px-1.5 py-0.5 text-[10px] font-normal text-primary lg:inline-flex">
               Cmd+K
             </span>
           </button>
