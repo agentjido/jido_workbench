@@ -61,6 +61,7 @@ defmodule AgentJidoWeb.Router do
       live "/docs", PageLive, :index
       live "/build", PageLive, :index
       live "/compare", PageLive, :index
+      live "/community/showcase", JidoCommunityShowcaseLive, :index
       live "/community", JidoCommunityLive, :index
       live "/about", JidoAboutLive, :index
 

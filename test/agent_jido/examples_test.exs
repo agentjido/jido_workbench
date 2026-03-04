@@ -5,6 +5,14 @@ defmodule AgentJido.ExamplesTest do
 
   @hidden_slug "budget-guardrail-agent"
   @live_slug "counter-agent"
+  @pilot_live_slug "signal-routing-agent"
+  @new_live_examples [
+    {"emit-directive-agent", "AgentJidoWeb.Examples.EmitDirectiveAgentLive"},
+    {"state-ops-agent", "AgentJidoWeb.Examples.StateOpsAgentLive"},
+    {"plugin-basics-agent", "AgentJidoWeb.Examples.PluginBasicsAgentLive"},
+    {"persistence-storage-agent", "AgentJidoWeb.Examples.PersistenceStorageAgentLive"},
+    {"schedule-directive-agent", "AgentJidoWeb.Examples.ScheduleDirectiveAgentLive"}
+  ]
 
   test "draft examples are hidden from default lookups" do
     assert is_nil(Examples.get_example(@hidden_slug))
@@ -46,5 +54,35 @@ defmodule AgentJido.ExamplesTest do
     assert Enum.any?(example.related_resources, fn resource ->
              Map.get(resource, :path) == "/docs/getting-started/first-agent"
            end)
+  end
+
+  test "signal routing pilot example exposes live view module and source files" do
+    example = Examples.get_example!(@pilot_live_slug)
+
+    assert example.slug == @pilot_live_slug
+    assert example.status == :live
+    assert example.live_view_module == "AgentJidoWeb.Examples.SignalRoutingAgentLive"
+
+    assert example.source_files == [
+             "lib/agent_jido/demos/signal_routing/signal_routing_agent.ex",
+             "lib/agent_jido/demos/signal_routing/actions/increment_action.ex",
+             "lib/agent_jido/demos/signal_routing/actions/set_name_action.ex",
+             "lib/agent_jido/demos/signal_routing/actions/record_event_action.ex",
+             "lib/agent_jido_web/examples/signal_routing_agent_live.ex"
+           ]
+
+    assert Enum.map(example.sources, & &1.path) == example.source_files
+  end
+
+  test "new published examples expose live view modules and existing source files" do
+    Enum.each(@new_live_examples, fn {slug, live_view_module} ->
+      example = Examples.get_example!(slug)
+
+      assert example.status == :live
+      assert example.live_view_module == live_view_module
+      assert example.source_files != []
+      assert Enum.map(example.sources, & &1.path) == example.source_files
+      assert Enum.all?(example.source_files, &File.exists?/1)
+    end)
   end
 end

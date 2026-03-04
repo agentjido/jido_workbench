@@ -491,6 +491,17 @@ defmodule AgentJidoWeb.PageLiveTest do
       assert html =~ "Work together on GitHub"
     end
 
+    test "renders /community/showcase route", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/community/showcase")
+
+      assert html =~ "Built with Jido"
+      assert html =~ "Community Showcase"
+      assert html =~ "Agent Jido Workbench"
+      assert html =~ "jido_run"
+      assert html =~ ~s(id="showcase-project-agent-jido-workbench")
+      assert html =~ "SUBMIT YOUR PROJECT"
+    end
+
     test "community subpages are no longer routable", %{conn: conn} do
       retired_paths = [
         "/community/learning-paths",

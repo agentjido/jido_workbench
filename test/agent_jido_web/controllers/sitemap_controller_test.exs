@@ -41,6 +41,7 @@ defmodule AgentJidoWeb.SitemapControllerTest do
     end
 
     assert body =~ "/features"
+    assert body =~ "/community/showcase"
     refute body =~ "/partners"
     refute body =~ "/benchmarks"
   end

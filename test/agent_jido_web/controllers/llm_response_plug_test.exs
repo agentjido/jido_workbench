@@ -99,4 +99,17 @@ defmodule AgentJidoWeb.LLMResponsePlugTest do
     assert body =~ "Canonical URL: #{AgentJidoWeb.Endpoint.url()}/features"
     refute body =~ "Markdown URL:"
   end
+
+  test "community showcase markdown route resolves to deterministic fallback", %{conn: conn} do
+    conn = get(conn, "/community/showcase.md")
+
+    body = response(conn, 200)
+    link = get_resp_header(conn, "link") |> List.first()
+
+    assert get_resp_header(conn, "content-type") |> List.first() =~ "text/markdown"
+    assert get_resp_header(conn, "x-robots-tag") == ["noindex"]
+    assert link =~ "<#{AgentJidoWeb.Endpoint.url()}/community/showcase.md>; rel=\"alternate\"; type=\"text/markdown\""
+    assert link =~ "<#{AgentJidoWeb.Endpoint.url()}/community/showcase>; rel=\"canonical\""
+    assert body =~ "# Built with Jido Showcase"
+  end
 end
