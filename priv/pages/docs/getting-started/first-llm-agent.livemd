@@ -28,6 +28,9 @@ Mix.install([
   {:jido_ai, github: "agentjido/jido_ai", branch: "main"},
   {:req_llm, "~> 1.6"}
 ])
+
+# Suppress verbose runtime logs so we only see warnings and errors
+Logger.configure(level: :warning)
 ```
 
 ## Configure credentials
@@ -71,6 +74,18 @@ end
 
 `model: "openai:gpt-4o-mini"` selects a fast, inexpensive model. You can swap in any model string supported by `req_llm` (for example `"anthropic:claude-haiku-4-5"`). `tools: []` means no external tool calls for now.
 
+## Start the Jido runtime
+
+The agent server needs the Jido runtime (a registry, a dynamic supervisor, and a task supervisor). Define a Jido module and start it:
+
+```elixir
+defmodule MyApp.Jido do
+  use Jido, otp_app: :my_app
+end
+
+{:ok, _} = MyApp.Jido.start_link(name: Jido)
+```
+
 ## Run the agent
 
 Start the agent through `Jido.AgentServer` and send it a prompt:
@@ -86,8 +101,9 @@ If you see a greeting string, your AI integration is working. If you get a provi
 
 Here is the flow you just ran:
 
-1. `Jido.AgentServer.start_link/1` spawned a supervised process for your agent.
-2. `ask_sync/2` sent the prompt to the agent process.
+1. `MyApp.Jido.start_link/1` started the Jido runtime (registry, agent supervisor, and task supervisor).
+2. `Jido.AgentServer.start_link/1` spawned a process for your agent and registered it in the runtime.
+3. `ask_sync/2` sent the prompt to the agent process.
 3. The agent's system prompt and your message were combined and sent to the configured LLM provider via `req_llm`.
 4. The provider response was returned through the agent lifecycle.
 
@@ -115,6 +131,8 @@ end
 import Config
 
 config :req_llm, openai_api_key: System.get_env("OPENAI_API_KEY")
+
+config :logger, level: :warning
 ```
 
 Export the key in the shell session where you run your app:
