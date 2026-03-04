@@ -77,6 +77,13 @@ defmodule AgentJido.OGImage.Resolver do
       eyebrow: "COMMUNITY",
       badges: ["Discord", "Contributing", "Ecosystem"]
     },
+    "/community/showcase" => %{
+      template: :marketing,
+      title: "Built with Jido Showcase",
+      subtitle: "Community projects built with Jido, from production systems to focused experiments.",
+      eyebrow: "COMMUNITY SHOWCASE",
+      badges: ["Projects", "Community", "Built with Jido"]
+    },
     "/blog" => %{
       template: :marketing,
       title: "Blog",

@@ -4,6 +4,7 @@ defmodule AgentJidoWeb.MarkdownContent do
   """
 
   alias AgentJido.Blog
+  alias AgentJido.Community.Showcase
   alias AgentJido.Ecosystem
   alias AgentJido.Examples
   alias AgentJido.Pages
@@ -40,6 +41,7 @@ defmodule AgentJidoWeb.MarkdownContent do
       resolve_from_blog(path) ||
       resolve_from_ecosystem(path) ||
       resolve_from_examples(path) ||
+      resolve_from_showcase(path) ||
       resolve_misc(path) ||
       :no_match
   end
@@ -169,6 +171,22 @@ defmodule AgentJidoWeb.MarkdownContent do
   end
 
   defp resolve_from_examples(_path), do: nil
+
+  defp resolve_from_showcase("/community") do
+    {:fallback, "Jido Community", "Build agents with us. Join Discord, collaborate on GitHub, and contribute across the Jido ecosystem."}
+  end
+
+  defp resolve_from_showcase("/community/showcase") do
+    count = Showcase.project_count()
+
+    summary =
+      "Community showcase of real projects built with Jido. " <>
+        "#{count} project#{if count == 1, do: "", else: "s"} currently listed."
+
+    {:fallback, "Built with Jido Showcase", summary}
+  end
+
+  defp resolve_from_showcase(_path), do: nil
 
   defp resolve_misc("/") do
     {:fallback, "Agent Jido",

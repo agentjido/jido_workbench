@@ -13,7 +13,7 @@ defmodule AgentJidoWeb.JidoExamplesLive do
 
   @impl true
   def mount(_params, session, socket) do
-    include_drafts = Map.get(session, "examples_include_drafts", false)
+    admin_can_toggle_drafts = Map.get(session, "examples_include_drafts", false)
 
     {:ok,
      socket
@@ -22,17 +22,48 @@ defmodule AgentJidoWeb.JidoExamplesLive do
        :meta_description,
        "Run practical examples that show how to design, coordinate, and operate agents with Jido."
      )
-     |> assign(:include_drafts, include_drafts)
+     |> assign(:admin_can_toggle_drafts, admin_can_toggle_drafts)
+     |> assign(:default_include_drafts, admin_can_toggle_drafts)
+     |> assign(:include_drafts, admin_can_toggle_drafts)
+     |> assign(:current_params, %{})
      |> assign(:examples, [])
      |> assign(:grouped_examples, %{})
      |> assign(:categories_to_render, [])
-     |> assign(:match_count, 0)
+     |> assign(:match_count, 0)}
+  end
+
+  @impl true
+  def handle_params(params, _uri, socket) do
+    include_drafts =
+      resolve_include_drafts(
+        params,
+        socket.assigns.admin_can_toggle_drafts,
+        socket.assigns.default_include_drafts
+      )
+
+    {:noreply,
+     socket
+     |> assign(:current_params, params)
+     |> assign(:include_drafts, include_drafts)
      |> load_examples()}
   end
 
   @impl true
-  def handle_params(_params, _uri, socket) do
-    {:noreply, load_examples(socket)}
+  def handle_event("toggle_drafts", _params, socket) do
+    if socket.assigns.admin_can_toggle_drafts do
+      next_include_drafts = not socket.assigns.include_drafts
+
+      next_params =
+        socket.assigns.current_params
+        |> Map.delete("hide_drafts")
+        |> maybe_put_hide_drafts(next_include_drafts)
+
+      {:noreply,
+       socket
+       |> push_patch(to: examples_index_path(next_params))}
+    else
+      {:noreply, socket}
+    end
   end
 
   @impl true
@@ -58,10 +89,18 @@ defmodule AgentJidoWeb.JidoExamplesLive do
             Interactive examples with source code, explanation, and live demos.
             AI/browser demos can run in deterministic simulated mode so no external model calls are required.
           </p>
-          <div :if={@include_drafts} class="mt-4">
+          <div :if={@admin_can_toggle_drafts} class="mt-4 flex items-center justify-center gap-3">
             <span class="text-[10px] px-2 py-0.5 rounded font-semibold uppercase bg-accent-yellow/10 border border-accent-yellow/30 text-accent-yellow">
-              admin preview
+              {if @include_drafts, do: "admin preview", else: "drafts hidden"}
             </span>
+            <button
+              id="toggle-drafts-button"
+              phx-click="toggle_drafts"
+              type="button"
+              class="text-[11px] px-3 py-1 rounded border border-border bg-elevated text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors"
+            >
+              {if @include_drafts, do: "Hide Draft Examples", else: "Show Draft Examples"}
+            </button>
           </div>
         </section>
 
@@ -192,4 +231,35 @@ defmodule AgentJidoWeb.JidoExamplesLive do
   defp difficulty_badge(:intermediate), do: "bg-accent-yellow/10 text-accent-yellow"
   defp difficulty_badge(:advanced), do: "bg-accent-red/10 text-accent-red"
   defp difficulty_badge(_), do: "bg-elevated text-muted-foreground"
+
+  defp resolve_include_drafts(_params, false, _default_include_drafts), do: false
+
+  defp resolve_include_drafts(params, true, default_include_drafts) do
+    default_include_drafts and not hide_drafts?(params)
+  end
+
+  defp hide_drafts?(params) when is_map(params) do
+    params
+    |> Map.get("hide_drafts")
+    |> truthy_param?()
+  end
+
+  defp truthy_param?(value) when value in [true, 1], do: true
+  defp truthy_param?(value) when value in [false, nil, 0], do: false
+
+  defp truthy_param?(value) when is_binary(value) do
+    String.downcase(String.trim(value)) in ["1", "true", "yes", "on"]
+  end
+
+  defp truthy_param?(_value), do: false
+
+  defp maybe_put_hide_drafts(params, true), do: params
+  defp maybe_put_hide_drafts(params, false), do: Map.put(params, "hide_drafts", "true")
+
+  defp examples_index_path(params) when is_map(params) do
+    case Enum.reject(params, fn {_key, value} -> is_nil(value) or value == "" end) |> Map.new() do
+      filtered when map_size(filtered) == 0 -> ~p"/examples"
+      filtered -> ~p"/examples?#{filtered}"
+    end
+  end
 end

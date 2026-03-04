@@ -172,6 +172,13 @@ defmodule AgentJidoWeb.JidoCommunityLive do
         href: "https://github.com/agentjido",
         external?: true,
         class: "border border-accent-cyan text-accent-cyan hover:bg-accent-cyan/10 text-[13px] font-medium px-7 py-3 rounded transition-colors"
+      },
+      %{
+        label: "View Showcase",
+        href: "/community/showcase",
+        external?: false,
+        class:
+          "border border-border text-muted-foreground hover:text-foreground hover:border-foreground/40 text-[13px] font-medium px-7 py-3 rounded transition-colors"
       }
     ]
   end
