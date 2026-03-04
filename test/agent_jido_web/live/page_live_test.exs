@@ -496,9 +496,11 @@ defmodule AgentJidoWeb.PageLiveTest do
 
       assert html =~ "Built with Jido"
       assert html =~ "Community Showcase"
-      assert html =~ "Agent Jido Workbench"
-      assert html =~ "jido_run"
-      assert html =~ ~s(id="showcase-project-agent-jido-workbench")
+      assert html =~ "Loomkin"
+      assert html =~ "ScreenTour"
+      assert html =~ ~s(id="showcase-project-loomkin")
+      refute html =~ "Agent Jido Workbench"
+      refute html =~ ~s(id="showcase-project-jido-run")
       assert html =~ "SUBMIT YOUR PROJECT"
     end
 
