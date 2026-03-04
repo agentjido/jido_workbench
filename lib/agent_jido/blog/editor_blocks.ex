@@ -3,6 +3,8 @@ defmodule AgentJido.Blog.EditorBlocks do
   Converts between legacy HTML bodies and Editor.js block payloads.
   """
 
+  alias Phoenix.HTML
+
   @type editor_body :: map()
 
   @spec html_to_editor_body(String.t(), keyword()) :: editor_body()
@@ -224,7 +226,12 @@ defmodule AgentJido.Blog.EditorBlocks do
   end
 
   defp block_to_html(%{"type" => "quote", "data" => %{"text" => text}}), do: "<blockquote><p>#{text}</p></blockquote>"
-  defp block_to_html(%{"type" => "code", "data" => %{"code" => code}}), do: "<pre><code>#{code}</code></pre>"
+
+  defp block_to_html(%{"type" => "code", "data" => %{"code" => code} = data}) do
+    language = Map.get(data, "language") || Map.get(data, "lang")
+    highlight_code_block(code, language)
+  end
+
   defp block_to_html(%{"type" => "delimiter"}), do: "<hr />"
 
   defp block_to_html(%{"type" => "image", "data" => %{"url" => url, "caption" => caption}})
@@ -239,4 +246,34 @@ defmodule AgentJido.Blog.EditorBlocks do
   end
 
   defp block_to_html(_unsupported), do: ""
+
+  defp highlight_code_block(code, language) when is_binary(code) do
+    opts =
+      case code_lexer(language) do
+        nil -> []
+        lexer -> [lexer: lexer]
+      end
+
+    Makeup.highlight(code, opts)
+  rescue
+    _ ->
+      escaped = code |> HTML.html_escape() |> HTML.safe_to_string()
+      "<pre><code>#{escaped}</code></pre>"
+  end
+
+  defp highlight_code_block(_code, _language), do: "<pre><code></code></pre>"
+
+  defp code_lexer(language) when is_binary(language) do
+    case String.downcase(String.trim(language)) do
+      "elixir" -> Makeup.Lexers.ElixirLexer
+      "ex" -> Makeup.Lexers.ElixirLexer
+      "exs" -> Makeup.Lexers.ElixirLexer
+      "javascript" -> Makeup.Lexers.JsLexer
+      "js" -> Makeup.Lexers.JsLexer
+      "html" -> Makeup.Lexers.HTMLLexer
+      _ -> nil
+    end
+  end
+
+  defp code_lexer(_), do: nil
 end
