@@ -7,6 +7,20 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
   alias AgentJido.Examples
 
   @endpoint AgentJidoWeb.Endpoint
+  @new_simulated_showcase_examples [
+    {"runic-ai-research-studio-step-mode", "Runic AI Research Studio Step Mode"},
+    {"runic-adaptive-researcher", "Runic Adaptive Researcher"},
+    {"runic-structured-llm-branching", "Runic Structured LLM Branching"},
+    {"runic-delegating-orchestrator", "Runic Delegating Orchestrator"},
+    {"jido-ai-actions-runtime-demos", "Jido.AI Actions Runtime Demos"},
+    {"jido-ai-browser-web-workflow", "Jido.AI Browser Web Workflow"},
+    {"jido-ai-weather-multi-turn-context", "Jido.AI Weather Multi-Turn Context"},
+    {"jido-ai-task-execution-workflow", "Jido.AI Task Execution Workflow"},
+    {"jido-ai-skills-runtime-foundations", "Jido.AI Skills Runtime Foundations"},
+    {"jido-ai-skills-multi-agent-orchestration", "Jido.AI Skills Multi-Agent Orchestration"},
+    {"jido-ai-weather-reasoning-strategy-suite", "Jido.AI Weather Reasoning Strategy Suite"},
+    {"jido-ai-operational-agents-pack", "Jido.AI Operational Agents Pack"}
+  ]
 
   setup_all do
     ensure_started(:telemetry)
@@ -142,6 +156,71 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
       patched = assert_patch(view)
       assert URI.parse(patched).path == "/examples/counter-agent"
       assert URI.parse(patched).query |> URI.decode_query() == %{"source" => "1", "tab" => "source"}
+    end
+  end
+
+  describe "/examples/runic-ai-research-studio" do
+    test "renders explanation tab with workflow and source references", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/runic-ai-research-studio?tab=explanation")
+
+      assert html =~ "Runic AI Research Studio"
+      assert html =~ "PlanQueries"
+      assert html =~ "EditAndAssemble"
+      assert html =~ "studio_demo.exs"
+      assert html =~ "orchestrator_agent.ex"
+    end
+
+    test "demo tab runs deterministic simulated workflow trace", %{conn: conn} do
+      {:ok, view, html} = live(conn, "/examples/runic-ai-research-studio?tab=demo")
+
+      assert html =~ "Runic AI Research Studio"
+      assert html =~ "Simulated demo"
+
+      demo_view = find_live_child(view, "demo-runic-ai-research-studio")
+
+      demo_view
+      |> element("#simulated-showcase-demo-runic-ai-research-studio button[phx-click='run_demo']")
+      |> render_click()
+
+      Enum.each(1..6, fn _step ->
+        send(demo_view.pid, :advance_step)
+      end)
+
+      final_html = render(demo_view)
+
+      assert final_html =~ "Simulated Result"
+      assert final_html =~ "PlanQueries"
+      assert final_html =~ "simulated:haiku"
+    end
+  end
+
+  describe "new simulated showcase examples" do
+    test "render explanation tabs", %{conn: conn} do
+      Enum.each(@new_simulated_showcase_examples, fn {slug, title} ->
+        {:ok, _view, html} = live(conn, "/examples/#{slug}?tab=explanation")
+        assert html =~ title
+        assert html =~ "simulated"
+      end)
+    end
+
+    test "run deterministic interactive traces", %{conn: conn} do
+      Enum.each(@new_simulated_showcase_examples, fn {slug, title} ->
+        {:ok, view, html} = live(conn, "/examples/#{slug}?tab=demo")
+        assert html =~ title
+        assert html =~ "Simulated demo"
+
+        demo_view = find_live_child(view, "demo-#{slug}")
+
+        demo_view
+        |> element("#simulated-showcase-demo-#{slug} button[phx-click='run_demo']")
+        |> render_click()
+
+        Enum.each(1..8, fn _ -> send(demo_view.pid, :advance_step) end)
+
+        final_html = render(demo_view)
+        assert final_html =~ "Simulated Result"
+        assert final_html =~ "simulated:"
+      end)
     end
   end
 

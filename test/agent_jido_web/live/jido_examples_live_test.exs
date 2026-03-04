@@ -1,5 +1,5 @@
 defmodule AgentJidoWeb.JidoExamplesLiveTest do
-  use AgentJidoWeb.ConnCase, async: true
+  use AgentJidoWeb.ConnCase, async: false
 
   import AgentJido.AccountsFixtures
   import Phoenix.LiveViewTest
@@ -17,7 +17,20 @@ defmodule AgentJidoWeb.JidoExamplesLiveTest do
     {"state-ops-agent", "State Ops Agent"},
     {"plugin-basics-agent", "Plugin Basics Agent"},
     {"persistence-storage-agent", "Persistence Storage Agent"},
-    {"schedule-directive-agent", "Schedule Directive Agent"}
+    {"schedule-directive-agent", "Schedule Directive Agent"},
+    {"runic-ai-research-studio", "Runic AI Research Studio"},
+    {"runic-ai-research-studio-step-mode", "Runic AI Research Studio Step Mode"},
+    {"runic-adaptive-researcher", "Runic Adaptive Researcher"},
+    {"runic-structured-llm-branching", "Runic Structured LLM Branching"},
+    {"runic-delegating-orchestrator", "Runic Delegating Orchestrator"},
+    {"jido-ai-actions-runtime-demos", "Jido.AI Actions Runtime Demos"},
+    {"jido-ai-browser-web-workflow", "Jido.AI Browser Web Workflow"},
+    {"jido-ai-weather-multi-turn-context", "Jido.AI Weather Multi-Turn Context"},
+    {"jido-ai-task-execution-workflow", "Jido.AI Task Execution Workflow"},
+    {"jido-ai-skills-runtime-foundations", "Jido.AI Skills Runtime Foundations"},
+    {"jido-ai-skills-multi-agent-orchestration", "Jido.AI Skills Multi-Agent Orchestration"},
+    {"jido-ai-weather-reasoning-strategy-suite", "Jido.AI Weather Reasoning Strategy Suite"},
+    {"jido-ai-operational-agents-pack", "Jido.AI Operational Agents Pack"}
   ]
 
   test "draft examples are not listed on /examples", %{conn: conn} do

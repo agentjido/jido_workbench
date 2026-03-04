@@ -11,7 +11,20 @@ defmodule AgentJido.ExamplesTest do
     {"state-ops-agent", "AgentJidoWeb.Examples.StateOpsAgentLive"},
     {"plugin-basics-agent", "AgentJidoWeb.Examples.PluginBasicsAgentLive"},
     {"persistence-storage-agent", "AgentJidoWeb.Examples.PersistenceStorageAgentLive"},
-    {"schedule-directive-agent", "AgentJidoWeb.Examples.ScheduleDirectiveAgentLive"}
+    {"schedule-directive-agent", "AgentJidoWeb.Examples.ScheduleDirectiveAgentLive"},
+    {"runic-ai-research-studio", "AgentJidoWeb.Examples.SimulatedShowcaseLive"},
+    {"runic-ai-research-studio-step-mode", "AgentJidoWeb.Examples.SimulatedShowcaseLive"},
+    {"runic-adaptive-researcher", "AgentJidoWeb.Examples.SimulatedShowcaseLive"},
+    {"runic-structured-llm-branching", "AgentJidoWeb.Examples.SimulatedShowcaseLive"},
+    {"runic-delegating-orchestrator", "AgentJidoWeb.Examples.SimulatedShowcaseLive"},
+    {"jido-ai-actions-runtime-demos", "AgentJidoWeb.Examples.SimulatedShowcaseLive"},
+    {"jido-ai-browser-web-workflow", "AgentJidoWeb.Examples.SimulatedShowcaseLive"},
+    {"jido-ai-weather-multi-turn-context", "AgentJidoWeb.Examples.SimulatedShowcaseLive"},
+    {"jido-ai-task-execution-workflow", "AgentJidoWeb.Examples.SimulatedShowcaseLive"},
+    {"jido-ai-skills-runtime-foundations", "AgentJidoWeb.Examples.SimulatedShowcaseLive"},
+    {"jido-ai-skills-multi-agent-orchestration", "AgentJidoWeb.Examples.SimulatedShowcaseLive"},
+    {"jido-ai-weather-reasoning-strategy-suite", "AgentJidoWeb.Examples.SimulatedShowcaseLive"},
+    {"jido-ai-operational-agents-pack", "AgentJidoWeb.Examples.SimulatedShowcaseLive"}
   ]
 
   test "draft examples are hidden from default lookups" do

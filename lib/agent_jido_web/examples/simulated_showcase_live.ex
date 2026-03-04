@@ -267,6 +267,270 @@ defmodule AgentJidoWeb.Examples.SimulatedShowcaseLive do
     }
   end
 
+  defp scenario_for("runic-ai-research-studio") do
+    %{
+      title: "Runic AI Research Studio",
+      steps: [
+        %{label: "PlanQueries", detail: "Generated 5 targeted search queries for the topic"},
+        %{label: "SimulateSearch", detail: "Loaded deterministic research snippets and confidence scores"},
+        %{label: "BuildOutline", detail: "Compiled sections and argument flow for a technical article"},
+        %{label: "DraftArticle", detail: "Produced a first-pass markdown draft from the outline"},
+        %{label: "EditAndAssemble", detail: "Applied editorial pass and emitted final article artifact"}
+      ],
+      result: """
+      {
+        "model": "simulated:haiku",
+        "workflow": "research_studio",
+        "status": "completed",
+        "productions": 5,
+        "facts": 14,
+        "final_artifact": "studio_output_elixir_concurrency.md"
+      }
+      """
+    }
+  end
+
+  defp scenario_for("runic-ai-research-studio-step-mode") do
+    %{
+      title: "Runic AI Research Studio Step Mode",
+      steps: [
+        %{label: "Set mode", detail: "Applied runic.set_mode(:step) before feeding topic"},
+        %{label: "Step 1", detail: "Dispatched plan_queries; graph marks node as done"},
+        %{label: "Step 2", detail: "Dispatched simulate_search; 5 research snippets ingested"},
+        %{label: "Step 3", detail: "Dispatched build_outline; section graph finalized"},
+        %{label: "Step 4", detail: "Dispatched draft_article; markdown draft emitted"},
+        %{label: "Step 5", detail: "Dispatched edit_and_assemble; final artifact published"}
+      ],
+      result: """
+      {
+        "model": "simulated:haiku",
+        "mode": "step",
+        "steps_completed": 5,
+        "summary": {"total_nodes": 5, "satisfied": true}
+      }
+      """
+    }
+  end
+
+  defp scenario_for("runic-adaptive-researcher") do
+    %{
+      title: "Runic Adaptive Researcher",
+      steps: [
+        %{label: "Phase 1 research", detail: "Ran PlanQueries -> SimulateSearch with topic feed"},
+        %{label: "Assess richness", detail: "Measured research_summary length against threshold"},
+        %{label: "Hot-swap workflow", detail: "Applied runic.set_workflow to phase_2_full DAG"},
+        %{label: "Phase 2 writing", detail: "Executed BuildOutline -> DraftArticle -> EditAndAssemble"},
+        %{label: "Emit outputs", detail: "Published final markdown and phase selection metadata"}
+      ],
+      result: """
+      {
+        "model": "simulated:haiku",
+        "status": "completed",
+        "phase_2_type": "full",
+        "productions": 6
+      }
+      """
+    }
+  end
+
+  defp scenario_for("runic-structured-llm-branching") do
+    %{
+      title: "Runic Structured LLM Branching",
+      steps: [
+        %{label: "RouteQuestion", detail: "Produced structured decision with route/detail/confidence"},
+        %{label: "Select branch", detail: "Normalized route=:analysis and mapped to phase_2_analysis"},
+        %{label: "Swap DAG", detail: "runic.set_workflow applied analysis branch workflow"},
+        %{label: "Run phase 2", detail: "Executed AnalysisPlan -> AnalysisAnswer"},
+        %{label: "Publish decision", detail: "Returned selected_branch and branch_result payload"}
+      ],
+      result: """
+      {
+        "model": "simulated:haiku",
+        "selected_branch": "analysis",
+        "confidence": 0.84,
+        "detail_level": "detailed"
+      }
+      """
+    }
+  end
+
+  defp scenario_for("runic-delegating-orchestrator") do
+    %{
+      title: "Runic Delegating Orchestrator",
+      steps: [
+        %{label: "Local nodes", detail: "Ran PlanQueries, SimulateSearch, and BuildOutline locally"},
+        %{label: "Delegate draft", detail: "Dispatched DraftArticle runnable to child:drafter"},
+        %{label: "Apply child result", detail: "Parent applied runnable completion to workflow"},
+        %{label: "Delegate edit", detail: "Dispatched EditAndAssemble runnable to child:editor"},
+        %{label: "Finalize", detail: "Parent merged child outputs and emitted final article"}
+      ],
+      result: """
+      {
+        "model": "simulated:runic-orchestrator",
+        "delegated_nodes": ["draft_article", "edit_and_assemble"],
+        "status": "completed"
+      }
+      """
+    }
+  end
+
+  defp scenario_for("jido-ai-actions-runtime-demos") do
+    %{
+      title: "Jido.AI Actions Runtime Demos",
+      steps: [
+        %{label: "LLM actions", detail: "Validated chat/complete/generate_object output envelopes"},
+        %{label: "Tool calling actions", detail: "Listed tools and executed conversion tool"},
+        %{label: "Planning actions", detail: "Ran plan/decompose/prioritize sequence"},
+        %{label: "Reasoning actions", detail: "Ran analyze/infer/explain/run_strategy checks"},
+        %{label: "Retrieval + quota", detail: "Exercised memory upsert/recall/clear and quota status/reset"}
+      ],
+      result: """
+      {
+        "model": "simulated:haiku",
+        "families_passed": 6,
+        "runtime_surface": "Jido.Exec.run/3"
+      }
+      """
+    }
+  end
+
+  defp scenario_for("jido-ai-browser-web-workflow") do
+    %{
+      title: "Jido.AI Browser Web Workflow",
+      steps: [
+        %{label: "Turn 1 read", detail: "read_page fixture loaded target URL markdown snapshot"},
+        %{label: "Turn 2 extract", detail: "Context reused to list map/filter usage from same page"},
+        %{label: "Turn 3 synthesize", detail: "Produced combined pipeline example from retained context"},
+        %{label: "Guardrails", detail: "Confirmed no refetch and single-source turn progression"}
+      ],
+      result: """
+      {
+        "model": "simulated:browser-scout",
+        "turns": 3,
+        "same_url_reused": true,
+        "semantic_checks": "passed"
+      }
+      """
+    }
+  end
+
+  defp scenario_for("jido-ai-weather-multi-turn-context") do
+    %{
+      title: "Jido.AI Weather Multi-Turn Context",
+      steps: [
+        %{label: "Turn 1", detail: "Anchored forecast response to Seattle context"},
+        %{label: "Retry guard", detail: "Applied busy backoff policy before second turn"},
+        %{label: "Turn 2", detail: "Answered umbrella guidance while preserving city context"},
+        %{label: "Turn 3", detail: "Returned outdoor + indoor suggestions with city retained"}
+      ],
+      result: """
+      {
+        "model": "simulated:haiku",
+        "city_context_preserved": true,
+        "retry_count": 1,
+        "turns": 3
+      }
+      """
+    }
+  end
+
+  defp scenario_for("jido-ai-task-execution-workflow") do
+    %{
+      title: "Jido.AI Task Execution Workflow",
+      steps: [
+        %{label: "Seed tasks", detail: "Added three release workflow tasks via tasklist_add_tasks"},
+        %{label: "Iterate tasks", detail: "Repeated next_task -> start_task -> complete_task cycle"},
+        %{label: "Lifecycle log", detail: "Captured task_started/task_completed events per step"},
+        %{label: "Terminal state", detail: "tasklist_get_state returned all_complete=true"}
+      ],
+      result: """
+      {
+        "model": "simulated:haiku",
+        "tasks_total": 3,
+        "all_complete": true,
+        "lifecycle_events": ["task_started", "task_completed"]
+      }
+      """
+    }
+  end
+
+  defp scenario_for("jido-ai-skills-runtime-foundations") do
+    %{
+      title: "Jido.AI Skills Runtime Foundations",
+      steps: [
+        %{label: "Manifest load", detail: "Loaded module and file skill manifests"},
+        %{label: "Registry bootstrap", detail: "Registered runtime skills from configured paths"},
+        %{label: "Prompt render", detail: "Rendered composed skill prompt for agent usage"},
+        %{label: "Validation", detail: "Verified manifest and prompt expectations"}
+      ],
+      result: """
+      {
+        "model": "simulated:haiku",
+        "module_skills": 1,
+        "file_skills": 1,
+        "registry_ready": true
+      }
+      """
+    }
+  end
+
+  defp scenario_for("jido-ai-skills-multi-agent-orchestration") do
+    %{
+      title: "Jido.AI Skills Multi-Agent Orchestration",
+      steps: [
+        %{label: "Arithmetic request", detail: "Resolved expression using calculator skill pathway"},
+        %{label: "Conversion request", detail: "Routed to unit conversion skill and tools"},
+        %{label: "Combined request", detail: "Composed conversion + derived calorie estimate response"},
+        %{label: "Semantic checks", detail: "Validated key outputs (814, 37C, ~3.1 miles)"}
+      ],
+      result: """
+      {
+        "model": "simulated:haiku",
+        "question_classes": 3,
+        "skills_selected_correctly": true
+      }
+      """
+    }
+  end
+
+  defp scenario_for("jido-ai-weather-reasoning-strategy-suite") do
+    %{
+      title: "Jido.AI Weather Reasoning Strategy Suite",
+      steps: [
+        %{label: "Shared scenario", detail: "Applied one travel-weather prompt across eight strategies"},
+        %{label: "Collect outputs", detail: "Captured style and structure per strategy family"},
+        %{label: "Compare tradeoffs", detail: "Ranked concise vs exploratory vs synthesis-heavy outputs"},
+        %{label: "Recommendation", detail: "Selected best-fit strategy per task complexity class"}
+      ],
+      result: """
+      {
+        "model": "simulated:router",
+        "strategies": ["react","cod","aot","cot","tot","got","trm","adaptive"],
+        "comparison_ready": true
+      }
+      """
+    }
+  end
+
+  defp scenario_for("jido-ai-operational-agents-pack") do
+    %{
+      title: "Jido.AI Operational Agents Pack",
+      steps: [
+        %{label: "API smoke run", detail: "Validated endpoint status and response diagnostics"},
+        %{label: "Issue triage run", detail: "Categorized issue queue with safe write policy disabled"},
+        %{label: "Release synthesis", detail: "Generated themed release notes draft via GoT pattern"},
+        %{label: "Security checks", detail: "Confirmed token-context injection and write guard behavior"}
+      ],
+      result: """
+      {
+        "model": "simulated:ops-coordinator",
+        "workflows": ["api_smoke","issue_triage","release_notes"],
+        "safe_by_default": true
+      }
+      """
+    }
+  end
+
   defp scenario_for(_slug) do
     %{
       title: "Simulated Example",
