@@ -1,8 +1,6 @@
 defmodule AgentJido.ContentAssistantTest do
   use ExUnit.Case, async: true
 
-  import ExUnit.CaptureLog
-
   alias AgentJido.ContentAssistant
   alias AgentJido.ContentAssistant.Response
   alias AgentJido.ContentAssistant.Result
@@ -11,14 +9,6 @@ defmodule AgentJido.ContentAssistantTest do
     def query_with_status(_query, opts) do
       Keyword.fetch!(opts, :stub_response)
     end
-  end
-
-  defmodule BudgetBlockedStub do
-    def allow_llm?(_context), do: {:error, :budget_exhausted}
-  end
-
-  defmodule TurnstileBlockedStub do
-    def verify(_token, _remote_ip), do: {:error, :missing_token}
   end
 
   @citations [
@@ -39,7 +29,7 @@ defmodule AgentJido.ContentAssistantTest do
   ]
 
   describe "respond/2" do
-    test "returns deterministic response when llm is unavailable" do
+    test "returns deterministic response for citation-backed retrieval" do
       assert {:ok, %Response{} = response} =
                ContentAssistant.respond("What is an agent?",
                  retrieval_module: RetrievalStub,
@@ -50,118 +40,25 @@ defmodule AgentJido.ContentAssistantTest do
       assert response.answer_mode == :deterministic
       assert response.llm_attempted? == false
       assert response.llm_enhanced? == false
-      assert response.enhancement_blocked_reason == :llm_unconfigured
-      assert response.answer_markdown =~ "I searched the site content"
-      assert response.answer_markdown =~ "/docs/concepts/agents"
-    end
-
-    test "returns llm response when enhancement succeeds" do
-      test_pid = self()
-
-      llm_complete_fun = fn _llm, prompt, _context, opts ->
-        send(test_pid, {:llm_prompt, prompt})
-        send(test_pid, {:llm_system_prompt, opts[:system_prompt]})
-        {:ok, "Grounded answer from LLM."}
-      end
-
-      assert {:ok, %Response{} = response} =
-               ContentAssistant.respond("What is an agent?",
-                 retrieval_module: RetrievalStub,
-                 retrieval_opts: [stub_response: {:ok, @citations, :success}],
-                 llm: :stubbed_llm,
-                 llm_complete_fun: llm_complete_fun
-               )
-
-      assert response.answer_mode == :llm
-      assert response.llm_attempted? == true
-      assert response.llm_enhanced? == true
       assert response.enhancement_blocked_reason == nil
-      assert response.answer_markdown == "Grounded answer from LLM."
-
-      assert_received {:llm_prompt, prompt}
-      assert prompt =~ "What is an agent?"
-      assert prompt =~ "/docs/concepts/agents"
-
-      assert_received {:llm_system_prompt, system_prompt}
-      assert is_binary(system_prompt)
+      assert response.answer_markdown =~ "Found 2 relevant references"
+      assert response.answer_markdown =~ "Sources: Docs, Ecosystem."
     end
 
-    test "returns quota fallback when llm returns rate-limited" do
-      llm_complete_fun = fn _llm, _prompt, _context, _opts -> {:error, :rate_limited} end
-
-      log =
-        capture_log(fn ->
-          assert {:ok, %Response{} = response} =
-                   ContentAssistant.respond("What is an agent?",
-                     retrieval_module: RetrievalStub,
-                     retrieval_opts: [stub_response: {:ok, @citations, :success}],
-                     llm: :stubbed_llm,
-                     llm_complete_fun: llm_complete_fun
-                   )
-
-          assert response.answer_mode == :quota_fallback
-          assert response.llm_attempted? == true
-          assert response.llm_enhanced? == false
-          assert response.answer_markdown =~ "I searched the site content"
-        end)
-
-      assert log =~ "ContentAssistant LLM enhancement failed"
-    end
-
-    test "returns deterministic fallback when llm call raises" do
-      llm_complete_fun = fn _llm, _prompt, _context, _opts ->
-        raise "llm request crashed"
-      end
-
-      log =
-        capture_log(fn ->
-          assert {:ok, %Response{} = response} =
-                   ContentAssistant.respond("What is an agent?",
-                     retrieval_module: RetrievalStub,
-                     retrieval_opts: [stub_response: {:ok, @citations, :success}],
-                     llm: :stubbed_llm,
-                     llm_complete_fun: llm_complete_fun
-                   )
-
-          assert response.answer_mode == :deterministic_fallback
-          assert response.llm_attempted? == true
-          assert response.llm_enhanced? == false
-          assert response.answer_markdown =~ "I searched the site content"
-        end)
-
-      assert log =~ "ContentAssistant LLM enhancement failed"
-    end
-
-    test "returns deterministic response when budget guard blocks llm" do
+    test "ignores llm options and still returns deterministic response" do
       assert {:ok, %Response{} = response} =
                ContentAssistant.respond("What is an agent?",
                  retrieval_module: RetrievalStub,
                  retrieval_opts: [stub_response: {:ok, @citations, :success}],
                  llm: :stubbed_llm,
-                 llm_budget_module: BudgetBlockedStub
+                 llm_complete_fun: fn _llm, _prompt, _context, _opts -> {:ok, "unused"} end
                )
 
       assert response.answer_mode == :deterministic
       assert response.llm_attempted? == false
-      assert response.enhancement_blocked_reason == :budget
-      assert response.answer_markdown =~ "I searched the site content"
-    end
-
-    test "returns deterministic response when turnstile blocks llm" do
-      assert {:ok, %Response{} = response} =
-               ContentAssistant.respond("What is an agent?",
-                 retrieval_module: RetrievalStub,
-                 retrieval_opts: [stub_response: {:ok, @citations, :success}],
-                 llm: :stubbed_llm,
-                 require_turnstile: true,
-                 turnstile_token: "",
-                 turnstile_module: TurnstileBlockedStub
-               )
-
-      assert response.answer_mode == :deterministic
-      assert response.llm_attempted? == false
-      assert response.enhancement_blocked_reason == :turnstile
-      assert response.answer_markdown =~ "I searched the site content"
+      assert response.llm_enhanced? == false
+      assert response.enhancement_blocked_reason == nil
+      assert response.answer_markdown =~ "Found 2 relevant references"
     end
 
     test "marks retrieval fallback when fallback results are available" do

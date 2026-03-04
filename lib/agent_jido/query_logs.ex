@@ -104,6 +104,32 @@ defmodule AgentJido.QueryLogs do
   end
 
   @doc """
+  Returns recent finalized content assistant query logs for a visitor/session identity.
+
+  The identity may include `visitor_id` and/or `session_id`. When `session_id` is
+  present it is used as the primary filter; otherwise `visitor_id` is used.
+  """
+  @spec list_recent_identity_query_logs(map() | nil, pos_integer()) :: [QueryLog.t()]
+  def list_recent_identity_query_logs(identity, limit \\ @default_top_limit)
+      when is_integer(limit) and limit > 0 do
+    normalized_identity = normalize_identity(identity)
+    visitor_id = normalized_identity.visitor_id
+    session_id = normalized_identity.session_id
+
+    if is_nil(visitor_id) and is_nil(session_id) do
+      []
+    else
+      QueryLog
+      |> where([q], q.source == "content_assistant")
+      |> where([q], q.status in ["submitted", "success", "no_results", "error", "challenge"])
+      |> filter_by_identity(session_id, visitor_id)
+      |> order_by([q], desc: q.inserted_at, desc: q.updated_at)
+      |> limit(^limit)
+      |> Repo.all()
+    end
+  end
+
+  @doc """
   Returns top repeated queries for a lookback window.
   """
   @spec list_top_queries(pos_integer(), pos_integer()) :: [top_query()]
@@ -203,6 +229,18 @@ defmodule AgentJido.QueryLogs do
   end
 
   defp apply_filters(query, [_unknown | rest]), do: apply_filters(query, rest)
+
+  defp filter_by_identity(query, session_id, visitor_id) when is_binary(session_id) and is_binary(visitor_id) do
+    where(query, [q], q.session_id == ^session_id or q.visitor_id == ^visitor_id)
+  end
+
+  defp filter_by_identity(query, session_id, _visitor_id) when is_binary(session_id) do
+    where(query, [q], q.session_id == ^session_id)
+  end
+
+  defp filter_by_identity(query, _session_id, visitor_id) when is_binary(visitor_id) do
+    where(query, [q], q.visitor_id == ^visitor_id)
+  end
 
   defp enrich_attrs(attrs, current_scope, analytics_identity) do
     identity = normalize_identity(analytics_identity)

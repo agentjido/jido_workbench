@@ -92,5 +92,43 @@ defmodule AgentJido.QueryLogsTest do
       assert is_binary(query_log.query_hash)
       assert query_log.query =~ "[email]"
     end
+
+    test "lists recent identity query logs for active session and visitor history" do
+      identity = %{visitor_id: "visitor-recent", session_id: "session-recent"}
+
+      {:ok, _} =
+        QueryLogs.create_query_log(nil, identity, %{
+          source: "content_assistant",
+          channel: "content_assistant_modal",
+          query: "query one",
+          status: "success",
+          results_count: 1
+        })
+
+      {:ok, _} =
+        QueryLogs.create_query_log(nil, identity, %{
+          source: "content_assistant",
+          channel: "content_assistant_modal",
+          query: "query two",
+          status: "no_results",
+          results_count: 0
+        })
+
+      {:ok, _} =
+        QueryLogs.create_query_log(nil, %{visitor_id: "visitor-recent", session_id: "session-other"}, %{
+          source: "content_assistant",
+          channel: "content_assistant_modal",
+          query: "other session",
+          status: "success",
+          results_count: 2
+        })
+
+      recent = QueryLogs.list_recent_identity_query_logs(identity, 5)
+      queries = Enum.map(recent, & &1.query)
+
+      assert "query one" in queries
+      assert "query two" in queries
+      assert "other session" in queries
+    end
   end
 end

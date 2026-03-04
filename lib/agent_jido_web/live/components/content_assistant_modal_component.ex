@@ -1,6 +1,6 @@
 defmodule AgentJidoWeb.ContentAssistantModalComponent do
   @moduledoc """
-  Unified content assistant modal for retrieval-grounded search and chat.
+  Unified content assistant modal for retrieval-grounded search.
   """
   use AgentJidoWeb, :live_component
 
@@ -11,7 +11,7 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
   alias Phoenix.LiveView.JS
 
   @default_citation_limit 6
-  @default_thread_limit 8
+  @default_thread_limit 3
   @default_progressive_swap_min_ms 1_200
 
   @type assistant_status :: :idle | :loading | :answer | :empty | :error
@@ -44,6 +44,7 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
       |> assign(:turnstile_site_key, turnstile_site_key())
       |> assign(:turnstile_widget_id, turnstile_widget_id(component_id))
       |> assign(:turnstile_input_id, turnstile_input_id(component_id))
+      |> maybe_hydrate_recent_thread()
       |> maybe_apply_assistant_complete(assigns)
       |> maybe_apply_assistant_enhancement_complete(assigns)
 
@@ -77,34 +78,17 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
        )
        |> reset_turnstile_widget()}
     else
-      assistant_ref = System.unique_integer([:positive, :monotonic])
-      component_id = socket.assigns.id
-      live_view_pid = socket.root_pid || self()
-      query_log_id = track_query_id(query, socket)
-      assistant_module = content_assistant_module()
-      assistant_opts = assistant_opts(socket, turnstile_token, :fast)
+      {:noreply, begin_assistant_query(socket, query, turnstile_token)}
+    end
+  end
 
-      Task.start(fn ->
-        response = run_content_assistant(assistant_module, query, query_log_id, assistant_opts)
-        send_update(live_view_pid, __MODULE__, id: component_id, assistant_complete: {assistant_ref, query, response})
-      end)
+  def handle_event("thread_select", %{"q" => query}, socket) do
+    normalized_query = normalize_query(query)
 
-      {:noreply,
-       assign(socket,
-         query: query,
-         status: :loading,
-         response: nil,
-         assistant_ref: assistant_ref,
-         assistant_started_at: System.monotonic_time(),
-         enhancement_ref: nil,
-         enhancement_status: :idle,
-         query_log_id: query_log_id,
-         last_query_log_id: nil,
-         feedback_value: nil,
-         feedback_note: "",
-         feedback_submitted: false,
-         turnstile_token: turnstile_token
-       )}
+    if normalized_query == "" do
+      {:noreply, socket}
+    else
+      {:noreply, begin_assistant_query(socket, normalized_query, "")}
     end
   end
 
@@ -230,7 +214,7 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
     <div id={"#{@id}-root"}>
       <.phx_modal id={@id} on_cancel={JS.push("reset", target: @myself)}>
         <:title>Search</:title>
-        <:subtitle>Search docs, blog posts, and ecosystem packages, then chat with the results.</:subtitle>
+        <:subtitle>Search docs, blog posts, and ecosystem packages with citations.</:subtitle>
 
         <div class="mt-6 space-y-4">
           <.form for={%{}} as={:assistant} phx-submit="submit" phx-target={@myself}>
@@ -251,7 +235,7 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
                   name="assistant[q]"
                   type="search"
                   value={@query}
-                  placeholder="Ask about Jido docs, blog, and ecosystem..."
+                  placeholder="Search docs, blog, and ecosystem..."
                   class="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
                   autocomplete="off"
                 />
@@ -283,7 +267,7 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
           </.form>
 
           <div :if={@status == :idle} id={"#{@id}-idle"} class="text-sm text-muted-foreground">
-            Enter a question to get a grounded answer with citations.
+            Enter a query to see grounded citations.
           </div>
 
           <div
@@ -396,12 +380,18 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
             <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Recent thread</p>
             <div class="search-modal-scrollbar max-h-[22vh] overflow-y-auto space-y-2 pr-1">
               <%= for turn <- @thread do %>
-                <div class="rounded-md border border-border bg-background/70 p-2">
+                <button
+                  type="button"
+                  phx-click="thread_select"
+                  phx-value-q={turn.query}
+                  phx-target={@myself}
+                  class="w-full rounded-md border border-border bg-background/70 p-2 text-left transition hover:border-primary/50"
+                >
                   <p class="text-xs font-semibold text-foreground">{turn.query}</p>
                   <p class="mt-1 text-[11px] text-muted-foreground">
                     {turn.mode_label} • {turn.citations_count} reference{if turn.citations_count == 1, do: "", else: "s"}
                   </p>
-                </div>
+                </button>
               <% end %>
             </div>
           </div>
@@ -500,6 +490,36 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
 
   defp run_content_assistant(_module, query, query_log_id, _opts), do: error_response(query, query_log_id)
 
+  defp begin_assistant_query(socket, query, turnstile_token) do
+    assistant_ref = System.unique_integer([:positive, :monotonic])
+    component_id = socket.assigns.id
+    live_view_pid = socket.root_pid || self()
+    query_log_id = track_query_id(query, socket)
+    assistant_module = content_assistant_module()
+    assistant_opts = assistant_opts(socket, turnstile_token, :fast)
+
+    Task.start(fn ->
+      response = run_content_assistant(assistant_module, query, query_log_id, assistant_opts)
+      send_update(live_view_pid, __MODULE__, id: component_id, assistant_complete: {assistant_ref, query, response})
+    end)
+
+    assign(socket,
+      query: query,
+      status: :loading,
+      response: nil,
+      assistant_ref: assistant_ref,
+      assistant_started_at: System.monotonic_time(),
+      enhancement_ref: nil,
+      enhancement_status: :idle,
+      query_log_id: query_log_id,
+      last_query_log_id: nil,
+      feedback_value: nil,
+      feedback_note: "",
+      feedback_submitted: false,
+      turnstile_token: turnstile_token
+    )
+  end
+
   defp error_response(query, query_log_id) do
     %Response{
       query: query,
@@ -592,7 +612,7 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
   defp llm_enabled?(_opts), do: false
 
   defp assistant_opts(socket, turnstile_token, stage) do
-    retrieval_opts = [mode: search_retrieval_mode(), graph: false]
+    retrieval_opts = [mode: search_retrieval_mode(), graph: true]
 
     default_opts =
       [
@@ -610,7 +630,10 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
         _ -> []
       end
 
-    Keyword.merge(default_opts, session_opts)
+    default_opts
+    |> Keyword.merge(session_opts)
+    |> Keyword.put(:llm, nil)
+    |> Keyword.put(:require_turnstile, false)
   end
 
   defp append_thread(thread, %Response{} = response) do
@@ -620,11 +643,60 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
       citations_count: length(response.citations || [])
     }
 
-    [item | List.wrap(thread)]
+    thread = List.wrap(thread)
+
+    case thread do
+      [%{query: query} | rest] when query == item.query ->
+        [item | rest]
+
+      _ ->
+        [item | thread]
+    end
     |> Enum.take(@default_thread_limit)
   end
 
   defp append_thread(thread, _response), do: List.wrap(thread)
+
+  defp maybe_hydrate_recent_thread(%{assigns: %{thread: thread}} = socket) when is_list(thread) and thread != [],
+    do: socket
+
+  defp maybe_hydrate_recent_thread(socket) do
+    thread =
+      socket.assigns.analytics_identity
+      |> QueryLogs.list_recent_identity_query_logs(@default_thread_limit)
+      |> Enum.map(&thread_item_from_query_log/1)
+      |> Enum.reject(&is_nil/1)
+
+    assign(socket, :thread, thread)
+  rescue
+    _ -> assign(socket, :thread, [])
+  end
+
+  defp thread_item_from_query_log(query_log) when is_map(query_log) do
+    query = Map.get(query_log, :query)
+    status = Map.get(query_log, :status)
+    results_count = Map.get(query_log, :results_count)
+
+    if is_binary(query) and String.trim(query) != "" do
+      %{
+        query: query,
+        mode_label: thread_mode_label(status),
+        citations_count: normalize_results_count(results_count)
+      }
+    end
+  end
+
+  defp thread_item_from_query_log(_query_log), do: nil
+
+  defp thread_mode_label("success"), do: "Deterministic"
+  defp thread_mode_label("no_results"), do: "No results"
+  defp thread_mode_label("submitted"), do: "Pending"
+  defp thread_mode_label("challenge"), do: "Challenge"
+  defp thread_mode_label("error"), do: "Error"
+  defp thread_mode_label(_status), do: "Unknown"
+
+  defp normalize_results_count(value) when is_integer(value) and value >= 0, do: value
+  defp normalize_results_count(_value), do: 0
 
   defp replace_latest_thread_entry([_latest | rest], %Response{} = response) do
     [
@@ -870,7 +942,7 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
   defp progressive_mode?, do: search_response_mode() == :progressive
 
   defp search_retrieval_mode do
-    case content_assistant_config() |> config_value(:search_retrieval_mode, :fulltext) do
+    case content_assistant_config() |> config_value(:search_retrieval_mode, :hybrid) do
       mode when mode in [:hybrid, "hybrid"] -> :hybrid
       _ -> :fulltext
     end

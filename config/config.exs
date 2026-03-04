@@ -66,8 +66,8 @@ config :agent_jido,
   content_gen_prompt_root: "priv/prompts/content_gen"
 
 config :agent_jido, AgentJido.ContentAssistant,
-  search_response_mode: :progressive,
-  search_retrieval_mode: :fulltext,
+  search_response_mode: :deterministic,
+  search_retrieval_mode: :hybrid,
   progressive_swap_min_ms: 1_200
 
 config :agent_jido, AgentJidoWeb.ContentOpsGithubLive,

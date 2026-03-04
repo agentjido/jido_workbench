@@ -85,9 +85,9 @@ defmodule AgentJidoWeb.ContentAssistantLive do
           <div class="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p class="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">Content Assistant</p>
-              <h1 class="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">Search and chat</h1>
+              <h1 class="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">Search</h1>
               <p class="mt-3 max-w-3xl text-sm text-muted-foreground sm:text-base">
-                Ask one question and get grounded answers from docs, blog posts, and ecosystem packages.
+                Search docs, blog posts, and ecosystem packages with grounded citations.
               </p>
             </div>
 
@@ -117,7 +117,7 @@ defmodule AgentJidoWeb.ContentAssistantLive do
                 name="assistant[q]"
                 type="search"
                 value={@query}
-                placeholder="Ask about docs, blog, and ecosystem..."
+                placeholder="Search docs, blog, and ecosystem..."
                 class="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
               />
               <button
@@ -172,7 +172,7 @@ defmodule AgentJidoWeb.ContentAssistantLive do
             </span>
             <span>Working on "<span class="font-semibold">{@query}</span>"...</span>
           </div>
-          <p class="mt-2 text-xs text-muted-foreground">Retrieving references and composing an answer.</p>
+          <p class="mt-2 text-xs text-muted-foreground">Retrieving references and citations.</p>
         </section>
 
         <section
@@ -1210,7 +1210,7 @@ defmodule AgentJidoWeb.ContentAssistantLive do
   defp analytics_metadata(_response, metadata) when is_map(metadata), do: metadata
 
   defp assistant_opts(socket, turnstile_token, stage \\ :default) do
-    retrieval_opts = [mode: search_retrieval_mode(), graph: false]
+    retrieval_opts = [mode: search_retrieval_mode(), graph: true]
 
     default_opts =
       [
@@ -1230,7 +1230,10 @@ defmodule AgentJidoWeb.ContentAssistantLive do
         _ -> []
       end
 
-    Keyword.merge(default_opts, session_opts)
+    default_opts
+    |> Keyword.merge(session_opts)
+    |> Keyword.put(:llm, nil)
+    |> Keyword.put(:require_turnstile, false)
   end
 
   defp response_cache_key(query, content_assistant_module, opts) do
@@ -1352,7 +1355,7 @@ defmodule AgentJidoWeb.ContentAssistantLive do
   defp progressive_mode?, do: search_response_mode() == :progressive
 
   defp search_retrieval_mode do
-    case content_assistant_config() |> config_value(:search_retrieval_mode, :fulltext) do
+    case content_assistant_config() |> config_value(:search_retrieval_mode, :hybrid) do
       mode when mode in [:hybrid, "hybrid"] -> :hybrid
       _ -> :fulltext
     end

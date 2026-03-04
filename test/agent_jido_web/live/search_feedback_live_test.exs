@@ -19,7 +19,7 @@ defmodule AgentJidoWeb.ContentAssistantFeedbackLiveTest do
          retrieval_status: :success,
          llm_attempted?: false,
          llm_enhanced?: false,
-         enhancement_blocked_reason: :llm_unconfigured,
+         enhancement_blocked_reason: nil,
          query_log_id: nil
        }}
     end

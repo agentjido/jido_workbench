@@ -7,6 +7,7 @@ defmodule AgentJidoWeb.ContentAssistantModalComponentTest do
   alias AgentJido.Analytics.AnalyticsEvent
   alias AgentJido.ContentAssistant.Response
   alias AgentJido.ContentAssistant.Result
+  alias AgentJido.QueryLogs
   alias AgentJido.QueryLogs.QueryLog
 
   defmodule ContentAssistantStub do
@@ -16,7 +17,7 @@ defmodule AgentJidoWeb.ContentAssistantModalComponentTest do
          query: "agents",
          answer_markdown: "Agent overview",
          answer_html: "<p>Agent overview</p>",
-         answer_mode: :llm,
+         answer_mode: :deterministic,
          citations: [
            %Result{
              title: "Agents",
@@ -27,8 +28,8 @@ defmodule AgentJidoWeb.ContentAssistantModalComponentTest do
            }
          ],
          retrieval_status: :success,
-         llm_attempted?: true,
-         llm_enhanced?: true,
+         llm_attempted?: false,
+         llm_enhanced?: false,
          enhancement_blocked_reason: nil,
          query_log_id: nil
        }}
@@ -45,7 +46,31 @@ defmodule AgentJidoWeb.ContentAssistantModalComponentTest do
          retrieval_status: :success,
          llm_attempted?: false,
          llm_enhanced?: false,
-         enhancement_blocked_reason: :llm_unconfigured,
+         enhancement_blocked_reason: nil,
+         query_log_id: nil
+       }}
+    end
+
+    def respond("jido", _opts) do
+      {:ok,
+       %Response{
+         query: "jido",
+         answer_markdown: "Jido docs result",
+         answer_html: "<p>Jido docs result</p>",
+         answer_mode: :deterministic,
+         citations: [
+           %Result{
+             title: "Jido Runtime",
+             snippet: "How Jido runtime handles directives.",
+             url: "/docs/concepts/agent-runtime",
+             source_type: :docs,
+             score: 0.91
+           }
+         ],
+         retrieval_status: :success,
+         llm_attempted?: false,
+         llm_enhanced?: false,
+         enhancement_blocked_reason: nil,
          query_log_id: nil
        }}
     end
@@ -86,67 +111,10 @@ defmodule AgentJidoWeb.ContentAssistantModalComponentTest do
          retrieval_status: :success,
          llm_attempted?: false,
          llm_enhanced?: false,
-         enhancement_blocked_reason: :llm_unconfigured,
+         enhancement_blocked_reason: nil,
          query_log_id: nil
        }}
     end
-  end
-
-  defmodule ProgressiveModalAssistantStub do
-    @moduledoc false
-
-    @spec respond(String.t(), keyword()) :: {:ok, Response.t()}
-    def respond("progressive", opts) do
-      if Keyword.get(opts, :llm) do
-        Process.sleep(160)
-
-        {:ok,
-         %Response{
-           query: "progressive",
-           answer_markdown: "Enhanced modal answer",
-           answer_html: "<p>Enhanced modal answer</p>",
-           answer_mode: :llm,
-           citations: [
-             %Result{
-               title: "Enhanced modal docs",
-               snippet: "Enhanced modal docs snippet.",
-               url: "/docs/concepts/agents",
-               source_type: :docs,
-               score: 0.96
-             }
-           ],
-           retrieval_status: :success,
-           llm_attempted?: true,
-           llm_enhanced?: true,
-           enhancement_blocked_reason: nil,
-           query_log_id: nil
-         }}
-      else
-        {:ok,
-         %Response{
-           query: "progressive",
-           answer_markdown: "Fast modal answer",
-           answer_html: "<p>Fast modal answer</p>",
-           answer_mode: :deterministic,
-           citations: [
-             %Result{
-               title: "Fast modal docs",
-               snippet: "Fast modal docs snippet.",
-               url: "/docs/concepts/agents",
-               source_type: :docs,
-               score: 0.7
-             }
-           ],
-           retrieval_status: :success,
-           llm_attempted?: false,
-           llm_enhanced?: false,
-           enhancement_blocked_reason: :llm_unconfigured,
-           query_log_id: nil
-         }}
-      end
-    end
-
-    def respond(_query, _opts), do: ContentAssistantStub.respond("none", [])
   end
 
   defmodule ModalHarnessLive do
@@ -274,63 +242,64 @@ defmodule AgentJidoWeb.ContentAssistantModalComponentTest do
     assert_receive {:modal_opts_capture, "agents", opts}, 1_000
     assert Keyword.get(opts, :llm) == nil
     assert Keyword.get(opts, :require_turnstile) == false
-    assert opts |> Keyword.get(:retrieval_opts, []) |> Keyword.get(:mode) == :fulltext
-    assert opts |> Keyword.get(:retrieval_opts, []) |> Keyword.get(:graph) == false
+    assert opts |> Keyword.get(:retrieval_opts, []) |> Keyword.get(:mode) == :hybrid
+    assert opts |> Keyword.get(:retrieval_opts, []) |> Keyword.get(:graph) == true
   end
 
-  test "renders fast modal answer first, then swaps to enhanced answer in progressive mode", %{conn: conn} do
-    original_module = Application.get_env(:agent_jido, :content_assistant_module)
-    original_llm = Application.get_env(:arcana, :llm)
-    original_content_assistant_config = Application.get_env(:agent_jido, AgentJido.ContentAssistant, [])
+  test "hydrates recent thread from persisted query logs and limits to last three entries", %{conn: conn} do
+    identity = %{
+      visitor_id: "content-assistant-test-visitor",
+      session_id: "content-assistant-test-session"
+    }
 
-    Application.put_env(:agent_jido, :content_assistant_module, ProgressiveModalAssistantStub)
-    Application.put_env(:arcana, :llm, "openai:gpt-4.1-nano")
+    base_time = ~N[2026-01-01 00:00:00]
 
-    Application.put_env(
-      :agent_jido,
-      AgentJido.ContentAssistant,
-      Keyword.put(original_content_assistant_config, :progressive_swap_min_ms, 500)
-    )
-
-    on_exit(fn ->
-      if original_module do
-        Application.put_env(:agent_jido, :content_assistant_module, original_module)
-      else
-        Application.delete_env(:agent_jido, :content_assistant_module)
-      end
-
-      if original_llm do
-        Application.put_env(:arcana, :llm, original_llm)
-      else
-        Application.delete_env(:arcana, :llm)
-      end
-
-      Application.put_env(
-        :agent_jido,
-        AgentJido.ContentAssistant,
-        original_content_assistant_config
-      )
-    end)
+    seed_query_log(identity, "alpha", "success", 2, NaiveDateTime.add(base_time, 1, :second))
+    seed_query_log(identity, "beta", "no_results", 0, NaiveDateTime.add(base_time, 2, :second))
+    seed_query_log(identity, "gamma", "success", 5, NaiveDateTime.add(base_time, 3, :second))
+    seed_query_log(identity, "delta", "success", 1, NaiveDateTime.add(base_time, 4, :second))
 
     {:ok, view, _html} = live_isolated(conn, ModalHarnessLive)
 
+    assert_eventually(fn ->
+      html = render(view)
+
+      html =~ "Recent thread" and
+        html =~ "delta" and
+        html =~ "gamma" and
+        html =~ "beta" and
+        not String.contains?(html, "alpha")
+    end)
+  end
+
+  test "recent thread items are clickable and rerun that query", %{conn: conn} do
+    {:ok, view, _html} = live_isolated(conn, ModalHarnessLive)
+
     view
-    |> form("form[phx-submit='submit']", assistant: %{q: "progressive"})
+    |> form("form[phx-submit='submit']", assistant: %{q: "agents"})
     |> render_submit()
 
     assert_eventually(fn ->
       html = render(view)
-      html =~ "Fast modal answer" and html =~ ~s(id="primary-nav-content-assistant-modal-enhancing")
+      html =~ "Agent overview" and html =~ "agents"
     end)
 
-    Process.sleep(220)
-    interim_html = render(view)
-    assert interim_html =~ "Fast modal answer"
-    assert interim_html =~ ~s(id="primary-nav-content-assistant-modal-enhancing")
+    view
+    |> form("form[phx-submit='submit']", assistant: %{q: "jido"})
+    |> render_submit()
 
     assert_eventually(fn ->
       html = render(view)
-      html =~ "Enhanced modal answer" and not String.contains?(html, ~s(id="primary-nav-content-assistant-modal-enhancing"))
+      html =~ "Jido docs result" and html =~ "jido"
+    end)
+
+    view
+    |> element("button[phx-value-q='agents']")
+    |> render_click()
+
+    assert_eventually(fn ->
+      html = render(view)
+      html =~ "Agent overview" and html =~ ~s(value="agents")
     end)
   end
 
@@ -342,6 +311,22 @@ defmodule AgentJidoWeb.ContentAssistantModalComponentTest do
         order_by: [desc: q.inserted_at],
         limit: 1
       )
+    )
+  end
+
+  defp seed_query_log(identity, query, status, results_count, inserted_at) do
+    {:ok, query_log} =
+      QueryLogs.create_query_log(nil, identity, %{
+        source: "content_assistant",
+        channel: "content_assistant_modal",
+        query: query,
+        status: status,
+        results_count: results_count
+      })
+
+    AgentJido.Repo.update_all(
+      from(q in QueryLog, where: q.id == ^query_log.id),
+      set: [inserted_at: inserted_at, updated_at: inserted_at]
     )
   end
 
