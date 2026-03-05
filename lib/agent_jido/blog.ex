@@ -14,6 +14,7 @@ defmodule AgentJido.Blog do
   alias AgentJido.Blog.SlugAlias
   alias AgentJido.Blog.TagAlias
   alias AgentJido.Blog.Taxonomy
+  alias AgentJido.Html.CodeEntityDecoder
   alias AgentJido.Repo
   alias PhoenixBlog.Post, as: BlogPost
 
@@ -108,7 +109,12 @@ defmodule AgentJido.Blog do
 
   defp to_compat_post(%BlogPost{} = post) do
     body_map = normalize_body(post.body)
-    body_html = EditorBlocks.body_to_html(body_map)
+
+    body_html =
+      body_map
+      |> EditorBlocks.body_to_html()
+      |> CodeEntityDecoder.decode_quotes_in_code()
+
     body_text = EditorBlocks.body_to_text(body_map)
     description = normalize_string(post.seo_description) || summarize(body_text)
     date = published_date(post)

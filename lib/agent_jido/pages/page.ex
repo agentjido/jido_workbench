@@ -55,6 +55,7 @@ defmodule AgentJido.Pages.Page do
   """
 
   @github_repo "https://github.com/agentjido/agentjido_xyz"
+  alias AgentJido.Html.CodeEntityDecoder
 
   @schema Zoi.struct(
             __MODULE__,
@@ -234,6 +235,8 @@ defmodule AgentJido.Pages.Page do
   """
   @spec build(String.t(), map(), String.t()) :: t()
   def build(filename, attrs, body) do
+    body = CodeEntityDecoder.decode_quotes_in_code(body)
+
     order = Map.get(attrs, :order, 9999)
 
     full_app_path = Application.app_dir(:agent_jido)
