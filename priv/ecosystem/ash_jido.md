@@ -9,8 +9,6 @@
   category: :integrations,
   tier: 2,
   tags: [:ash, :bridge, :code_generation, :actions],
-  hex_url: "https://hex.pm/packages/ash_jido",
-  hexdocs_url: "https://hexdocs.pm/ash_jido",
   github_url: "https://github.com/agentjido/ash_jido",
   github_org: "agentjido",
   github_repo: "ash_jido",
