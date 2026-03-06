@@ -7,11 +7,21 @@ defmodule AgentJido.Community.ShowcaseTest do
     projects = Showcase.all_projects()
 
     assert length(projects) > 0
+    assert Enum.any?(projects, &(&1.slug == "goodwizard"))
     assert Enum.any?(projects, &(&1.slug == "loomkin"))
     assert Enum.any?(projects, &(&1.slug == "screentour"))
     refute Enum.any?(projects, &(&1.slug == "agent-jido-workbench"))
     refute Enum.any?(projects, &(&1.slug == "jido-run"))
     assert Enum.all?(projects, &(&1.status == :live))
+  end
+
+  test "goodwizard card includes the repository link" do
+    project = Showcase.get_project!("goodwizard")
+
+    assert project.title == "Goodwizard"
+    assert project.project_url == "https://github.com/agoodway/goodwizard"
+    assert is_binary(project.body)
+    assert "telegram" in project.tags
   end
 
   test "get_project!/1 returns structured card fields" do
