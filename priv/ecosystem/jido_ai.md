@@ -5,7 +5,7 @@
   tagline: "LLM orchestration, reasoning strategies, and accuracy improvement for Jido agents",
   graph_label: "Jido AI",
   license: "Apache-2.0",
-  visibility: :private,
+  visibility: :public,
   category: :ai,
   tier: 1,
   tags: [:ai, :llm, :reasoning, :agents],

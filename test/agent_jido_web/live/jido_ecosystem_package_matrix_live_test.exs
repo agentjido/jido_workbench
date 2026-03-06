@@ -10,7 +10,7 @@ defmodule AgentJidoWeb.JidoEcosystemPackageMatrixLiveTest do
     assert html =~ "ADOPTION ORDER"
     assert html =~ "SHOW UNSTABLE"
     assert html =~ ~s(href="/ecosystem/jido")
-    refute html =~ ~s(href="/ecosystem/jido_ai")
+    assert html =~ ~s(href="/ecosystem/jido_ai")
   end
 
   test "toggle reveals unstable curated packages", %{conn: conn} do

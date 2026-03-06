@@ -5,7 +5,7 @@
   version: "0.1.0",
   tagline: "Workflow composition and execution substrate for DAG-based agent orchestration",
   license: "Apache-2.0",
-  visibility: :private,
+  visibility: :public,
   category: :tools,
   tier: 2,
   tags: [:workflow, :dag, :pipeline, :orchestration, :durable],
