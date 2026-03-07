@@ -37,5 +37,24 @@ config :arcana,
   graph: [enabled: false]
 
 config :agent_jido, AgentJido.GithubStarsTracker, enabled: false
+config :agent_jido, :analytics_module, AgentJido.Analytics.Composite
+
+config :agent_jido, :posthog,
+  enabled: false,
+  browser_enabled: false,
+  server_enabled: false,
+  autocapture_enabled: false,
+  session_replay_enabled: false,
+  session_replay_sample_rate: 0.25,
+  api_key: "test-posthog-key",
+  api_host: "https://us.i.posthog.com"
+
+config :posthog,
+  enable: true,
+  enable_error_tracking: false,
+  test_mode: true,
+  api_key: "test-posthog-key",
+  api_host: "https://us.i.posthog.com",
+  in_app_otp_apps: [:agent_jido]
 
 config :agent_jido, :dev_routes, true

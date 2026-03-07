@@ -5,6 +5,7 @@ defmodule AgentJidoWeb.ContentAssistantLive do
   use AgentJidoWeb, :live_view
 
   alias AgentJido.Analytics
+  alias AgentJido.Analytics.PostHog
   alias AgentJido.ContentAssistant
   alias AgentJido.ContentAssistant.PageResponseCache
   alias AgentJido.ContentAssistant.Response
@@ -100,7 +101,13 @@ defmodule AgentJidoWeb.ContentAssistantLive do
             </button>
           </div>
 
-          <.form id="content-assistant-form" for={%{}} as={:assistant} phx-submit="submit" class="mt-6 space-y-3">
+          <.form
+            id="content-assistant-form"
+            for={%{}}
+            as={:assistant}
+            phx-submit="submit"
+            class="mt-6 space-y-3 ph-no-capture ph-sensitive"
+          >
             <input
               id={@turnstile_input_id}
               name="assistant[turnstile_token]"
@@ -170,7 +177,7 @@ defmodule AgentJidoWeb.ContentAssistantLive do
               <span></span>
               <span></span>
             </span>
-            <span>Working on "<span class="font-semibold">{@query}</span>"...</span>
+            <span>Working on "<span class="ph-mask font-semibold">{@query}</span>"...</span>
           </div>
           <p class="mt-2 text-xs text-muted-foreground">Retrieving references and citations.</p>
         </section>
@@ -259,7 +266,7 @@ defmodule AgentJidoWeb.ContentAssistantLive do
           id="content-assistant-no-results-state"
           class="assistant-state-card space-y-3 rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground"
         >
-          <p>No relevant content found for "<span class="font-semibold text-foreground">{@query}</span>".</p>
+          <p>No relevant content found for "<span class="ph-mask font-semibold text-foreground">{@query}</span>".</p>
 
           <div :if={related_queries(@response) != []} class="space-y-2">
             <p class="text-xs font-semibold uppercase tracking-wide text-primary">Try one of these</p>
@@ -305,7 +312,7 @@ defmodule AgentJidoWeb.ContentAssistantLive do
           <h2 class="text-sm font-semibold uppercase tracking-[0.14em] text-muted-foreground">Recent thread</h2>
           <div class="mt-3 space-y-2">
             <div :for={turn <- @thread} class="assistant-thread-item rounded-lg border border-border bg-background/70 p-3">
-              <p class="text-sm font-semibold text-foreground">{turn.query}</p>
+              <p class="ph-mask text-sm font-semibold text-foreground">{turn.query}</p>
               <p class="mt-1 text-xs text-muted-foreground">
                 {turn.mode_label} • {turn.citations_count} reference{if turn.citations_count == 1, do: "", else: "s"}
               </p>
@@ -816,6 +823,7 @@ defmodule AgentJidoWeb.ContentAssistantLive do
     if socket.assigns.assistant_origin == :user_submit do
       latency_ms = elapsed_since_query_start(socket)
       emit_query_outcome(response, response.query, latency_ms)
+      capture_posthog_query_outcome(socket, response, latency_ms)
     end
 
     socket
@@ -1064,7 +1072,43 @@ defmodule AgentJidoWeb.ContentAssistantLive do
       metadata: %{surface: "content_assistant_page", query: query}
     })
 
+    capture_posthog_query_submitted(socket, query, query_log_id)
     query_log_id
+  end
+
+  defp capture_posthog_query_submitted(socket, query, query_log_id) do
+    PostHog.capture_event_safe(socket.assigns.current_scope, "content_assistant_query_submitted", %{
+      visitor_id: socket.assigns.analytics_identity[:visitor_id],
+      session_id: socket.assigns.analytics_identity[:session_id],
+      source: "content_assistant",
+      channel: "content_assistant_page",
+      path: socket.assigns.analytics_identity[:path] || "/search",
+      query_log_id: query_log_id,
+      query_length: String.length(query),
+      metadata: %{surface: "content_assistant_page", origin: "submit"}
+    })
+  end
+
+  defp capture_posthog_query_outcome(socket, %Response{} = response, latency_ms) do
+    event_name =
+      case response.answer_mode do
+        :error -> "content_assistant_query_error"
+        :no_results -> "content_assistant_query_no_results"
+        _mode -> "content_assistant_query_completed"
+      end
+
+    PostHog.capture_event_safe(socket.assigns.current_scope, event_name, %{
+      visitor_id: socket.assigns.analytics_identity[:visitor_id],
+      session_id: socket.assigns.analytics_identity[:session_id],
+      source: "content_assistant",
+      channel: "content_assistant_page",
+      path: socket.assigns.analytics_identity[:path] || "/search",
+      query_log_id: socket.assigns.last_query_log_id || response.query_log_id,
+      query_length: String.length(response.query || ""),
+      results_count: length(response.citations || []),
+      latency_ms: max(latency_ms, 0),
+      metadata: analytics_metadata(response, %{surface: "content_assistant_page", origin: "submit"})
+    })
   end
 
   defp query_status_from_response(%Response{answer_mode: :no_results}), do: "no_results"

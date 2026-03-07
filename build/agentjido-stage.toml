@@ -24,14 +24,17 @@ PORT = '8080'
 PRIMARY_REGION = "ord"
 ARCANA_EMBEDDER = "openai"
 ECTO_IPV6 = "true"
+POSTHOG_ENABLED = "false"
+POSTHOG_BROWSER_ENABLED = "false"
+POSTHOG_SERVER_ENABLED = "false"
 
 [http_service]
 internal_port = 8080
 force_https = true
-auto_stop_machines = true
+auto_stop_machines = "stop"
 auto_start_machines = true
 max_machines_running = 1
-min_machines_running = 1
+min_machines_running = 0
 
 [http_service.concurrency]
 type = 'connections'

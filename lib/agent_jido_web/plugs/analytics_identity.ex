@@ -20,7 +20,15 @@ defmodule AgentJidoWeb.Plugs.AnalyticsIdentity do
       conn.cookies[@visitor_cookie] ||
         Ecto.UUID.generate()
 
-    session_id = get_session(conn, @session_key) || Ecto.UUID.generate()
+    session_id =
+      case get_session(conn, @session_key) do
+        value when is_binary(value) ->
+          if uuid_v7?(value), do: value, else: UUIDv7.generate()
+
+        _ ->
+          UUIDv7.generate()
+      end
+
     referrer_host = referrer_host(conn)
 
     analytics_identity = %{
@@ -60,4 +68,13 @@ defmodule AgentJidoWeb.Plugs.AnalyticsIdentity do
         nil
     end
   end
+
+  defp uuid_v7?(value) when is_binary(value) do
+    case UUIDv7.decode(value) do
+      <<_timestamp::big-unsigned-48, 7::4, _rest::bitstring>> -> true
+      _other -> false
+    end
+  end
+
+  defp uuid_v7?(_value), do: false
 end

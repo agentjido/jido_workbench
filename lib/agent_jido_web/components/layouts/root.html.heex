@@ -22,6 +22,20 @@
         }
       })();
     </script>
+
+    <% posthog_config =
+      AgentJido.Analytics.PostHog.browser_init_config(
+        @conn.assigns[:current_scope],
+        @conn.assigns[:analytics_identity],
+        @conn.request_path
+      ) %>
+
+    <%= if posthog_config do %>
+      <script>
+        window.__agentJidoPostHog = <%= Phoenix.HTML.raw(Jason.encode!(posthog_config)) %>;
+      </script>
+    <% end %>
+
     <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
     </script>
 
@@ -135,6 +149,7 @@
     <meta name="twitter:image" content={og_image} />
   </head>
   <body class="antialiased font-mono">
+    <AgentJidoWeb.Jido.AdminNav.staging_site_bar />
     <AgentJidoWeb.Jido.AdminNav.utility_top_bar current_scope={@conn.assigns[:current_scope]} />
     {@inner_content}
   </body>

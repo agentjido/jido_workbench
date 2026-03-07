@@ -54,6 +54,7 @@ defmodule AgentJido.MixProject do
       {:multipart, "~> 0.4", override: true},
       {:phoenix_seo, "~> 0.1.11"},
       {:finch, "~> 0.13"},
+      {:posthog, "~> 2.5"},
       {:swoosh, "~> 1.5"},
 
       # Assets
@@ -131,7 +132,7 @@ defmodule AgentJido.MixProject do
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
-      "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
+      "assets.setup": ["cmd --cd assets npm ci", "tailwind.install --if-missing", "esbuild.install --if-missing"],
       "assets.build": ["tailwind default", "esbuild default"],
       "assets.deploy": ["tailwind default --minify", "esbuild default --minify", "phx.digest"],
       "arcana.refresh": [

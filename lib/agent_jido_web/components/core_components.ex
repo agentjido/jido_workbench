@@ -355,7 +355,7 @@ defmodule AgentJidoWeb.CoreComponents do
               as={@as}
               phx-submit={JS.push(@submit_event) |> hide_modal(@modal_id)}
               phx-target={@target}
-              class="space-y-3"
+              class="space-y-3 ph-no-capture ph-sensitive"
             >
               <input type="hidden" name={"#{Atom.to_string(@as)}[value]"} value="not_helpful" />
               <textarea
@@ -364,7 +364,7 @@ defmodule AgentJidoWeb.CoreComponents do
                 rows="3"
                 maxlength="500"
                 placeholder={@note_placeholder}
-                class="w-full resize-y rounded border border-border bg-background px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-0"
+                class="ph-no-capture ph-sensitive w-full resize-y rounded border border-border bg-background px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-0"
               >{@note}</textarea>
               <div class="flex justify-end gap-2">
                 <button

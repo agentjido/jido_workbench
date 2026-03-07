@@ -21,7 +21,7 @@ defmodule AgentJidoWeb.UserLive.Registration do
         </.header>
       </div>
 
-      <.form for={@form} id="registration_form" phx-submit="save" phx-change="validate">
+      <.form for={@form} id="registration_form" phx-submit="save" phx-change="validate" class="ph-no-capture ph-sensitive">
         <.phx_input
           field={@form[:email]}
           type="email"

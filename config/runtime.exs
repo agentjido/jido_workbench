@@ -68,6 +68,13 @@ config :agent_jido,
   mailer_from_name: env!("MAILER_FROM_NAME", :string, "AgentJido"),
   mailer_from_email: env!("MAILER_FROM_EMAIL", :string, default_mailer_from_email)
 
+if config_env() != :test do
+  posthog_runtime_config = AgentJido.Analytics.PostHog.RuntimeConfig.resolve(&System.get_env/1)
+
+  config :agent_jido, :posthog, posthog_runtime_config
+  config :posthog, AgentJido.Analytics.PostHog.RuntimeConfig.posthog_options(posthog_runtime_config)
+end
+
 # Agent runtime
 jido_config =
   case Application.get_env(:agent_jido, AgentJido.Jido, []) do
