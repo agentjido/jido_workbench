@@ -5,6 +5,7 @@ defmodule AgentJidoWeb.Jido.AdminNav do
   use AgentJidoWeb, :html
 
   alias AgentJido.Accounts
+  alias AgentJido.Site
   alias Phoenix.LiveView.JS
 
   @core_links [
@@ -22,6 +23,42 @@ defmodule AgentJidoWeb.Jido.AdminNav do
     %{label: "Arcana", path: "/arcana", kind: :href},
     %{label: "Jido Studio", path: "/dev/jido", kind: :href}
   ]
+  @staging_host "stage.jido.run"
+  @main_site_url "https://jido.run"
+
+  @spec staging_site_bar(map()) :: Phoenix.LiveView.Rendered.t()
+  def staging_site_bar(assigns) do
+    assigns =
+      assigns
+      |> assign(:show_staging_site_bar?, Site.canonical_host() == @staging_host)
+      |> assign(:staging_host, @staging_host)
+      |> assign(:main_site_url, @main_site_url)
+
+    ~H"""
+    <div
+      :if={@show_staging_site_bar?}
+      id="staging-site-bar"
+      class="border-b border-accent-yellow/30 bg-accent-yellow/10"
+    >
+      <div class="container mx-auto flex max-w-[1200px] flex-col gap-2 px-4 py-2 text-[11px] text-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div class="flex min-w-0 items-center gap-2">
+          <span class="rounded-full border border-accent-yellow/40 bg-background/80 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.16em] text-accent-yellow">
+            Staging
+          </span>
+          <p class="min-w-0 truncate text-foreground/85">
+            This is the staging site. Canonical host: <span class="font-semibold text-foreground">{@staging_host}</span>
+          </p>
+        </div>
+        <a
+          href={@main_site_url}
+          class="font-semibold text-accent-yellow transition-colors hover:text-foreground"
+        >
+          Visit jido.run →
+        </a>
+      </div>
+    </div>
+    """
+  end
 
   attr :current_scope, :any, default: nil
 
