@@ -186,6 +186,7 @@ function syncPostHogForPath(path, { capturePageview = false } = {}) {
 
   posthog.set_config({
     autocapture: eligible ? postHogState.autocaptureConfig : false,
+    capture_pageleave: eligible,
   });
 
   if (config.sessionReplayEnabled && postHogState.replaySampled && eligible) {
@@ -222,15 +223,19 @@ function initPostHog() {
       }
     : false;
 
+  const initialPath = normalizePath(config.currentPath || window.location.pathname);
+  const initialPageleaveEnabled = isPostHogPathEligible(initialPath);
+
   posthog.init(config.apiKey, {
     api_host: config.apiHost,
+    ui_host: config.uiHost,
     bootstrap: {
       distinctID: config.distinctId,
       sessionID: config.sessionId,
     },
     autocapture: false,
     capture_pageview: false,
-    capture_pageleave: false,
+    capture_pageleave: initialPageleaveEnabled,
     disable_session_recording: true,
     mask_all_text: false,
     session_recording: {

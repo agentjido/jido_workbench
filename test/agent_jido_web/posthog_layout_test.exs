@@ -27,6 +27,8 @@ defmodule AgentJidoWeb.PostHogLayoutTest do
 
     assert html =~ "window.__agentJidoPostHog"
     assert html =~ ~s("apiKey":"browser-posthog-key")
+    assert html =~ ~s("apiHost":"https://e.jido.run")
+    assert html =~ ~s("uiHost":"https://us.posthog.com")
     assert html =~ ~s("sessionReplaySampleRate":0.25)
     assert html =~ ~s("pathIgnorePrefixes")
   end
@@ -77,7 +79,9 @@ defmodule AgentJidoWeb.PostHogLayoutTest do
           session_replay_enabled: true,
           session_replay_sample_rate: 0.25,
           api_key: "browser-posthog-key",
-          api_host: "https://us.i.posthog.com"
+          api_host: "https://us.i.posthog.com",
+          browser_api_host: "https://e.jido.run",
+          ui_host: "https://us.posthog.com"
         },
         overrides
       )

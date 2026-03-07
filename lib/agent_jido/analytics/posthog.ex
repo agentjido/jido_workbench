@@ -40,7 +40,8 @@ defmodule AgentJido.Analytics.PostHog do
       if is_binary(visitor_id) and is_binary(session_id) do
         %{
           apiKey: config.api_key,
-          apiHost: config.api_host,
+          apiHost: config.browser_api_host,
+          uiHost: config.ui_host,
           distinctId: visitor_id,
           sessionId: session_id,
           currentPath: normalize_path(request_path || read(identity, "path")),
@@ -101,10 +102,15 @@ defmodule AgentJido.Analytics.PostHog do
           session_replay_enabled: boolean(),
           session_replay_sample_rate: float(),
           api_key: String.t() | nil,
-          api_host: String.t()
+          api_host: String.t(),
+          browser_api_host: String.t(),
+          ui_host: String.t() | nil
         }
   def config do
     raw_config = Application.get_env(:agent_jido, :posthog, %{})
+    api_host = fetch_config(raw_config, :api_host, "https://us.i.posthog.com")
+    browser_api_host = fetch_config(raw_config, :browser_api_host, api_host)
+    ui_host = fetch_config(raw_config, :ui_host, infer_ui_host(api_host, browser_api_host))
 
     %{
       enabled: fetch_config(raw_config, :enabled, false),
@@ -114,7 +120,9 @@ defmodule AgentJido.Analytics.PostHog do
       session_replay_enabled: fetch_config(raw_config, :session_replay_enabled, false),
       session_replay_sample_rate: fetch_config(raw_config, :session_replay_sample_rate, 0.25),
       api_key: fetch_config(raw_config, :api_key, nil),
-      api_host: fetch_config(raw_config, :api_host, "https://us.i.posthog.com")
+      api_host: api_host,
+      browser_api_host: browser_api_host,
+      ui_host: ui_host
     }
   end
 
@@ -237,6 +245,14 @@ defmodule AgentJido.Analytics.PostHog do
   end
 
   defp fetch_config(_config, _key, default), do: default
+
+  defp infer_ui_host("https://us.i.posthog.com", _browser_api_host), do: "https://us.posthog.com"
+  defp infer_ui_host("https://eu.i.posthog.com", _browser_api_host), do: "https://eu.posthog.com"
+  defp infer_ui_host("https://app.posthog.com", _browser_api_host), do: "https://us.posthog.com"
+  defp infer_ui_host(_api_host, "https://us.i.posthog.com"), do: "https://us.posthog.com"
+  defp infer_ui_host(_api_host, "https://eu.i.posthog.com"), do: "https://eu.posthog.com"
+  defp infer_ui_host(_api_host, "https://app.posthog.com"), do: "https://us.posthog.com"
+  defp infer_ui_host(_api_host, _browser_api_host), do: nil
 
   defp put_present(map, _key, nil), do: map
   defp put_present(map, _key, ""), do: map

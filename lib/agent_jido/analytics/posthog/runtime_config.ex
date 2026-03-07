@@ -14,7 +14,9 @@ defmodule AgentJido.Analytics.PostHog.RuntimeConfig do
           session_replay_enabled: boolean(),
           session_replay_sample_rate: float(),
           api_key: String.t() | nil,
-          api_host: String.t()
+          api_host: String.t(),
+          browser_api_host: String.t(),
+          ui_host: String.t() | nil
         }
 
   @spec resolve((String.t() -> String.t() | nil)) :: resolved_config()
@@ -36,6 +38,8 @@ defmodule AgentJido.Analytics.PostHog.RuntimeConfig do
 
     api_key = env_string(env_reader, "POSTHOG_API_KEY")
     api_host = env_string(env_reader, "POSTHOG_API_HOST") || @default_api_host
+    browser_api_host = env_string(env_reader, "POSTHOG_BROWSER_API_HOST") || api_host
+    ui_host = env_string(env_reader, "POSTHOG_UI_HOST") || infer_ui_host(api_host, browser_api_host)
 
     if (browser_enabled or server_enabled) and blank?(api_key) do
       raise """
@@ -51,7 +55,9 @@ defmodule AgentJido.Analytics.PostHog.RuntimeConfig do
       session_replay_enabled: session_replay_enabled,
       session_replay_sample_rate: session_replay_sample_rate,
       api_key: api_key,
-      api_host: api_host
+      api_host: api_host,
+      browser_api_host: browser_api_host,
+      ui_host: ui_host
     }
   end
 
@@ -109,6 +115,20 @@ defmodule AgentJido.Analytics.PostHog.RuntimeConfig do
         nil
     end
   end
+
+  defp infer_ui_host(api_host, browser_api_host) do
+    api_host
+    |> ui_host_for_standard_ingest_host()
+    |> case do
+      nil -> ui_host_for_standard_ingest_host(browser_api_host)
+      ui_host -> ui_host
+    end
+  end
+
+  defp ui_host_for_standard_ingest_host("https://us.i.posthog.com"), do: "https://us.posthog.com"
+  defp ui_host_for_standard_ingest_host("https://eu.i.posthog.com"), do: "https://eu.posthog.com"
+  defp ui_host_for_standard_ingest_host("https://app.posthog.com"), do: "https://us.posthog.com"
+  defp ui_host_for_standard_ingest_host(_host), do: nil
 
   defp blank?(value), do: is_nil(value) or value == ""
 end

@@ -14,6 +14,8 @@ defmodule AgentJido.Analytics.PostHog.RuntimeConfigTest do
     assert config.session_replay_sample_rate == 0.25
     assert config.api_key == nil
     assert config.api_host == "https://us.i.posthog.com"
+    assert config.browser_api_host == "https://us.i.posthog.com"
+    assert config.ui_host == "https://us.posthog.com"
 
     assert RuntimeConfig.posthog_options(config) == [
              enable: false,
@@ -31,7 +33,8 @@ defmodule AgentJido.Analytics.PostHog.RuntimeConfigTest do
       "POSTHOG_SESSION_REPLAY_ENABLED" => "true",
       "POSTHOG_SESSION_REPLAY_SAMPLE_RATE" => "0.4",
       "POSTHOG_API_KEY" => "phc_test_key",
-      "POSTHOG_API_HOST" => "https://us.i.posthog.com"
+      "POSTHOG_API_HOST" => "https://us.i.posthog.com",
+      "POSTHOG_BROWSER_API_HOST" => "https://e.jido.run"
     }
 
     config = RuntimeConfig.resolve(&Map.get(env, &1))
@@ -44,6 +47,8 @@ defmodule AgentJido.Analytics.PostHog.RuntimeConfigTest do
     assert config.session_replay_sample_rate == 0.4
     assert config.api_key == "phc_test_key"
     assert config.api_host == "https://us.i.posthog.com"
+    assert config.browser_api_host == "https://e.jido.run"
+    assert config.ui_host == "https://us.posthog.com"
 
     assert RuntimeConfig.posthog_options(config) == [
              enable: true,
@@ -53,6 +58,21 @@ defmodule AgentJido.Analytics.PostHog.RuntimeConfigTest do
              api_host: "https://us.i.posthog.com",
              in_app_otp_apps: [:agent_jido]
            ]
+  end
+
+  test "prefers explicit PostHog UI host when configured" do
+    env = %{
+      "POSTHOG_ENABLED" => "true",
+      "POSTHOG_BROWSER_ENABLED" => "true",
+      "POSTHOG_API_KEY" => "phc_test_key",
+      "POSTHOG_BROWSER_API_HOST" => "https://e.jido.run",
+      "POSTHOG_UI_HOST" => "https://us.posthog.com"
+    }
+
+    config = RuntimeConfig.resolve(&Map.get(env, &1))
+
+    assert config.browser_api_host == "https://e.jido.run"
+    assert config.ui_host == "https://us.posthog.com"
   end
 
   test "raises when capture is enabled without an API key" do
