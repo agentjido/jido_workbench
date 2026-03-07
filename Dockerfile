@@ -84,6 +84,14 @@ ENV LC_ALL=en_US.UTF-8
 WORKDIR "/app"
 RUN chown nobody /app
 
+# The Debian `nobody` user has `/nonexistent` as its home directory.
+# Fontconfig falls back to `$HOME/.cache/fontconfig`, so provide a writable
+# home/cache location for runtime image generation.
+ENV HOME="/app"
+ENV XDG_CACHE_HOME="/app/.cache"
+
+RUN mkdir -p /app/.cache/fontconfig && chown -R nobody:root /app/.cache
+
 # set runner ENV
 ENV MIX_ENV="prod"
 
