@@ -15,7 +15,7 @@ memory = '512mb'
 [build]
 
 [deploy]
-strategy = "immediate"
+strategy = "bluegreen"
 
 [processes]
 app = "/app/bin/entrypoint"

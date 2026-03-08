@@ -11,12 +11,20 @@
 
 ## Architecture
 
-Phoenix 1.7+ LiveView app showcasing the Jido AI Agent Framework. Deployed to Fly.io.
+Phoenix 1.7+ LiveView app showcasing the Jido AI Agent Framework. Hosted on Fly.io.
 
 - `lib/agent_jido/` - Core business logic (blog, documentation, agents, chat)
 - `lib/agent_jido_web/` - Phoenix web layer (LiveViews, controllers, components)
 - `config/` - Environment configs (dev.exs, test.exs, prod.exs, runtime.exs)
 - Uses `jido` and `jido_ai` for AI agent functionality; set `LOCAL_JIDO_DEPS=true` for local dev
+
+## Deployment Process
+
+- Fly apps: staging is `agentjido-stage` at `stage.jido.run`; production is `agentjido-prod` at `jido.run`
+- Default release flow is: commit to `main`, push, wait for the `CI` workflow to pass, and wait for `Deploy Fly STAGE` to auto-deploy staging
+- After staging auto-deploys, verify the change on `stage.jido.run` before touching production
+- Only trigger `Deploy Fly PROD` after staging verification is complete
+- Production deploys should use Fly's `bluegreen` strategy for minimal downtime
 
 ## Code Style
 
