@@ -5,8 +5,8 @@
 @source "../../lib/*_web/**/*.*ex";
 @source "../../deps/phoenix_blog/lib";
 
+@import "./fonts.css";
 @import "./syntax.css";
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
 
 @plugin "@tailwindcss/forms";
 @plugin "@tailwindcss/typography";

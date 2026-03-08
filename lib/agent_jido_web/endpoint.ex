@@ -32,7 +32,7 @@ defmodule AgentJidoWeb.Endpoint do
   plug Plug.Static,
     at: "/phoenix_blog",
     from: {:phoenix_blog, "priv/static"},
-    gzip: false
+    gzip: true
 
   # Serve at "/" the static files from "priv/static" directory.
   #
@@ -41,7 +41,7 @@ defmodule AgentJidoWeb.Endpoint do
   plug Plug.Static,
     at: "/",
     from: :agent_jido,
-    gzip: false,
+    gzip: true,
     only: AgentJidoWeb.static_paths()
 
   if Code.ensure_loaded?(Tidewave) do

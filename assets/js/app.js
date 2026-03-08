@@ -1,23 +1,16 @@
 import "phoenix_html";
-import posthog from "posthog-js";
 import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
 import topbar from "../vendor/topbar";
 import ScrollSpy from "./hooks/scroll_spy";
 import ScrollReveal from "./hooks/scroll_reveal";
 import HashScrollLink from "./hooks/hash_scroll_link";
-import ContentAssistantTurnstile from "./hooks/content_assistant_turnstile";
+import ContentAssistantTurnstile from "./hooks/content_assistant_turnstile.mjs";
 import EcosystemOrbit from "./hooks/ecosystem_orbit";
+import { createPostHogManager, normalizePath } from "./posthog_manager.mjs";
 import { PhoenixBlogHooks } from "../../deps/phoenix_blog/priv/static/editorjs/hook.js";
 
 const ANALYTICS_FLUSH_INTERVAL_MS = 1000;
-const POSTHOG_BROWSER_EVENTS = new Set([
-  "docs_section_viewed",
-  "code_copied",
-  "livebook_run_clicked",
-  "content_assistant_reference_clicked",
-  "content_assistant_answer_link_clicked",
-]);
 
 function applyTheme(theme) {
   if (theme === "light") {
@@ -38,236 +31,23 @@ function syncUtilityTopBarHeight() {
   document.documentElement.style.setProperty("--utility-top-bar-height", `${height}px`);
 }
 
-function normalizePath(path) {
-  if (typeof path === "string" && path.startsWith("/")) {
-    return path;
-  }
-
-  return window.location.pathname || "/";
-}
-
 function parsePositiveInt(value) {
   const parsed = Number.parseInt(value, 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
 }
 
-function isPlainObject(value) {
-  return value !== null && typeof value === "object" && !Array.isArray(value);
-}
-
-function stringLength(value) {
-  return typeof value === "string" ? value.length : undefined;
-}
-
-function flattenAnalyticsProperties(properties = {}) {
-  const normalizedPath = normalizePath(properties.path);
-  const metadata = isPlainObject(properties.metadata) ? properties.metadata : {};
-  const flattened = {
-    ...properties,
-    ...metadata,
-    path: normalizedPath,
-  };
-
-  delete flattened.metadata;
-
-  const queryLength =
-    stringLength(flattened.query) ||
-    stringLength(flattened.query_text) ||
-    stringLength(metadata.query) ||
-    stringLength(metadata.query_text);
-
-  const feedbackNoteLength =
-    stringLength(flattened.feedback_note) ||
-    stringLength(flattened.note) ||
-    stringLength(metadata.feedback_note) ||
-    stringLength(metadata.note);
-
-  if (queryLength !== undefined) {
-    flattened.query_length = queryLength;
-  }
-
-  if (feedbackNoteLength !== undefined) {
-    flattened.feedback_note_length = feedbackNoteLength;
-  }
-
-  delete flattened.query;
-  delete flattened.query_text;
-  delete flattened.feedback_note;
-  delete flattened.note;
-  delete flattened.answer_html;
-  delete flattened.answer_markdown;
-  delete flattened.citations;
-  delete flattened.related_queries;
-
-  return flattened;
-}
-
-function hashToUnitInterval(value) {
-  const input = typeof value === "string" && value.length > 0 ? value : "posthog";
-  let hash = 0;
-
-  for (let index = 0; index < input.length; index += 1) {
-    hash = (hash * 31 + input.charCodeAt(index)) >>> 0;
-  }
-
-  return hash / 0xffffffff;
-}
-
-function readPostHogConfig() {
-  return isPlainObject(window.__agentJidoPostHog) ? window.__agentJidoPostHog : null;
-}
-
-function isPostHogPathEligible(path) {
-  const config = readPostHogConfig();
-  const normalizedPath = normalizePath(path);
-
-  if (!config) {
-    return false;
-  }
-
-  const ignoredPrefixes = Array.isArray(config.pathIgnorePrefixes) ? config.pathIgnorePrefixes : [];
-  const ignoredExactPaths = Array.isArray(config.pathIgnoreExactPaths) ? config.pathIgnoreExactPaths : [];
-
-  if (ignoredExactPaths.includes(normalizedPath)) {
-    return false;
-  }
-
-  return !ignoredPrefixes.some((prefix) => normalizedPath.startsWith(prefix));
-}
-
 const analyticsQueue = [];
 let analyticsFlushTimer = null;
 
-const postHogState = {
-  initialized: false,
-  replaySampled: false,
-  autocaptureConfig: false,
-  lastTrackedPath: null,
-};
-
-function trackPostHogPageview(path) {
-  const normalizedPath = normalizePath(path);
-
-  if (!postHogState.initialized || !isPostHogPathEligible(normalizedPath)) {
-    return;
-  }
-
-  if (postHogState.lastTrackedPath === normalizedPath) {
-    return;
-  }
-
-  posthog.register({
-    current_path: normalizedPath,
-  });
-
-  posthog.capture("$pageview", {
-    path: normalizedPath,
-    current_path: normalizedPath,
-    $current_url: window.location.href,
-  });
-
-  postHogState.lastTrackedPath = normalizedPath;
-}
-
-function syncPostHogForPath(path, { capturePageview = false } = {}) {
-  const config = readPostHogConfig();
-
-  if (!config || !postHogState.initialized) {
-    return;
-  }
-
-  const normalizedPath = normalizePath(path);
-  const eligible = isPostHogPathEligible(normalizedPath);
-
-  posthog.register({
-    current_path: normalizedPath,
-    session_id: config.sessionId,
-  });
-
-  posthog.set_config({
-    autocapture: eligible ? postHogState.autocaptureConfig : false,
-    capture_pageleave: eligible,
-  });
-
-  if (config.sessionReplayEnabled && postHogState.replaySampled && eligible) {
-    if (!posthog.sessionRecordingStarted()) {
-      posthog.startSessionRecording();
-    }
-  } else if (posthog.sessionRecordingStarted()) {
-    posthog.stopSessionRecording();
-  }
-
-  if (capturePageview) {
-    trackPostHogPageview(normalizedPath);
-  }
-}
-
-function initPostHog() {
-  const config = readPostHogConfig();
-
-  if (!config || !config.apiKey || !config.distinctId || !config.sessionId) {
-    return;
-  }
-
-  postHogState.replaySampled =
-    Number(config.sessionReplaySampleRate) >= 1 ||
-    hashToUnitInterval(config.sessionId) < Number(config.sessionReplaySampleRate || 0);
-
-  postHogState.autocaptureConfig = config.autocaptureEnabled
-    ? {
-        url_ignorelist: [
-          ...(Array.isArray(config.pathIgnorePrefixes) ? config.pathIgnorePrefixes : []),
-          ...(Array.isArray(config.pathIgnoreExactPaths) ? config.pathIgnoreExactPaths : []),
-        ],
-        capture_copied_text: false,
-      }
-    : false;
-
-  const initialPath = normalizePath(config.currentPath || window.location.pathname);
-  const initialPageleaveEnabled = isPostHogPathEligible(initialPath);
-
-  posthog.init(config.apiKey, {
-    api_host: config.apiHost,
-    ui_host: config.uiHost,
-    bootstrap: {
-      distinctID: config.distinctId,
-      sessionID: config.sessionId,
-    },
-    autocapture: false,
-    capture_pageview: false,
-    capture_pageleave: initialPageleaveEnabled,
-    disable_session_recording: true,
-    mask_all_text: false,
-    session_recording: {
-      blockClass: config.blockClass || "ph-no-capture",
-      maskTextClass: config.maskTextClass || "ph-mask",
-      maskAllInputs: config.maskAllInputs !== false,
-    },
-    loaded(instance) {
-      instance.register({
-        session_id: config.sessionId,
-        current_path: normalizePath(config.currentPath || window.location.pathname),
-      });
-
-      postHogState.initialized = true;
-      syncPostHogForPath(window.location.pathname, { capturePageview: true });
-    },
-  });
-}
-
-function trackPostHogEvent(eventName, properties = {}) {
-  if (!postHogState.initialized || !POSTHOG_BROWSER_EVENTS.has(eventName)) {
-    return;
-  }
-
-  const normalizedPath = normalizePath(properties.path);
-
-  if (!isPostHogPathEligible(normalizedPath)) {
-    return;
-  }
-
-  posthog.capture(eventName, flattenAnalyticsProperties(properties));
-}
+const postHogManager = createPostHogManager({
+  windowRef: window,
+  documentRef: document,
+  importPostHog: () => import("posthog-js"),
+  requestIdleCallbackFn: window.requestIdleCallback ? window.requestIdleCallback.bind(window) : null,
+  cancelIdleCallbackFn: window.cancelIdleCallback ? window.cancelIdleCallback.bind(window) : null,
+  setTimeoutFn: window.setTimeout.bind(window),
+  clearTimeoutFn: window.clearTimeout.bind(window),
+});
 
 function flushAnalyticsQueue() {
   analyticsFlushTimer = null;
@@ -309,7 +89,7 @@ function trackAnalyticsEvent(eventName, properties = {}) {
 
   analyticsQueue.push(payload);
   scheduleAnalyticsFlush();
-  trackPostHogEvent(eventName, payload.properties);
+  postHogManager.trackEvent(eventName, payload.properties);
 }
 
 window.__agentJidoTrackEvent = trackAnalyticsEvent;
@@ -430,12 +210,12 @@ window.addEventListener("phx:page-loading-start", () => topbar.show(300));
 window.addEventListener("phx:page-loading-stop", () => {
   topbar.hide();
   syncUtilityTopBarHeight();
-  syncPostHogForPath(window.location.pathname, { capturePageview: true });
+  postHogManager.syncForPath(window.location.pathname, { capturePageview: true });
 });
 window.addEventListener("resize", syncUtilityTopBarHeight);
 
 syncUtilityTopBarHeight();
-initPostHog();
+postHogManager.scheduleInit();
 
 if (shouldConnectLiveSocket()) {
   liveSocket.connect();

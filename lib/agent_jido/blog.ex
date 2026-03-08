@@ -56,6 +56,27 @@ defmodule AgentJido.Blog do
 
   def get_post_by_id!(id), do: raise(NotFoundError, "post with id=#{inspect(id)} not found")
 
+  @spec get_published_post_by_slug!(String.t()) :: Post.t()
+  def get_published_post_by_slug!(slug) when is_binary(slug) do
+    normalized_slug = String.trim(slug)
+
+    case fetch_post_by_slug(normalized_slug) do
+      {:ok, post} ->
+        post
+
+      :not_found ->
+        normalized_slug
+        |> resolve_canonical_slug()
+        |> fetch_or_fallback_post_by_slug(normalized_slug)
+
+      :error ->
+        get_post_by_id!(normalized_slug)
+    end
+  end
+
+  def get_published_post_by_slug!(slug),
+    do: raise(NotFoundError, "post with slug=#{inspect(slug)} not found")
+
   @spec get_posts_by_tag!(String.t()) :: [Post.t()]
   def get_posts_by_tag!(tag) when is_binary(tag) do
     normalized_tag = String.trim(tag)
@@ -105,6 +126,16 @@ defmodule AgentJido.Blog do
     from post in BlogPost,
       where: post.status == :published and is_nil(post.deleted_at) and post.published_at <= ^now,
       order_by: [desc: post.published_at, desc: post.inserted_at]
+  end
+
+  defp published_post_by_slug_query(slug) do
+    now = DateTime.utc_now(:second)
+
+    from post in BlogPost,
+      where:
+        post.slug == ^slug and post.status == :published and is_nil(post.deleted_at) and
+          post.published_at <= ^now,
+      limit: 1
   end
 
   defp to_compat_post(%BlogPost{} = post) do
@@ -230,6 +261,40 @@ defmodule AgentJido.Blog do
         evidence_surface: metadata.evidence_surface,
         seo: seo
     }
+  end
+
+  defp fetch_post_by_slug(slug) when is_binary(slug) do
+    case Repo.one(published_post_by_slug_query(slug)) do
+      %BlogPost{} = post -> {:ok, to_compat_post(post)}
+      _ -> :not_found
+    end
+  rescue
+    _ -> :error
+  end
+
+  defp resolve_canonical_slug(slug) when is_binary(slug) do
+    case SlugAlias.canonical_slug_for(slug) do
+      canonical when is_binary(canonical) and canonical != "" and canonical != slug -> canonical
+      _ -> nil
+    end
+  end
+
+  defp fetch_or_fallback_post_by_slug(nil, slug), do: fallback_post_by_slug(slug)
+
+  defp fetch_or_fallback_post_by_slug(canonical_slug, slug) do
+    case fetch_post_by_slug(canonical_slug) do
+      {:ok, post} -> post
+      :not_found -> fallback_post_by_slug(slug)
+      :error -> get_post_by_id!(slug)
+    end
+  end
+
+  defp fallback_post_by_slug(slug) do
+    posts = all_posts()
+
+    Enum.find(posts, &(&1.id == slug)) ||
+      find_by_legacy_alias(posts, slug) ||
+      raise NotFoundError, "post with slug=#{slug} not found"
   end
 
   defp map_list(body_map, key) do

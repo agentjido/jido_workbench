@@ -129,7 +129,16 @@ config :agent_jido, AgentJido.GithubStarsTracker,
 config :esbuild,
   version: "0.27.3",
   default: [
-    args: ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
+    args: ~w(
+      js/app.js
+      --bundle
+      --target=es2020
+      --format=esm
+      --splitting
+      --outdir=../priv/static/assets
+      --external:/fonts/*
+      --external:/images/*
+    ),
     cd: Path.expand("../assets", __DIR__),
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ]

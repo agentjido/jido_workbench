@@ -141,6 +141,7 @@ defmodule AgentJidoWeb.ContentAssistantModalComponentTest do
 
   setup do
     original_module = Application.get_env(:agent_jido, :content_assistant_module)
+    original_content_assistant_config = Application.get_env(:agent_jido, AgentJido.ContentAssistant)
     Application.put_env(:agent_jido, :content_assistant_module, ContentAssistantStub)
 
     on_exit(fn ->
@@ -148,6 +149,12 @@ defmodule AgentJidoWeb.ContentAssistantModalComponentTest do
         Application.put_env(:agent_jido, :content_assistant_module, original_module)
       else
         Application.delete_env(:agent_jido, :content_assistant_module)
+      end
+
+      if original_content_assistant_config do
+        Application.put_env(:agent_jido, AgentJido.ContentAssistant, original_content_assistant_config)
+      else
+        Application.delete_env(:agent_jido, AgentJido.ContentAssistant)
       end
     end)
 
@@ -244,6 +251,25 @@ defmodule AgentJidoWeb.ContentAssistantModalComponentTest do
     assert Keyword.get(opts, :require_turnstile) == false
     assert opts |> Keyword.get(:retrieval_opts, []) |> Keyword.get(:mode) == :hybrid
     assert opts |> Keyword.get(:retrieval_opts, []) |> Keyword.get(:graph) == true
+  end
+
+  test "renders lazy turnstile metadata for the modal when verification is enabled", %{conn: conn} do
+    Application.put_env(
+      :agent_jido,
+      AgentJido.ContentAssistant,
+      search_response_mode: :enhanced,
+      require_turnstile: true,
+      turnstile_site_key: "site-key"
+    )
+
+    {:ok, _view, html} = live_isolated(conn, ModalHarnessLive)
+
+    assert html =~ ~s(id="primary-nav-content-assistant-modal-turnstile")
+    assert html =~ ~s(data-load-trigger="modal-open")
+    assert html =~ ~s(data-modal-id="primary-nav-content-assistant-modal")
+    assert html =~ ~s(data-submit-id="primary-nav-content-assistant-modal-submit")
+    assert html =~ ~s(id="primary-nav-content-assistant-modal-turnstile-status")
+    assert html =~ ~s(id="primary-nav-content-assistant-modal-turnstile-retry")
   end
 
   test "hydrates recent thread from persisted query logs and limits to last three entries", %{conn: conn} do

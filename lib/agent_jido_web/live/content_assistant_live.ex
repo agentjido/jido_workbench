@@ -61,6 +61,9 @@ defmodule AgentJidoWeb.ContentAssistantLive do
       |> assign(:turnstile_site_key, turnstile_site_key())
       |> assign(:turnstile_widget_id, "content-assistant-page-turnstile")
       |> assign(:turnstile_input_id, "content-assistant-page-turnstile-token")
+      |> assign(:turnstile_submit_id, "content-assistant-page-submit")
+      |> assign(:turnstile_status_id, "content-assistant-page-turnstile-status")
+      |> assign(:turnstile_retry_id, "content-assistant-page-turnstile-retry")
 
     {:ok, socket}
   end
@@ -128,6 +131,7 @@ defmodule AgentJidoWeb.ContentAssistantLive do
                 class="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
               />
               <button
+                id={@turnstile_submit_id}
                 type="submit"
                 class="rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
               >
@@ -148,12 +152,23 @@ defmodule AgentJidoWeb.ContentAssistantLive do
                 data-appearance="interaction-only"
                 data-size="invisible"
                 data-execution="execute"
+                data-load-trigger="mount"
+                data-submit-id={@turnstile_submit_id}
+                data-status-id={@turnstile_status_id}
+                data-retry-id={@turnstile_retry_id}
                 class="h-0 overflow-hidden"
               >
               </div>
-              <p class="mt-1 text-xs text-muted-foreground">
+              <p id={@turnstile_status_id} class="mt-1 text-xs text-muted-foreground" data-state="loading">
                 Verification runs in the background and only prompts when risk is detected.
               </p>
+              <button
+                id={@turnstile_retry_id}
+                type="button"
+                class="mt-2 hidden rounded-md border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground hover:border-primary/50"
+              >
+                Retry verification
+              </button>
             </div>
           </.form>
         </section>

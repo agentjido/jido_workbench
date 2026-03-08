@@ -719,6 +719,7 @@ defmodule AgentJidoWeb.CoreComponents do
   def show_modal(js \\ %JS{}, id) when is_binary(id) do
     js
     |> JS.show(to: "##{id}")
+    |> JS.dispatch("agent-jido:modal-opened", to: "##{id}", detail: %{id: id})
     |> JS.show(
       to: "##{id}-bg",
       transition: {"transition-all transform ease-out duration-300", "opacity-0", "opacity-100"}

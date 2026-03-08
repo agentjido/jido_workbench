@@ -5,12 +5,19 @@ defmodule AgentJidoWeb.PostHogLayoutTest do
 
   setup do
     original_posthog_config = Application.get_env(:agent_jido, :posthog)
+    original_content_assistant_config = Application.get_env(:agent_jido, AgentJido.ContentAssistant)
 
     on_exit(fn ->
       if original_posthog_config do
         Application.put_env(:agent_jido, :posthog, original_posthog_config)
       else
         Application.delete_env(:agent_jido, :posthog)
+      end
+
+      if original_content_assistant_config do
+        Application.put_env(:agent_jido, AgentJido.ContentAssistant, original_content_assistant_config)
+      else
+        Application.delete_env(:agent_jido, AgentJido.ContentAssistant)
       end
     end)
 
@@ -64,6 +71,24 @@ defmodule AgentJidoWeb.PostHogLayoutTest do
       |> html_response(200)
 
     assert html =~ "ph-no-capture ph-sensitive"
+  end
+
+  test "does not inject Turnstile into the initial layout even when verification is enabled", %{conn: conn} do
+    Application.put_env(
+      :agent_jido,
+      AgentJido.ContentAssistant,
+      search_response_mode: :enhanced,
+      require_turnstile: true,
+      turnstile_site_key: "site-key"
+    )
+
+    html =
+      conn
+      |> get("/blog")
+      |> html_response(200)
+
+    refute html =~ "https://challenges.cloudflare.com/turnstile"
+    refute html =~ "turnstile-site-key"
   end
 
   defp put_posthog_config(overrides) do

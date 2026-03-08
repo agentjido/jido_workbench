@@ -281,7 +281,7 @@ defmodule AgentJidoWeb.BlogLive do
   end
 
   defp assign_show(socket, %{"slug" => slug}, request_url) do
-    post = Blog.get_post_by_id!(slug)
+    post = Blog.get_published_post_by_slug!(slug)
     seo = post_seo(post)
     canonical_url = seo_value(seo, :canonical_url)
     og_description = seo_value(seo, :og_description)

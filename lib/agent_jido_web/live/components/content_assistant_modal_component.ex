@@ -45,6 +45,9 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
       |> assign(:turnstile_site_key, turnstile_site_key())
       |> assign(:turnstile_widget_id, turnstile_widget_id(component_id))
       |> assign(:turnstile_input_id, turnstile_input_id(component_id))
+      |> assign(:turnstile_submit_id, turnstile_submit_id(component_id))
+      |> assign(:turnstile_status_id, turnstile_status_id(component_id))
+      |> assign(:turnstile_retry_id, turnstile_retry_id(component_id))
       |> maybe_hydrate_recent_thread()
       |> maybe_apply_assistant_complete(assigns)
       |> maybe_apply_assistant_enhancement_complete(assigns)
@@ -241,6 +244,7 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
                   autocomplete="off"
                 />
                 <button
+                  id={@turnstile_submit_id}
                   type="submit"
                   class="rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
                 >
@@ -257,12 +261,24 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
                   data-appearance="interaction-only"
                   data-size="invisible"
                   data-execution="execute"
+                  data-modal-id={@id}
+                  data-load-trigger="modal-open"
+                  data-submit-id={@turnstile_submit_id}
+                  data-status-id={@turnstile_status_id}
+                  data-retry-id={@turnstile_retry_id}
                   class="h-0 overflow-hidden"
                 >
                 </div>
-                <p class="mt-1 text-xs text-muted-foreground">
+                <p id={@turnstile_status_id} class="mt-1 text-xs text-muted-foreground" data-state="loading">
                   Verification runs in the background and only prompts when risk is detected.
                 </p>
+                <button
+                  id={@turnstile_retry_id}
+                  type="button"
+                  class="mt-2 hidden rounded-md border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground hover:border-primary/50"
+                >
+                  Retry verification
+                </button>
               </div>
             </div>
           </.form>
@@ -916,6 +932,9 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
 
   defp turnstile_widget_id(id), do: "#{id}-turnstile"
   defp turnstile_input_id(id), do: "#{id}-turnstile-token"
+  defp turnstile_submit_id(id), do: "#{id}-submit"
+  defp turnstile_status_id(id), do: "#{id}-turnstile-status"
+  defp turnstile_retry_id(id), do: "#{id}-turnstile-retry"
 
   defp component_id(socket, assigns) do
     Map.get(assigns, :id) || Map.get(socket.assigns, :id) || "primary-nav-content-assistant-modal"
