@@ -40,7 +40,7 @@ jobs:
           mix local.rebar --force
 
       - name: Restore Hex/Mix cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.hex
@@ -50,7 +50,7 @@ jobs:
             ${{ runner.os }}-beamtools-
 
       - name: Restore dependencies cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         id: deps-cache
         with:
           path: |
@@ -128,7 +128,7 @@ jobs:
           mix local.rebar --force
 
       - name: Restore Hex/Mix cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.hex
@@ -138,7 +138,7 @@ jobs:
             ${{ runner.os }}-beamtools-
 
       - name: Restore dependencies cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         id: deps-cache
         with:
           path: |
