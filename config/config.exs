@@ -26,12 +26,6 @@ config :agent_jido,
 
 config :agent_jido, AgentJido.Repo, types: AgentJido.PostgrexTypes
 
-config :phoenix_blog,
-  repo: AgentJido.Repo,
-  site_name: "AgentJido Blog",
-  likes_enabled: false,
-  share_enabled: false
-
 config :git_hooks,
   project_path: Path.expand("..", __DIR__)
 

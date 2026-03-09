@@ -29,11 +29,6 @@ defmodule AgentJidoWeb.Endpoint do
 
   socket "/live", Phoenix.LiveView.Socket, websocket: [connect_info: [session: @session_options]]
 
-  plug Plug.Static,
-    at: "/phoenix_blog",
-    from: {:phoenix_blog, "priv/static"},
-    gzip: true
-
   # Serve at "/" the static files from "priv/static" directory.
   #
   # You should set gzip to true if you are running phx.digest

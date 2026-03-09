@@ -8,7 +8,6 @@ import HashScrollLink from "./hooks/hash_scroll_link";
 import ContentAssistantTurnstile from "./hooks/content_assistant_turnstile.mjs";
 import EcosystemOrbit from "./hooks/ecosystem_orbit";
 import { createPostHogManager, normalizePath } from "./posthog_manager.mjs";
-import { PhoenixBlogHooks } from "../../deps/phoenix_blog/priv/static/editorjs/hook.js";
 
 const ANALYTICS_FLUSH_INTERVAL_MS = 1000;
 
@@ -95,7 +94,6 @@ function trackAnalyticsEvent(eventName, properties = {}) {
 window.__agentJidoTrackEvent = trackAnalyticsEvent;
 
 let Hooks = {
-  ...PhoenixBlogHooks,
   ScrollSpy,
   ScrollReveal,
   HashScrollLink,

@@ -3,7 +3,6 @@
 @source "../js/**/*.js";
 @source "../../lib/*_web.ex";
 @source "../../lib/*_web/**/*.*ex";
-@source "../../deps/phoenix_blog/lib";
 
 @import "./fonts.css";
 @import "./syntax.css";

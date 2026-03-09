@@ -1,76 +1,51 @@
 defmodule AgentJido.BlogTest do
-  use AgentJido.DataCase, async: false
+  use ExUnit.Case, async: true
 
   alias AgentJido.Blog
-  alias AgentJido.Blog.SlugAlias
-  alias PhoenixBlog.Post, as: BlogPost
 
-  setup do
-    Repo.delete_all(SlugAlias)
-    Repo.delete_all(BlogPost)
-    :ok
+  test "all_posts returns static posts with canonicalized slugs" do
+    post_ids = Blog.all_posts() |> Enum.map(& &1.id)
+
+    assert "jido-2-0-is-here" in post_ids
+    assert "introducing-req-llm" in post_ids
+    assert "announcing-req-llm-1-0" in post_ids
+    assert "jido-signal" in post_ids
+
+    refute "introducing-req_llm" in post_ids
+    refute "announcing-req_llm-1_0" in post_ids
+    refute "jido_signal" in post_ids
   end
 
-  test "get_published_post_by_slug!/1 returns a published post from the database" do
-    insert_post!(%{slug: "direct-post", title: "Direct Post", status: :published})
+  test "get_published_post_by_slug!/1 resolves legacy filename slugs to canonical slugs" do
+    post = Blog.get_published_post_by_slug!("introducing-req_llm")
 
-    post = Blog.get_published_post_by_slug!("direct-post")
-
-    assert post.id == "direct-post"
-    assert post.title == "Direct Post"
+    assert post.id == "introducing-req-llm"
+    assert post.title == "Introducing ReqLLM: Req Plugins for LLM Interactions"
   end
 
-  test "get_published_post_by_slug!/1 resolves legacy aliases to the canonical post" do
-    insert_post!(%{slug: "canonical-post", title: "Canonical Post", status: :published})
-    {:ok, _alias} = SlugAlias.upsert("legacy-post", "canonical-post")
+  test "get_post_by_id!/1 returns canonical static post" do
+    post = Blog.get_post_by_id!("announcing-req-llm-1-0")
 
-    post = Blog.get_published_post_by_slug!("legacy-post")
-
-    assert post.id == "canonical-post"
-    assert post.title == "Canonical Post"
+    assert post.id == "announcing-req-llm-1-0"
+    assert post.author == "Mike Hostetler"
+    assert post.source_path =~ "/priv/blog/2025/11-03-announcing-req_llm-1_0.livemd"
   end
 
-  test "get_published_post_by_slug!/1 raises for missing or unpublished posts" do
-    insert_post!(%{slug: "draft-post", title: "Draft Post", status: :draft, published_at: nil})
+  test "get_post_by_id!/1 returns newly added static post" do
+    post = Blog.get_post_by_id!("jido-2-0-is-here")
 
-    assert_raise Blog.NotFoundError, fn ->
-      Blog.get_published_post_by_slug!("draft-post")
-    end
+    assert post.title == "Jido 2.0 is now available"
+    assert post.author == "Mike Hostetler"
+    assert post.source_path =~ "/priv/blog/2026/03-04-jido-2-0-is-here.md"
+  end
 
+  test "get_published_post_by_slug!/1 raises for missing posts" do
     assert_raise Blog.NotFoundError, fn ->
       Blog.get_published_post_by_slug!("missing-post")
     end
   end
 
-  defp insert_post!(attrs) do
-    defaults = %{
-      title: "Post",
-      slug: "post",
-      body: %{
-        "blocks" => [
-          %{
-            "type" => "paragraph",
-            "data" => %{"text" => "Jido blog post body"}
-          }
-        ]
-      },
-      status: :published,
-      tags: ["agents"],
-      seo_description: "A post",
-      author: "AgentJido Team",
-      published_at: DateTime.utc_now() |> DateTime.add(-60, :second) |> DateTime.truncate(:second)
-    }
-
-    attrs =
-      defaults
-      |> Map.merge(attrs)
-      |> maybe_drop_published_at()
-
-    %BlogPost{}
-    |> BlogPost.changeset(attrs)
-    |> Repo.insert!()
+  test "source/0 reports static content" do
+    assert Blog.source() == :static
   end
-
-  defp maybe_drop_published_at(%{published_at: nil} = attrs), do: Map.delete(attrs, :published_at)
-  defp maybe_drop_published_at(attrs), do: attrs
 end

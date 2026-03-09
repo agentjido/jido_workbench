@@ -165,10 +165,16 @@ defmodule AgentJido.Blog.Post do
 
   def build(filename, attrs, body) do
     [year, month_day_id] = filename |> Path.rootname() |> Path.split() |> Enum.take(-2)
-    [month, day, id] = String.split(month_day_id, "-", parts: 3)
+    [month, day, legacy_id] = String.split(month_day_id, "-", parts: 3)
     date = Date.from_iso8601!("#{year}-#{month}-#{day}")
     base_path = Application.app_dir(:agent_jido)
     path = String.replace(filename, base_path, "")
+
+    id =
+      case canonical_slug(Map.get(attrs, :slug) || Map.get(attrs, "slug") || legacy_id) do
+        "" -> canonical_slug(legacy_id)
+        slug -> slug
+      end
 
     is_livebook = String.ends_with?(filename, ".livemd")
 
@@ -201,4 +207,16 @@ defmodule AgentJido.Blog.Post do
       {:error, errors} -> raise "Invalid blog post #{id}: #{inspect(errors)}"
     end
   end
+
+  defp canonical_slug(value) when is_binary(value) do
+    value
+    |> String.trim()
+    |> String.downcase()
+    |> String.replace("_", "-")
+    |> String.replace(~r/[^a-z0-9-]/, "-")
+    |> String.replace(~r/-+/, "-")
+    |> String.trim("-")
+  end
+
+  defp canonical_slug(value), do: value |> to_string() |> canonical_slug()
 end

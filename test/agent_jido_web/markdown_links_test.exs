@@ -29,8 +29,8 @@ defmodule AgentJidoWeb.MarkdownLinksTest do
              "https://github.com/agentjido/agentjido_xyz/blob/main/priv/pages/docs/index.md"
   end
 
-  test "falls back to canonical page action when source is unavailable" do
-    post = %{source_path: "phoenix_blog://posts"}
+  test "falls back to canonical page action when source path is unsupported" do
+    post = %{source_path: "db://posts"}
     request_url = AgentJidoWeb.Endpoint.url() <> "/blog/test-post"
     action = MarkdownLinks.markdown_action(post, request_url)
 

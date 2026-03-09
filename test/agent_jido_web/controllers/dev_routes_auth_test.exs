@@ -3,24 +3,6 @@ defmodule AgentJidoWeb.DevRoutesAuthTest do
 
   import AgentJido.AccountsFixtures
 
-  defp create_blog_post!(attrs \\ %{}) do
-    unique = System.unique_integer([:positive])
-
-    defaults = %{
-      "title" => "Dashboard Blog Post #{unique}",
-      "slug" => "dashboard-blog-post-#{unique}",
-      "body" => %{"blocks" => [%{"type" => "paragraph", "data" => %{"text" => "Hello"}}]},
-      "status" => "published",
-      "tags" => ["test"],
-      "seo_description" => "test",
-      "author" => "Test",
-      "published_at" => DateTime.utc_now(:second)
-    }
-
-    {:ok, post} = PhoenixBlog.create_post(Map.merge(defaults, attrs))
-    post
-  end
-
   describe "GET /dashboard" do
     test "redirects unauthenticated users to log in", %{conn: conn} do
       conn = get(conn, ~p"/dashboard")
@@ -210,105 +192,6 @@ defmodule AgentJidoWeb.DevRoutesAuthTest do
         |> get(~p"/dashboard/content-ingestion/audit")
 
       assert html_response(conn, 200) =~ "Content Ingestion Status"
-    end
-  end
-
-  describe "GET /dashboard/blog" do
-    test "redirects unauthenticated users to log in", %{conn: conn} do
-      conn = get(conn, ~p"/dashboard/blog")
-
-      assert redirected_to(conn) == ~p"/users/log-in"
-      assert Phoenix.Flash.get(conn.assigns.flash, :error) =~ "You must log in"
-    end
-
-    test "blocks authenticated non-admin users", %{conn: conn} do
-      user = user_fixture()
-
-      conn =
-        conn
-        |> log_in_user(user)
-        |> get(~p"/dashboard/blog")
-
-      assert redirected_to(conn) == ~p"/"
-      assert Phoenix.Flash.get(conn.assigns.flash, :error) =~ "You must be an admin"
-    end
-
-    test "allows authenticated admin users", %{conn: conn} do
-      admin_user = admin_user_fixture()
-
-      conn =
-        conn
-        |> log_in_user(admin_user)
-        |> get(~p"/dashboard/blog")
-
-      assert html_response(conn, 200) =~ "Manage Posts"
-    end
-  end
-
-  describe "GET /dashboard/blog/new" do
-    test "redirects unauthenticated users to log in", %{conn: conn} do
-      conn = get(conn, ~p"/dashboard/blog/new")
-
-      assert redirected_to(conn) == ~p"/users/log-in"
-      assert Phoenix.Flash.get(conn.assigns.flash, :error) =~ "You must log in"
-    end
-
-    test "blocks authenticated non-admin users", %{conn: conn} do
-      user = user_fixture()
-
-      conn =
-        conn
-        |> log_in_user(user)
-        |> get(~p"/dashboard/blog/new")
-
-      assert redirected_to(conn) == ~p"/"
-      assert Phoenix.Flash.get(conn.assigns.flash, :error) =~ "You must be an admin"
-    end
-
-    test "allows authenticated admin users", %{conn: conn} do
-      admin_user = admin_user_fixture()
-
-      conn =
-        conn
-        |> log_in_user(admin_user)
-        |> get(~p"/dashboard/blog/new")
-
-      assert html_response(conn, 200) =~ "New Post"
-    end
-  end
-
-  describe "GET /dashboard/blog/:id/edit" do
-    test "redirects unauthenticated users to log in", %{conn: conn} do
-      post = create_blog_post!()
-      conn = get(conn, ~p"/dashboard/blog/#{post.id}/edit")
-
-      assert redirected_to(conn) == ~p"/users/log-in"
-      assert Phoenix.Flash.get(conn.assigns.flash, :error) =~ "You must log in"
-    end
-
-    test "blocks authenticated non-admin users", %{conn: conn} do
-      user = user_fixture()
-      post = create_blog_post!()
-
-      conn =
-        conn
-        |> log_in_user(user)
-        |> get(~p"/dashboard/blog/#{post.id}/edit")
-
-      assert redirected_to(conn) == ~p"/"
-      assert Phoenix.Flash.get(conn.assigns.flash, :error) =~ "You must be an admin"
-    end
-
-    test "allows authenticated admin users", %{conn: conn} do
-      admin_user = admin_user_fixture()
-      post = create_blog_post!(%{"title" => "Edit Me"})
-
-      conn =
-        conn
-        |> log_in_user(admin_user)
-        |> get(~p"/dashboard/blog/#{post.id}/edit")
-
-      assert html_response(conn, 200) =~ "Edit Me"
     end
   end
 

@@ -11,7 +11,6 @@ defmodule AgentJido.Analytics.PostHog do
     "/dev",
     "/users",
     "/arcana",
-    "/phoenix_blog",
     "/og",
     "/analytics",
     "/live",
