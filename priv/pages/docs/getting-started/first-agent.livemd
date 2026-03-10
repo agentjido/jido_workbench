@@ -112,6 +112,52 @@ error_directives
 
 The agent state remains `%{count: 0}` - the same as before the failed command. The error directive wraps a `Jido.Error` with context about what went wrong.
 
+## Using this in a Mix project
+
+When you move from Livebook to a Mix project, namespace your modules and place them under `lib/my_agent_app/`.
+
+**lib/my_agent_app/counter_agent.ex**
+
+```elixir
+defmodule MyAgentApp.CounterAgent do
+  use Jido.Agent,
+    name: "counter_agent",
+    description: "Tracks a simple counter",
+    schema: Zoi.object(%{
+      count: Zoi.integer() |> Zoi.default(0)
+    })
+end
+```
+
+**lib/my_agent_app/increment_action.ex**
+
+```elixir
+defmodule MyAgentApp.IncrementAction do
+  use Jido.Action,
+    name: "increment",
+    description: "Increments the counter by a specified amount",
+    schema: Zoi.object(%{
+      by: Zoi.integer() |> Zoi.default(1)
+    })
+
+  @impl true
+  def run(params, context) do
+    current = Map.get(context.state, :count, 0)
+    {:ok, %{count: current + params.by}}
+  end
+end
+```
+
+Then in `iex -S mix`:
+
+```elixir
+alias MyAgentApp.{CounterAgent, IncrementAction}
+
+agent = CounterAgent.new()
+{updated_agent, _directives} = CounterAgent.cmd(agent, {IncrementAction, %{by: 3}})
+updated_agent.state
+```
+
 ## Next steps
 
 - [Agents](/docs/concepts/agents) for the full conceptual model
