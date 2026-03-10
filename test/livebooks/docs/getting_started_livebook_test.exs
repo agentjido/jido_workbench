@@ -1,6 +1,6 @@
 defmodule AgentJido.Livebooks.Docs.GettingStartedLivebookTest do
   use AgentJido.LivebookCase,
-    livebook: "priv/pages/docs/getting-started.livemd",
+    livebook: "priv/pages/docs/getting-started.md",
     timeout: 60_000
 
   test "runs cleanly" do
