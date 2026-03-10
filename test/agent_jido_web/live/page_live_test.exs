@@ -133,6 +133,8 @@ defmodule AgentJidoWeb.PageLiveTest do
 
       assert html =~ ~s(href="/ecosystem")
       assert html =~ ~s(href="https://llmdb.xyz")
+      assert html =~ ~s(href="https://jido.run/discord")
+      refute html =~ ~s(href="https://discord.gg/jido")
       assert html =~ ~s(id="primary-nav-content-assistant-trigger")
 
       assert html =~ "jido"
@@ -184,6 +186,7 @@ defmodule AgentJidoWeb.PageLiveTest do
 
       assert html =~ "Jido Documentation"
       assert html =~ "Get Started"
+      assert html =~ ~s(href="https://jido.run/discord")
     end
 
     test "renders docs show page", %{conn: conn} do
@@ -333,6 +336,13 @@ defmodule AgentJidoWeb.PageLiveTest do
         redirected_conn = get(recycle(conn), legacy <> ".md")
         assert redirected_to(redirected_conn, 301) == canonical <> ".md"
       end)
+    end
+
+    test "first workflow next steps link points to the published actions doc", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/docs/learn/first-workflow")
+
+      assert html =~ ~s(href="/docs/concepts/actions")
+      refute html =~ ~s(href="/docs/learn/actions-validation")
     end
   end
 
@@ -487,6 +497,7 @@ defmodule AgentJidoWeb.PageLiveTest do
       assert html =~ "Build agents with us"
       assert html =~ "Ways To Participate"
       assert html =~ "Join Discord"
+      assert html =~ ~s(href="https://jido.run/discord")
       assert html =~ "Collaborate on GitHub"
       assert html =~ "Work together on GitHub"
     end
