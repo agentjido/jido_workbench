@@ -7,6 +7,8 @@ defmodule AgentJidoWeb.JidoCommunityLive do
 
   import AgentJidoWeb.Jido.MarketingLayouts
 
+  alias AgentJidoWeb.Jido.Nav
+
   @impl true
   def mount(_params, _session, socket) do
     {:ok,
@@ -147,7 +149,7 @@ defmodule AgentJidoWeb.JidoCommunityLive do
               Join Discord, pick a contribution lane, and ship your first contribution this week.
             </p>
             <a
-              href="/discord"
+              href={Nav.discord_url()}
               class="bg-primary text-primary-foreground hover:bg-primary/90 text-[13px] font-bold px-7 py-3 rounded transition-colors inline-block"
             >
               JOIN DISCORD
@@ -163,8 +165,8 @@ defmodule AgentJidoWeb.JidoCommunityLive do
     [
       %{
         label: "Join Discord",
-        href: "/discord",
-        external?: false,
+        href: Nav.discord_url(),
+        external?: true,
         class: "bg-primary text-primary-foreground hover:bg-primary/90 text-[13px] font-bold px-7 py-3 rounded transition-colors"
       },
       %{
@@ -190,8 +192,8 @@ defmodule AgentJidoWeb.JidoCommunityLive do
         title: "Join Discord and say hello",
         description: "Introduce yourself, share what you're building, and ask your first question.",
         cta: "Open Discord",
-        href: "/discord",
-        external?: false
+        href: Nav.discord_url(),
+        external?: true
       },
       %{
         number: 2,

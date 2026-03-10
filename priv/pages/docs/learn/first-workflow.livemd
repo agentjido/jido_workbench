@@ -185,4 +185,4 @@ The state now includes `status: :confirmed`, and the directives list contains th
 
 ## Next steps
 
-You now know how to compose actions into workflows with shared state and directive output. Read [Actions and validation](/docs/learn/actions-validation) for the full action API, or continue to [Directives](/docs/concepts/directives) to learn how the runtime routes emitted signals.
+You now know how to compose actions into workflows with shared state and directive output. Read [Actions](/docs/concepts/actions) for the full action API, or continue to [Directives](/docs/concepts/directives) to learn how the runtime routes emitted signals.

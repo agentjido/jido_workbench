@@ -24,8 +24,10 @@ defmodule AgentJidoWeb.Jido.Nav do
     {"req_llm", "https://hex.pm/packages/req_llm"}
   ]
 
+  @discord_url "https://jido.run/discord"
+
   @social_links [
-    {:discord, "Discord", "https://discord.gg/jido"},
+    {:discord, "Discord", @discord_url},
     {:github, "GitHub", "https://github.com/agentjido/jido"},
     {:x, "x.com", "https://x.com/agentjido"},
     {:llmdb, "LLMDB", "https://llmdb.xyz"}
@@ -34,7 +36,6 @@ defmodule AgentJidoWeb.Jido.Nav do
   @github_url "https://github.com/agentjido/jido"
   @hex_url "https://hex.pm/packages/jido"
   @hexdocs_url "https://hexdocs.pm/jido"
-  @discord_url "https://discord.gg/jido"
 
   @type layout_mode :: :constrained | :fluid
 
