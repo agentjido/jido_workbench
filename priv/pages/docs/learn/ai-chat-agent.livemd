@@ -206,7 +206,8 @@ end
 
 @impl true
 def handle_info({:poll, request}, socket) do
-  snap = MyApp.ChatAgent.strategy_snapshot(socket.assigns.agent_pid)
+  {:ok, status} = Jido.AgentServer.status(socket.assigns.agent_pid)
+  snap = status.snapshot
 
   socket =
     if snap.done? do
