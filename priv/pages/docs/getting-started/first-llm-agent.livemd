@@ -58,7 +58,7 @@ In the previous tutorial you built a deterministic agent with typed state and ac
 The `Jido.AI.Agent` macro gives your agent a system prompt, a model, and the full Jido lifecycle. The module below defines a greeter that generates a short welcome message.
 
 ```elixir
-defmodule MyApp.Greeter do
+defmodule MyAgentApp.Greeter do
   use Jido.AI.Agent,
     name: "greeter",
     description: "Generates a friendly greeting",
@@ -79,11 +79,11 @@ end
 The agent server needs the Jido runtime (a registry, a dynamic supervisor, and a task supervisor). Define a Jido module and start it:
 
 ```elixir
-defmodule MyApp.Jido do
-  use Jido, otp_app: :my_app
+defmodule MyAgentApp.Jido do
+  use Jido, otp_app: :my_agent_app
 end
 
-{:ok, _} = MyApp.Jido.start_link(name: Jido)
+{:ok, _} = MyAgentApp.Jido.start_link(name: Jido)
 ```
 
 ## Run the agent
@@ -91,8 +91,8 @@ end
 Start the agent through `Jido.AgentServer` and send it a prompt:
 
 ```elixir
-{:ok, pid} = Jido.AgentServer.start_link(agent: MyApp.Greeter)
-MyApp.Greeter.ask_sync(pid, "Say hello to someone just getting started with Jido.")
+{:ok, pid} = Jido.AgentServer.start_link(agent: MyAgentApp.Greeter)
+MyAgentApp.Greeter.ask_sync(pid, "Say hello to someone just getting started with Jido.")
 ```
 
 If you see a greeting string, your AI integration is working. If you get a provider error, verify that your API key is set correctly.
@@ -101,7 +101,7 @@ If you see a greeting string, your AI integration is working. If you get a provi
 
 Here is the flow you just ran:
 
-1. `MyApp.Jido.start_link/1` started the Jido runtime (registry, agent supervisor, and task supervisor).
+1. `MyAgentApp.Jido.start_link/1` started the Jido runtime (registry, agent supervisor, and task supervisor).
 2. `Jido.AgentServer.start_link/1` spawned a process for your agent and registered it in the runtime.
 3. `ask_sync/2` sent the prompt to the agent process.
 3. The agent's system prompt and your message were combined and sent to the configured LLM provider via `req_llm`.
@@ -143,18 +143,18 @@ export OPENAI_API_KEY="your-api-key-here"
 
 Then add your Jido app to your application's supervision tree:
 
-**my_app/jido.ex**
+**lib/my_agent_app/jido.ex**
 
 ```elixir
-defmodule MyApp.Jido do
-  use Jido, otp_app: :my_app
+defmodule MyAgentApp.Jido do
+  use Jido, otp_app: :my_agent_app
 end
 ```
 
-**my_app/application.ex**
+**lib/my_agent_app/application.ex**
 
 ```elixir
-defmodule MyApp.Application do
+defmodule MyAgentApp.Application do
 
   use Application
 
@@ -163,10 +163,10 @@ defmodule MyApp.Application do
       children =
         [
           ...
-          {MyApp.Jido, name: Jido}
+          {MyAgentApp.Jido, name: Jido}
         ]
 
-      opts = [strategy: :one_for_one, name: MyApp.Supervisor]
+      opts = [strategy: :one_for_one, name: MyAgentApp.Supervisor]
       Supervisor.start_link(children, opts)
     end
 end
