@@ -172,6 +172,17 @@ defmodule MyAgentApp.Application do
 end
 ```
 
+Then start an IEx session and run the agent:
+
+```shell
+iex -S mix
+```
+
+```elixir
+{:ok, pid} = Jido.AgentServer.start_link(agent: MyAgentApp.Greeter)
+MyAgentApp.Greeter.ask_sync(pid, "Say hello to someone just getting started with Jido.")
+```
+
 ## Next steps
 
 - Build a multi-step orchestration in [Build your first workflow](/docs/learn/first-workflow).
