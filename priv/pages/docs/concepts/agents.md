@@ -73,7 +73,7 @@ defmodule MyApp.Increment do
     schema: Zoi.object(%{by: Zoi.integer() |> Zoi.default(1)})
 
   @impl true
-  def run(ctx, params) do
+  def run(params, ctx) do
     agent = Map.get(ctx, :agent) || Map.get(ctx, "agent") || ctx
     by = Map.get(params, :by) || Map.get(params, "by") || 1
     {:ok, %{count: agent.state.count + by, status: :active}}
@@ -128,7 +128,7 @@ defmodule MyApp.ProcessRegistration do
   alias Jido.Agent.Directive
 
   @impl true
-  def run(ctx, params) do
+  def run(params, ctx) do
     agent = Map.get(ctx, :agent) || Map.get(ctx, "agent") || ctx
     user_id = Map.get(params, :user_id) || Map.get(params, "user_id")
 
