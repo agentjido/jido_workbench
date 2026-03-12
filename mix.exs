@@ -5,7 +5,7 @@ defmodule AgentJido.MixProject do
     [
       app: :agent_jido,
       version: "0.1.0",
-      elixir: "~> 1.14",
+      elixir: "~> 1.18",
       elixirc_paths: elixirc_paths(Mix.env()),
       compilers: Mix.compilers() ++ [:phoenix_live_view],
       listeners: [Phoenix.CodeReloader],
@@ -89,6 +89,7 @@ defmodule AgentJido.MixProject do
       {:jido_action, "~> 2.0.0-rc.5", override: true},
       {:jido_signal, "~> 2.0.0-rc.5", override: true},
       {:jido_ai, github: "agentjido/jido_ai", branch: "main", override: true},
+      {:jido_browser, github: "agentjido/jido_browser", branch: "main"},
       {:jido_runic, github: "agentjido/jido_runic", branch: "main"},
       {:jido_live_dashboard, github: "agentjido/jido_live_dashboard", branch: "main"},
       {:libgraph, github: "zblanco/libgraph", branch: "zw/multigraph-indexes", override: true},

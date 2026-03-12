@@ -13,7 +13,6 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
     {"runic-structured-llm-branching", "Runic Structured LLM Branching"},
     {"runic-delegating-orchestrator", "Runic Delegating Orchestrator"},
     {"jido-ai-actions-runtime-demos", "Jido.AI Actions Runtime Demos"},
-    {"jido-ai-browser-web-workflow", "Jido.AI Browser Web Workflow"},
     {"jido-ai-weather-multi-turn-context", "Jido.AI Weather Multi-Turn Context"},
     {"jido-ai-task-execution-workflow", "Jido.AI Task Execution Workflow"},
     {"jido-ai-skills-runtime-foundations", "Jido.AI Skills Runtime Foundations"},
@@ -28,6 +27,7 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
     ensure_started(:phoenix)
     ensure_started(:phoenix_live_view)
     ensure_started(:jido_action)
+    ensure_started(:jido_browser)
 
     if Process.whereis(AgentJido.PubSub) == nil do
       start_supervised!({Phoenix.PubSub, name: AgentJido.PubSub})
@@ -194,6 +194,89 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
     end
   end
 
+  describe "/examples/jido-ai-browser-web-workflow" do
+    test "renders explanation tab with jido_browser guidance", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/jido-ai-browser-web-workflow?tab=explanation")
+
+      assert html =~ "Jido Browser Docs Scout Agent"
+      assert html =~ "agentjido/jido_browser"
+      assert html =~ "Jido.Browser.Plugin"
+      assert html =~ "jido_browser.install --if-missing"
+    end
+
+    test "renders source tab for the dedicated browser example", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/jido-ai-browser-web-workflow?tab=source")
+
+      assert html =~ "browser_docs_scout_agent.ex"
+      assert html =~ "browser_actions.ex"
+      assert html =~ "simulated_adapter.ex"
+      assert html =~ "browser_docs_scout_agent_live.ex"
+    end
+
+    test "demo tab runs the deterministic browser flow", %{conn: conn} do
+      {:ok, view, html} = live(conn, "/examples/jido-ai-browser-web-workflow?tab=demo")
+
+      assert html =~ "Jido Browser Docs Scout Agent"
+      assert html =~ "Simulated demo"
+
+      demo_view = find_live_child(view, "demo-jido-ai-browser-web-workflow")
+
+      html =
+        demo_view
+        |> element("#browser-docs-scout-demo button[phx-click='open_intro']")
+        |> render_click()
+
+      assert html =~ "Jido Browser Plugin Guide"
+      assert html =~ "session:"
+
+      html =
+        demo_view
+        |> element("#browser-docs-scout-demo button[phx-click='extract_article']")
+        |> render_click()
+
+      assert html =~ "chars"
+      assert html =~ "Jido.Browser.Plugin"
+
+      html =
+        demo_view
+        |> element("#browser-docs-scout-demo button[phx-click='follow_link']")
+        |> render_click()
+
+      assert html =~ "Testing Browser Agents"
+
+      html =
+        demo_view
+        |> element("#browser-docs-scout-demo button[phx-click='capture_screenshot']")
+        |> render_click()
+
+      assert html =~ "data:image/png;base64,"
+
+      html =
+        demo_view
+        |> element("#browser-docs-scout-demo button[phx-click='reset_demo']")
+        |> render_click()
+
+      assert html =~ "No docs page opened yet"
+      assert html =~ "session: idle"
+    end
+
+    test "example registry metadata resolves new browser source files", %{conn: _conn} do
+      example = Examples.get_example!("jido-ai-browser-web-workflow")
+
+      assert example.title == "Jido Browser Docs Scout Agent"
+      assert example.live_view_module == "AgentJidoWeb.Examples.BrowserDocsScoutAgentLive"
+
+      assert example.source_files == [
+               "lib/agent_jido/demos/browser_docs_scout/browser_docs_scout_agent.ex",
+               "lib/agent_jido/demos/browser_docs_scout/browser_actions.ex",
+               "lib/agent_jido/demos/browser_docs_scout/simulated_adapter.ex",
+               "lib/agent_jido_web/examples/browser_docs_scout_agent_live.ex"
+             ]
+
+      assert Enum.map(example.sources, & &1.path) == example.source_files
+    end
+  end
+
   describe "new simulated showcase examples" do
     test "render explanation tabs", %{conn: conn} do
       Enum.each(@new_simulated_showcase_examples, fn {slug, title} ->
@@ -224,10 +307,10 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
     end
   end
 
-  describe "/examples/browser-agent" do
+  describe "/examples/coding-assistant" do
     test "is hidden from public visitors", %{conn: conn} do
       assert_raise AgentJido.Examples.NotFoundError, fn ->
-        live(conn, "/examples/browser-agent?tab=demo")
+        live(conn, "/examples/coding-assistant?tab=demo")
       end
     end
   end

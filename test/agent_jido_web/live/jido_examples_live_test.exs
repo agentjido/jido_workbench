@@ -9,7 +9,7 @@ defmodule AgentJidoWeb.JidoExamplesLiveTest do
   @hidden_slug "budget-guardrail-agent"
   @visible_slug "counter-agent"
   @secondary_visible_slug "demand-tracker-agent"
-  @draft_slug "browser-agent"
+  @draft_slug "coding-assistant"
   @pilot_live_slug "signal-routing-agent"
   @new_live_example_pages [
     {"signal-routing-agent", "Signal Routing Agent"},
@@ -24,7 +24,7 @@ defmodule AgentJidoWeb.JidoExamplesLiveTest do
     {"runic-structured-llm-branching", "Runic Structured LLM Branching"},
     {"runic-delegating-orchestrator", "Runic Delegating Orchestrator"},
     {"jido-ai-actions-runtime-demos", "Jido.AI Actions Runtime Demos"},
-    {"jido-ai-browser-web-workflow", "Jido.AI Browser Web Workflow"},
+    {"jido-ai-browser-web-workflow", "Jido Browser Docs Scout Agent"},
     {"jido-ai-weather-multi-turn-context", "Jido.AI Weather Multi-Turn Context"},
     {"jido-ai-task-execution-workflow", "Jido.AI Task Execution Workflow"},
     {"jido-ai-skills-runtime-foundations", "Jido.AI Skills Runtime Foundations"},
@@ -53,7 +53,7 @@ defmodule AgentJidoWeb.JidoExamplesLiveTest do
     refute html =~ "Wave"
     assert html =~ "Counter Agent"
     assert html =~ "Demand Tracker Agent"
-    refute html =~ "Browser Agent"
+    refute html =~ "Coding Assistant"
     refute html =~ "Hide Draft Examples"
   end
 
@@ -65,7 +65,7 @@ defmodule AgentJidoWeb.JidoExamplesLiveTest do
     assert html =~ visible.title
     assert html =~ secondary_visible.title
     assert html =~ "Signal Routing Agent"
-    refute html =~ "Browser Agent"
+    refute html =~ "Coding Assistant"
   end
 
   test "admin users can see draft examples on /examples", %{conn: conn} do
@@ -121,7 +121,7 @@ defmodule AgentJidoWeb.JidoExamplesLiveTest do
     admin_conn = log_in_user(conn, admin_user_fixture())
     {:ok, _view, html} = live(admin_conn, "/examples/#{@draft_slug}?tab=demo")
 
-    assert html =~ "Browser Agent"
+    assert html =~ Examples.get_example!(@draft_slug, include_unpublished: true).title
     assert html =~ "draft preview"
   end
 

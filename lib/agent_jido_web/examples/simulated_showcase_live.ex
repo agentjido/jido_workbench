@@ -162,24 +162,6 @@ defmodule AgentJidoWeb.Examples.SimulatedShowcaseLive do
 
   defp progress_pct(_step_index, _steps), do: 0
 
-  defp scenario_for("browser-agent") do
-    %{
-      title: "Browser Agent",
-      steps: [
-        %{label: "Open URL", detail: "Navigate to pricing page (fixture: /pages/pricing.html)"},
-        %{label: "Extract table", detail: "Detected 3 pricing tiers with feature matrix"},
-        %{label: "Fill form", detail: "Simulated contact form submit for enterprise lead"}
-      ],
-      result: """
-      {
-        "pages_visited": 1,
-        "plans_found": ["starter", "growth", "enterprise"],
-        "lead_capture": "queued"
-      }
-      """
-    }
-  end
-
   defp scenario_for("deep-research") do
     %{
       title: "Deep Research",
