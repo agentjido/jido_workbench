@@ -210,6 +210,17 @@ defmodule AgentJidoWeb.PageLiveTest do
       assert html =~ ~s(id="what-this-solves")
     end
 
+    test "AI chat agent page links to a published chat response cookbook page", %{conn: conn} do
+      recipe_page = Pages.get_page_by_path("/docs/guides/cookbook/chat-response")
+      assert recipe_page != nil
+
+      {:ok, _view, ai_chat_html} = live(conn, "/docs/learn/ai-chat-agent")
+      assert ai_chat_html =~ ~s(href="/docs/guides/cookbook/chat-response")
+
+      {:ok, _view, recipe_html} = live(conn, "/docs/guides/cookbook/chat-response")
+      assert recipe_html =~ "Cookbook: Chat Response"
+    end
+
     test "docs right rail quick links include For Agents entry", %{conn: conn} do
       {:ok, _view, html} = live(conn, "/docs/concepts/agents")
 
