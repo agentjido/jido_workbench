@@ -55,13 +55,18 @@
 
 - How to mount `Jido.Browser.Plugin` on a plain `Jido.Agent`
 - How to keep browser-enabled demos deterministic with a simulated adapter
+- How to carry browser session context across a 3-turn walkthrough without refetching the first URL
 - How to navigate a docs page, extract markdown, follow a link, and capture a screenshot
 - How to swap the simulated adapter for `Jido.Browser.Adapters.Vibium` or `Jido.Browser.Adapters.Web`
+- How to fall back safely to the simulated adapter until a live browser backend is installed
 
-## Why this example is simulated
+## Deterministic site demo vs live browser flow
 
 This page runs **real `Jido.Browser` integration code** against a local simulated adapter.
 That keeps the example deterministic, testable, and browser-binary-free inside this repo.
+
+No API keys or browser binaries are required for this site demo.
+When you move this pattern into your own project, the agent, plugin, and wrapper actions stay the same and only the adapter changes.
 
 The agent shape is still the one you would use in your own project:
 
@@ -70,13 +75,13 @@ use Jido.Agent,
   plugins: [{Jido.Browser.Plugin, %{adapter: MyApp.BrowserAdapter, headless: true}}]
 ```
 
-## Demo flow
+## Three-turn walkthrough
 
-1. Open a docs page with `Jido.Browser.Actions.Navigate`
-2. Extract markdown from the active page with `Jido.Browser.Actions.ExtractContent`
-3. Follow a related docs link with `Jido.Browser.Actions.Click`
-4. Capture a screenshot with `Jido.Browser.Actions.Screenshot`
-5. Reset the browser session and local outputs
+1. Open the plugin guide with `Jido.Browser.Actions.Navigate`
+2. Extract markdown from the active page with `Jido.Browser.Actions.ExtractContent` without refetching the URL
+3. Follow the testing guide link with `Jido.Browser.Actions.Click` while reusing the same browser session
+
+The demo then captures a screenshot and lets you reset the session so you can replay the flow from a clean state.
 
 ## Pull this into your own project
 
@@ -96,10 +101,14 @@ defp aliases do
 end
 ```
 
-Then replace `AgentJido.Demos.BrowserDocsScout.SimulatedAdapter` with a real adapter:
+## Requirements and safe fallback
+
+For a live browser backend in your own app, follow the `jido_browser` README and replace `AgentJido.Demos.BrowserDocsScout.SimulatedAdapter` with a real adapter:
 
 - `Jido.Browser.Adapters.Vibium`
 - `Jido.Browser.Adapters.Web`
+
+If your browser backend is not installed yet, keep the simulated adapter wired in dev/test so the workflow stays deterministic while you finish local setup.
 
 ## Source layout
 

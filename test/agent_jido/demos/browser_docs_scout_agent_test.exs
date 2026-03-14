@@ -43,4 +43,27 @@ defmodule AgentJido.Demos.BrowserDocsScoutAgentTest do
     assert agent.state.current_page == %{}
     assert agent.state.screenshot == %{}
   end
+
+  test "preserves browser session across multi-turn follow-up actions" do
+    agent = BrowserDocsScoutAgent.new()
+
+    {agent, []} = BrowserDocsScoutAgent.open_page(agent, SimulatedAdapter.overview_url())
+    session_id = BrowserDocsScoutAgent.plugin_state(agent, Plugin).session.id
+    first_url = agent.state.current_page.url
+
+    {agent, []} = BrowserDocsScoutAgent.extract_current_page(agent)
+    assert BrowserDocsScoutAgent.plugin_state(agent, Plugin).session.id == session_id
+    assert agent.state.extracted_content =~ "Jido Browser Plugin Guide"
+
+    {agent, []} =
+      BrowserDocsScoutAgent.follow_link(
+        agent,
+        "a[data-doc-link='testing']",
+        text: "Testing browser agents"
+      )
+
+    assert BrowserDocsScoutAgent.plugin_state(agent, Plugin).session.id == session_id
+    assert agent.state.current_page.title == "Testing Browser Agents"
+    assert agent.state.current_page.url != first_url
+  end
 end
