@@ -8,7 +8,6 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
 
   @endpoint AgentJidoWeb.Endpoint
   @new_simulated_showcase_examples [
-    {"runic-ai-research-studio-step-mode", "Runic AI Research Studio Step Mode"},
     {"runic-adaptive-researcher", "Runic Adaptive Researcher"},
     {"runic-structured-llm-branching", "Runic Structured LLM Branching"},
     {"runic-delegating-orchestrator", "Runic Delegating Orchestrator"},
@@ -156,37 +155,136 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
   end
 
   describe "/examples/runic-ai-research-studio" do
-    test "renders explanation tab with workflow and source references", %{conn: conn} do
+    test "renders explanation tab with real workflow guidance", %{conn: conn} do
       {:ok, _view, html} = live(conn, "/examples/runic-ai-research-studio?tab=explanation")
 
       assert html =~ "Runic AI Research Studio"
+      assert html =~ "Jido.Runic.Strategy"
       assert html =~ "PlanQueries"
-      assert html =~ "EditAndAssemble"
-      assert html =~ "studio_demo.exs"
-      assert html =~ "orchestrator_agent.ex"
+      assert html =~ "No LLM provider, browser session, or remote network call is required"
     end
 
-    test "demo tab runs deterministic simulated workflow trace", %{conn: conn} do
+    test "renders source tab for the dedicated Runic auto-mode example", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/runic-ai-research-studio?tab=source")
+
+      assert html =~ "fixtures.ex"
+      assert html =~ "actions.ex"
+      assert html =~ "orchestrator_agent.ex"
+      assert html =~ "runtime_demo.ex"
+      assert html =~ "runic_research_studio_live.ex"
+      refute html =~ "simulated_showcase_live.ex"
+    end
+
+    test "demo tab runs the deterministic auto pipeline", %{conn: conn} do
       {:ok, view, html} = live(conn, "/examples/runic-ai-research-studio?tab=demo")
 
       assert html =~ "Runic AI Research Studio"
-      assert html =~ "Simulated demo"
+      refute html =~ "Simulated demo"
 
       demo_view = find_live_child(view, "demo-runic-ai-research-studio")
 
-      demo_view
-      |> element("#simulated-showcase-demo-runic-ai-research-studio button[phx-click='run_demo']")
-      |> render_click()
+      html =
+        demo_view
+        |> element("#runic-research-studio-demo button[phx-click='run_pipeline']")
+        |> render_click()
 
-      Enum.each(1..6, fn _step ->
-        send(demo_view.pid, :advance_step)
-      end)
+      assert html =~ "plan_queries"
+      assert html =~ "edit_and_assemble"
+      assert html =~ "Concurrency pays off when isolation, supervision, and observability are designed together."
+      assert html =~ "Research Sources"
+      assert has_element?(demo_view, "#runic-auto-mode", "auto")
+    end
 
-      final_html = render(demo_view)
+    test "example registry metadata resolves new runic auto-mode source files", %{conn: _conn} do
+      example = Examples.get_example!("runic-ai-research-studio")
 
-      assert final_html =~ "Simulated Result"
-      assert final_html =~ "PlanQueries"
-      assert final_html =~ "simulated:haiku"
+      assert example.title == "Runic AI Research Studio"
+      assert example.live_view_module == "AgentJidoWeb.Examples.RunicResearchStudioLive"
+
+      assert example.source_files == [
+               "lib/agent_jido/demos/runic_research_studio/fixtures.ex",
+               "lib/agent_jido/demos/runic_research_studio/actions.ex",
+               "lib/agent_jido/demos/runic_research_studio/orchestrator_agent.ex",
+               "lib/agent_jido/demos/runic_research_studio/runtime_demo.ex",
+               "lib/agent_jido_web/examples/runic_research_studio_live.ex"
+             ]
+
+      assert Enum.map(example.sources, & &1.path) == example.source_files
+    end
+  end
+
+  describe "/examples/runic-ai-research-studio-step-mode" do
+    test "renders explanation tab with real step-mode guidance", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/runic-ai-research-studio-step-mode?tab=explanation")
+
+      assert html =~ "Runic AI Research Studio Step Mode"
+      assert html =~ "runic.step"
+      assert html =~ "runic.resume"
+      assert html =~ "real strategy transitions"
+    end
+
+    test "renders source tab for the dedicated Runic step-mode example", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/runic-ai-research-studio-step-mode?tab=source")
+
+      assert html =~ "fixtures.ex"
+      assert html =~ "actions.ex"
+      assert html =~ "orchestrator_agent.ex"
+      assert html =~ "runtime_demo.ex"
+      assert html =~ "runic_research_studio_step_mode_live.ex"
+      refute html =~ "simulated_showcase_live.ex"
+    end
+
+    test "demo tab prepares, steps, and resumes the deterministic workflow", %{conn: conn} do
+      {:ok, view, html} = live(conn, "/examples/runic-ai-research-studio-step-mode?tab=demo")
+
+      assert html =~ "Runic AI Research Studio Step Mode"
+      refute html =~ "Simulated demo"
+
+      demo_view = find_live_child(view, "demo-runic-ai-research-studio-step-mode")
+
+      html =
+        demo_view
+        |> element("#runic-research-studio-step-demo button[phx-click='prepare_step']")
+        |> render_click()
+
+      assert html =~ "paused"
+      assert has_element?(demo_view, "#runic-step-held-count", "1")
+      assert html =~ "plan_queries"
+
+      html =
+        demo_view
+        |> element("#runic-research-studio-step-demo button[phx-click='step_once']")
+        |> render_click()
+
+      assert has_element?(demo_view, "#runic-step-history-count", "1")
+      assert html =~ "outline_seed"
+      assert html =~ "simulate_search"
+
+      html =
+        demo_view
+        |> element("#runic-research-studio-step-demo button[phx-click='resume_demo']")
+        |> render_click()
+
+      assert has_element?(demo_view, "#runic-step-mode", "auto")
+      assert html =~ "Research Sources"
+      assert html =~ "Concurrency pays off when isolation, supervision, and observability are designed together."
+    end
+
+    test "example registry metadata resolves new runic step-mode source files", %{conn: _conn} do
+      example = Examples.get_example!("runic-ai-research-studio-step-mode")
+
+      assert example.title == "Runic AI Research Studio Step Mode"
+      assert example.live_view_module == "AgentJidoWeb.Examples.RunicResearchStudioStepModeLive"
+
+      assert example.source_files == [
+               "lib/agent_jido/demos/runic_research_studio/fixtures.ex",
+               "lib/agent_jido/demos/runic_research_studio/actions.ex",
+               "lib/agent_jido/demos/runic_research_studio/orchestrator_agent.ex",
+               "lib/agent_jido/demos/runic_research_studio/runtime_demo.ex",
+               "lib/agent_jido_web/examples/runic_research_studio_step_mode_live.ex"
+             ]
+
+      assert Enum.map(example.sources, & &1.path) == example.source_files
     end
   end
 

@@ -249,51 +249,6 @@ defmodule AgentJidoWeb.Examples.SimulatedShowcaseLive do
     }
   end
 
-  defp scenario_for("runic-ai-research-studio") do
-    %{
-      title: "Runic AI Research Studio",
-      steps: [
-        %{label: "PlanQueries", detail: "Generated 5 targeted search queries for the topic"},
-        %{label: "SimulateSearch", detail: "Loaded deterministic research snippets and confidence scores"},
-        %{label: "BuildOutline", detail: "Compiled sections and argument flow for a technical article"},
-        %{label: "DraftArticle", detail: "Produced a first-pass markdown draft from the outline"},
-        %{label: "EditAndAssemble", detail: "Applied editorial pass and emitted final article artifact"}
-      ],
-      result: """
-      {
-        "model": "simulated:haiku",
-        "workflow": "research_studio",
-        "status": "completed",
-        "productions": 5,
-        "facts": 14,
-        "final_artifact": "studio_output_elixir_concurrency.md"
-      }
-      """
-    }
-  end
-
-  defp scenario_for("runic-ai-research-studio-step-mode") do
-    %{
-      title: "Runic AI Research Studio Step Mode",
-      steps: [
-        %{label: "Set mode", detail: "Applied runic.set_mode(:step) before feeding topic"},
-        %{label: "Step 1", detail: "Dispatched plan_queries; graph marks node as done"},
-        %{label: "Step 2", detail: "Dispatched simulate_search; 5 research snippets ingested"},
-        %{label: "Step 3", detail: "Dispatched build_outline; section graph finalized"},
-        %{label: "Step 4", detail: "Dispatched draft_article; markdown draft emitted"},
-        %{label: "Step 5", detail: "Dispatched edit_and_assemble; final artifact published"}
-      ],
-      result: """
-      {
-        "model": "simulated:haiku",
-        "mode": "step",
-        "steps_completed": 5,
-        "summary": {"total_nodes": 5, "satisfied": true}
-      }
-      """
-    }
-  end
-
   defp scenario_for("runic-adaptive-researcher") do
     %{
       title: "Runic Adaptive Researcher",
