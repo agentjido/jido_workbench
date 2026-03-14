@@ -17,7 +17,7 @@ defmodule AgentJido.ExamplesTest do
     {"runic-adaptive-researcher", "AgentJidoWeb.Examples.SimulatedShowcaseLive"},
     {"runic-structured-llm-branching", "AgentJidoWeb.Examples.SimulatedShowcaseLive"},
     {"runic-delegating-orchestrator", "AgentJidoWeb.Examples.SimulatedShowcaseLive"},
-    {"jido-ai-actions-runtime-demos", "AgentJidoWeb.Examples.SimulatedShowcaseLive"},
+    {"jido-ai-actions-runtime-demos", "AgentJidoWeb.Examples.ActionsRuntimeDemoLive"},
     {"jido-ai-browser-web-workflow", "AgentJidoWeb.Examples.BrowserDocsScoutAgentLive"},
     {"jido-ai-weather-multi-turn-context", "AgentJidoWeb.Examples.SimulatedShowcaseLive"},
     {"jido-ai-task-execution-workflow", "AgentJidoWeb.Examples.SimulatedShowcaseLive"},
