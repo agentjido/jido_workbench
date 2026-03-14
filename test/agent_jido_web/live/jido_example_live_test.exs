@@ -13,7 +13,6 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
     {"runic-structured-llm-branching", "Runic Structured LLM Branching"},
     {"runic-delegating-orchestrator", "Runic Delegating Orchestrator"},
     {"jido-ai-weather-multi-turn-context", "Jido.AI Weather Multi-Turn Context"},
-    {"jido-ai-skills-multi-agent-orchestration", "Jido.AI Skills Multi-Agent Orchestration"},
     {"jido-ai-weather-reasoning-strategy-suite", "Jido.AI Weather Reasoning Strategy Suite"},
     {"jido-ai-operational-agents-pack", "Jido.AI Operational Agents Pack"}
   ]
@@ -502,6 +501,89 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
                "lib/agent_jido_web/examples/skills_runtime_foundations_live.ex",
                "priv/skills/skills-runtime-foundations/demo-code-review/SKILL.md",
                "priv/skills/skills-runtime-foundations/demo-release-notes/SKILL.md"
+             ]
+
+      assert Enum.map(example.sources, & &1.path) == example.source_files
+    end
+  end
+
+  describe "/examples/jido-ai-skills-multi-agent-orchestration" do
+    test "renders explanation tab with real orchestration guidance", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/jido-ai-skills-multi-agent-orchestration?tab=explanation")
+
+      assert html =~ "Jido.AI Skills Multi-Agent Orchestration"
+      assert html =~ "Jido.AI.Skill.Registry.load_from_paths/1"
+      assert html =~ "Jido.AI.Skill.Prompt.render/2"
+      assert html =~ "No API keys, LLM providers, or network access are required for this example."
+    end
+
+    test "renders source tab for the dedicated orchestration example", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/jido-ai-skills-multi-agent-orchestration?tab=source")
+
+      assert html =~ "arithmetic_skill.ex"
+      assert html =~ "conversion_specialist.ex"
+      assert html =~ "endurance_planner_skill.ex"
+      assert html =~ "orchestrator.ex"
+      assert html =~ "skills_multi_agent_orchestration_live.ex"
+      assert html =~ "SKILL.md"
+      refute html =~ "simulated_showcase_live.ex"
+    end
+
+    test "demo tab runs deterministic routing across the three fixed scenarios", %{conn: conn} do
+      {:ok, view, html} = live(conn, "/examples/jido-ai-skills-multi-agent-orchestration?tab=demo")
+
+      assert html =~ "Jido.AI Skills Multi-Agent Orchestration"
+      refute html =~ "Simulated demo"
+      assert html =~ "registry: 3 skill(s)"
+
+      demo_view = find_live_child(view, "demo-jido-ai-skills-multi-agent-orchestration")
+
+      html =
+        demo_view
+        |> element("#skills-multi-agent-orchestration-demo button[phx-click='run_arithmetic']")
+        |> render_click()
+
+      assert html =~ "42 * 17 + 100"
+      assert html =~ "demo-orchestrator-arithmetic"
+      assert html =~ "multiply"
+      assert html =~ "814"
+
+      html =
+        demo_view
+        |> element("#skills-multi-agent-orchestration-demo button[phx-click='run_conversion']")
+        |> render_click()
+
+      assert html =~ "98.6 degrees Fahrenheit"
+      assert html =~ "demo-unit-converter"
+      assert html =~ "convert_temperature"
+      assert html =~ "37.0"
+
+      html =
+        demo_view
+        |> element("#skills-multi-agent-orchestration-demo button[phx-click='run_combined']")
+        |> render_click()
+
+      assert html =~ "5 kilometers"
+      assert html =~ "demo-endurance-planner"
+      assert html =~ "convert_distance"
+      assert html =~ "estimate_calories"
+      assert html =~ "3.11 miles"
+      assert html =~ "311 calories"
+    end
+
+    test "example registry metadata resolves new orchestration source files", %{conn: _conn} do
+      example = Examples.get_example!("jido-ai-skills-multi-agent-orchestration")
+
+      assert example.title == "Jido.AI Skills Multi-Agent Orchestration"
+      assert example.live_view_module == "AgentJidoWeb.Examples.SkillsMultiAgentOrchestrationLive"
+
+      assert example.source_files == [
+               "lib/agent_jido/demos/skills_multi_agent_orchestration/arithmetic_skill.ex",
+               "lib/agent_jido/demos/skills_multi_agent_orchestration/conversion_specialist.ex",
+               "lib/agent_jido/demos/skills_multi_agent_orchestration/endurance_planner_skill.ex",
+               "lib/agent_jido/demos/skills_multi_agent_orchestration/orchestrator.ex",
+               "lib/agent_jido_web/examples/skills_multi_agent_orchestration_live.ex",
+               "priv/skills/skills-multi-agent-orchestration/demo-unit-converter/SKILL.md"
              ]
 
       assert Enum.map(example.sources, & &1.path) == example.source_files
