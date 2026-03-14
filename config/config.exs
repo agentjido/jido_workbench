@@ -184,7 +184,8 @@ if config_env() == :dev do
       ],
       pre_push: [
         tasks: [
-          {:mix_task, :test}
+          {:mix_task, :test},
+          {:mix_task, :dialyzer}
         ]
       ]
     ]
