@@ -195,13 +195,16 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
   end
 
   describe "/examples/jido-ai-browser-web-workflow" do
-    test "renders explanation tab with jido_browser guidance", %{conn: conn} do
+    test "renders explanation tab with live-browser requirements and fallback guidance", %{conn: conn} do
       {:ok, _view, html} = live(conn, "/examples/jido-ai-browser-web-workflow?tab=explanation")
 
       assert html =~ "Jido Browser Docs Scout Agent"
       assert html =~ "agentjido/jido_browser"
       assert html =~ "Jido.Browser.Plugin"
       assert html =~ "jido_browser.install --if-missing"
+      assert html =~ "No API keys or browser binaries are required for this site demo."
+      assert html =~ "without refetching the URL"
+      assert html =~ "keep the simulated adapter wired in dev/test"
     end
 
     test "renders source tab for the dedicated browser example", %{conn: conn} do
@@ -243,6 +246,7 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
         |> render_click()
 
       assert html =~ "Testing Browser Agents"
+      assert html =~ "3 step(s)"
 
       html =
         demo_view

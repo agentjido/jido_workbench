@@ -376,26 +376,6 @@ defmodule AgentJidoWeb.Examples.SimulatedShowcaseLive do
     }
   end
 
-  defp scenario_for("jido-ai-browser-web-workflow") do
-    %{
-      title: "Jido.AI Browser Web Workflow",
-      steps: [
-        %{label: "Turn 1 read", detail: "read_page fixture loaded target URL markdown snapshot"},
-        %{label: "Turn 2 extract", detail: "Context reused to list map/filter usage from same page"},
-        %{label: "Turn 3 synthesize", detail: "Produced combined pipeline example from retained context"},
-        %{label: "Guardrails", detail: "Confirmed no refetch and single-source turn progression"}
-      ],
-      result: """
-      {
-        "model": "simulated:browser-scout",
-        "turns": 3,
-        "same_url_reused": true,
-        "semantic_checks": "passed"
-      }
-      """
-    }
-  end
-
   defp scenario_for("jido-ai-weather-multi-turn-context") do
     %{
       title: "Jido.AI Weather Multi-Turn Context",
