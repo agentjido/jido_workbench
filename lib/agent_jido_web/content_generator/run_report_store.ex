@@ -296,15 +296,7 @@ defmodule AgentJidoWeb.ContentGenerator.RunReportStore do
 
   defp latest_entry_index(runs) do
     Enum.reduce(runs, %{}, fn run, acc ->
-      Enum.reduce(run.entries, acc, fn entry, entry_acc ->
-        case entry.id do
-          id when is_binary(id) and id != "" ->
-            Map.put_new(entry_acc, id, Map.merge(entry, %{run_id: run.run_id, generated_at: run.generated_at, run_status: run.status}))
-
-          _other ->
-            entry_acc
-        end
-      end)
+      Enum.reduce(run.entries, acc, &put_latest_entry(&2, &1, run))
     end)
   end
 
@@ -340,23 +332,39 @@ defmodule AgentJidoWeb.ContentGenerator.RunReportStore do
   defp normalize_status(value) when is_atom(value), do: value
 
   defp normalize_status(value) when is_binary(value) do
-    case value |> String.trim() |> String.downcase() do
-      "written" -> :written
-      "dry_run_candidate" -> :dry_run_candidate
-      "skipped_noop" -> :skipped_noop
-      "skipped_non_file_target" -> :skipped_non_file_target
-      "skipped_missing_for_audit" -> :skipped_missing_for_audit
-      "audit_only_passed" -> :audit_only_passed
-      "audit_failed" -> :audit_failed
-      "generation_failed" -> :generation_failed
-      "parse_failed" -> :parse_failed
-      "churn_blocked" -> :churn_blocked
-      "verification_failed" -> :verification_failed
-      _other -> :unknown
-    end
+    value
+    |> String.trim()
+    |> String.downcase()
+    |> then(&Map.get(status_aliases(), &1, :unknown))
   end
 
   defp normalize_status(_value), do: :unknown
+
+  defp put_latest_entry(entry_acc, entry, run) do
+    case entry.id do
+      id when is_binary(id) and id != "" ->
+        Map.put_new(entry_acc, id, Map.merge(entry, %{run_id: run.run_id, generated_at: run.generated_at, run_status: run.status}))
+
+      _other ->
+        entry_acc
+    end
+  end
+
+  defp status_aliases do
+    %{
+      "written" => :written,
+      "dry_run_candidate" => :dry_run_candidate,
+      "skipped_noop" => :skipped_noop,
+      "skipped_non_file_target" => :skipped_non_file_target,
+      "skipped_missing_for_audit" => :skipped_missing_for_audit,
+      "audit_only_passed" => :audit_only_passed,
+      "audit_failed" => :audit_failed,
+      "generation_failed" => :generation_failed,
+      "parse_failed" => :parse_failed,
+      "churn_blocked" => :churn_blocked,
+      "verification_failed" => :verification_failed
+    }
+  end
 
   defp normalize_verification_status(value) when is_binary(value) do
     case String.downcase(String.trim(value)) do

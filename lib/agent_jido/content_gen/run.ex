@@ -141,12 +141,19 @@ defmodule AgentJido.ContentGen.Run do
 
   defp blocking_failures?(report, apply?, fail_on_audit) do
     stats = report.stats || %{}
+    counts = failure_counts(stats)
 
-    generation_or_parse_failed? = (stats.generation_failed || 0) > 0 or (stats.parse_failed || 0) > 0
-    audit_blocking? = apply? and fail_on_audit and (stats.audit_failed || 0) > 0
-    verification_failed? = (stats.verification_failed || 0) > 0
+    counts.generation_or_parse_failed? or
+      (apply? and fail_on_audit and counts.audit_failed?) or
+      counts.verification_failed?
+  end
 
-    generation_or_parse_failed? or audit_blocking? or verification_failed?
+  defp failure_counts(stats) do
+    %{
+      generation_or_parse_failed?: (stats.generation_failed || 0) > 0 or (stats.parse_failed || 0) > 0,
+      audit_failed?: (stats.audit_failed || 0) > 0,
+      verification_failed?: (stats.verification_failed || 0) > 0
+    }
   end
 
   defp default_run_id do

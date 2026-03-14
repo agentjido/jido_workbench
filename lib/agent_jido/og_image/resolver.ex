@@ -215,42 +215,45 @@ defmodule AgentJido.OGImage.Resolver do
         nil
 
       [_, id] ->
-        case Ecosystem.get_public_package(id) do
-          nil ->
-            nil
-
-          package ->
-            title = package.title |> to_string() |> String.trim()
-
-            subtitle =
-              package.landing_summary
-              |> to_string()
-              |> String.trim()
-              |> case do
-                "" -> package.tagline |> to_string() |> String.trim()
-                value -> value
-              end
-
-            badges =
-              [Atom.to_string(package.category), package.version, Atom.to_string(package.maturity)]
-              |> Enum.reject(&(&1 in [nil, ""]))
-              |> Enum.take(5)
-
-            build_descriptor(%{
-              template: :ecosystem_package,
-              resolved_path: path,
-              title: title,
-              subtitle: subtitle,
-              eyebrow: "ECOSYSTEM PACKAGE",
-              badges: badges,
-              footer_path: path,
-              content_hash: hash_from([path, title, subtitle, package.version || "", inspect(badges)])
-            })
-        end
+        id
+        |> Ecosystem.get_public_package()
+        |> build_ecosystem_package_descriptor(path)
 
       _ ->
         nil
     end
+  end
+
+  defp build_ecosystem_package_descriptor(nil, _path), do: nil
+
+  defp build_ecosystem_package_descriptor(package, path) do
+    title = package.title |> to_string() |> String.trim()
+    subtitle = package_subtitle(package)
+    badges = ecosystem_badges(package)
+
+    build_descriptor(%{
+      template: :ecosystem_package,
+      resolved_path: path,
+      title: title,
+      subtitle: subtitle,
+      eyebrow: "ECOSYSTEM PACKAGE",
+      badges: badges,
+      footer_path: path,
+      content_hash: hash_from([path, title, subtitle, package.version || "", inspect(badges)])
+    })
+  end
+
+  defp package_subtitle(package) do
+    case package.landing_summary |> to_string() |> String.trim() do
+      "" -> package.tagline |> to_string() |> String.trim()
+      value -> value
+    end
+  end
+
+  defp ecosystem_badges(package) do
+    [Atom.to_string(package.category), package.version, Atom.to_string(package.maturity)]
+    |> Enum.reject(&(&1 in [nil, ""]))
+    |> Enum.take(5)
   end
 
   defp page_descriptor(path) do

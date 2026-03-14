@@ -155,14 +155,12 @@ defmodule AgentJido.Release.LinkAudit do
     |> Stream.with_index(1)
     |> Enum.flat_map(fn {line, line_number} ->
       Regex.scan(regex, line)
-      |> Enum.map(fn [_full, captured] ->
-        link_value =
-          case value_key do
-            :path -> normalize_path(captured)
-            :url -> String.trim(captured)
-          end
+      |> Enum.map(fn
+        [_full, captured] when value_key == :path ->
+          %{path: normalize_path(captured), source: "#{relative}:#{line_number}", kind: kind}
 
-        %{value_key => link_value, source: "#{relative}:#{line_number}", kind: kind}
+        [_full, captured] when value_key == :url ->
+          %{url: String.trim(captured), source: "#{relative}:#{line_number}", kind: kind}
       end)
     end)
   end

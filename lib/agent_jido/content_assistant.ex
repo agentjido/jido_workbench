@@ -221,17 +221,7 @@ defmodule AgentJido.ContentAssistant do
     results
     |> Enum.reduce(%{}, fn
       %Result{url: url, score: score} = result, acc ->
-        case Map.get(acc, url) do
-          nil ->
-            Map.put(acc, url, result)
-
-          %Result{score: existing_score} = existing ->
-            if score_value(score) > score_value(existing_score) do
-              Map.put(acc, url, result)
-            else
-              Map.put(acc, url, existing)
-            end
-        end
+        Map.update(acc, url, result, &best_result(&1, result, score))
 
       _, acc ->
         acc
@@ -241,6 +231,10 @@ defmodule AgentJido.ContentAssistant do
   end
 
   defp dedupe_results(_results), do: []
+
+  defp best_result(%Result{score: existing_score} = existing, result, score) do
+    if score_value(score) > score_value(existing_score), do: result, else: existing
+  end
 
   defp score_value(score) when is_number(score), do: score * 1.0
   defp score_value(_score), do: 0.0

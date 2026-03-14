@@ -64,17 +64,7 @@ defmodule AgentJidoWeb.AnalyticsEventController do
   end
 
   defp infer_path(conn, properties) do
-    referer_path =
-      case get_req_header(conn, "referer") do
-        [referer | _] ->
-          case URI.parse(referer).path do
-            path when is_binary(path) -> path
-            _ -> nil
-          end
-
-        _ ->
-          nil
-      end
+    referer_path = referer_path(conn)
 
     cond do
       is_binary(referer_path) and String.starts_with?(referer_path, "/") ->
@@ -85,6 +75,22 @@ defmodule AgentJidoWeb.AnalyticsEventController do
 
       true ->
         "/"
+    end
+  end
+
+  defp referer_path(conn) do
+    conn
+    |> get_req_header("referer")
+    |> List.first()
+    |> parse_referer_path()
+  end
+
+  defp parse_referer_path(nil), do: nil
+
+  defp parse_referer_path(referer) do
+    case URI.parse(referer).path do
+      path when is_binary(path) -> path
+      _ -> nil
     end
   end
 

@@ -24,41 +24,26 @@ defmodule AgentJido.Analytics.PostHog.RuntimeConfig do
     enabled = env_boolean(env_reader, "POSTHOG_ENABLED", false)
     browser_enabled = enabled and env_boolean(env_reader, "POSTHOG_BROWSER_ENABLED", false)
     server_enabled = enabled and env_boolean(env_reader, "POSTHOG_SERVER_ENABLED", false)
-    autocapture_enabled = browser_enabled and env_boolean(env_reader, "POSTHOG_AUTOCAPTURE_ENABLED", false)
 
-    session_replay_enabled =
-      browser_enabled and env_boolean(env_reader, "POSTHOG_SESSION_REPLAY_ENABLED", false)
+    config =
+      %{
+        enabled: enabled,
+        browser_enabled: browser_enabled,
+        server_enabled: server_enabled,
+        autocapture_enabled: browser_enabled and env_boolean(env_reader, "POSTHOG_AUTOCAPTURE_ENABLED", false),
+        session_replay_enabled: browser_enabled and env_boolean(env_reader, "POSTHOG_SESSION_REPLAY_ENABLED", false),
+        session_replay_sample_rate: env_float(env_reader, "POSTHOG_SESSION_REPLAY_SAMPLE_RATE", @default_session_replay_sample_rate),
+        api_key: env_string(env_reader, "POSTHOG_API_KEY"),
+        api_host: env_string(env_reader, "POSTHOG_API_HOST") || @default_api_host
+      }
 
-    session_replay_sample_rate =
-      env_float(
-        env_reader,
-        "POSTHOG_SESSION_REPLAY_SAMPLE_RATE",
-        @default_session_replay_sample_rate
-      )
+    browser_api_host = env_string(env_reader, "POSTHOG_BROWSER_API_HOST") || config.api_host
+    ui_host = env_string(env_reader, "POSTHOG_UI_HOST") || infer_ui_host(config.api_host, browser_api_host)
 
-    api_key = env_string(env_reader, "POSTHOG_API_KEY")
-    api_host = env_string(env_reader, "POSTHOG_API_HOST") || @default_api_host
-    browser_api_host = env_string(env_reader, "POSTHOG_BROWSER_API_HOST") || api_host
-    ui_host = env_string(env_reader, "POSTHOG_UI_HOST") || infer_ui_host(api_host, browser_api_host)
-
-    if (browser_enabled or server_enabled) and blank?(api_key) do
-      raise """
-      POSTHOG_API_KEY is required when POSTHOG_BROWSER_ENABLED or POSTHOG_SERVER_ENABLED is enabled.
-      """
-    end
-
-    %{
-      enabled: enabled,
-      browser_enabled: browser_enabled,
-      server_enabled: server_enabled,
-      autocapture_enabled: autocapture_enabled,
-      session_replay_enabled: session_replay_enabled,
-      session_replay_sample_rate: session_replay_sample_rate,
-      api_key: api_key,
-      api_host: api_host,
-      browser_api_host: browser_api_host,
-      ui_host: ui_host
-    }
+    config
+    |> Map.put(:browser_api_host, browser_api_host)
+    |> Map.put(:ui_host, ui_host)
+    |> validate_api_key!()
   end
 
   @spec posthog_options(resolved_config()) :: keyword()
@@ -86,6 +71,16 @@ defmodule AgentJido.Analytics.PostHog.RuntimeConfig do
       nil -> default
       value -> value in ["1", "true", "TRUE", "True", "on", "ON", "yes", "YES"]
     end
+  end
+
+  defp validate_api_key!(%{browser_enabled: browser_enabled, server_enabled: server_enabled, api_key: api_key} = config) do
+    if (browser_enabled or server_enabled) and blank?(api_key) do
+      raise """
+      POSTHOG_API_KEY is required when POSTHOG_BROWSER_ENABLED or POSTHOG_SERVER_ENABLED is enabled.
+      """
+    end
+
+    config
   end
 
   defp env_float(env_reader, key, default) do

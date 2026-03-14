@@ -302,23 +302,34 @@ defmodule AgentJido.OGImage.Templates do
   end
 
   defp layout_text(text, font_sizes, max_width, max_lines) do
-    value = normalize_text(text)
+    case normalize_text(text) do
+      "" ->
+        %{font_size: List.last(font_sizes), lines: []}
 
-    if value == "" do
-      %{font_size: List.last(font_sizes), lines: []}
+      value ->
+        find_best_text_layout(value, font_sizes, max_width, max_lines)
+    end
+  end
+
+  defp find_best_text_layout(value, font_sizes, max_width, max_lines) do
+    case Enum.find_value(font_sizes, &layout_for_font_size(value, &1, max_width, max_lines)) do
+      nil ->
+        smallest = List.last(font_sizes)
+        {lines, _overflow?} = wrap_text(value, smallest, max_width, max_lines, true)
+        %{font_size: smallest, lines: lines}
+
+      layout ->
+        layout
+    end
+  end
+
+  defp layout_for_font_size(value, size, max_width, max_lines) do
+    {lines, overflow?} = wrap_text(value, size, max_width, max_lines, false)
+
+    if overflow? do
+      nil
     else
-      case Enum.find_value(font_sizes, fn size ->
-             {lines, overflow?} = wrap_text(value, size, max_width, max_lines, false)
-             if overflow?, do: nil, else: %{font_size: size, lines: lines}
-           end) do
-        nil ->
-          smallest = List.last(font_sizes)
-          {lines, _overflow?} = wrap_text(value, smallest, max_width, max_lines, true)
-          %{font_size: smallest, lines: lines}
-
-        layout ->
-          layout
-      end
+      %{font_size: size, lines: lines}
     end
   end
 
@@ -351,25 +362,29 @@ defmodule AgentJido.OGImage.Templates do
       {chunks, current} =
         token
         |> String.graphemes()
-        |> Enum.reduce({[], ""}, fn grapheme, {acc, current} ->
-          candidate = current <> grapheme
+        |> Enum.reduce({[], ""}, &split_token_grapheme(&1, &2, font_size, max_width))
 
-          cond do
-            current == "" ->
-              {acc, candidate}
-
-            fits_width?(candidate, font_size, max_width) ->
-              {acc, candidate}
-
-            true ->
-              {[current | acc], grapheme}
-          end
-        end)
-
-      chunks = if current == "", do: chunks, else: [current | chunks]
-      Enum.reverse(chunks)
+      finish_split_token(chunks, current)
     end
   end
+
+  defp split_token_grapheme(grapheme, {acc, current}, font_size, max_width) do
+    candidate = current <> grapheme
+
+    cond do
+      current == "" ->
+        {acc, candidate}
+
+      fits_width?(candidate, font_size, max_width) ->
+        {acc, candidate}
+
+      true ->
+        {[current | acc], grapheme}
+    end
+  end
+
+  defp finish_split_token(chunks, ""), do: Enum.reverse(chunks)
+  defp finish_split_token(chunks, current), do: Enum.reverse([current | chunks])
 
   defp wrap_tokens(tokens, font_size, max_width, max_lines) do
     do_wrap_tokens(tokens, font_size, max_width, max_lines, [], "", 0)

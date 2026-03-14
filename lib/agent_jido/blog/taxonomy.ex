@@ -108,7 +108,7 @@ defmodule AgentJido.Blog.Taxonomy do
           acc
 
         canonical ->
-          if Enum.member?(acc, canonical), do: acc, else: acc ++ [canonical]
+          append_unique(acc, canonical)
       end
     end)
   end
@@ -208,18 +208,27 @@ defmodule AgentJido.Blog.Taxonomy do
   defp infer_content_intent(_), do: :explanation
 
   defp infer_capability_theme(tags) do
-    cond do
-      has_any?(tags, ["signals", "workflow", "workflows", "directives"]) -> :coordination_orchestration
-      has_any?(tags, ["telemetry", "observability", "tracing", "ops"]) -> :operations_observability
-      has_any?(tags, ["llm", "req_llm", "langchain", "ai", "memory"]) -> :ai_intelligence
-      has_any?(tags, ["integration", "interop", "adapters", "phoenix", "liveview"]) -> :integration_interop
-      has_any?(tags, ["shell", "vfs", "sandbox", "workspace"]) -> :execution_tooling
-      has_any?(tags, ["adoption", "architecture", "decision"]) -> :adoption_architecture
-      has_any?(tags, ["training", "learning"]) -> :learning_enablement
-      has_any?(tags, ["community", "case-study"]) -> :community_adoption
-      has_any?(tags, ["reliability", "supervision", "otp"]) -> :reliability_architecture
-      true -> :runtime_foundations
-    end
+    Enum.find_value(capability_theme_rules(), :runtime_foundations, fn {theme, matches} ->
+      if has_any?(tags, matches), do: theme
+    end)
+  end
+
+  defp append_unique(items, item) do
+    if Enum.member?(items, item), do: items, else: items ++ [item]
+  end
+
+  defp capability_theme_rules do
+    [
+      {:coordination_orchestration, ["signals", "workflow", "workflows", "directives"]},
+      {:operations_observability, ["telemetry", "observability", "tracing", "ops"]},
+      {:ai_intelligence, ["llm", "req_llm", "langchain", "ai", "memory"]},
+      {:integration_interop, ["integration", "interop", "adapters", "phoenix", "liveview"]},
+      {:execution_tooling, ["shell", "vfs", "sandbox", "workspace"]},
+      {:adoption_architecture, ["adoption", "architecture", "decision"]},
+      {:learning_enablement, ["training", "learning"]},
+      {:community_adoption, ["community", "case-study"]},
+      {:reliability_architecture, ["reliability", "supervision", "otp"]}
+    ]
   end
 
   defp infer_journey_stage(:tutorial, _post_type), do: :activation

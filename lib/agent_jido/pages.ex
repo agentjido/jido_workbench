@@ -257,21 +257,19 @@ defmodule AgentJido.Pages do
   def resolve_page_for_path(path) do
     normalized = normalize_path_lookup(path)
 
-    case Map.get(@pages_by_path, normalized) do
-      %Page{} = page ->
-        {:ok, page, :canonical}
+    resolve_page_lookup(normalized, [
+      {@pages_by_path, :canonical},
+      {@pages_by_legacy_path, :legacy},
+      {@pages_by_route, :route_alias}
+    ])
+  end
 
-      nil ->
-        case Map.get(@pages_by_legacy_path, normalized) do
-          %Page{} = page ->
-            {:ok, page, :legacy}
+  defp resolve_page_lookup(_path, []), do: :error
 
-          nil ->
-            case Map.get(@pages_by_route, normalized) do
-              %Page{} = page -> {:ok, page, :route_alias}
-              nil -> :error
-            end
-        end
+  defp resolve_page_lookup(path, [{lookup, match_type} | rest]) do
+    case Map.get(lookup, path) do
+      %Page{} = page -> {:ok, page, match_type}
+      nil -> resolve_page_lookup(path, rest)
     end
   end
 

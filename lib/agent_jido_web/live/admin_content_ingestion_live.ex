@@ -435,35 +435,29 @@ defmodule AgentJidoWeb.AdminContentIngestionLive do
   end
 
   defp detail_text(issues, ingested) do
-    issue_text =
-      case issues do
-        [] -> "ok"
-        list when is_list(list) -> Enum.map_join(list, ", ", &issue_label/1)
-        _other -> "unknown"
-      end
-
-    chunk_text =
-      case ingested do
-        %{actual_chunk_count: count} when is_integer(count) -> "chunks=#{count}"
-        _ -> "chunks=—"
-      end
-
-    dup_text =
-      case ingested do
-        %{duplicate_count: count} when is_integer(count) -> "dup=#{count}"
-        _ -> "dup=—"
-      end
-
-    error_text =
-      case ingested do
-        %{document_error: error} when is_binary(error) and error != "" -> "error=#{error}"
-        _ -> ""
-      end
+    issue_text = issue_summary(issues)
+    chunk_text = count_summary(ingested, :actual_chunk_count, "chunks")
+    dup_text = count_summary(ingested, :duplicate_count, "dup")
+    error_text = error_summary(ingested)
 
     [issue_text, chunk_text, dup_text, error_text]
     |> Enum.reject(&(&1 == ""))
     |> Enum.join(" • ")
   end
+
+  defp issue_summary([]), do: "ok"
+  defp issue_summary(list) when is_list(list), do: Enum.map_join(list, ", ", &issue_label/1)
+  defp issue_summary(_other), do: "unknown"
+
+  defp count_summary(data, key, label) do
+    case Map.get(data || %{}, key) do
+      count when is_integer(count) -> "#{label}=#{count}"
+      _other -> "#{label}=—"
+    end
+  end
+
+  defp error_summary(%{document_error: error}) when is_binary(error) and error != "", do: "error=#{error}"
+  defp error_summary(_ingested), do: ""
 
   defp value(map, key) when is_map(map), do: Map.get(map, key)
   defp value(_map, _key), do: nil

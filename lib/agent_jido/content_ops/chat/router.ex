@@ -49,25 +49,9 @@ defmodule AgentJido.ContentOps.Chat.Router do
           | {:error, :unknown}
   def parse_command(text, prefix) when is_binary(text) and is_binary(prefix) do
     if command_message?(text, prefix) do
-      args =
-        text
-        |> String.trim()
-        |> String.trim_leading(prefix)
-        |> String.trim()
-        |> String.split(~r/\s+/, trim: true)
-
-      case args do
-        [] -> {:ok, :help}
-        ["help"] -> {:ok, :help}
-        ["status"] -> {:ok, :status}
-        ["recent-runs"] -> {:ok, :recent_runs}
-        ["coverage"] -> {:ok, :coverage}
-        ["issue" | rest] when rest != [] -> {:ok, {:issue, Enum.join(rest, " ")}}
-        ["note" | rest] when rest != [] -> {:ok, {:note, Enum.join(rest, " ")}}
-        ["ask" | rest] when rest != [] -> {:ok, {:ask, Enum.join(rest, " ")}}
-        ["run", mode] -> parse_mode(mode)
-        _other -> {:error, :unknown}
-      end
+      text
+      |> command_args(prefix)
+      |> parse_command_args()
     else
       {:error, :unknown}
     end
@@ -80,39 +64,56 @@ defmodule AgentJido.ContentOps.Chat.Router do
   defp parse_mode(_other), do: {:error, :unknown}
 
   defp handle_command_message(text, message, context, cfg) do
-    case parse_command(text, cfg.command_prefix) do
-      {:ok, :help} ->
-        {:reply, help_text(cfg.command_prefix)}
-
-      {:ok, :status} ->
-        {:reply, status_text()}
-
-      {:ok, :recent_runs} ->
-        {:reply, recent_runs_text()}
-
-      {:ok, :coverage} ->
-        {:reply, coverage_text()}
-
-      {:ok, {:run, mode}} ->
-        run_command(mode, context)
-
-      {:ok, {:issue, request}} ->
-        prompt = "Create a GitHub issue for this project using this request:\n\n#{request}"
-        handle_ops_message(prompt, message, context, cfg)
-
-      {:ok, {:note, request}} ->
-        prompt =
-          "Add a documentation note. If a page reference is ambiguous, ask for clarification.\n\n#{request}"
-
-        handle_ops_message(prompt, message, context, cfg)
-
-      {:ok, {:ask, prompt}} ->
-        handle_ops_message(prompt, message, context, cfg)
-
-      {:error, :unknown} ->
-        {:reply, "Unknown command. Try #{cfg.command_prefix} help"}
-    end
+    text
+    |> parse_command(cfg.command_prefix)
+    |> command_response(message, context, cfg)
   end
+
+  defp command_args(text, prefix) do
+    text
+    |> String.trim()
+    |> String.trim_leading(prefix)
+    |> String.trim()
+    |> String.split(~r/\s+/, trim: true)
+  end
+
+  defp parse_command_args([]), do: {:ok, :help}
+  defp parse_command_args(["help"]), do: {:ok, :help}
+  defp parse_command_args(["status"]), do: {:ok, :status}
+  defp parse_command_args(["recent-runs"]), do: {:ok, :recent_runs}
+  defp parse_command_args(["coverage"]), do: {:ok, :coverage}
+  defp parse_command_args(["issue" | rest]) when rest != [], do: {:ok, {:issue, Enum.join(rest, " ")}}
+  defp parse_command_args(["note" | rest]) when rest != [], do: {:ok, {:note, Enum.join(rest, " ")}}
+  defp parse_command_args(["ask" | rest]) when rest != [], do: {:ok, {:ask, Enum.join(rest, " ")}}
+  defp parse_command_args(["run", mode]), do: parse_mode(mode)
+  defp parse_command_args(_args), do: {:error, :unknown}
+
+  defp handle_ops_request(prefix, request, message, context, cfg) do
+    handle_ops_message(prefix <> request, message, context, cfg)
+  end
+
+  defp command_response({:ok, :help}, _message, _context, cfg), do: {:reply, help_text(cfg.command_prefix)}
+  defp command_response({:ok, :status}, _message, _context, _cfg), do: {:reply, status_text()}
+  defp command_response({:ok, :recent_runs}, _message, _context, _cfg), do: {:reply, recent_runs_text()}
+  defp command_response({:ok, :coverage}, _message, _context, _cfg), do: {:reply, coverage_text()}
+  defp command_response({:ok, {:run, mode}}, _message, context, _cfg), do: run_command(mode, context)
+
+  defp command_response({:ok, {:issue, request}}, message, context, cfg) do
+    handle_ops_request("Create a GitHub issue for this project using this request:\n\n", request, message, context, cfg)
+  end
+
+  defp command_response({:ok, {:note, request}}, message, context, cfg) do
+    handle_ops_request(
+      "Add a documentation note. If a page reference is ambiguous, ask for clarification.\n\n",
+      request,
+      message,
+      context,
+      cfg
+    )
+  end
+
+  defp command_response({:ok, {:ask, prompt}}, message, context, cfg), do: handle_ops_message(prompt, message, context, cfg)
+  defp command_response({:error, :unknown}, _message, _context, cfg), do: {:reply, "Unknown command. Try #{cfg.command_prefix} help"}
 
   defp handle_ops_message(prompt, message, context, cfg) do
     tool_context = build_tool_context(message, context, cfg)
