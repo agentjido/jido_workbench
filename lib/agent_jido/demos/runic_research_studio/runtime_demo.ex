@@ -9,7 +9,6 @@ defmodule AgentJido.Demos.RunicResearchStudio.RuntimeDemo do
   alias AgentJido.Demos.RunicResearchStudio.{Fixtures, OrchestratorAgent}
   alias Jido.Agent.Directive.Emit
   alias Jido.Agent.Strategy.State, as: StratState
-  alias Jido.Instruction
   alias Jido.Runic.Directive.ExecuteRunnable
   alias Jido.Runic.Introspection
   alias Runic.Workflow
@@ -205,8 +204,7 @@ defmodule AgentJido.Demos.RunicResearchStudio.RuntimeDemo do
   end
 
   defp strategy_cmd(agent, action, params) do
-    instruction = %Instruction{action: action, params: params}
-    OrchestratorAgent.cmd(agent, instruction)
+    OrchestratorAgent.cmd(agent, {action, params})
   end
 
   defp record_execution(%__MODULE__{} = demo, runnable) do
