@@ -30,4 +30,8 @@ defmodule AgentJido.Demos.StateOpsAgent do
       {"state.set_nested", SetNestedValueAction},
       {"state.delete_nested", DeleteNestedValueAction}
     ]
+
+  @doc false
+  @spec plugin_specs() :: nonempty_list(Jido.Plugin.Spec.t())
+  def plugin_specs, do: super()
 end

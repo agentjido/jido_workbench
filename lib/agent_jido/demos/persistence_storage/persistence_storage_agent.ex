@@ -17,4 +17,8 @@ defmodule AgentJido.Demos.PersistenceStorageAgent do
       {"counter.increment", IncrementAction},
       {"notes.add", AddNoteAction}
     ]
+
+  @doc false
+  @spec plugin_specs() :: nonempty_list(Jido.Plugin.Spec.t())
+  def plugin_specs, do: super()
 end
