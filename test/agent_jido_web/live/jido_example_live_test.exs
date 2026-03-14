@@ -13,7 +13,6 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
     {"runic-structured-llm-branching", "Runic Structured LLM Branching"},
     {"runic-delegating-orchestrator", "Runic Delegating Orchestrator"},
     {"jido-ai-weather-multi-turn-context", "Jido.AI Weather Multi-Turn Context"},
-    {"jido-ai-task-execution-workflow", "Jido.AI Task Execution Workflow"},
     {"jido-ai-skills-runtime-foundations", "Jido.AI Skills Runtime Foundations"},
     {"jido-ai-skills-multi-agent-orchestration", "Jido.AI Skills Multi-Agent Orchestration"},
     {"jido-ai-weather-reasoning-strategy-suite", "Jido.AI Weather Reasoning Strategy Suite"},
@@ -345,6 +344,82 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
                "lib/agent_jido/demos/actions_runtime/fixture_actions.ex",
                "lib/agent_jido/demos/actions_runtime/convert_temperature_action.ex",
                "lib/agent_jido_web/examples/actions_runtime_demo_live.ex"
+             ]
+
+      assert Enum.map(example.sources, & &1.path) == example.source_files
+    end
+  end
+
+  describe "/examples/jido-ai-task-execution-workflow" do
+    test "renders explanation tab with real tasklist lifecycle guidance", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/jido-ai-task-execution-workflow?tab=explanation")
+
+      assert html =~ "Jido.AI Task Execution Workflow"
+      assert html =~ "Jido.Exec.run/3"
+      assert html =~ "tasklist_add_tasks"
+      assert html =~ "tasklist_complete_task"
+      assert html =~ "No external providers, API keys, or network access are required for this demo."
+    end
+
+    test "renders source tab for the dedicated task workflow example", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/jido-ai-task-execution-workflow?tab=source")
+
+      assert html =~ "workflow.ex"
+      assert html =~ "task_execution_workflow_live.ex"
+      refute html =~ "simulated_showcase_live.ex"
+    end
+
+    test "demo tab runs deterministic task lifecycle transitions", %{conn: conn} do
+      {:ok, view, html} = live(conn, "/examples/jido-ai-task-execution-workflow?tab=demo")
+
+      assert html =~ "Jido.AI Task Execution Workflow"
+      refute html =~ "Simulated demo"
+
+      demo_view = find_live_child(view, "demo-jido-ai-task-execution-workflow")
+
+      html =
+        demo_view
+        |> element("#task-execution-demo button[phx-click='seed_tasks']")
+        |> render_click()
+
+      assert html =~ "Validate release metadata"
+      assert html =~ "3 total task(s)"
+
+      html =
+        demo_view
+        |> element("#task-execution-demo button[phx-click='start_next']")
+        |> render_click()
+
+      assert html =~ "Started task: Validate release metadata"
+      assert html =~ "in_progress"
+
+      html =
+        demo_view
+        |> element("#task-execution-demo button[phx-click='complete_active']")
+        |> render_click()
+
+      assert html =~ "Completed task: Validate release metadata"
+      assert html =~ "Completed workflow step 1 for Validate release metadata."
+
+      html =
+        demo_view
+        |> element("#task-execution-demo button[phx-click='run_full_workflow']")
+        |> render_click()
+
+      assert html =~ "Workflow reached all_complete."
+      assert html =~ "All 3 tasks are complete!"
+      assert has_element?(demo_view, "#task-all-complete", "yes")
+    end
+
+    test "example registry metadata resolves new task workflow source files", %{conn: _conn} do
+      example = Examples.get_example!("jido-ai-task-execution-workflow")
+
+      assert example.title == "Jido.AI Task Execution Workflow"
+      assert example.live_view_module == "AgentJidoWeb.Examples.TaskExecutionWorkflowLive"
+
+      assert example.source_files == [
+               "lib/agent_jido/demos/task_execution/workflow.ex",
+               "lib/agent_jido_web/examples/task_execution_workflow_live.ex"
              ]
 
       assert Enum.map(example.sources, & &1.path) == example.source_files

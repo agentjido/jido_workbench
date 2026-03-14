@@ -376,26 +376,6 @@ defmodule AgentJidoWeb.Examples.SimulatedShowcaseLive do
     }
   end
 
-  defp scenario_for("jido-ai-task-execution-workflow") do
-    %{
-      title: "Jido.AI Task Execution Workflow",
-      steps: [
-        %{label: "Seed tasks", detail: "Added three release workflow tasks via tasklist_add_tasks"},
-        %{label: "Iterate tasks", detail: "Repeated next_task -> start_task -> complete_task cycle"},
-        %{label: "Lifecycle log", detail: "Captured task_started/task_completed events per step"},
-        %{label: "Terminal state", detail: "tasklist_get_state returned all_complete=true"}
-      ],
-      result: """
-      {
-        "model": "simulated:haiku",
-        "tasks_total": 3,
-        "all_complete": true,
-        "lifecycle_events": ["task_started", "task_completed"]
-      }
-      """
-    }
-  end
-
   defp scenario_for("jido-ai-skills-runtime-foundations") do
     %{
       title: "Jido.AI Skills Runtime Foundations",
