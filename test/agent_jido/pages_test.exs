@@ -74,6 +74,20 @@ defmodule AgentJido.PagesTest do
       refute "/docs/getting-started" in routes
     end
 
+    test "places contributors between guides and reference in docs sections" do
+      routes = Pages.docs_sections() |> Enum.map(&Pages.route_for/1)
+
+      contributors_index = Enum.find_index(routes, &(&1 == "/docs/contributors"))
+      guides_index = Enum.find_index(routes, &(&1 == "/docs/guides"))
+      reference_index = Enum.find_index(routes, &(&1 == "/docs/reference"))
+
+      assert is_integer(contributors_index)
+      assert is_integer(guides_index)
+      assert is_integer(reference_index)
+      assert contributors_index > guides_index
+      assert contributors_index < reference_index
+    end
+
     test "extracts section slug from docs path" do
       assert Pages.docs_section_for_path("/docs") == nil
       assert Pages.docs_section_for_path("/docs/getting-started") == "getting-started"

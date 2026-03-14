@@ -24,6 +24,9 @@ Read [Concepts](/docs/concepts) for the mental model - agents, actions, workflow
 **Have a specific task to implement?**
 Check [Guides](/docs/guides) for focused patterns like tool integration, state management, and multi-agent coordination.
 
+**Contributing across the ecosystem?**
+Go to [Contributors](/docs/contributors) for contributor-facing package standards, shared checklists, and release workflow expectations.
+
 **Looking for exact APIs or config?**
 Go to [Reference](/docs/reference) for complete API docs, configuration options, and architecture details.
 
@@ -38,4 +41,5 @@ Head to [Getting Started](/docs/getting-started). You'll have a running agent in
 
 - [Getting Started](/docs/getting-started) - install Jido and build your first agent
 - [Concepts](/docs/concepts) - understand the primitives before you go deep
+- [Contributors](/docs/contributors) - package standards and contributor workflow
 - [Ecosystem](/ecosystem) - explore the full package landscape
