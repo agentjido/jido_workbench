@@ -12,7 +12,6 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
     {"runic-adaptive-researcher", "Runic Adaptive Researcher"},
     {"runic-structured-llm-branching", "Runic Structured LLM Branching"},
     {"runic-delegating-orchestrator", "Runic Delegating Orchestrator"},
-    {"jido-ai-actions-runtime-demos", "Jido.AI Actions Runtime Demos"},
     {"jido-ai-weather-multi-turn-context", "Jido.AI Weather Multi-Turn Context"},
     {"jido-ai-task-execution-workflow", "Jido.AI Task Execution Workflow"},
     {"jido-ai-skills-runtime-foundations", "Jido.AI Skills Runtime Foundations"},
@@ -275,6 +274,77 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
                "lib/agent_jido/demos/browser_docs_scout/browser_actions.ex",
                "lib/agent_jido/demos/browser_docs_scout/simulated_adapter.ex",
                "lib/agent_jido_web/examples/browser_docs_scout_agent_live.ex"
+             ]
+
+      assert Enum.map(example.sources, & &1.path) == example.source_files
+    end
+  end
+
+  describe "/examples/jido-ai-actions-runtime-demos" do
+    test "renders explanation tab with real runtime and fixture guidance", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/jido-ai-actions-runtime-demos?tab=explanation")
+
+      assert html =~ "Jido.AI Actions Runtime Demos"
+      assert html =~ "Jido.Exec.run/3"
+      assert html =~ "Retrieval and quota use the shipped"
+      assert html =~ "fixture-backed families"
+    end
+
+    test "renders source tab for the dedicated actions runtime example", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/jido-ai-actions-runtime-demos?tab=source")
+
+      assert html =~ "runtime_demo.ex"
+      assert html =~ "fixture_actions.ex"
+      assert html =~ "convert_temperature_action.ex"
+      assert html =~ "actions_runtime_demo_live.ex"
+    end
+
+    test "demo tab runs deterministic runtime families", %{conn: conn} do
+      {:ok, view, html} = live(conn, "/examples/jido-ai-actions-runtime-demos?tab=demo")
+
+      assert html =~ "Jido.AI Actions Runtime Demos"
+      refute html =~ "Simulated demo"
+
+      demo_view = find_live_child(view, "demo-jido-ai-actions-runtime-demos")
+
+      html =
+        demo_view
+        |> element("#actions-runtime-demo button[phx-value-family='llm']")
+        |> render_click()
+
+      assert html =~ "LLM envelopes"
+      assert html =~ "FixtureChatAction"
+      assert html =~ "fixture:haiku"
+
+      html =
+        demo_view
+        |> element("#actions-runtime-demo button[phx-value-family='tool_calling']")
+        |> render_click()
+
+      assert html =~ "convert_temperature"
+      assert html =~ "22.2"
+
+      html =
+        demo_view
+        |> element("#actions-runtime-demo button[phx-click='run_all']")
+        |> render_click()
+
+      assert html =~ "6 / 6 families completed"
+      assert html =~ "Quota usage and reset"
+      assert html =~ "GetStatus After Reset"
+    end
+
+    test "example registry metadata resolves new runtime source files", %{conn: _conn} do
+      example = Examples.get_example!("jido-ai-actions-runtime-demos")
+
+      assert example.title == "Jido.AI Actions Runtime Demos"
+      assert example.live_view_module == "AgentJidoWeb.Examples.ActionsRuntimeDemoLive"
+
+      assert example.source_files == [
+               "lib/agent_jido/demos/actions_runtime/runtime_demo.ex",
+               "lib/agent_jido/demos/actions_runtime/fixture_actions.ex",
+               "lib/agent_jido/demos/actions_runtime/convert_temperature_action.ex",
+               "lib/agent_jido_web/examples/actions_runtime_demo_live.ex"
              ]
 
       assert Enum.map(example.sources, & &1.path) == example.source_files

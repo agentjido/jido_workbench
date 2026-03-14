@@ -356,26 +356,6 @@ defmodule AgentJidoWeb.Examples.SimulatedShowcaseLive do
     }
   end
 
-  defp scenario_for("jido-ai-actions-runtime-demos") do
-    %{
-      title: "Jido.AI Actions Runtime Demos",
-      steps: [
-        %{label: "LLM actions", detail: "Validated chat/complete/generate_object output envelopes"},
-        %{label: "Tool calling actions", detail: "Listed tools and executed conversion tool"},
-        %{label: "Planning actions", detail: "Ran plan/decompose/prioritize sequence"},
-        %{label: "Reasoning actions", detail: "Ran analyze/infer/explain/run_strategy checks"},
-        %{label: "Retrieval + quota", detail: "Exercised memory upsert/recall/clear and quota status/reset"}
-      ],
-      result: """
-      {
-        "model": "simulated:haiku",
-        "families_passed": 6,
-        "runtime_surface": "Jido.Exec.run/3"
-      }
-      """
-    }
-  end
-
   defp scenario_for("jido-ai-weather-multi-turn-context") do
     %{
       title: "Jido.AI Weather Multi-Turn Context",
