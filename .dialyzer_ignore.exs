@@ -1,5 +1,6 @@
 [
-  {"/home/runner/work/elixir/elixir/lib/elixir/lib/gen_server.ex", :callback_info_missing},
+  # Nostrum's generated consumer callback metadata is not available in all build environments.
+  ~r/Callback info about the Nostrum\.Consumer behaviour is not available\./,
   {"deps/nostrum/lib/nostrum/consumer.ex", :unknown_function},
   {"lib/agent_jido/analytics.ex", :call},
   {"lib/agent_jido/analytics.ex", :unused_fun},
