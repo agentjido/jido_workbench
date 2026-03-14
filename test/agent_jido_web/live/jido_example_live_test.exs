@@ -13,7 +13,6 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
     {"runic-structured-llm-branching", "Runic Structured LLM Branching"},
     {"runic-delegating-orchestrator", "Runic Delegating Orchestrator"},
     {"jido-ai-weather-multi-turn-context", "Jido.AI Weather Multi-Turn Context"},
-    {"jido-ai-skills-runtime-foundations", "Jido.AI Skills Runtime Foundations"},
     {"jido-ai-skills-multi-agent-orchestration", "Jido.AI Skills Multi-Agent Orchestration"},
     {"jido-ai-weather-reasoning-strategy-suite", "Jido.AI Weather Reasoning Strategy Suite"},
     {"jido-ai-operational-agents-pack", "Jido.AI Operational Agents Pack"}
@@ -420,6 +419,89 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
       assert example.source_files == [
                "lib/agent_jido/demos/task_execution/workflow.ex",
                "lib/agent_jido_web/examples/task_execution_workflow_live.ex"
+             ]
+
+      assert Enum.map(example.sources, & &1.path) == example.source_files
+    end
+  end
+
+  describe "/examples/jido-ai-skills-runtime-foundations" do
+    test "renders explanation tab with real skills runtime guidance", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/jido-ai-skills-runtime-foundations?tab=explanation")
+
+      assert html =~ "Jido.AI Skills Runtime Foundations"
+      assert html =~ "Jido.AI.Skill.Loader.load/1"
+      assert html =~ "Jido.AI.Skill.Registry.load_from_paths/1"
+      assert html =~ "Jido.AI.Skill.Prompt.render/2"
+      assert html =~ "No API keys, LLM providers, or network access are required for this example."
+    end
+
+    test "renders source tab for the dedicated skills runtime example", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/jido-ai-skills-runtime-foundations?tab=source")
+
+      assert html =~ "calculator_skill.ex"
+      assert html =~ "runtime_demo.ex"
+      assert html =~ "skills_runtime_foundations_live.ex"
+      assert html =~ "SKILL.md"
+      refute html =~ "simulated_showcase_live.ex"
+    end
+
+    test "demo tab runs the deterministic skills runtime flow", %{conn: conn} do
+      {:ok, view, html} = live(conn, "/examples/jido-ai-skills-runtime-foundations?tab=demo")
+
+      assert html =~ "Jido.AI Skills Runtime Foundations"
+      refute html =~ "Simulated demo"
+
+      demo_view = find_live_child(view, "demo-jido-ai-skills-runtime-foundations")
+
+      html =
+        demo_view
+        |> element("#skills-runtime-foundations-demo button[phx-click='load_file_manifest']")
+        |> render_click()
+
+      assert html =~ "demo-code-review"
+      assert html =~ "git_diff"
+
+      html =
+        demo_view
+        |> element("#skills-runtime-foundations-demo button[phx-click='register_module_skill']")
+        |> render_click()
+
+      assert html =~ "demo-runtime-calculator"
+      assert html =~ "Registered demo-runtime-calculator"
+
+      html =
+        demo_view
+        |> element("#skills-runtime-foundations-demo button[phx-click='load_runtime_skills']")
+        |> render_click()
+
+      assert html =~ "Loaded 2 SKILL.md file(s)"
+      assert html =~ "demo-release-notes"
+      assert html =~ "3 skill(s)"
+
+      html =
+        demo_view
+        |> element("#skills-runtime-foundations-demo button[phx-click='render_prompt']")
+        |> render_click()
+
+      assert html =~ "You have access to the following skills:"
+      assert html =~ "demo-runtime-calculator"
+      assert html =~ "demo-code-review"
+      assert html =~ "format_release_notes"
+    end
+
+    test "example registry metadata resolves new skills runtime source files", %{conn: _conn} do
+      example = Examples.get_example!("jido-ai-skills-runtime-foundations")
+
+      assert example.title == "Jido.AI Skills Runtime Foundations"
+      assert example.live_view_module == "AgentJidoWeb.Examples.SkillsRuntimeFoundationsLive"
+
+      assert example.source_files == [
+               "lib/agent_jido/demos/skills_runtime_foundations/calculator_skill.ex",
+               "lib/agent_jido/demos/skills_runtime_foundations/runtime_demo.ex",
+               "lib/agent_jido_web/examples/skills_runtime_foundations_live.ex",
+               "priv/skills/skills-runtime-foundations/demo-code-review/SKILL.md",
+               "priv/skills/skills-runtime-foundations/demo-release-notes/SKILL.md"
              ]
 
       assert Enum.map(example.sources, & &1.path) == example.source_files

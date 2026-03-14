@@ -376,26 +376,6 @@ defmodule AgentJidoWeb.Examples.SimulatedShowcaseLive do
     }
   end
 
-  defp scenario_for("jido-ai-skills-runtime-foundations") do
-    %{
-      title: "Jido.AI Skills Runtime Foundations",
-      steps: [
-        %{label: "Manifest load", detail: "Loaded module and file skill manifests"},
-        %{label: "Registry bootstrap", detail: "Registered runtime skills from configured paths"},
-        %{label: "Prompt render", detail: "Rendered composed skill prompt for agent usage"},
-        %{label: "Validation", detail: "Verified manifest and prompt expectations"}
-      ],
-      result: """
-      {
-        "model": "simulated:haiku",
-        "module_skills": 1,
-        "file_skills": 1,
-        "registry_ready": true
-      }
-      """
-    }
-  end
-
   defp scenario_for("jido-ai-skills-multi-agent-orchestration") do
     %{
       title: "Jido.AI Skills Multi-Agent Orchestration",

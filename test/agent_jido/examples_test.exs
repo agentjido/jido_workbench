@@ -21,7 +21,7 @@ defmodule AgentJido.ExamplesTest do
     {"jido-ai-browser-web-workflow", "AgentJidoWeb.Examples.BrowserDocsScoutAgentLive"},
     {"jido-ai-weather-multi-turn-context", "AgentJidoWeb.Examples.SimulatedShowcaseLive"},
     {"jido-ai-task-execution-workflow", "AgentJidoWeb.Examples.TaskExecutionWorkflowLive"},
-    {"jido-ai-skills-runtime-foundations", "AgentJidoWeb.Examples.SimulatedShowcaseLive"},
+    {"jido-ai-skills-runtime-foundations", "AgentJidoWeb.Examples.SkillsRuntimeFoundationsLive"},
     {"jido-ai-skills-multi-agent-orchestration", "AgentJidoWeb.Examples.SimulatedShowcaseLive"},
     {"jido-ai-weather-reasoning-strategy-suite", "AgentJidoWeb.Examples.SimulatedShowcaseLive"},
     {"jido-ai-operational-agents-pack", "AgentJidoWeb.Examples.SimulatedShowcaseLive"}
