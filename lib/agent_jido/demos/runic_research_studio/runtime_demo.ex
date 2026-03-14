@@ -234,6 +234,7 @@ defmodule AgentJido.Demos.RunicResearchStudio.RuntimeDemo do
     facts = Workflow.facts(workflow)
     step_history = strat |> Map.get(:step_history, []) |> Enum.reverse()
     held_runnables = Map.get(strat, :held_runnables, [])
+
     final_article =
       productions
       |> Enum.find(fn production ->
