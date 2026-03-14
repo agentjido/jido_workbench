@@ -49,6 +49,8 @@ mix credo
 mix quality
 ```
 
+`mix quality` now runs the strict Credo baseline, warnings-as-errors compile, and Dialyzer. The managed `pre_push` hook also runs `mix credo --strict`, `mix test`, and `mix dialyzer`.
+
 ## Content Layout
 
 - `priv/content_plan/**` contains content briefs and planning docs.

@@ -184,6 +184,7 @@ if config_env() == :dev do
       ],
       pre_push: [
         tasks: [
+          {:cmd, "mix credo --strict"},
           {:mix_task, :test},
           {:mix_task, :dialyzer}
         ]
