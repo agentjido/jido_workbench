@@ -7,6 +7,7 @@ defmodule AgentJido.ContentOps.Chat.Bridge do
 
   require Logger
 
+  alias Jido.Signal.Bus
   alias JidoMessaging.Supervisor, as: MessagingSupervisor
 
   @type state :: %{
@@ -41,7 +42,7 @@ defmodule AgentJido.ContentOps.Chat.Bridge do
   def handle_info(:subscribe, state) do
     bus_name = MessagingSupervisor.signal_bus_name(state.instance_module)
 
-    case Jido.Signal.Bus.subscribe(bus_name, "jido.messaging.room.message_added") do
+    case Bus.subscribe(bus_name, "jido.messaging.room.message_added") do
       {:ok, _id} ->
         {:noreply, %{state | subscribed: true}}
 

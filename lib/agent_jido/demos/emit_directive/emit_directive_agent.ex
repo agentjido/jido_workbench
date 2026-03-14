@@ -5,8 +5,8 @@ defmodule AgentJido.Demos.EmitDirectiveAgent do
 
   alias AgentJido.Demos.EmitDirective.{
     CreateOrderAction,
-    ProcessPaymentAction,
-    MultiEmitAction
+    MultiEmitAction,
+    ProcessPaymentAction
   }
 
   use Jido.Agent,

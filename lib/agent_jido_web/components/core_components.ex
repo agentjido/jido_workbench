@@ -11,6 +11,7 @@ defmodule AgentJidoWeb.CoreComponents do
   """
   use Phoenix.Component
 
+  alias Phoenix.HTML.Form
   alias Phoenix.LiveView.JS
   use Gettext, backend: AgentJidoWeb.Gettext
   import AgentJidoWeb.Icon
@@ -437,7 +438,7 @@ defmodule AgentJidoWeb.CoreComponents do
 
   def phx_input(%{type: "checkbox", value: value} = assigns) do
     assigns =
-      assign_new(assigns, :checked, fn -> Phoenix.HTML.Form.normalize_value("checkbox", value) end)
+      assign_new(assigns, :checked, fn -> Form.normalize_value("checkbox", value) end)
 
     ~H"""
     <div>
@@ -471,7 +472,7 @@ defmodule AgentJidoWeb.CoreComponents do
         {@rest}
       >
         <option :if={@prompt} value="">{@prompt}</option>
-        {Phoenix.HTML.Form.options_for_select(@options, @value)}
+        {Form.options_for_select(@options, @value)}
       </select>
       <.error :for={msg <- @errors}>{msg}</.error>
     </div>
@@ -492,7 +493,7 @@ defmodule AgentJidoWeb.CoreComponents do
           @errors != [] && "border-destructive focus:border-destructive focus:ring-destructive/10"
         ]}
         {@rest}
-      ><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
+      ><%= Form.normalize_value("textarea", @value) %></textarea>
       <.error :for={msg <- @errors}>{msg}</.error>
     </div>
     """

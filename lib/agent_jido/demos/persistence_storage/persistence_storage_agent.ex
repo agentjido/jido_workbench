@@ -3,7 +3,7 @@ defmodule AgentJido.Demos.PersistenceStorageAgent do
   Demo agent for persistence round-trips with `Jido.Persist`.
   """
 
-  alias AgentJido.Demos.PersistenceStorage.{IncrementAction, AddNoteAction}
+  alias AgentJido.Demos.PersistenceStorage.{AddNoteAction, IncrementAction}
 
   use Jido.Agent,
     name: "persistence_storage_agent",

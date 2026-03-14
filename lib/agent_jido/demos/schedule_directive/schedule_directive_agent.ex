@@ -4,11 +4,11 @@ defmodule AgentJido.Demos.ScheduleDirectiveAgent do
   """
 
   alias AgentJido.Demos.ScheduleDirective.{
-    StartTimerAction,
+    HandleCronTickAction,
+    HandleRetryAction,
     HandleTickAction,
     StartRetryAction,
-    HandleRetryAction,
-    HandleCronTickAction
+    StartTimerAction
   }
 
   use Jido.Agent,

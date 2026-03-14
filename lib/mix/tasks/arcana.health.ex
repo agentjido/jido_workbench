@@ -19,6 +19,7 @@ defmodule Mix.Tasks.Arcana.Health do
   import Ecto.Query
 
   alias Arcana.{Chunk, Document}
+  alias Ecto.Adapters.SQL
 
   @shortdoc "Arcana setup/corpus health checks"
   @switches [strict: :boolean]
@@ -210,7 +211,7 @@ defmodule Mix.Tasks.Arcana.Health do
     LIMIT 1
     """
 
-    case safe_call(fn -> Ecto.Adapters.SQL.query(repo, sql, []) end) do
+    case safe_call(fn -> SQL.query(repo, sql, []) end) do
       {{:ok, result}, nil} ->
         with {:ok, type_text} <- parse_column_type(result),
              {:ok, dims} <- parse_vector_dims(type_text) do

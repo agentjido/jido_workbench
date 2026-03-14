@@ -4,6 +4,7 @@ defmodule Mix.Tasks.Content.Plan.GenerateTest do
   @moduletag :slow
 
   import ExUnit.CaptureIO
+  alias Mix.Tasks.Content.Plan.Generate
 
   setup do
     Mix.Task.reenable("content.plan.generate")
@@ -22,7 +23,7 @@ defmodule Mix.Tasks.Content.Plan.GenerateTest do
   test "runs in audit_only mode for a single entry and writes a report", %{report_path: report_path} do
     output =
       capture_io(fn ->
-        Mix.Tasks.Content.Plan.Generate.run([
+        Generate.run([
           "--entry",
           "docs/getting-started",
           "--update-mode",
@@ -42,7 +43,7 @@ defmodule Mix.Tasks.Content.Plan.GenerateTest do
   test "raises for invalid options" do
     assert_raise Mix.Error, ~r/Invalid options/, fn ->
       capture_io(fn ->
-        Mix.Tasks.Content.Plan.Generate.run(["--definitely-invalid"])
+        Generate.run(["--definitely-invalid"])
       end)
     end
   end
@@ -50,7 +51,7 @@ defmodule Mix.Tasks.Content.Plan.GenerateTest do
   test "rejects --model flag" do
     assert_raise Mix.Error, ~r/Invalid options/, fn ->
       capture_io(fn ->
-        Mix.Tasks.Content.Plan.Generate.run(["--model", "anthropic:claude-sonnet-4.6"])
+        Generate.run(["--model", "anthropic:claude-sonnet-4.6"])
       end)
     end
   end
@@ -58,7 +59,7 @@ defmodule Mix.Tasks.Content.Plan.GenerateTest do
   test "--verify requires --entry" do
     assert_raise Mix.Error, ~r/--verify requires --entry docs\/<id>/, fn ->
       capture_io(fn ->
-        Mix.Tasks.Content.Plan.Generate.run(["--verify"])
+        Generate.run(["--verify"])
       end)
     end
   end
@@ -66,7 +67,7 @@ defmodule Mix.Tasks.Content.Plan.GenerateTest do
   test "--verify rejects non-docs entries" do
     assert_raise Mix.Error, ~r/--verify is docs-only/, fn ->
       capture_io(fn ->
-        Mix.Tasks.Content.Plan.Generate.run([
+        Generate.run([
           "--entry",
           "features/overview",
           "--verify"
@@ -77,7 +78,7 @@ defmodule Mix.Tasks.Content.Plan.GenerateTest do
 
   test "defaults docs format to livemd for docs entry", %{report_path: report_path} do
     capture_io(fn ->
-      Mix.Tasks.Content.Plan.Generate.run([
+      Generate.run([
         "--entry",
         "docs/getting-started",
         "--update-mode",

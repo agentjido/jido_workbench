@@ -3,8 +3,8 @@ defmodule AgentJido.ContentOps.Chat.IntegrationTest do
 
   @moduletag :content_ops
 
-  alias AgentJido.ContentOps.Messaging
   alias AgentJido.ContentOps.Chat.{BindingBootstrapper, Bridge, RunNotifier, RunStore, SessionManager}
+  alias AgentJido.ContentOps.Messaging
   alias JidoMessaging.RoomServer
 
   defmodule TelegramStub do

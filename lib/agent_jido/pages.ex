@@ -15,8 +15,8 @@ defmodule AgentJido.Pages do
   - Route generation per category
   """
 
-  alias AgentJido.Pages.Page
   alias AgentJido.Pages.MenuNode
+  alias AgentJido.Pages.Page
 
   use NimblePublisher,
     build: Page,

@@ -4,8 +4,8 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
   """
   use AgentJidoWeb, :html
 
-  alias AgentJidoWeb.MarkdownLinks
   alias AgentJidoWeb.Jido.Nav
+  alias AgentJidoWeb.MarkdownLinks
 
   attr(:current_path, :string, default: nil)
 

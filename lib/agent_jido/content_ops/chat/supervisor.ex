@@ -9,10 +9,10 @@ defmodule AgentJido.ContentOps.Chat.Supervisor do
 
   alias AgentJido.ContentOps.Chat.{
     ActionStore,
-    Config,
     BindingBootstrapper,
     Bridge,
     ChatAgentRunner,
+    Config,
     DiscordHandler,
     RunNotifier,
     RunStore,

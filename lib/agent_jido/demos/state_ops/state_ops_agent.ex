@@ -4,11 +4,11 @@ defmodule AgentJido.Demos.StateOpsAgent do
   """
 
   alias AgentJido.Demos.StateOps.{
+    ClearTempDataAction,
+    DeleteNestedValueAction,
     MergeMetadataAction,
     ReplaceAllAction,
-    ClearTempDataAction,
-    SetNestedValueAction,
-    DeleteNestedValueAction
+    SetNestedValueAction
   }
 
   use Jido.Agent,

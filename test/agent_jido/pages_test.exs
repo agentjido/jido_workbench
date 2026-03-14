@@ -2,8 +2,8 @@ defmodule AgentJido.PagesTest do
   use ExUnit.Case, async: true
 
   alias AgentJido.Pages
-  alias AgentJido.Pages.Page
   alias AgentJido.Pages.MenuNode
+  alias AgentJido.Pages.Page
 
   @moduletag :flaky
 

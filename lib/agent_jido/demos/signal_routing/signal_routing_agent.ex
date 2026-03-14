@@ -5,8 +5,8 @@ defmodule AgentJido.Demos.SignalRoutingAgent do
 
   alias AgentJido.Demos.SignalRouting.{
     IncrementAction,
-    SetNameAction,
-    RecordEventAction
+    RecordEventAction,
+    SetNameAction
   }
 
   use Jido.Agent,

@@ -6,8 +6,8 @@ defmodule AgentJido.ContentOps.Chat.Router do
   require Logger
 
   alias AgentJido.ContentOps.Chat.{
-    ActionStore,
     Actions,
+    ActionStore,
     Authorizer,
     Config,
     OpsAgent,

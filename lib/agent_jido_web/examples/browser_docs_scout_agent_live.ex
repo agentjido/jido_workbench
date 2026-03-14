@@ -23,7 +23,7 @@ defmodule AgentJidoWeb.Examples.BrowserDocsScoutAgentLive do
 
   @impl true
   def render(assigns) do
-    browser_state = AgentJido.Demos.BrowserDocsScoutAgent.plugin_state(assigns.agent, Jido.Browser.Plugin) || %{}
+    browser_state = BrowserDocsScoutAgent.plugin_state(assigns.agent, Jido.Browser.Plugin) || %{}
     session = Map.get(browser_state, :session)
     current_page = assigns.agent.state.current_page
     screenshot = assigns.agent.state.screenshot

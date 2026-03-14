@@ -7,8 +7,8 @@ defmodule AgentJidoWeb.Examples.CounterAgentLive do
   """
   use AgentJidoWeb, :live_view
 
+  alias AgentJido.Demos.Counter.{DecrementAction, IncrementAction, ResetAction}
   alias AgentJido.Demos.CounterAgent
-  alias AgentJido.Demos.Counter.{IncrementAction, DecrementAction, ResetAction}
 
   @impl true
   def mount(_params, _session, socket) do

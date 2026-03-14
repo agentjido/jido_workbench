@@ -1,8 +1,8 @@
 defmodule AgentJido.Demos.CounterAgentTest do
   use ExUnit.Case, async: true
 
+  alias AgentJido.Demos.Counter.{DecrementAction, IncrementAction, ResetAction}
   alias AgentJido.Demos.CounterAgent
-  alias AgentJido.Demos.Counter.{IncrementAction, DecrementAction, ResetAction}
 
   describe "CounterAgent.new/0" do
     test "creates agent with default state" do

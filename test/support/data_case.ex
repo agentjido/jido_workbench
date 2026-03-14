@@ -4,6 +4,7 @@ defmodule AgentJido.DataCase do
   """
 
   use ExUnit.CaseTemplate
+  alias Ecto.Adapters.SQL.Sandbox
 
   using do
     quote do
@@ -17,10 +18,10 @@ defmodule AgentJido.DataCase do
   end
 
   setup tags do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(AgentJido.Repo)
+    :ok = Sandbox.checkout(AgentJido.Repo)
 
     unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(AgentJido.Repo, {:shared, self()})
+      Sandbox.mode(AgentJido.Repo, {:shared, self()})
     end
 
     :ok

@@ -2,8 +2,8 @@ defmodule AgentJido.ContentAssistantModuleLoadingTest do
   use ExUnit.Case, async: false
 
   alias AgentJido.ContentAssistant
-  alias AgentJido.ContentAssistant.Retrieval
   alias AgentJido.ContentAssistant.Response
+  alias AgentJido.ContentAssistant.Retrieval
 
   describe "respond/2 module loading" do
     test "loads retrieval module before export checks" do

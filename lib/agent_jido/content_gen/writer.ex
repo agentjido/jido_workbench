@@ -4,6 +4,7 @@ defmodule AgentJido.ContentGen.Writer do
   """
 
   alias AgentJido.ContentGen
+  alias AgentJido.Pages.LivebookParser
 
   @preserved_frontmatter_keys [:category, :legacy_paths, :order, :menu_label, :in_menu]
 
@@ -38,7 +39,7 @@ defmodule AgentJido.ContentGen.Writer do
   @spec parse_existing(String.t(), String.t()) :: {:ok, map()} | {:error, String.t()}
   def parse_existing(path, raw) do
     try do
-      {frontmatter, body} = AgentJido.Pages.LivebookParser.parse(path, raw)
+      {frontmatter, body} = LivebookParser.parse(path, raw)
       {:ok, %{frontmatter: frontmatter, body: body, raw: raw}}
     rescue
       e -> {:error, "failed to parse existing frontmatter for #{path}: #{Exception.message(e)}"}

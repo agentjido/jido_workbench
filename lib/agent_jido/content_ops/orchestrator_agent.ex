@@ -44,13 +44,14 @@ defmodule AgentJido.ContentOps.OrchestratorAgent do
 
   alias AgentJido.ContentOps.Actions.{
     BuildRunContext,
-    LoadPolicyBundle,
-    SelectWork,
     CollectChangeRequests,
     DeliverySink,
-    PublishRunReport
+    LoadPolicyBundle,
+    PublishRunReport,
+    SelectWork
   }
 
+  alias Jido.Agent.Strategy.State, as: StrategyState
   alias Runic.Workflow
 
   @server_name AgentJido.ContentOps.OrchestratorServer
@@ -191,7 +192,7 @@ defmodule AgentJido.ContentOps.OrchestratorAgent do
   defp current_productions do
     case Jido.AgentServer.state(@server_name) do
       {:ok, server_state} ->
-        strat = Jido.Agent.Strategy.State.get(server_state.agent)
+        strat = StrategyState.get(server_state.agent)
         Runic.Workflow.raw_productions(strat.workflow)
 
       {:error, _reason} ->

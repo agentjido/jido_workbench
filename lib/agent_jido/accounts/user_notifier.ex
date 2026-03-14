@@ -1,8 +1,8 @@
 defmodule AgentJido.Accounts.UserNotifier do
   import Swoosh.Email
 
-  alias AgentJido.Mailer
   alias AgentJido.Accounts.User
+  alias AgentJido.Mailer
 
   # Delivers the email using the application mailer.
   defp deliver(recipient, subject, body) do

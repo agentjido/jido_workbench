@@ -3,7 +3,9 @@ defmodule AgentJido.ContentOps.Chat.TelegramHandler do
   Telegram ingress handler for ContentOps chat.
   """
 
+  alias AgentJido.ContentOps.Chat.Router
+
   use JidoMessaging.Channels.Telegram.Handler,
     messaging: AgentJido.ContentOps.Messaging,
-    on_message: &AgentJido.ContentOps.Chat.Router.handle_message/2
+    on_message: &Router.handle_message/2
 end
