@@ -249,51 +249,6 @@ defmodule AgentJidoWeb.Examples.SimulatedShowcaseLive do
     }
   end
 
-  defp scenario_for("runic-ai-research-studio") do
-    %{
-      title: "Runic AI Research Studio",
-      steps: [
-        %{label: "PlanQueries", detail: "Generated 5 targeted search queries for the topic"},
-        %{label: "SimulateSearch", detail: "Loaded deterministic research snippets and confidence scores"},
-        %{label: "BuildOutline", detail: "Compiled sections and argument flow for a technical article"},
-        %{label: "DraftArticle", detail: "Produced a first-pass markdown draft from the outline"},
-        %{label: "EditAndAssemble", detail: "Applied editorial pass and emitted final article artifact"}
-      ],
-      result: """
-      {
-        "model": "simulated:haiku",
-        "workflow": "research_studio",
-        "status": "completed",
-        "productions": 5,
-        "facts": 14,
-        "final_artifact": "studio_output_elixir_concurrency.md"
-      }
-      """
-    }
-  end
-
-  defp scenario_for("runic-ai-research-studio-step-mode") do
-    %{
-      title: "Runic AI Research Studio Step Mode",
-      steps: [
-        %{label: "Set mode", detail: "Applied runic.set_mode(:step) before feeding topic"},
-        %{label: "Step 1", detail: "Dispatched plan_queries; graph marks node as done"},
-        %{label: "Step 2", detail: "Dispatched simulate_search; 5 research snippets ingested"},
-        %{label: "Step 3", detail: "Dispatched build_outline; section graph finalized"},
-        %{label: "Step 4", detail: "Dispatched draft_article; markdown draft emitted"},
-        %{label: "Step 5", detail: "Dispatched edit_and_assemble; final artifact published"}
-      ],
-      result: """
-      {
-        "model": "simulated:haiku",
-        "mode": "step",
-        "steps_completed": 5,
-        "summary": {"total_nodes": 5, "satisfied": true}
-      }
-      """
-    }
-  end
-
   defp scenario_for("runic-adaptive-researcher") do
     %{
       title: "Runic Adaptive Researcher",
@@ -371,65 +326,6 @@ defmodule AgentJidoWeb.Examples.SimulatedShowcaseLive do
         "city_context_preserved": true,
         "retry_count": 1,
         "turns": 3
-      }
-      """
-    }
-  end
-
-  defp scenario_for("jido-ai-task-execution-workflow") do
-    %{
-      title: "Jido.AI Task Execution Workflow",
-      steps: [
-        %{label: "Seed tasks", detail: "Added three release workflow tasks via tasklist_add_tasks"},
-        %{label: "Iterate tasks", detail: "Repeated next_task -> start_task -> complete_task cycle"},
-        %{label: "Lifecycle log", detail: "Captured task_started/task_completed events per step"},
-        %{label: "Terminal state", detail: "tasklist_get_state returned all_complete=true"}
-      ],
-      result: """
-      {
-        "model": "simulated:haiku",
-        "tasks_total": 3,
-        "all_complete": true,
-        "lifecycle_events": ["task_started", "task_completed"]
-      }
-      """
-    }
-  end
-
-  defp scenario_for("jido-ai-skills-runtime-foundations") do
-    %{
-      title: "Jido.AI Skills Runtime Foundations",
-      steps: [
-        %{label: "Manifest load", detail: "Loaded module and file skill manifests"},
-        %{label: "Registry bootstrap", detail: "Registered runtime skills from configured paths"},
-        %{label: "Prompt render", detail: "Rendered composed skill prompt for agent usage"},
-        %{label: "Validation", detail: "Verified manifest and prompt expectations"}
-      ],
-      result: """
-      {
-        "model": "simulated:haiku",
-        "module_skills": 1,
-        "file_skills": 1,
-        "registry_ready": true
-      }
-      """
-    }
-  end
-
-  defp scenario_for("jido-ai-skills-multi-agent-orchestration") do
-    %{
-      title: "Jido.AI Skills Multi-Agent Orchestration",
-      steps: [
-        %{label: "Arithmetic request", detail: "Resolved expression using calculator skill pathway"},
-        %{label: "Conversion request", detail: "Routed to unit conversion skill and tools"},
-        %{label: "Combined request", detail: "Composed conversion + derived calorie estimate response"},
-        %{label: "Semantic checks", detail: "Validated key outputs (814, 37C, ~3.1 miles)"}
-      ],
-      result: """
-      {
-        "model": "simulated:haiku",
-        "question_classes": 3,
-        "skills_selected_correctly": true
       }
       """
     }

@@ -1,7 +1,7 @@
 %{
   title: "Runic AI Research Studio",
-  description: "Five-stage Runic workflow for research and writing, presented as an interactive deterministic simulation.",
-  tags: ["primary", "showcase", "simulated", "ai", "l2", "ai-tool-use", "runic", "workflow"],
+  description: "Five-stage Runic workflow for research and writing, backed by a real deterministic `Jido.Runic.Strategy` pipeline.",
+  tags: ["primary", "showcase", "ai", "l2", "ai-tool-use", "runic", "workflow"],
   category: :ai,
   emoji: "🧪",
   related_resources: [
@@ -26,9 +26,13 @@
     }
   ],
   source_files: [
-    "lib/agent_jido_web/examples/simulated_showcase_live.ex"
+    "lib/agent_jido/demos/runic_research_studio/fixtures.ex",
+    "lib/agent_jido/demos/runic_research_studio/actions.ex",
+    "lib/agent_jido/demos/runic_research_studio/orchestrator_agent.ex",
+    "lib/agent_jido/demos/runic_research_studio/runtime_demo.ex",
+    "lib/agent_jido_web/examples/runic_research_studio_live.ex"
   ],
-  live_view_module: "AgentJidoWeb.Examples.SimulatedShowcaseLive",
+  live_view_module: "AgentJidoWeb.Examples.RunicResearchStudioLive",
   difficulty: :intermediate,
   status: :live,
   scenario_cluster: :ai_tool_use,
@@ -37,7 +41,7 @@
   content_intent: :tutorial,
   capability_theme: :ai_intelligence,
   evidence_surface: :runnable_example,
-  demo_mode: :simulated,
+  demo_mode: :real,
   sort_order: 14
 }
 ---
@@ -46,7 +50,7 @@
 
 - How a 5-node Runic DAG can drive a complete research-to-article workflow
 - How `Jido.Runic.Strategy` can execute the pipeline in one-shot auto mode
-- How to present advanced orchestration UX with deterministic fixture traces
+- How to inspect deterministic node inputs, outputs, graph state, and final article artifacts without any provider setup
 
 ## Pipeline topology
 
@@ -54,7 +58,7 @@
 PlanQueries -> SimulateSearch -> BuildOutline -> DraftArticle -> EditAndAssemble
 ```
 
-This example mirrors the Studio auto pipeline from `jido_runic`, but runs in deterministic simulation mode in the site UI.
+This example uses the real Runic command surface in the workbench UI. The actions are deterministic local fixtures, so the page does not need API keys, network calls, or browser automation.
 
 ## Source references
 
@@ -67,6 +71,6 @@ This example mirrors the Studio auto pipeline from `jido_runic`, but runs in det
 mix run lib/examples/studio_demo.exs
 ```
 
-## Demo note
+## Local demo note
 
-This page intentionally runs in simulated mode with deterministic fixture output. No live LLM, browser, or network calls are executed.
+The site demo runs a real local Runic workflow with deterministic action outputs. No LLM provider, browser session, or remote network call is required.

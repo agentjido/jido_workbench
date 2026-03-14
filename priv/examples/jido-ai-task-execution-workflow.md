@@ -1,7 +1,7 @@
 %{
   title: "Jido.AI Task Execution Workflow",
-  description: "Tool-driven task lifecycle demo from planning through all-complete state.",
-  tags: ["primary", "showcase", "simulated", "ai", "l2", "ai-tool-use", "tasks", "jido_ai"],
+  description: "Deterministic task lifecycle demo using the shipped task-list actions and real `Jido.Exec.run/3` calls.",
+  tags: ["primary", "showcase", "ai", "l2", "ai-tool-use", "tasks", "workflow", "jido_ai"],
   category: :ai,
   emoji: "✅",
   related_resources: [
@@ -17,31 +17,54 @@
       href: "https://github.com/agentjido/jido_ai/blob/main/lib/examples/scripts/demo/task_execution_workflow_demo.exs",
       kind: "Source",
       description: "Lifecycle demo using task-list actions."
+    },
+    %{
+      type: :external,
+      label: "task list tools",
+      href: "https://github.com/agentjido/jido_ai/blob/main/lib/examples/tools/task_list.ex",
+      kind: "Source",
+      description: "The upstream tasklist actions used by this local demo."
     }
   ],
   source_files: [
-    "lib/agent_jido_web/examples/simulated_showcase_live.ex"
+    "lib/agent_jido/demos/task_execution/workflow.ex",
+    "lib/agent_jido_web/examples/task_execution_workflow_live.ex"
   ],
-  live_view_module: "AgentJidoWeb.Examples.SimulatedShowcaseLive",
+  live_view_module: "AgentJidoWeb.Examples.TaskExecutionWorkflowLive",
   difficulty: :intermediate,
   status: :live,
   scenario_cluster: :ai_tool_use,
   wave: :l2,
   journey_stage: :evaluation,
-  content_intent: :tutorial,
+  content_intent: :reference,
   capability_theme: :coordination_orchestration,
   evidence_surface: :runnable_example,
-  demo_mode: :simulated,
+  demo_mode: :real,
   sort_order: 22
 }
 ---
 
 ## What you'll learn
 
-- How task list tools enforce a deterministic lifecycle (`pending -> in_progress -> done`)
-- How to model progression until `all_complete` is reached
-- How to observe task state transitions through a compact execution trace
+- How the shipped task list tools enforce a deterministic lifecycle (`pending -> in_progress -> done`)
+- How to drive `tasklist_add_tasks`, `tasklist_next_task`, `tasklist_start_task`, `tasklist_complete_task`, and `tasklist_get_state`
+- How to keep a workflow demo truthful with real `Jido.Exec.run/3` calls and no external services
 
-## Demo note
+## How this demo works
 
-This page simulates task transitions with deterministic fixtures and no external model calls.
+This page runs **real `Jido.Exec.run/3` calls** against the shipped task-list actions on every button press.
+
+- `Seed Tasks` creates a fixed three-step release workflow in local memory.
+- `Start Next Task` advances the next pending task into `in_progress`.
+- `Complete Active Task` records a deterministic result and moves the task into `done`.
+- `Run Full Workflow` repeats those transitions until `tasklist_get_state` reports `all_complete`.
+
+No external providers, API keys, or network access are required for this demo.
+
+## Pull the pattern into your own app
+
+Keep the same `Jido.Exec.run/3` shape and swap the seeded tasks or surrounding UI to match your workflow.
+
+- Reuse the same action sequence when you want deterministic task orchestration in a demo or internal tool.
+- Replace the fixed seed tasks with your own project planning or release-management tasks.
+- Persist the task list in your own agent or workflow state once you move beyond the local demo surface.

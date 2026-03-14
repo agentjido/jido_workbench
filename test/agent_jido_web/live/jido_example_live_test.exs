@@ -8,14 +8,10 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
 
   @endpoint AgentJidoWeb.Endpoint
   @new_simulated_showcase_examples [
-    {"runic-ai-research-studio-step-mode", "Runic AI Research Studio Step Mode"},
     {"runic-adaptive-researcher", "Runic Adaptive Researcher"},
     {"runic-structured-llm-branching", "Runic Structured LLM Branching"},
     {"runic-delegating-orchestrator", "Runic Delegating Orchestrator"},
     {"jido-ai-weather-multi-turn-context", "Jido.AI Weather Multi-Turn Context"},
-    {"jido-ai-task-execution-workflow", "Jido.AI Task Execution Workflow"},
-    {"jido-ai-skills-runtime-foundations", "Jido.AI Skills Runtime Foundations"},
-    {"jido-ai-skills-multi-agent-orchestration", "Jido.AI Skills Multi-Agent Orchestration"},
     {"jido-ai-weather-reasoning-strategy-suite", "Jido.AI Weather Reasoning Strategy Suite"},
     {"jido-ai-operational-agents-pack", "Jido.AI Operational Agents Pack"}
   ]
@@ -159,37 +155,136 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
   end
 
   describe "/examples/runic-ai-research-studio" do
-    test "renders explanation tab with workflow and source references", %{conn: conn} do
+    test "renders explanation tab with real workflow guidance", %{conn: conn} do
       {:ok, _view, html} = live(conn, "/examples/runic-ai-research-studio?tab=explanation")
 
       assert html =~ "Runic AI Research Studio"
+      assert html =~ "Jido.Runic.Strategy"
       assert html =~ "PlanQueries"
-      assert html =~ "EditAndAssemble"
-      assert html =~ "studio_demo.exs"
-      assert html =~ "orchestrator_agent.ex"
+      assert html =~ "No LLM provider, browser session, or remote network call is required"
     end
 
-    test "demo tab runs deterministic simulated workflow trace", %{conn: conn} do
+    test "renders source tab for the dedicated Runic auto-mode example", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/runic-ai-research-studio?tab=source")
+
+      assert html =~ "fixtures.ex"
+      assert html =~ "actions.ex"
+      assert html =~ "orchestrator_agent.ex"
+      assert html =~ "runtime_demo.ex"
+      assert html =~ "runic_research_studio_live.ex"
+      refute html =~ "simulated_showcase_live.ex"
+    end
+
+    test "demo tab runs the deterministic auto pipeline", %{conn: conn} do
       {:ok, view, html} = live(conn, "/examples/runic-ai-research-studio?tab=demo")
 
       assert html =~ "Runic AI Research Studio"
-      assert html =~ "Simulated demo"
+      refute html =~ "Simulated demo"
 
       demo_view = find_live_child(view, "demo-runic-ai-research-studio")
 
-      demo_view
-      |> element("#simulated-showcase-demo-runic-ai-research-studio button[phx-click='run_demo']")
-      |> render_click()
+      html =
+        demo_view
+        |> element("#runic-research-studio-demo button[phx-click='run_pipeline']")
+        |> render_click()
 
-      Enum.each(1..6, fn _step ->
-        send(demo_view.pid, :advance_step)
-      end)
+      assert html =~ "plan_queries"
+      assert html =~ "edit_and_assemble"
+      assert html =~ "Concurrency pays off when isolation, supervision, and observability are designed together."
+      assert html =~ "Research Sources"
+      assert has_element?(demo_view, "#runic-auto-mode", "auto")
+    end
 
-      final_html = render(demo_view)
+    test "example registry metadata resolves new runic auto-mode source files", %{conn: _conn} do
+      example = Examples.get_example!("runic-ai-research-studio")
 
-      assert final_html =~ "Simulated Result"
-      assert final_html =~ "PlanQueries"
-      assert final_html =~ "simulated:haiku"
+      assert example.title == "Runic AI Research Studio"
+      assert example.live_view_module == "AgentJidoWeb.Examples.RunicResearchStudioLive"
+
+      assert example.source_files == [
+               "lib/agent_jido/demos/runic_research_studio/fixtures.ex",
+               "lib/agent_jido/demos/runic_research_studio/actions.ex",
+               "lib/agent_jido/demos/runic_research_studio/orchestrator_agent.ex",
+               "lib/agent_jido/demos/runic_research_studio/runtime_demo.ex",
+               "lib/agent_jido_web/examples/runic_research_studio_live.ex"
+             ]
+
+      assert Enum.map(example.sources, & &1.path) == example.source_files
+    end
+  end
+
+  describe "/examples/runic-ai-research-studio-step-mode" do
+    test "renders explanation tab with real step-mode guidance", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/runic-ai-research-studio-step-mode?tab=explanation")
+
+      assert html =~ "Runic AI Research Studio Step Mode"
+      assert html =~ "runic.step"
+      assert html =~ "runic.resume"
+      assert html =~ "real strategy transitions"
+    end
+
+    test "renders source tab for the dedicated Runic step-mode example", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/runic-ai-research-studio-step-mode?tab=source")
+
+      assert html =~ "fixtures.ex"
+      assert html =~ "actions.ex"
+      assert html =~ "orchestrator_agent.ex"
+      assert html =~ "runtime_demo.ex"
+      assert html =~ "runic_research_studio_step_mode_live.ex"
+      refute html =~ "simulated_showcase_live.ex"
+    end
+
+    test "demo tab prepares, steps, and resumes the deterministic workflow", %{conn: conn} do
+      {:ok, view, html} = live(conn, "/examples/runic-ai-research-studio-step-mode?tab=demo")
+
+      assert html =~ "Runic AI Research Studio Step Mode"
+      refute html =~ "Simulated demo"
+
+      demo_view = find_live_child(view, "demo-runic-ai-research-studio-step-mode")
+
+      html =
+        demo_view
+        |> element("#runic-research-studio-step-demo button[phx-click='prepare_step']")
+        |> render_click()
+
+      assert html =~ "paused"
+      assert has_element?(demo_view, "#runic-step-held-count", "1")
+      assert html =~ "plan_queries"
+
+      html =
+        demo_view
+        |> element("#runic-research-studio-step-demo button[phx-click='step_once']")
+        |> render_click()
+
+      assert has_element?(demo_view, "#runic-step-history-count", "1")
+      assert html =~ "outline_seed"
+      assert html =~ "simulate_search"
+
+      html =
+        demo_view
+        |> element("#runic-research-studio-step-demo button[phx-click='resume_demo']")
+        |> render_click()
+
+      assert has_element?(demo_view, "#runic-step-mode", "auto")
+      assert html =~ "Research Sources"
+      assert html =~ "Concurrency pays off when isolation, supervision, and observability are designed together."
+    end
+
+    test "example registry metadata resolves new runic step-mode source files", %{conn: _conn} do
+      example = Examples.get_example!("runic-ai-research-studio-step-mode")
+
+      assert example.title == "Runic AI Research Studio Step Mode"
+      assert example.live_view_module == "AgentJidoWeb.Examples.RunicResearchStudioStepModeLive"
+
+      assert example.source_files == [
+               "lib/agent_jido/demos/runic_research_studio/fixtures.ex",
+               "lib/agent_jido/demos/runic_research_studio/actions.ex",
+               "lib/agent_jido/demos/runic_research_studio/orchestrator_agent.ex",
+               "lib/agent_jido/demos/runic_research_studio/runtime_demo.ex",
+               "lib/agent_jido_web/examples/runic_research_studio_step_mode_live.ex"
+             ]
+
+      assert Enum.map(example.sources, & &1.path) == example.source_files
     end
   end
 
@@ -345,6 +440,248 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
                "lib/agent_jido/demos/actions_runtime/fixture_actions.ex",
                "lib/agent_jido/demos/actions_runtime/convert_temperature_action.ex",
                "lib/agent_jido_web/examples/actions_runtime_demo_live.ex"
+             ]
+
+      assert Enum.map(example.sources, & &1.path) == example.source_files
+    end
+  end
+
+  describe "/examples/jido-ai-task-execution-workflow" do
+    test "renders explanation tab with real tasklist lifecycle guidance", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/jido-ai-task-execution-workflow?tab=explanation")
+
+      assert html =~ "Jido.AI Task Execution Workflow"
+      assert html =~ "Jido.Exec.run/3"
+      assert html =~ "tasklist_add_tasks"
+      assert html =~ "tasklist_complete_task"
+      assert html =~ "No external providers, API keys, or network access are required for this demo."
+    end
+
+    test "renders source tab for the dedicated task workflow example", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/jido-ai-task-execution-workflow?tab=source")
+
+      assert html =~ "workflow.ex"
+      assert html =~ "task_execution_workflow_live.ex"
+      refute html =~ "simulated_showcase_live.ex"
+    end
+
+    test "demo tab runs deterministic task lifecycle transitions", %{conn: conn} do
+      {:ok, view, html} = live(conn, "/examples/jido-ai-task-execution-workflow?tab=demo")
+
+      assert html =~ "Jido.AI Task Execution Workflow"
+      refute html =~ "Simulated demo"
+
+      demo_view = find_live_child(view, "demo-jido-ai-task-execution-workflow")
+
+      html =
+        demo_view
+        |> element("#task-execution-demo button[phx-click='seed_tasks']")
+        |> render_click()
+
+      assert html =~ "Validate release metadata"
+      assert html =~ "3 total task(s)"
+
+      html =
+        demo_view
+        |> element("#task-execution-demo button[phx-click='start_next']")
+        |> render_click()
+
+      assert html =~ "Started task: Validate release metadata"
+      assert html =~ "in_progress"
+
+      html =
+        demo_view
+        |> element("#task-execution-demo button[phx-click='complete_active']")
+        |> render_click()
+
+      assert html =~ "Completed task: Validate release metadata"
+      assert html =~ "Completed workflow step 1 for Validate release metadata."
+
+      html =
+        demo_view
+        |> element("#task-execution-demo button[phx-click='run_full_workflow']")
+        |> render_click()
+
+      assert html =~ "Workflow reached all_complete."
+      assert html =~ "All 3 tasks are complete!"
+      assert has_element?(demo_view, "#task-all-complete", "yes")
+    end
+
+    test "example registry metadata resolves new task workflow source files", %{conn: _conn} do
+      example = Examples.get_example!("jido-ai-task-execution-workflow")
+
+      assert example.title == "Jido.AI Task Execution Workflow"
+      assert example.live_view_module == "AgentJidoWeb.Examples.TaskExecutionWorkflowLive"
+
+      assert example.source_files == [
+               "lib/agent_jido/demos/task_execution/workflow.ex",
+               "lib/agent_jido_web/examples/task_execution_workflow_live.ex"
+             ]
+
+      assert Enum.map(example.sources, & &1.path) == example.source_files
+    end
+  end
+
+  describe "/examples/jido-ai-skills-runtime-foundations" do
+    test "renders explanation tab with real skills runtime guidance", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/jido-ai-skills-runtime-foundations?tab=explanation")
+
+      assert html =~ "Jido.AI Skills Runtime Foundations"
+      assert html =~ "Jido.AI.Skill.Loader.load/1"
+      assert html =~ "Jido.AI.Skill.Registry.load_from_paths/1"
+      assert html =~ "Jido.AI.Skill.Prompt.render/2"
+      assert html =~ "No API keys, LLM providers, or network access are required for this example."
+    end
+
+    test "renders source tab for the dedicated skills runtime example", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/jido-ai-skills-runtime-foundations?tab=source")
+
+      assert html =~ "calculator_skill.ex"
+      assert html =~ "runtime_demo.ex"
+      assert html =~ "skills_runtime_foundations_live.ex"
+      assert html =~ "SKILL.md"
+      refute html =~ "simulated_showcase_live.ex"
+    end
+
+    test "demo tab runs the deterministic skills runtime flow", %{conn: conn} do
+      {:ok, view, html} = live(conn, "/examples/jido-ai-skills-runtime-foundations?tab=demo")
+
+      assert html =~ "Jido.AI Skills Runtime Foundations"
+      refute html =~ "Simulated demo"
+
+      demo_view = find_live_child(view, "demo-jido-ai-skills-runtime-foundations")
+
+      html =
+        demo_view
+        |> element("#skills-runtime-foundations-demo button[phx-click='load_file_manifest']")
+        |> render_click()
+
+      assert html =~ "demo-code-review"
+      assert html =~ "git_diff"
+
+      html =
+        demo_view
+        |> element("#skills-runtime-foundations-demo button[phx-click='register_module_skill']")
+        |> render_click()
+
+      assert html =~ "demo-runtime-calculator"
+      assert html =~ "Registered demo-runtime-calculator"
+
+      html =
+        demo_view
+        |> element("#skills-runtime-foundations-demo button[phx-click='load_runtime_skills']")
+        |> render_click()
+
+      assert html =~ "Loaded 2 SKILL.md file(s)"
+      assert html =~ "demo-release-notes"
+      assert html =~ "3 skill(s)"
+
+      html =
+        demo_view
+        |> element("#skills-runtime-foundations-demo button[phx-click='render_prompt']")
+        |> render_click()
+
+      assert html =~ "You have access to the following skills:"
+      assert html =~ "demo-runtime-calculator"
+      assert html =~ "demo-code-review"
+      assert html =~ "format_release_notes"
+    end
+
+    test "example registry metadata resolves new skills runtime source files", %{conn: _conn} do
+      example = Examples.get_example!("jido-ai-skills-runtime-foundations")
+
+      assert example.title == "Jido.AI Skills Runtime Foundations"
+      assert example.live_view_module == "AgentJidoWeb.Examples.SkillsRuntimeFoundationsLive"
+
+      assert example.source_files == [
+               "lib/agent_jido/demos/skills_runtime_foundations/calculator_skill.ex",
+               "lib/agent_jido/demos/skills_runtime_foundations/runtime_demo.ex",
+               "lib/agent_jido_web/examples/skills_runtime_foundations_live.ex",
+               "priv/skills/skills-runtime-foundations/demo-code-review/SKILL.md",
+               "priv/skills/skills-runtime-foundations/demo-release-notes/SKILL.md"
+             ]
+
+      assert Enum.map(example.sources, & &1.path) == example.source_files
+    end
+  end
+
+  describe "/examples/jido-ai-skills-multi-agent-orchestration" do
+    test "renders explanation tab with real orchestration guidance", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/jido-ai-skills-multi-agent-orchestration?tab=explanation")
+
+      assert html =~ "Jido.AI Skills Multi-Agent Orchestration"
+      assert html =~ "Jido.AI.Skill.Registry.load_from_paths/1"
+      assert html =~ "Jido.AI.Skill.Prompt.render/2"
+      assert html =~ "No API keys, LLM providers, or network access are required for this example."
+    end
+
+    test "renders source tab for the dedicated orchestration example", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/jido-ai-skills-multi-agent-orchestration?tab=source")
+
+      assert html =~ "arithmetic_skill.ex"
+      assert html =~ "conversion_specialist.ex"
+      assert html =~ "endurance_planner_skill.ex"
+      assert html =~ "orchestrator.ex"
+      assert html =~ "skills_multi_agent_orchestration_live.ex"
+      assert html =~ "SKILL.md"
+      refute html =~ "simulated_showcase_live.ex"
+    end
+
+    test "demo tab runs deterministic routing across the three fixed scenarios", %{conn: conn} do
+      {:ok, view, html} = live(conn, "/examples/jido-ai-skills-multi-agent-orchestration?tab=demo")
+
+      assert html =~ "Jido.AI Skills Multi-Agent Orchestration"
+      refute html =~ "Simulated demo"
+      assert html =~ "registry: 3 skill(s)"
+
+      demo_view = find_live_child(view, "demo-jido-ai-skills-multi-agent-orchestration")
+
+      html =
+        demo_view
+        |> element("#skills-multi-agent-orchestration-demo button[phx-click='run_arithmetic']")
+        |> render_click()
+
+      assert html =~ "42 * 17 + 100"
+      assert html =~ "demo-orchestrator-arithmetic"
+      assert html =~ "multiply"
+      assert html =~ "814"
+
+      html =
+        demo_view
+        |> element("#skills-multi-agent-orchestration-demo button[phx-click='run_conversion']")
+        |> render_click()
+
+      assert html =~ "98.6 degrees Fahrenheit"
+      assert html =~ "demo-unit-converter"
+      assert html =~ "convert_temperature"
+      assert html =~ "37.0"
+
+      html =
+        demo_view
+        |> element("#skills-multi-agent-orchestration-demo button[phx-click='run_combined']")
+        |> render_click()
+
+      assert html =~ "5 kilometers"
+      assert html =~ "demo-endurance-planner"
+      assert html =~ "convert_distance"
+      assert html =~ "estimate_calories"
+      assert html =~ "3.11 miles"
+      assert html =~ "311 calories"
+    end
+
+    test "example registry metadata resolves new orchestration source files", %{conn: _conn} do
+      example = Examples.get_example!("jido-ai-skills-multi-agent-orchestration")
+
+      assert example.title == "Jido.AI Skills Multi-Agent Orchestration"
+      assert example.live_view_module == "AgentJidoWeb.Examples.SkillsMultiAgentOrchestrationLive"
+
+      assert example.source_files == [
+               "lib/agent_jido/demos/skills_multi_agent_orchestration/arithmetic_skill.ex",
+               "lib/agent_jido/demos/skills_multi_agent_orchestration/conversion_specialist.ex",
+               "lib/agent_jido/demos/skills_multi_agent_orchestration/endurance_planner_skill.ex",
+               "lib/agent_jido/demos/skills_multi_agent_orchestration/orchestrator.ex",
+               "lib/agent_jido_web/examples/skills_multi_agent_orchestration_live.ex",
+               "priv/skills/skills-multi-agent-orchestration/demo-unit-converter/SKILL.md"
              ]
 
       assert Enum.map(example.sources, & &1.path) == example.source_files
