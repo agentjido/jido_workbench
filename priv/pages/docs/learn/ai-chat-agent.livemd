@@ -19,7 +19,7 @@ You should have already configured `jido_ai` and `req_llm` and verified a basic 
 
 ## Agent Setup
 
-Start with a dedicated agent module that uses `Jido.AI.Agent` and a minimal state shape for conversation history. This keeps the chat-specific behavior isolated while still using the Jido runtime.
+Start with a dedicated agent module that uses `Jido.AI.Agent`. The macro already manages the base request-tracking state, so you do not implement `init/1` here. This keeps the chat-specific behavior isolated while still using the Jido runtime.
 
 ```elixir
 defmodule MyApp.ChatAgent do
@@ -34,19 +34,14 @@ defmodule MyApp.ChatAgent do
     Ask short clarifying questions when the user is ambiguous.
     Keep answers under 6 sentences unless asked to be detailed.
     """
-
-  @impl true
-  def init(_opts) do
-    {:ok, %{history: []}}
-  end
 end
 ```
 
-This agent does not use tools, which keeps the focus on conversation flow. If you want tool use later, see [AI agent with tools](/docs/learn/ai-agent-with-tools).
+This agent does not use tools, which keeps the focus on conversation flow. You will add `:history` to `agent.state` inside supported lifecycle hooks in the next step. If you want tool use later, see [AI agent with tools](/docs/learn/ai-agent-with-tools).
 
 ## Conversation Context
 
-To maintain multi-turn context, store the message history in agent state and inject it into each new prompt. The example below updates history in `on_before_cmd/2` and `on_after_cmd/3`, which keeps the flow inside the agent lifecycle.
+To maintain multi-turn context, store the message history in agent state and inject it into each new prompt. The example below intercepts the supported `:ai_react_start` action in `on_before_cmd/2`, updates `agent.state.history`, and then calls `super/2` or `super/3` so `Jido.AI.Agent` keeps its built-in request tracking intact.
 
 ```elixir
 defmodule MyApp.ChatAgent do
@@ -63,18 +58,13 @@ defmodule MyApp.ChatAgent do
     """
 
   @impl true
-  def init(_opts) do
-    {:ok, %{history: []}}
-  end
-
-  @impl true
-  def on_before_cmd(agent, {:react_start, params}) when is_map(params) do
+  def on_before_cmd(agent, {:ai_react_start, params}) when is_map(params) do
     user_message =
-      Map.get(params, :prompt) ||
-        Map.get(params, :query) ||
+      Map.get(params, :query) ||
+        Map.get(params, :prompt) ||
         Map.get(params, :message)
 
-    history = agent.state.history || []
+    history = Map.get(agent.state, :history, [])
     prompt = build_prompt(history, user_message)
     updated_params = put_prompt(params, prompt)
 
@@ -85,26 +75,36 @@ defmodule MyApp.ChatAgent do
         agent.state
       end
 
-    {:ok, %{agent | state: updated_state}, {:react_start, updated_params}}
+    super(%{agent | state: updated_state}, {:ai_react_start, updated_params})
   end
 
   @impl true
   def on_before_cmd(agent, action), do: super(agent, action)
 
   @impl true
-  def on_after_cmd(agent, _action, directives) do
+  def on_after_cmd(agent, {:ai_react_start, _params} = action, directives) do
     snap = strategy_snapshot(agent)
 
     updated_state =
       if snap.done? and is_binary(snap.result) do
-        history = agent.state.history || []
-        Map.put(agent.state, :history, history ++ [%{role: "assistant", content: snap.result}])
+        history = Map.get(agent.state, :history, [])
+
+        history =
+          case List.last(history) do
+            %{role: "assistant", content: ^snap.result} -> history
+            _ -> history ++ [%{role: "assistant", content: snap.result}]
+          end
+
+        Map.put(agent.state, :history, history)
       else
         agent.state
       end
 
-    {:ok, %{agent | state: updated_state}, directives}
+    super(%{agent | state: updated_state}, action, directives)
   end
+
+  @impl true
+  def on_after_cmd(agent, action, directives), do: super(agent, action, directives)
 
   defp build_prompt(history, message) when is_list(history) and is_binary(message) do
     history_block =
@@ -123,18 +123,15 @@ defmodule MyApp.ChatAgent do
 
   defp build_prompt(_history, message), do: message
 
-  defp put_prompt(params, prompt) do
-    cond do
-      Map.has_key?(params, :prompt) -> Map.put(params, :prompt, prompt)
-      Map.has_key?(params, :query) -> Map.put(params, :query, prompt)
-      Map.has_key?(params, :message) -> Map.put(params, :message, prompt)
-      true -> Map.put(params, :prompt, prompt)
-    end
-  end
+  defp put_prompt(params, prompt),
+    do:
+      params
+      |> Map.put(:query, prompt)
+      |> Map.put(:prompt, prompt)
 end
 ```
 
-This pattern keeps state authoritative while still building a simple text prompt for the provider. It also makes it easy to truncate history later if you need to control token size.
+This pattern keeps state authoritative while still building a simple text prompt for the provider. Calling `super/2` and `super/3` is the important part: it preserves the generated `Jido.AI.Agent` behavior for request IDs, completion state, and `ask/await/ask_sync` bookkeeping while you add chat-specific history on top.
 
 ## System Prompt Design
 
