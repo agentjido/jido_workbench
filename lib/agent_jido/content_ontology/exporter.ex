@@ -1023,22 +1023,20 @@ defmodule AgentJido.ContentOntology.Exporter do
     normalized = normalize_identifier(ref)
     by_id = Map.get(web_doc_uri_by_id, "ecosystem:" <> normalized)
 
-    cond do
-      by_id ->
-        by_id
+    if by_id do
+      by_id
+    else
+      route_candidates =
+        [normalize_route(ref), "/ecosystem/#{normalized}", "/ecosystem/#{String.replace(normalized, "-", "_")}"]
+        |> Enum.reject(&is_nil/1)
+        |> Enum.uniq()
 
-      true ->
-        route_candidates =
-          [normalize_route(ref), "/ecosystem/#{normalized}", "/ecosystem/#{String.replace(normalized, "-", "_")}"]
-          |> Enum.reject(&is_nil/1)
-          |> Enum.uniq()
-
-        Enum.find_value(route_candidates, fn route ->
-          case Map.get(web_by_route, route) do
-            nil -> nil
-            doc -> Map.get(web_doc_uri_by_id, doc.id)
-          end
-        end)
+      Enum.find_value(route_candidates, fn route ->
+        case Map.get(web_by_route, route) do
+          nil -> nil
+          doc -> Map.get(web_doc_uri_by_id, doc.id)
+        end
+      end)
     end
   end
 
@@ -1126,10 +1124,7 @@ defmodule AgentJido.ContentOntology.Exporter do
   end
 
   defp source_class_for_path(path) do
-    cond do
-      String.ends_with?(path, ".livemd") -> :LivebookSourceDocument
-      true -> :MarkdownSourceDocument
-    end
+    if String.ends_with?(path, ".livemd"), do: :LivebookSourceDocument, else: :MarkdownSourceDocument
   end
 
   defp collection_from_path(path) when is_binary(path) do
@@ -1421,10 +1416,7 @@ defmodule AgentJido.ContentOntology.Exporter do
 
     base = safe_token(text)
 
-    cond do
-      base == "" -> "id_#{short}"
-      true -> "#{base}_#{short}"
-    end
+    if base == "", do: "id_#{short}", else: "#{base}_#{short}"
   end
 
   defp safe_token(value) do
@@ -1437,8 +1429,7 @@ defmodule AgentJido.ContentOntology.Exporter do
 
   defp sha256_hex(parts) when is_list(parts) do
     parts
-    |> Enum.map(&to_string/1)
-    |> Enum.join("|")
+    |> Enum.map_join("|", &to_string/1)
     |> sha256_hex()
   end
 

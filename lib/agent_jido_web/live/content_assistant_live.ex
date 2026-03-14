@@ -922,10 +922,12 @@ defmodule AgentJidoWeb.ContentAssistantLive do
   end
 
   defp should_start_progressive_enhancement?(socket, %Response{} = response, enhancement_opts) when is_list(enhancement_opts) do
+    citations = response.citations || []
+
     progressive_mode?() and
       status_from_response(response) == :answer and
       response.answer_mode != :llm and
-      length(response.citations || []) > 0 and
+      citations != [] and
       llm_enabled?(enhancement_opts) and
       not is_reference(socket.assigns.enhancement_task_ref)
   end

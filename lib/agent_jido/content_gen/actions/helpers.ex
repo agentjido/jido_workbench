@@ -361,8 +361,7 @@ defmodule AgentJido.ContentGen.Actions.Helpers do
   defp normalize_for_diff(text) do
     text
     |> String.split("\n")
-    |> Enum.map(&String.trim_trailing/1)
-    |> Enum.join("\n")
+    |> Enum.map_join("\n", &String.trim_trailing/1)
     |> String.trim()
   end
 

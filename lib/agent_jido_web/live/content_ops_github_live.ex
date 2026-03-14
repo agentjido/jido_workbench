@@ -287,9 +287,7 @@ defmodule AgentJidoWeb.ContentOpsGithubLive do
   end
 
   def handle_event("merge_pr", %{"number" => number_str, "title" => title}, socket) do
-    if not socket.assigns.github_mutations_enabled do
-      {:noreply, put_flash(socket, :error, "GitHub mutations are disabled for this environment.")}
-    else
+    if socket.assigns.github_mutations_enabled do
       number = String.to_integer(number_str)
       token = socket.assigns.token
       owner = socket.assigns.owner
@@ -307,13 +305,13 @@ defmodule AgentJidoWeb.ContentOpsGithubLive do
         |> put_flash(:info, "Merging PR ##{number}…")
 
       {:noreply, socket}
+    else
+      {:noreply, put_flash(socket, :error, "GitHub mutations are disabled for this environment.")}
     end
   end
 
   def handle_event("solve_issue", %{"number" => number_str, "title" => title}, socket) do
-    if not socket.assigns.github_mutations_enabled do
-      {:noreply, put_flash(socket, :error, "GitHub mutations are disabled for this environment.")}
-    else
+    if socket.assigns.github_mutations_enabled do
       timeout = config(:contentops_timeout_ms)
 
       task =
@@ -327,6 +325,8 @@ defmodule AgentJidoWeb.ContentOpsGithubLive do
         |> put_flash(:info, "🤖 ContentOps triggered for issue ##{number_str}: #{title}")
 
       {:noreply, socket}
+    else
+      {:noreply, put_flash(socket, :error, "GitHub mutations are disabled for this environment.")}
     end
   end
 

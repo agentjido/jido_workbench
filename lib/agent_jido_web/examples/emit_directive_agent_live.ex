@@ -167,28 +167,26 @@ defmodule AgentJidoWeb.Examples.EmitDirectiveAgentLive do
   def handle_event("process_payment", _params, socket) do
     order_id = socket.assigns.agent.state.last_order_id
 
-    cond do
-      order_id in [nil, ""] ->
-        {:noreply, assign(socket, :last_error, "Create an order first.")}
+    if order_id in [nil, ""] do
+      {:noreply, assign(socket, :last_error, "Create an order first.")}
+    else
+      case fetch_server_pid(socket) do
+        {:ok, pid} ->
+          case AgentServer.call(pid, Signal.new!("process_payment", %{order_id: order_id}, source: "/demo")) do
+            {:ok, agent} ->
+              {:noreply,
+               socket
+               |> assign(:agent, agent)
+               |> assign(:last_error, nil)
+               |> append_log("process_payment", order_id)}
 
-      true ->
-        case fetch_server_pid(socket) do
-          {:ok, pid} ->
-            case AgentServer.call(pid, Signal.new!("process_payment", %{order_id: order_id}, source: "/demo")) do
-              {:ok, agent} ->
-                {:noreply,
-                 socket
-                 |> assign(:agent, agent)
-                 |> assign(:last_error, nil)
-                 |> append_log("process_payment", order_id)}
+            {:error, reason} ->
+              {:noreply, assign(socket, :last_error, inspect(reason))}
+          end
 
-              {:error, reason} ->
-                {:noreply, assign(socket, :last_error, inspect(reason))}
-            end
-
-          {:error, reason} ->
-            {:noreply, assign(socket, :last_error, inspect(reason))}
-        end
+        {:error, reason} ->
+          {:noreply, assign(socket, :last_error, inspect(reason))}
+      end
     end
   end
 

@@ -481,17 +481,15 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLive do
       label = node |> get_key(:label, id) |> normalize_text() |> default_if_empty(id)
       note = node |> get_key(:note, "") |> normalize_text()
 
-      cond do
-        label == "" ->
-          nil
-
-        true ->
-          %{
-            id: id,
-            label: label,
-            note: note,
-            path: module_node_path(id)
-          }
+      if label == "" do
+        nil
+      else
+        %{
+          id: id,
+          label: label,
+          note: note,
+          path: module_node_path(id)
+        }
       end
     end)
     |> Enum.reject(&is_nil/1)

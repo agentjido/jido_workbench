@@ -82,9 +82,8 @@ defmodule AgentJido.OGImage do
   defp render_descriptor(descriptor) do
     svg = Templates.render_svg(descriptor)
 
-    with {:ok, image} <- Image.from_svg(svg, width: @image_width, height: @image_height),
-         {:ok, png_data} <- Image.write(image, :memory, suffix: ".png") do
-      {:ok, png_data}
+    with {:ok, image} <- Image.from_svg(svg, width: @image_width, height: @image_height) do
+      Image.write(image, :memory, suffix: ".png")
     end
   end
 end

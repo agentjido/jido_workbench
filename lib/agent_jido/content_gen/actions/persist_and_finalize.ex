@@ -70,49 +70,47 @@ defmodule AgentJido.ContentGen.Actions.PersistAndFinalize do
           context.verification || Helpers.default_verification()
       end
 
-    cond do
-      verify_after_persist? and Helpers.verification_failed?(verification) ->
-        case Helpers.rollback_failed_conversion(context.target) do
-          :ok ->
-            %{
-              context
-              | status: :verification_failed,
-                reason: "verification checks failed",
-                halted?: true,
-                verification: verification
-            }
+    if verify_after_persist? and Helpers.verification_failed?(verification) do
+      case Helpers.rollback_failed_conversion(context.target) do
+        :ok ->
+          %{
+            context
+            | status: :verification_failed,
+              reason: "verification checks failed",
+              halted?: true,
+              verification: verification
+          }
 
-          {:error, rollback_reason} ->
-            %{
-              context
-              | status: :generation_failed,
-                reason:
-                  "#{verification.command_output_excerpt || "verification failed"} " <>
-                    "(rollback failed: #{rollback_reason})",
-                halted?: true,
-                verification: verification
-            }
-        end
+        {:error, rollback_reason} ->
+          %{
+            context
+            | status: :generation_failed,
+              reason:
+                "#{verification.command_output_excerpt || "verification failed"} " <>
+                  "(rollback failed: #{rollback_reason})",
+              halted?: true,
+              verification: verification
+          }
+      end
+    else
+      case Helpers.maybe_cleanup_converted_source(context.target, verification) do
+        :ok ->
+          %{
+            context
+            | status: :written,
+              reason: "applied to target",
+              verification: verification
+          }
 
-      true ->
-        case Helpers.maybe_cleanup_converted_source(context.target, verification) do
-          :ok ->
-            %{
-              context
-              | status: :written,
-                reason: "applied to target",
-                verification: verification
-            }
-
-          {:error, cleanup_reason} ->
-            %{
-              context
-              | status: :generation_failed,
-                reason: cleanup_reason,
-                halted?: true,
-                verification: verification
-            }
-        end
+        {:error, cleanup_reason} ->
+          %{
+            context
+            | status: :generation_failed,
+              reason: cleanup_reason,
+              halted?: true,
+              verification: verification
+          }
+      end
     end
   end
 

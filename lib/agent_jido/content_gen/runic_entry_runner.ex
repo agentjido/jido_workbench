@@ -319,9 +319,8 @@ defmodule AgentJido.ContentGen.RunicEntryRunner do
   end
 
   defp ensure_runtime do
-    with :ok <- ensure_app_started(:jido_signal),
-         :ok <- ensure_jido_runtime_started() do
-      :ok
+    with :ok <- ensure_app_started(:jido_signal) do
+      ensure_jido_runtime_started()
     end
   end
 

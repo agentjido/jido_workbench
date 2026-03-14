@@ -332,10 +332,7 @@ defmodule AgentJido.ContentGen.Contract do
   defp merge_list(base, override, opts) do
     replace? = Keyword.get(opts, :replace?, false)
 
-    cond do
-      replace? and override != [] -> Enum.uniq(override)
-      true -> Enum.uniq(base ++ override)
-    end
+    if replace? and override != [], do: Enum.uniq(override), else: Enum.uniq(base ++ override)
   end
 
   defp override_get(overrides, key, default \\ nil) do

@@ -25,25 +25,23 @@ defmodule AgentJido.ContentAssistant do
   def respond(query, opts) when is_binary(query) and is_list(opts) do
     normalized_query = normalize_query(query, query_max_length(opts))
 
-    cond do
-      normalized_query == "" ->
-        {:ok,
-         build_response(normalized_query,
-           answer_markdown: "",
-           answer_mode: :no_results,
-           citations: [],
-           related_queries: [],
-           retrieval_status: :success,
-           llm_attempted?: false,
-           llm_enhanced?: false,
-           enhancement_blocked_reason: nil,
-           link_source: @default_link_source,
-           link_channel: link_channel(opts),
-           query_log_id: Keyword.get(opts, :query_log_id)
-         )}
-
-      true ->
-        do_respond(normalized_query, opts)
+    if normalized_query == "" do
+      {:ok,
+       build_response(normalized_query,
+         answer_markdown: "",
+         answer_mode: :no_results,
+         citations: [],
+         related_queries: [],
+         retrieval_status: :success,
+         llm_attempted?: false,
+         llm_enhanced?: false,
+         enhancement_blocked_reason: nil,
+         link_source: @default_link_source,
+         link_channel: link_channel(opts),
+         query_log_id: Keyword.get(opts, :query_log_id)
+       )}
+    else
+      do_respond(normalized_query, opts)
     end
   end
 

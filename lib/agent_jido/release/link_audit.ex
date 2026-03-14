@@ -57,9 +57,7 @@ defmodule AgentJido.Release.LinkAudit do
 
     unmatched_internal =
       internal_links
-      |> Enum.reject(&ignored_path?(&1.path))
-      |> Enum.reject(&matches_any_route?(&1.path, routes))
-      |> Enum.reject(&allowed_unmatched?(&1.path, allowed_prefixes))
+      |> Enum.reject(&(ignored_path?(&1.path) or matches_any_route?(&1.path, routes) or allowed_unmatched?(&1.path, allowed_prefixes)))
 
     {external_count, external_warnings, external_failures} =
       if check_external do

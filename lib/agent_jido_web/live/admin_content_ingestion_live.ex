@@ -263,24 +263,22 @@ defmodule AgentJidoWeb.AdminContentIngestionLive do
   def handle_info(_msg, socket), do: {:noreply, socket}
 
   defp trigger_ingest(socket, mode, source_id) do
-    cond do
-      socket.assigns[@running_key] ->
-        {:noreply, put_flash(socket, :error, "An ingestion task is already running.")}
-
-      true ->
-        with {:ok, socket} <- ensure_task_supervisor(socket),
-             {:ok, opts} <- ingest_opts(mode, source_id, socket),
-             {:ok, ref} <- start_ingest_task(socket, mode, source_id, opts) do
-          {:noreply,
-           socket
-           |> assign(@running_key, true)
-           |> assign(@task_ref_key, ref)
-           |> assign(:current_run_label, run_label(mode, source_id))
-           |> put_flash(:info, "#{run_label(mode, source_id)} started.")}
-        else
-          {:error, reason} ->
-            {:noreply, put_flash(socket, :error, reason)}
-        end
+    if socket.assigns[@running_key] do
+      {:noreply, put_flash(socket, :error, "An ingestion task is already running.")}
+    else
+      with {:ok, socket} <- ensure_task_supervisor(socket),
+           {:ok, opts} <- ingest_opts(mode, source_id, socket),
+           {:ok, ref} <- start_ingest_task(socket, mode, source_id, opts) do
+        {:noreply,
+         socket
+         |> assign(@running_key, true)
+         |> assign(@task_ref_key, ref)
+         |> assign(:current_run_label, run_label(mode, source_id))
+         |> put_flash(:info, "#{run_label(mode, source_id)} started.")}
+      else
+        {:error, reason} ->
+          {:noreply, put_flash(socket, :error, reason)}
+      end
     end
   end
 

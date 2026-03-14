@@ -1013,29 +1013,27 @@ defmodule AgentJidoWeb.AdminContentGeneratorLive do
       |> assign(@run_params_key, params)
       |> assign(@run_form_key, to_form(params, as: :generator))
 
-    cond do
-      socket.assigns[@running_key] ->
-        {:noreply, put_flash(socket, :error, "A content generation run is already in progress.")}
+    if socket.assigns[@running_key] do
+      {:noreply, put_flash(socket, :error, "A content generation run is already in progress.")}
+    else
+      with {:ok, run_opts} <- build_run_opts(params),
+           {:ok, socket} <- ensure_task_supervisor(socket),
+           {:ok, ref} <- start_content_run_task(socket, run_opts) do
+        command = build_mix_command(params)
+        run_context = start_run_context(run_opts, "run", command)
+        schedule_run_tick()
 
-      true ->
-        with {:ok, run_opts} <- build_run_opts(params),
-             {:ok, socket} <- ensure_task_supervisor(socket),
-             {:ok, ref} <- start_content_run_task(socket, run_opts) do
-          command = build_mix_command(params)
-          run_context = start_run_context(run_opts, "run", command)
-          schedule_run_tick()
-
-          {:noreply,
-           socket
-           |> assign(@running_key, true)
-           |> assign(@run_task_ref_key, ref)
-           |> assign(@active_command_key, command)
-           |> assign(@run_context_key, run_context)
-           |> put_flash(:info, "Content generation run started.")}
-        else
-          {:error, reason} ->
-            {:noreply, put_flash(socket, :error, reason)}
-        end
+        {:noreply,
+         socket
+         |> assign(@running_key, true)
+         |> assign(@run_task_ref_key, ref)
+         |> assign(@active_command_key, command)
+         |> assign(@run_context_key, run_context)
+         |> put_flash(:info, "Content generation run started.")}
+      else
+        {:error, reason} ->
+          {:noreply, put_flash(socket, :error, reason)}
+      end
     end
   end
 
@@ -1266,8 +1264,7 @@ defmodule AgentJidoWeb.AdminContentGeneratorLive do
           true
         else
           [row.id, row.title, row.route]
-          |> Enum.map(&to_string/1)
-          |> Enum.join(" ")
+          |> Enum.map_join(" ", &to_string/1)
           |> String.downcase()
           |> String.contains?(q)
         end
@@ -1572,7 +1569,7 @@ defmodule AgentJidoWeb.AdminContentGeneratorLive do
     %{
       "entry" => "",
       "sections" => "",
-      "statuses" => Enum.join(Enum.map(ContentGen.default_statuses(), &Atom.to_string/1), ","),
+      "statuses" => Enum.map_join(ContentGen.default_statuses(), ",", &Atom.to_string/1),
       "max" => Integer.to_string(ContentGen.default_batch_size()),
       "backend" => "req_llm",
       "docs_format" => "tag",

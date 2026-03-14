@@ -24,12 +24,10 @@ defmodule AgentJidoWeb.Plugs.LLMResponse do
           canonical_url = MarkdownLinks.absolute_url(canonical_path, conn.query_string)
           markdown_url = MarkdownLinks.absolute_url(markdown_path, conn.query_string)
 
-          cond do
-            markdown_route_request?(request_path) or markdown_request?(conn) ->
-              maybe_render_markdown(conn, canonical_path, canonical_url, markdown_url)
-
-            true ->
-              register_discovery_headers(conn, markdown_url)
+          if markdown_route_request?(request_path) or markdown_request?(conn) do
+            maybe_render_markdown(conn, canonical_path, canonical_url, markdown_url)
+          else
+            register_discovery_headers(conn, markdown_url)
           end
         else
           conn

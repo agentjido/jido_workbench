@@ -131,8 +131,7 @@ defmodule AgentJidoWeb.Jido.MarketingCode do
       |> Enum.min(fn -> 0 end)
 
     lines
-    |> Enum.map(&strip_indent(&1, indent))
-    |> Enum.join("\n")
+    |> Enum.map_join("\n", &strip_indent(&1, indent))
   end
 
   defp drop_trailing_blank_lines(lines) do

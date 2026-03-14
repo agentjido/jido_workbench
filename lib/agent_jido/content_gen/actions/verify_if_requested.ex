@@ -24,30 +24,28 @@ defmodule AgentJido.ContentGen.Actions.VerifyIfRequested do
     verification = run_verification(context)
     entry_result = Map.get(context, :entry_result, Helpers.base_entry_result(context))
 
-    cond do
-      context.status == :audit_only_passed and Helpers.verification_failed?(verification) ->
-        {:ok,
-         %{
-           context
-           | status: :verification_failed,
-             reason: "verification checks failed",
-             halted?: true,
-             verification: verification,
-             entry_result:
-               Map.merge(entry_result, %{
-                 status: :verification_failed,
-                 reason: "verification checks failed",
-                 verification: verification
-               })
-         }}
-
-      true ->
-        {:ok,
-         %{
-           context
-           | verification: verification,
-             entry_result: Map.put(entry_result, :verification, verification)
-         }}
+    if context.status == :audit_only_passed and Helpers.verification_failed?(verification) do
+      {:ok,
+       %{
+         context
+         | status: :verification_failed,
+           reason: "verification checks failed",
+           halted?: true,
+           verification: verification,
+           entry_result:
+             Map.merge(entry_result, %{
+               status: :verification_failed,
+               reason: "verification checks failed",
+               verification: verification
+             })
+       }}
+    else
+      {:ok,
+       %{
+         context
+         | verification: verification,
+           entry_result: Map.put(entry_result, :verification, verification)
+       }}
     end
   end
 
