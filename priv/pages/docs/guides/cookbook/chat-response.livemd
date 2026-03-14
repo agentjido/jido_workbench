@@ -1,0 +1,101 @@
+%{
+  title: "Cookbook: Chat Response",
+  description: "Send a single chat request with Jido AI and extract the returned text, model, and usage fields.",
+  category: :docs,
+  order: 110,
+  doc_type: :cookbook,
+  audience: :intermediate,
+  tags: [:docs, :guides, :cookbook, :chat, :ai, :livebook],
+  draft: false,
+  legacy_paths: ["/docs/chat-response", "/docs/cookbook/chat-response"],
+  prerequisites: ["/docs/getting-started/first-llm-agent"],
+  learning_outcomes: [
+    "Send a single chat request with Jido.AI.Actions.LLM.Chat",
+    "Extract the returned text, model, and usage fields"
+  ],
+  livebook: %{
+    runnable: true,
+    required_env_vars: ["OPENAI_API_KEY"],
+    requires_network: true,
+    setup_instructions: "Set OPENAI_API_KEY or LB_OPENAI_API_KEY before running the request cell."
+  }
+}
+---
+## Setup
+
+This recipe keeps the flow deliberately small: configure a provider key, send one chat request, and read the structured result. If you want a full multi-turn agent afterward, continue to [Build an AI Chat Agent](/docs/learn/ai-chat-agent).
+
+```elixir
+Mix.install([
+  {:jido, "~> 2.0"},
+  {:jido_ai, github: "agentjido/jido_ai", branch: "main"},
+  {:req_llm, "~> 1.6"}
+])
+
+Logger.configure(level: :warning)
+```
+
+Configure the provider key the same way as [Your first LLM agent](/docs/getting-started/first-llm-agent). In Livebook, store it as a secret named `OPENAI_API_KEY`, which becomes `LB_OPENAI_API_KEY` inside the notebook.
+
+```elixir
+openai_key = System.get_env("LB_OPENAI_API_KEY") || System.get_env("OPENAI_API_KEY")
+
+configured? =
+  if is_binary(openai_key) do
+    ReqLLM.put_key(:openai_api_key, openai_key)
+    true
+  else
+    IO.puts("Set OPENAI_API_KEY as a Livebook Secret or environment variable to run the request cell.")
+    false
+  end
+```
+
+## Request
+
+`Jido.AI.Actions.LLM.Chat` is the compact request-response API. Run it through `Jido.Exec.run/2` with a prompt and an optional system prompt:
+
+```elixir
+chat_result =
+  if configured? do
+    Jido.Exec.run(
+      Jido.AI.Actions.LLM.Chat,
+      %{
+        model: :fast,
+        prompt: "Write a two-sentence welcome for a new Jido user.",
+        system_prompt: "You are a concise, friendly assistant.",
+        temperature: 0.2,
+        max_tokens: 120
+      }
+    )
+  else
+    {:skip, :no_openai_key}
+  end
+
+IO.inspect(chat_result, label: "Chat result")
+```
+
+The successful shape is `{:ok, %{text: ..., model: ..., usage: ...}}`. `model: :fast` resolves through `jido_ai` model aliases, so the same recipe works if you change the provider backing that alias later.
+
+## Response
+
+Pattern match the response map to get the assistant text and any usage data you want to log or display:
+
+```elixir
+chat_text =
+  case chat_result do
+    {:ok, %{text: text, model: model, usage: usage}} ->
+      IO.puts("Model: #{model}")
+      IO.inspect(usage, label: "Token usage")
+      text
+
+    {:error, reason} ->
+      "Chat request failed: #{inspect(reason)}"
+
+    {:skip, :no_openai_key} ->
+      "Skipped request. Set OPENAI_API_KEY or LB_OPENAI_API_KEY to run it."
+  end
+
+IO.puts(chat_text)
+```
+
+This is the smallest useful chat recipe: one prompt in, one extracted text response out. When you need tools or multi-turn state, move on to [Tool Response](/docs/guides/cookbook/tool-response) or the full [AI Chat Agent guide](/docs/learn/ai-chat-agent).
