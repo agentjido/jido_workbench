@@ -37,4 +37,12 @@ defmodule AgentJido.Demos.ScheduleDirectiveAgent do
       {"cron.tick", HandleCronTickAction},
       {"cron.hourly", HandleCronTickAction}
     ]
+
+  @doc false
+  @spec plugin_specs() :: nonempty_list(Jido.Plugin.Spec.t())
+  def plugin_specs, do: super()
+
+  @doc false
+  @spec plugin_schedules() :: nonempty_list(Jido.Plugin.Schedules.schedule_spec())
+  def plugin_schedules, do: super()
 end

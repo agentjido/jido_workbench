@@ -22,4 +22,8 @@ defmodule AgentJido.Demos.SignalRoutingAgent do
       {"set_name", SetNameAction},
       {"record_event", RecordEventAction}
     ]
+
+  @doc false
+  @spec plugin_specs() :: nonempty_list(Jido.Plugin.Spec.t())
+  def plugin_specs, do: super()
 end

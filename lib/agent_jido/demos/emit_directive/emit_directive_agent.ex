@@ -23,4 +23,8 @@ defmodule AgentJido.Demos.EmitDirectiveAgent do
       {"process_payment", ProcessPaymentAction},
       {"multi_emit", MultiEmitAction}
     ]
+
+  @doc false
+  @spec plugin_specs() :: nonempty_list(Jido.Plugin.Spec.t())
+  def plugin_specs, do: super()
 end

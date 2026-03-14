@@ -26,7 +26,21 @@ defmodule AgentJido.Community.Showcase.Project do
             coerce: true
           )
 
-  @type t :: unquote(Zoi.type_spec(@schema))
+  @type t :: %__MODULE__{
+          slug: String.t(),
+          title: String.t(),
+          description: String.t(),
+          project_url: String.t(),
+          repo_url: String.t() | nil,
+          logo_url: String.t() | nil,
+          tags: [String.t()],
+          featured: boolean(),
+          status: :draft | :live,
+          sort_order: integer(),
+          body: String.t(),
+          path: String.t(),
+          source_path: String.t()
+        }
 
   @enforce_keys Zoi.Struct.enforce_keys(@schema)
   defstruct Zoi.Struct.struct_fields(@schema)
@@ -34,7 +48,7 @@ defmodule AgentJido.Community.Showcase.Project do
   @doc """
   Returns the schema used to validate showcase project metadata.
   """
-  @spec schema() :: Zoi.t()
+  @spec schema() :: Zoi.schema()
   def schema, do: @schema
 
   @doc """
