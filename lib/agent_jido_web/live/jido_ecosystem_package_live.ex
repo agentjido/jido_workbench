@@ -602,33 +602,32 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLive do
 
   defp cta_link_class(_), do: "border-border bg-elevated text-foreground hover:text-primary"
 
-  defp issue_queue_url(nil), do: nil
-  defp issue_queue_url(""), do: nil
-
   defp issue_queue_url(github_url) when is_binary(github_url) do
     trimmed = String.trim(github_url)
 
-    case URI.parse(trimmed) do
-      %URI{scheme: scheme, host: host, path: path}
-      when scheme in ["http", "https"] and host in ["github.com", "www.github.com"] ->
-        path
-        |> to_string()
-        |> String.trim("/")
-        |> String.split("/", trim: true)
-        |> case do
-          [owner, repo | _rest] when owner != "" and repo != "" ->
-            "https://github.com/#{owner}/#{String.trim_trailing(repo, ".git")}/issues"
+    if trimmed == "" do
+      nil
+    else
+      case URI.parse(trimmed) do
+        %URI{scheme: scheme, host: host, path: path}
+        when scheme in ["http", "https"] and host in ["github.com", "www.github.com"] ->
+          path
+          |> to_string()
+          |> String.trim("/")
+          |> String.split("/", trim: true)
+          |> case do
+            [owner, repo | _rest] when owner != "" and repo != "" ->
+              "https://github.com/#{owner}/#{String.trim_trailing(repo, ".git")}/issues"
 
-          _other ->
-            nil
-        end
+            _other ->
+              nil
+          end
 
-      _other ->
-        nil
+        _other ->
+          nil
+      end
     end
   end
-
-  defp issue_queue_url(_github_url), do: nil
 
   defp present?(nil), do: false
   defp present?(""), do: false
