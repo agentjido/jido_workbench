@@ -376,25 +376,6 @@ defmodule AgentJidoWeb.Examples.SimulatedShowcaseLive do
     }
   end
 
-  defp scenario_for("jido-ai-skills-multi-agent-orchestration") do
-    %{
-      title: "Jido.AI Skills Multi-Agent Orchestration",
-      steps: [
-        %{label: "Arithmetic request", detail: "Resolved expression using calculator skill pathway"},
-        %{label: "Conversion request", detail: "Routed to unit conversion skill and tools"},
-        %{label: "Combined request", detail: "Composed conversion + derived calorie estimate response"},
-        %{label: "Semantic checks", detail: "Validated key outputs (814, 37C, ~3.1 miles)"}
-      ],
-      result: """
-      {
-        "model": "simulated:haiku",
-        "question_classes": 3,
-        "skills_selected_correctly": true
-      }
-      """
-    }
-  end
-
   defp scenario_for("jido-ai-weather-reasoning-strategy-suite") do
     %{
       title: "Jido.AI Weather Reasoning Strategy Suite",
