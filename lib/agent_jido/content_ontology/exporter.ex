@@ -118,7 +118,13 @@ defmodule AgentJido.ContentOntology.Exporter do
       |> add_web_links(web_docs, web_by_route, web_doc_uri_by_id)
       |> add_web_relations(web_docs, web_by_id, plan_by_id, web_doc_uri_by_id, plan_uri_by_id)
       |> add_content_plan_relations(plan_entries, plan_by_id, web_by_route, plan_uri_by_id, web_doc_uri_by_id)
-      |> add_web_library_version_references(web_docs, web_by_id, web_doc_uri_by_id, web_doc_by_qname, source_uri_by_path)
+      |> add_web_library_version_references(
+        web_docs,
+        web_by_id,
+        web_doc_uri_by_id,
+        web_doc_by_qname,
+        source_uri_by_path
+      )
       |> add_content_plan_library_version_references(
         plan_entries,
         web_by_route,
@@ -126,7 +132,14 @@ defmodule AgentJido.ContentOntology.Exporter do
         web_doc_by_qname,
         plan_uri_by_id
       )
-      |> add_tags_for_resources(web_docs, plan_entries, tag_labels, web_doc_uri_by_id, plan_uri_by_id, source_uri_by_path)
+      |> add_tags_for_resources(
+        web_docs,
+        plan_entries,
+        tag_labels,
+        web_doc_uri_by_id,
+        plan_uri_by_id,
+        source_uri_by_path
+      )
       |> add_versions_for_web_docs(web_docs, source_uri_by_path, web_doc_uri_by_id, git_commit_hash, now)
 
     body =
@@ -216,7 +229,7 @@ defmodule AgentJido.ContentOntology.Exporter do
           related_docs: normalize_ref_list(Map.get(page, :related_docs, [])),
           related_posts: normalize_ref_list(Map.get(page, :related_posts, [])),
           ecosystem_packages: normalize_ref_list(map_value(validation, :ecosystem_packages, [])),
-          min_package_versions: normalize_package_version_requirements(map_value(validation, :min_package_versions, [])),
+          min_package_versions: validation_package_versions(validation),
           body_html: normalize_optional(page.body),
           content_hash: normalize_optional(map_value(freshness, :content_hash)),
           version_label: normalize_optional(map_value(freshness, :last_refreshed_at))
@@ -261,7 +274,7 @@ defmodule AgentJido.ContentOntology.Exporter do
           related_docs: normalize_ref_list(Map.get(post, :related_docs, [])),
           related_posts: normalize_ref_list(Map.get(post, :related_posts, [])),
           ecosystem_packages: normalize_ref_list(map_value(validation, :ecosystem_packages, [])),
-          min_package_versions: normalize_package_version_requirements(map_value(validation, :min_package_versions, [])),
+          min_package_versions: validation_package_versions(validation),
           body_html: normalize_optional(post.body),
           content_hash: normalize_optional(map_value(freshness, :content_hash)),
           version_label: Date.to_iso8601(post.date),
@@ -1149,6 +1162,12 @@ defmodule AgentJido.ContentOntology.Exporter do
     |> Enum.map(&String.trim/1)
     |> Enum.reject(&(&1 == ""))
     |> Enum.uniq()
+  end
+
+  defp validation_package_versions(validation) do
+    validation
+    |> map_value(:min_package_versions, [])
+    |> normalize_package_version_requirements()
   end
 
   defp normalize_package_version_requirements(raw) do

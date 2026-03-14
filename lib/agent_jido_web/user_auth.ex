@@ -1,4 +1,8 @@
 defmodule AgentJidoWeb.UserAuth do
+  @moduledoc """
+  Session and LiveView authentication helpers for browser-based user access.
+  """
+
   use AgentJidoWeb, :verified_routes
 
   import Plug.Conn

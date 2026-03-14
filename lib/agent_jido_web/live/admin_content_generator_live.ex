@@ -1546,11 +1546,9 @@ defmodule AgentJidoWeb.AdminContentGeneratorLive do
   defp decode_entry_id(nil), do: nil
 
   defp decode_entry_id(value) do
-    try do
-      URI.decode(value)
-    rescue
-      _ -> value
-    end
+    URI.decode(value)
+  rescue
+    _ -> value
   end
 
   defp status_atom(value, known_statuses) do

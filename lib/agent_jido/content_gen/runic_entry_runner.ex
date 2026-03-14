@@ -76,25 +76,27 @@ defmodule AgentJido.ContentGen.RunicEntryRunner do
   end
 
   defp extract_entry_result(pid, completion) do
-    with {:ok, server_state} <- Jido.AgentServer.state(pid) do
-      strat = StratState.get(server_state.agent)
-      productions = Workflow.raw_productions(strat.workflow)
+    case Jido.AgentServer.state(pid) do
+      {:ok, server_state} ->
+        strat = StratState.get(server_state.agent)
+        productions = Workflow.raw_productions(strat.workflow)
 
-      case locate_entry_result(productions) do
-        nil ->
-          case completion do
-            %{status: :failed} ->
-              {:error, "runic workflow failed before producing entry_result"}
+        case locate_entry_result(productions) do
+          nil ->
+            case completion do
+              %{status: :failed} ->
+                {:error, "runic workflow failed before producing entry_result"}
 
-            _other ->
-              {:error, "runic workflow completed without entry_result production"}
-          end
+              _other ->
+                {:error, "runic workflow completed without entry_result production"}
+            end
 
-        entry_result ->
-          {:ok, normalize_entry_result(entry_result)}
-      end
-    else
-      {:error, reason} -> {:error, "failed to inspect runic workflow state: #{inspect(reason)}"}
+          entry_result ->
+            {:ok, normalize_entry_result(entry_result)}
+        end
+
+      {:error, reason} ->
+        {:error, "failed to inspect runic workflow state: #{inspect(reason)}"}
     end
   end
 

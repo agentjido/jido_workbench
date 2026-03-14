@@ -364,12 +364,13 @@ defmodule AgentJidoWeb.ChatOpsLive do
   end
 
   defp refresh_inventory(socket) do
-    with {:ok, room_inventory} <- fetch_inventory(socket.assigns.inventory_provider) do
-      socket
-      |> assign(:room_inventory, room_inventory)
-      |> assign(:inventory_error, nil)
-      |> assign(:inventory_refreshed_at, DateTime.utc_now())
-    else
+    case fetch_inventory(socket.assigns.inventory_provider) do
+      {:ok, room_inventory} ->
+        socket
+        |> assign(:room_inventory, room_inventory)
+        |> assign(:inventory_error, nil)
+        |> assign(:inventory_refreshed_at, DateTime.utc_now())
+
       {:error, reason} ->
         socket
         |> assign(:room_inventory, [])
@@ -381,13 +382,13 @@ defmodule AgentJidoWeb.ChatOpsLive do
   defp refresh_recent_messages(socket) do
     limit = socket.assigns.message_timeline_limit
 
-    with {:ok, recent_messages} <-
-           fetch_recent_messages(socket.assigns.message_provider, limit: limit) do
-      socket
-      |> assign(:recent_messages, Enum.take(recent_messages, limit))
-      |> assign(:message_error, nil)
-      |> assign(:message_refreshed_at, DateTime.utc_now())
-    else
+    case fetch_recent_messages(socket.assigns.message_provider, limit: limit) do
+      {:ok, recent_messages} ->
+        socket
+        |> assign(:recent_messages, Enum.take(recent_messages, limit))
+        |> assign(:message_error, nil)
+        |> assign(:message_refreshed_at, DateTime.utc_now())
+
       {:error, reason} ->
         socket
         |> assign(:recent_messages, [])
@@ -399,13 +400,13 @@ defmodule AgentJidoWeb.ChatOpsLive do
   defp refresh_action_timeline(socket) do
     limit = socket.assigns.action_timeline_limit
 
-    with {:ok, entries} <-
-           fetch_action_timeline(socket.assigns.action_timeline_provider, limit: limit) do
-      socket
-      |> assign(:action_timeline, normalize_action_timeline(entries, limit))
-      |> assign(:action_timeline_error, nil)
-      |> assign(:action_timeline_refreshed_at, DateTime.utc_now())
-    else
+    case fetch_action_timeline(socket.assigns.action_timeline_provider, limit: limit) do
+      {:ok, entries} ->
+        socket
+        |> assign(:action_timeline, normalize_action_timeline(entries, limit))
+        |> assign(:action_timeline_error, nil)
+        |> assign(:action_timeline_refreshed_at, DateTime.utc_now())
+
       {:error, reason} ->
         socket
         |> assign(:action_timeline, [])
@@ -415,12 +416,13 @@ defmodule AgentJidoWeb.ChatOpsLive do
   end
 
   defp refresh_guardrails(socket) do
-    with {:ok, guardrails} <- fetch_guardrails(socket.assigns.guardrail_provider) do
-      socket
-      |> assign(:guardrails, normalize_guardrails(guardrails))
-      |> assign(:guardrail_error, nil)
-      |> assign(:guardrail_refreshed_at, DateTime.utc_now())
-    else
+    case fetch_guardrails(socket.assigns.guardrail_provider) do
+      {:ok, guardrails} ->
+        socket
+        |> assign(:guardrails, normalize_guardrails(guardrails))
+        |> assign(:guardrail_error, nil)
+        |> assign(:guardrail_refreshed_at, DateTime.utc_now())
+
       {:error, reason} ->
         socket
         |> assign(:guardrails, default_guardrail_state())

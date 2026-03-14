@@ -80,29 +80,31 @@ defmodule AgentJido.ContentAssistant.Retrieval do
       |> maybe_put_graph_opt(opts)
 
     try do
-      with {:ok, rows} when is_list(rows) <- safe_search(search_fun, query, search_opts) do
-        docs_by_id = safe_document_lookup(document_lookup_fun, rows, repo)
+      case safe_search(search_fun, query, search_opts) do
+        {:ok, rows} when is_list(rows) ->
+          docs_by_id = safe_document_lookup(document_lookup_fun, rows, repo)
 
-        normalized_results =
-          rows
-          |> normalize_results(docs_by_id)
+          normalized_results =
+            rows
+            |> normalize_results(docs_by_id)
 
-        primary_results = filter_disabled_results(normalized_results, limit)
+          primary_results = filter_disabled_results(normalized_results, limit)
 
-        cond do
-          primary_results != [] ->
-            {:ok, primary_results, :success}
+          cond do
+            primary_results != [] ->
+              {:ok, primary_results, :success}
 
-          # Backend returned rows but all normalized results were retired routes
-          # (for example /training). In this case, try fallback before returning empty.
-          normalized_results != [] ->
-            fallback_response(fallback_fun, query, limit)
+            # Backend returned rows but all normalized results were retired routes
+            # (for example /training). In this case, try fallback before returning empty.
+            normalized_results != [] ->
+              fallback_response(fallback_fun, query, limit)
 
-          true ->
-            {:ok, [], :success}
-        end
-      else
-        _ -> fallback_response(fallback_fun, query, limit)
+            true ->
+              {:ok, [], :success}
+          end
+
+        _other ->
+          fallback_response(fallback_fun, query, limit)
       end
     rescue
       _ -> fallback_response(fallback_fun, query, limit)

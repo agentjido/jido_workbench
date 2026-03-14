@@ -1,4 +1,8 @@
 defmodule AgentJido.Accounts.UserToken do
+  @moduledoc """
+  Schema and token helpers for browser sessions, login links, and email-change flows.
+  """
+
   use Ecto.Schema
   import Ecto.Query
   alias AgentJido.Accounts.UserToken

@@ -435,7 +435,12 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLive do
     items
     |> Enum.map(fn item ->
       id = item |> get_key(:id, nil) |> normalize_text()
-      reason = item |> get_key(:reason, @default_important_reason) |> normalize_text() |> default_if_empty(@default_important_reason)
+
+      reason =
+        item
+        |> get_key(:reason, @default_important_reason)
+        |> normalize_text()
+        |> default_if_empty(@default_important_reason)
 
       if id == "" do
         nil

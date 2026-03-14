@@ -143,15 +143,13 @@ defmodule AgentJido.Pages.LivebookParser do
   end
 
   defp ensure_literal_map!(path, {:%{}, _meta, _pairs} = ast) do
-    try do
-      {map, _bindings} = Code.eval_quoted(ast)
-      map
-    rescue
-      e ->
-        reraise ArgumentError,
-                [message: "Failed to evaluate frontmatter in #{inspect(path)}: #{Exception.message(e)}"],
-                __STACKTRACE__
-    end
+    {map, _bindings} = Code.eval_quoted(ast)
+    map
+  rescue
+    e ->
+      reraise ArgumentError,
+              [message: "Failed to evaluate frontmatter in #{inspect(path)}: #{Exception.message(e)}"],
+              __STACKTRACE__
   end
 
   defp ensure_literal_map!(path, _other) do

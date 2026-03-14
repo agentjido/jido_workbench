@@ -58,9 +58,10 @@ defmodule AgentJido.ContentOps.Chat.IntegrationTest do
       }
     ]
 
-    start_supervised!(
-      {BindingBootstrapper, instance_module: Messaging, bindings: bindings, telegram_instance_id: "tg-test", discord_instance_id: "dc-test"}
-    )
+    start_supervised!({
+      BindingBootstrapper,
+      instance_module: Messaging, bindings: bindings, telegram_instance_id: "tg-test", discord_instance_id: "dc-test"
+    })
 
     assert_eventually(fn ->
       match?({:ok, _room}, Messaging.get_room(room_id)) and
@@ -105,7 +106,10 @@ defmodule AgentJido.ContentOps.Chat.IntegrationTest do
 
     bridge_name = :"contentops_bridge_test_#{System.unique_integer([:positive])}"
 
-    start_supervised!({Bridge, name: bridge_name, instance_module: Messaging, telegram_sender: TelegramStub, discord_sender: DiscordStub})
+    start_supervised!({
+      Bridge,
+      name: bridge_name, instance_module: Messaging, telegram_sender: TelegramStub, discord_sender: DiscordStub
+    })
 
     assert_eventually(fn -> bridge_subscribed?(bridge_name) end)
 

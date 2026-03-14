@@ -119,7 +119,13 @@ defmodule AgentJidoWeb.AdminContentGeneratorLiveTest do
          run_id: run_id,
          generated_at: report.generated_at,
          report_path: report_path,
-         stats: %{selected: 1, written: stats.written, dry_run_candidates: stats.dry_run_candidates, audit_failed: 0, verification_failed: 0}
+         stats: %{
+           selected: 1,
+           written: stats.written,
+           dry_run_candidates: stats.dry_run_candidates,
+           audit_failed: 0,
+           verification_failed: 0
+         }
        }}
     end
   end

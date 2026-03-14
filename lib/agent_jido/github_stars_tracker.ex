@@ -264,29 +264,40 @@ defmodule AgentJido.GithubStarsTracker do
 
       _other ->
         {next_stars_map, success_count, failure_count, halted_for_rate_limit, next_state} =
-          Enum.reduce_while(state.repos, {state.stars_map, 0, 0, false, state}, fn {package_id, repo_ref},
-                                                                                   {acc, success, failure, _halted, state_acc} ->
-            {result, state_after_fetch} = fetch_repo_stars(state_acc, repo_ref)
+          Enum.reduce_while(
+            state.repos,
+            {state.stars_map, 0, 0, false, state},
+            fn {package_id, repo_ref}, {acc, success, failure, _halted, state_acc} ->
+              {result, state_after_fetch} = fetch_repo_stars(state_acc, repo_ref)
 
-            case result do
-              {:ok, stars} when is_integer(stars) and stars >= 0 ->
-                updated_entry = %{stars: stars, updated_at: now}
-                {:cont, {Map.put(acc, package_id, updated_entry), success + 1, failure, false, state_after_fetch}}
+              case result do
+                {:ok, stars} when is_integer(stars) and stars >= 0 ->
+                  updated_entry = %{stars: stars, updated_at: now}
 
-              {:error, reason} ->
-                Logger.warning(
-                  "[GithubStarsTracker] fetch failed package=#{package_id} repo=#{repo_ref.owner}/#{repo_ref.repo} reason=#{inspect(reason)}"
-                )
+                  {:cont, {Map.put(acc, package_id, updated_entry), success + 1, failure, false, state_after_fetch}}
 
-                if rate_limited_reason?(reason) do
-                  cooldown_until = System.monotonic_time(:millisecond) + state_after_fetch.rate_limit_cooldown_ms
-                  state_with_cooldown = %{state_after_fetch | rate_limit_reset_monotonic_ms: cooldown_until}
-                  {:halt, {acc, success, failure + 1, true, state_with_cooldown}}
-                else
-                  {:cont, {acc, success, failure + 1, false, state_after_fetch}}
-                end
+                {:error, reason} ->
+                  Logger.warning(
+                    "[GithubStarsTracker] fetch failed package=#{package_id} repo=#{repo_ref.owner}/#{repo_ref.repo} reason=#{inspect(reason)}"
+                  )
+
+                  if rate_limited_reason?(reason) do
+                    cooldown_until =
+                      System.monotonic_time(:millisecond) +
+                        state_after_fetch.rate_limit_cooldown_ms
+
+                    state_with_cooldown = %{
+                      state_after_fetch
+                      | rate_limit_reset_monotonic_ms: cooldown_until
+                    }
+
+                    {:halt, {acc, success, failure + 1, true, state_with_cooldown}}
+                  else
+                    {:cont, {acc, success, failure + 1, false, state_after_fetch}}
+                  end
+              end
             end
-          end)
+          )
 
         Logger.info(
           "[GithubStarsTracker] refresh complete success=#{success_count} failure=#{failure_count} total=#{map_size(state.repos)} halted_for_rate_limit=#{halted_for_rate_limit}"
@@ -313,7 +324,13 @@ defmodule AgentJido.GithubStarsTracker do
 
     cond do
       owner != "" and repo != "" ->
-        {:ok, %{owner: owner, repo: repo, github_url: build_repo_url(owner, repo, github_url), cache_timeout_ms: cache_timeout_ms}}
+        {:ok,
+         %{
+           owner: owner,
+           repo: repo,
+           github_url: build_repo_url(owner, repo, github_url),
+           cache_timeout_ms: cache_timeout_ms
+         }}
 
       github_url != "" ->
         case parse_repo_from_url(github_url) do

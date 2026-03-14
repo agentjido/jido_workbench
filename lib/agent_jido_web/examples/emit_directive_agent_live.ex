@@ -172,20 +172,22 @@ defmodule AgentJidoWeb.Examples.EmitDirectiveAgentLive do
         {:noreply, assign(socket, :last_error, "Create an order first.")}
 
       true ->
-        with {:ok, pid} <- fetch_server_pid(socket) do
-          case AgentServer.call(pid, Signal.new!("process_payment", %{order_id: order_id}, source: "/demo")) do
-            {:ok, agent} ->
-              {:noreply,
-               socket
-               |> assign(:agent, agent)
-               |> assign(:last_error, nil)
-               |> append_log("process_payment", order_id)}
+        case fetch_server_pid(socket) do
+          {:ok, pid} ->
+            case AgentServer.call(pid, Signal.new!("process_payment", %{order_id: order_id}, source: "/demo")) do
+              {:ok, agent} ->
+                {:noreply,
+                 socket
+                 |> assign(:agent, agent)
+                 |> assign(:last_error, nil)
+                 |> append_log("process_payment", order_id)}
 
-            {:error, reason} ->
-              {:noreply, assign(socket, :last_error, inspect(reason))}
-          end
-        else
-          {:error, reason} -> {:noreply, assign(socket, :last_error, inspect(reason))}
+              {:error, reason} ->
+                {:noreply, assign(socket, :last_error, inspect(reason))}
+            end
+
+          {:error, reason} ->
+            {:noreply, assign(socket, :last_error, inspect(reason))}
         end
     end
   end

@@ -1,4 +1,8 @@
 defmodule AgentJidoWeb.Icon do
+  @moduledoc """
+  Minimal icon helper for rendering Heroicon class names with optional mini variants.
+  """
+
   use Phoenix.Component
 
   attr :name, :string, required: true

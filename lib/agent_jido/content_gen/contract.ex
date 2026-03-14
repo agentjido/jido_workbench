@@ -87,7 +87,12 @@ defmodule AgentJido.ContentGen.Contract do
           base.document_intent,
       min_words: override_integer(prompt_overrides, :min_words, base.min_words),
       max_words: override_integer(prompt_overrides, :max_words, base.max_words),
-      minimum_code_blocks: override_non_negative_integer(prompt_overrides, :minimum_code_blocks, base.minimum_code_blocks),
+      minimum_code_blocks:
+        override_non_negative_integer(
+          prompt_overrides,
+          :minimum_code_blocks,
+          base.minimum_code_blocks
+        ),
       minimum_fun_refs: override_non_negative_integer(prompt_overrides, :minimum_fun_refs, base.minimum_fun_refs),
       diagram_policy:
         override_string(prompt_overrides, :diagram_policy) ||

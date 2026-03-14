@@ -130,7 +130,9 @@ defmodule AgentJido.ContentGen.Actions.GenerateStructurePlan do
        %{
          frontmatter_plan: extract_any(raw_structure, [:frontmatter_plan, "frontmatter_plan"], %{}),
          section_order: section_order,
-         section_briefs: extract_any(raw_structure, [:section_briefs, "section_briefs"], "") |> fallback_section_briefs(section_order),
+         section_briefs:
+           extract_any(raw_structure, [:section_briefs, "section_briefs"], "")
+           |> fallback_section_briefs(section_order),
          code_plan: extract_any(raw_structure, [:code_plan, "code_plan"], "") |> to_string(),
          citation_plan:
            extract_any(raw_structure, [:citation_plan, "citation_plan"], [])

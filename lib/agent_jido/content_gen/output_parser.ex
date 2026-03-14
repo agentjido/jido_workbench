@@ -85,7 +85,7 @@ defmodule AgentJido.ContentGen.OutputParser do
     ]
 
     candidates
-    |> Enum.reject(&is_nil_or_empty/1)
+    |> Enum.reject(&nil_or_empty?/1)
     |> Enum.reduce_while({:error, "unable to decode backend output as JSON envelope"}, fn candidate, _acc ->
       case Jason.decode(candidate) do
         {:ok, decoded} -> {:halt, {:ok, decoded}}
@@ -272,7 +272,7 @@ defmodule AgentJido.ContentGen.OutputParser do
     |> String.trim()
   end
 
-  defp is_nil_or_empty(nil), do: true
-  defp is_nil_or_empty(""), do: true
-  defp is_nil_or_empty(_), do: false
+  defp nil_or_empty?(nil), do: true
+  defp nil_or_empty?(""), do: true
+  defp nil_or_empty?(_), do: false
 end

@@ -1,4 +1,8 @@
 defmodule AgentJido.Accounts.User do
+  @moduledoc """
+  Ecto schema and validation logic for application users.
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 

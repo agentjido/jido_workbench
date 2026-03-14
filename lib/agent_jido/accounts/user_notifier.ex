@@ -1,4 +1,8 @@
 defmodule AgentJido.Accounts.UserNotifier do
+  @moduledoc """
+  Delivers account lifecycle emails such as login, confirmation, and email-change instructions.
+  """
+
   import Swoosh.Email
 
   alias AgentJido.Accounts.User

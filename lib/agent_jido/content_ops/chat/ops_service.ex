@@ -332,16 +332,14 @@ defmodule AgentJido.ContentOps.Chat.OpsService do
   end
 
   defp authorize(actor_context) do
-    try do
-      Policy.authorize_mutation!(actor_context)
-      :ok
-    rescue
-      Policy.MutationsDisabledError ->
-        {:error, :mutations_disabled}
+    Policy.authorize_mutation!(actor_context)
+    :ok
+  rescue
+    Policy.MutationsDisabledError ->
+      {:error, :mutations_disabled}
 
-      Policy.UnauthorizedError ->
-        {:error, :unauthorized}
-    end
+    Policy.UnauthorizedError ->
+      {:error, :unauthorized}
   end
 
   defp github_client do
