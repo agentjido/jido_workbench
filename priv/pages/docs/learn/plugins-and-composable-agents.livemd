@@ -190,14 +190,17 @@ The entries list is empty again.
 
 ### Signal routing through the runtime
 
-Plugins define signal routes so you can drive Actions through Signals instead of direct `cmd/2` calls. Start the Jido runtime, spawn an Agent process, and send Signals:
+Plugins define signal routes so you can drive Actions through Signals instead of direct `cmd/2` calls. Start a named Jido runtime, spawn an Agent process under that runtime by name, and send Signals:
 
 ```elixir
-{:ok, jido} = Jido.start_link(name: :learn_plugins)
+runtime_name = :learn_plugins
+{:ok, _runtime_pid} = Jido.start_link(name: runtime_name)
 
 {:ok, pid} =
-  Jido.start_agent(jido, MyApp.NotesAgent, id: "notes-demo")
+  Jido.start_agent(runtime_name, MyApp.NotesAgent, id: "notes-demo")
 ```
+
+`Jido.start_link/1` returns the supervisor pid, but `Jido.start_agent/3` expects the runtime instance name, not that pid.
 
 Send a `"notes.add"` Signal. The router matches it to `MyApp.AddNoteAction` through the Plugin's `signal_routes/1`:
 
