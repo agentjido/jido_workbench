@@ -69,12 +69,11 @@ defmodule AgentJidoWeb.Plugs.AnalyticsIdentity do
     end
   end
 
-  defp uuid_v7?(value) when is_binary(value) do
+  @spec uuid_v7?(String.t()) :: boolean()
+  defp uuid_v7?(value) do
     case UUIDv7.decode(value) do
       <<_timestamp::big-unsigned-48, 7::4, _rest::bitstring>> -> true
       _other -> false
     end
   end
-
-  defp uuid_v7?(_value), do: false
 end
