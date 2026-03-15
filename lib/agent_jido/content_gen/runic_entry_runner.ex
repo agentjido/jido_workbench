@@ -81,24 +81,22 @@ defmodule AgentJido.ContentGen.RunicEntryRunner do
         strat = StratState.get(server_state.agent)
         productions = Workflow.raw_productions(strat.workflow)
 
-        case locate_entry_result(productions) do
-          nil ->
-            case completion do
-              %{status: :failed} ->
-                {:error, "runic workflow failed before producing entry_result"}
-
-              _other ->
-                {:error, "runic workflow completed without entry_result production"}
-            end
-
-          entry_result ->
-            {:ok, normalize_entry_result(entry_result)}
-        end
+        extract_produced_entry_result(productions, completion)
 
       {:error, reason} ->
         {:error, "failed to inspect runic workflow state: #{inspect(reason)}"}
     end
   end
+
+  defp extract_produced_entry_result(productions, completion) do
+    case locate_entry_result(productions) do
+      nil -> missing_entry_result_error(completion)
+      entry_result -> {:ok, normalize_entry_result(entry_result)}
+    end
+  end
+
+  defp missing_entry_result_error(%{status: :failed}), do: {:error, "runic workflow failed before producing entry_result"}
+  defp missing_entry_result_error(_completion), do: {:error, "runic workflow completed without entry_result production"}
 
   defp locate_entry_result(productions) do
     candidates =
@@ -207,33 +205,35 @@ defmodule AgentJido.ContentGen.RunicEntryRunner do
 
   defp status_rank(candidate) do
     status = Map.get(candidate, :status) || Map.get(candidate, "status")
+    Map.get(status_ranks(), status, 50)
+  end
 
-    case status do
-      :written -> 100
-      "written" -> 100
-      :verification_failed -> 95
-      "verification_failed" -> 95
-      :audit_failed -> 90
-      "audit_failed" -> 90
-      :parse_failed -> 90
-      "parse_failed" -> 90
-      :generation_failed -> 90
-      "generation_failed" -> 90
-      :dry_run_candidate -> 80
-      "dry_run_candidate" -> 80
-      :audit_only_passed -> 75
-      "audit_only_passed" -> 75
-      :skipped_noop -> 70
-      "skipped_noop" -> 70
-      :skipped_non_file_target -> 70
-      "skipped_non_file_target" -> 70
-      :ready_to_persist -> 10
-      "ready_to_persist" -> 10
-      :unknown -> 0
-      "unknown" -> 0
-      nil -> 0
-      _other -> 50
-    end
+  defp status_ranks do
+    %{
+      :written => 100,
+      "written" => 100,
+      :verification_failed => 95,
+      "verification_failed" => 95,
+      :audit_failed => 90,
+      "audit_failed" => 90,
+      :parse_failed => 90,
+      "parse_failed" => 90,
+      :generation_failed => 90,
+      "generation_failed" => 90,
+      :dry_run_candidate => 80,
+      "dry_run_candidate" => 80,
+      :audit_only_passed => 75,
+      "audit_only_passed" => 75,
+      :skipped_noop => 70,
+      "skipped_noop" => 70,
+      :skipped_non_file_target => 70,
+      "skipped_non_file_target" => 70,
+      :ready_to_persist => 10,
+      "ready_to_persist" => 10,
+      :unknown => 0,
+      "unknown" => 0,
+      nil => 0
+    }
   end
 
   defp normalize_entry_result(result) do

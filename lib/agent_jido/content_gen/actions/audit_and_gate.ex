@@ -22,126 +22,120 @@ defmodule AgentJido.ContentGen.Actions.AuditAndGate do
 
     audit_errors = length(audit.errors)
 
-    base_entry_result =
-      Helpers.base_entry_result(context)
-      |> Map.merge(%{
-        parse_mode: context.parse_mode,
-        audit: audit,
-        diff: context.diff,
-        citations: context.candidate.citations,
-        audit_notes: context.candidate.audit_notes,
-        content_hash: Helpers.content_hash(context.candidate.raw),
-        candidate_path: context.candidate_path,
-        backend_meta: context.backend_meta
-      })
-
+    base_entry_result = base_entry_result(context, audit)
     context = Map.put(context, :audit, audit)
 
+    handle_audit_gate(context, base_entry_result, audit, audit_errors)
+  end
+
+  defp base_entry_result(context, audit) do
+    Helpers.base_entry_result(context)
+    |> Map.merge(%{
+      parse_mode: context.parse_mode,
+      audit: audit,
+      diff: context.diff,
+      citations: context.candidate.citations,
+      audit_notes: context.candidate.audit_notes,
+      content_hash: Helpers.content_hash(context.candidate.raw),
+      candidate_path: context.candidate_path,
+      backend_meta: context.backend_meta
+    })
+  end
+
+  defp handle_audit_gate(context, base_entry_result, audit, audit_errors) do
     cond do
       context.update_mode == :audit_only ->
         audit_only_context(context, base_entry_result, audit_errors)
 
       context.fail_on_audit and audit_errors > 0 ->
-        verification = Helpers.verification_for_audit_failure(context, audit)
-
         {:ok,
-         %{
-           context
-           | status: :audit_failed,
-             reason: "audit gates failed",
-             verification: verification,
-             halted?: true,
-             entry_result:
-               Map.merge(base_entry_result, %{
-                 status: :audit_failed,
-                 reason: "audit gates failed",
-                 verification: verification
-               })
-         }}
+         halted_context(
+           context,
+           base_entry_result,
+           :audit_failed,
+           "audit gates failed",
+           Helpers.verification_for_audit_failure(context, audit)
+         )}
 
       true ->
-        case Writer.churn_guard(context.existing, context.candidate.raw, audit_errors) do
-          {:error, reason} ->
-            verification =
-              if context.verify? do
-                Helpers.skipped_verification("verification skipped: churn guard blocked write")
-              else
-                Helpers.default_verification()
-              end
+        run_write_gate(context, base_entry_result, audit_errors)
+    end
+  end
 
-            {:ok,
-             %{
-               context
-               | status: :churn_blocked,
-                 reason: reason,
-                 verification: verification,
-                 halted?: true,
-                 entry_result:
-                   Map.merge(base_entry_result, %{
-                     status: :churn_blocked,
-                     reason: reason,
-                     verification: verification
-                   })
-             }}
+  defp run_write_gate(context, base_entry_result, audit_errors) do
+    case Writer.churn_guard(context.existing, context.candidate.raw, audit_errors) do
+      {:error, reason} ->
+        {:ok,
+         halted_context(
+           context,
+           base_entry_result,
+           :churn_blocked,
+           reason,
+           skipped_or_default_verification(context, "verification skipped: churn guard blocked write")
+         )}
 
-          :ok ->
-            cond do
-              Writer.noop?(Helpers.existing_raw(context.existing), context.candidate.raw) ->
-                verification =
-                  if context.verify? do
-                    Helpers.skipped_verification("verification skipped: generated output is a no-op")
-                  else
-                    Helpers.default_verification()
-                  end
+      :ok ->
+        finalize_candidate_state(context, base_entry_result)
+    end
+  end
 
-                {:ok,
-                 %{
-                   context
-                   | status: :skipped_noop,
-                     reason: "generated output matches existing content",
-                     verification: verification,
-                     halted?: true,
-                     entry_result:
-                       Map.merge(base_entry_result, %{
-                         status: :skipped_noop,
-                         reason: "generated output matches existing content",
-                         verification: verification
-                       })
-                 }}
+  defp finalize_candidate_state(context, base_entry_result) do
+    cond do
+      Writer.noop?(Helpers.existing_raw(context.existing), context.candidate.raw) ->
+        {:ok,
+         halted_context(
+           context,
+           base_entry_result,
+           :skipped_noop,
+           "generated output matches existing content",
+           skipped_or_default_verification(context, "verification skipped: generated output is a no-op")
+         )}
 
-              context.apply? ->
-                {:ok,
-                 %{
-                   context
-                   | status: :ready_to_persist,
-                     reason: "candidate ready",
-                     entry_result: base_entry_result
-                 }}
+      context.apply? ->
+        {:ok, ready_to_persist_context(context, base_entry_result)}
 
-              true ->
-                verification =
-                  if context.verify? do
-                    Helpers.skipped_verification("verification skipped: rerun with --apply")
-                  else
-                    Helpers.default_verification()
-                  end
+      true ->
+        {:ok,
+         halted_context(
+           context,
+           base_entry_result,
+           :dry_run_candidate,
+           "dry-run (not applied)",
+           skipped_or_default_verification(context, "verification skipped: rerun with --apply")
+         )}
+    end
+  end
 
-                {:ok,
-                 %{
-                   context
-                   | status: :dry_run_candidate,
-                     reason: "dry-run (not applied)",
-                     verification: verification,
-                     halted?: true,
-                     entry_result:
-                       Map.merge(base_entry_result, %{
-                         status: :dry_run_candidate,
-                         reason: "dry-run (not applied)",
-                         verification: verification
-                       })
-                 }}
-            end
-        end
+  defp ready_to_persist_context(context, base_entry_result) do
+    %{
+      context
+      | status: :ready_to_persist,
+        reason: "candidate ready",
+        entry_result: base_entry_result
+    }
+  end
+
+  defp halted_context(context, base_entry_result, status, reason, verification) do
+    %{
+      context
+      | status: status,
+        reason: reason,
+        verification: verification,
+        halted?: true,
+        entry_result:
+          Map.merge(base_entry_result, %{
+            status: status,
+            reason: reason,
+            verification: verification
+          })
+    }
+  end
+
+  defp skipped_or_default_verification(context, skipped_reason) do
+    if context.verify? do
+      Helpers.skipped_verification(skipped_reason)
+    else
+      Helpers.default_verification()
     end
   end
 

@@ -237,11 +237,7 @@ defmodule AgentJidoWeb.Examples.DemandTrackerAgentLive do
         new_demand = new_agent.state.demand
         new_ticks = new_agent.state.ticks
 
-        detail =
-          case signal_type do
-            "cleanup.run" -> "ticks #{old_ticks} -> #{new_ticks}"
-            _ -> if(data == %{}, do: "", else: inspect(data))
-          end
+        detail = signal_detail(signal_type, data, old_ticks, new_ticks)
 
         entry = %{
           kind: "signal",
@@ -269,6 +265,10 @@ defmodule AgentJidoWeb.Examples.DemandTrackerAgentLive do
         assign(socket, :history, [entry | socket.assigns.history])
     end
   end
+
+  defp signal_detail("cleanup.run", _data, old_ticks, new_ticks), do: "ticks #{old_ticks} -> #{new_ticks}"
+  defp signal_detail(_signal_type, data, _old_ticks, _new_ticks) when data == %{}, do: ""
+  defp signal_detail(_signal_type, data, _old_ticks, _new_ticks), do: inspect(data)
 
   defp refresh_agent_state(socket) do
     pid = socket.assigns.server_pid

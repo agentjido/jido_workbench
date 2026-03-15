@@ -122,15 +122,19 @@ defmodule Mix.Tasks.Agentjido.Signal do
             :ok
 
           {:error, {:already_started, _pid}} ->
-            if Process.whereis(registry_name) do
-              :ok
-            else
-              Mix.raise("AgentJido.Jido started without registry; restart runtime and retry.")
-            end
+            ensure_registry_started!(registry_name)
 
           {:error, reason} ->
             Mix.raise("Failed to start AgentJido.Jido: #{inspect(reason)}")
         end
+    end
+  end
+
+  defp ensure_registry_started!(registry_name) do
+    if Process.whereis(registry_name) do
+      :ok
+    else
+      Mix.raise("AgentJido.Jido started without registry; restart runtime and retry.")
     end
   end
 

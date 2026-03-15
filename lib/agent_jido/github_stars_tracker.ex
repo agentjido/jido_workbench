@@ -269,33 +269,7 @@ defmodule AgentJido.GithubStarsTracker do
             {state.stars_map, 0, 0, false, state},
             fn {package_id, repo_ref}, {acc, success, failure, _halted, state_acc} ->
               {result, state_after_fetch} = fetch_repo_stars(state_acc, repo_ref)
-
-              case result do
-                {:ok, stars} when is_integer(stars) and stars >= 0 ->
-                  updated_entry = %{stars: stars, updated_at: now}
-
-                  {:cont, {Map.put(acc, package_id, updated_entry), success + 1, failure, false, state_after_fetch}}
-
-                {:error, reason} ->
-                  Logger.warning(
-                    "[GithubStarsTracker] fetch failed package=#{package_id} repo=#{repo_ref.owner}/#{repo_ref.repo} reason=#{inspect(reason)}"
-                  )
-
-                  if rate_limited_reason?(reason) do
-                    cooldown_until =
-                      System.monotonic_time(:millisecond) +
-                        state_after_fetch.rate_limit_cooldown_ms
-
-                    state_with_cooldown = %{
-                      state_after_fetch
-                      | rate_limit_reset_monotonic_ms: cooldown_until
-                    }
-
-                    {:halt, {acc, success, failure + 1, true, state_with_cooldown}}
-                  else
-                    {:cont, {acc, success, failure + 1, false, state_after_fetch}}
-                  end
-              end
+              handle_refresh_result(result, package_id, repo_ref, now, acc, success, failure, state_after_fetch)
             end
           )
 
@@ -305,6 +279,61 @@ defmodule AgentJido.GithubStarsTracker do
 
         %{next_state | stars_map: next_stars_map, last_refresh_at: now}
     end
+  end
+
+  defp handle_refresh_error(package_id, repo_ref, reason, acc, success, failure, state_after_fetch) do
+    Logger.warning("[GithubStarsTracker] fetch failed package=#{package_id} repo=#{repo_ref.owner}/#{repo_ref.repo} reason=#{inspect(reason)}")
+
+    if rate_limited_reason?(reason) do
+      cooldown_until =
+        System.monotonic_time(:millisecond) +
+          state_after_fetch.rate_limit_cooldown_ms
+
+      state_with_cooldown = %{
+        state_after_fetch
+        | rate_limit_reset_monotonic_ms: cooldown_until
+      }
+
+      {:halt, {acc, success, failure + 1, true, state_with_cooldown}}
+    else
+      {:cont, {acc, success, failure + 1, false, state_after_fetch}}
+    end
+  end
+
+  defp handle_refresh_result(
+         {:ok, stars},
+         package_id,
+         _repo_ref,
+         now,
+         acc,
+         success,
+         failure,
+         state_after_fetch
+       )
+       when is_integer(stars) and stars >= 0 do
+    updated_entry = %{stars: stars, updated_at: now}
+    {:cont, {Map.put(acc, package_id, updated_entry), success + 1, failure, false, state_after_fetch}}
+  end
+
+  defp handle_refresh_result(
+         {:error, reason},
+         package_id,
+         repo_ref,
+         _now,
+         acc,
+         success,
+         failure,
+         state_after_fetch
+       ) do
+    handle_refresh_error(
+      package_id,
+      repo_ref,
+      reason,
+      acc,
+      success,
+      failure,
+      state_after_fetch
+    )
   end
 
   defp build_repo_map(packages, repo_cache_timeout_ms) when is_list(packages) and is_map(repo_cache_timeout_ms) do

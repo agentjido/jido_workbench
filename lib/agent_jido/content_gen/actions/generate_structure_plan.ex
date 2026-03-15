@@ -31,41 +31,14 @@ defmodule AgentJido.ContentGen.Actions.GenerateStructurePlan do
 
     case generate_object(backend_module, prompt, backend_opts) do
       {:ok, %{object: raw_structure, meta: planner_meta}} ->
-        case Helpers.normalize_structure_plan(raw_structure) do
-          {:ok, structure_plan} ->
-            {:ok,
-             context
-             |> Map.put(:backend_decision, backend_decision)
-             |> Map.put(:backend_module, backend_module)
-             |> Map.put(:prompt_opts, prompt_opts)
-             |> Map.put(:planner_meta, planner_meta)
-             |> Map.put(:structure_plan, structure_plan)}
-
-          {:error, reason} ->
-            case fallback_structure_plan(raw_structure, context.entry, context.target) do
-              {:ok, fallback_plan} ->
-                {:ok,
-                 context
-                 |> Map.put(:backend_decision, backend_decision)
-                 |> Map.put(:backend_module, backend_module)
-                 |> Map.put(:prompt_opts, prompt_opts)
-                 |> Map.put(:planner_meta, Map.put(planner_meta || %{}, :structure_fallback, reason))
-                 |> Map.put(:structure_plan, fallback_plan)}
-
-              {:error, fallback_reason} ->
-                failed =
-                  context
-                  |> Map.put(:backend_decision, backend_decision)
-                  |> Map.put(:backend_module, backend_module)
-                  |> Helpers.halt_with_entry_result(
-                    :generation_failed,
-                    "invalid structure response: #{reason}; fallback failed: #{fallback_reason}",
-                    "generate_structure_plan"
-                  )
-
-                {:ok, failed}
-            end
-        end
+        normalize_generated_structure(
+          context,
+          backend_decision,
+          backend_module,
+          prompt_opts,
+          raw_structure,
+          planner_meta
+        )
 
       {:error, reason} ->
         planner_model = backend_decision.planner_model || "unknown"
@@ -101,6 +74,53 @@ defmodule AgentJido.ContentGen.Actions.GenerateStructurePlan do
   defp with_generation_defaults(opts, defaults) when is_list(defaults) do
     generation_opts = opts |> Keyword.get(:generation_opts, []) |> List.wrap()
     Keyword.put(opts, :generation_opts, Keyword.merge(defaults, generation_opts))
+  end
+
+  defp normalize_generated_structure(
+         context,
+         backend_decision,
+         backend_module,
+         prompt_opts,
+         raw_structure,
+         planner_meta
+       ) do
+    base_context =
+      context
+      |> Map.put(:backend_decision, backend_decision)
+      |> Map.put(:backend_module, backend_module)
+      |> Map.put(:prompt_opts, prompt_opts)
+
+    case Helpers.normalize_structure_plan(raw_structure) do
+      {:ok, structure_plan} ->
+        {:ok,
+         base_context
+         |> Map.put(:planner_meta, planner_meta)
+         |> Map.put(:structure_plan, structure_plan)}
+
+      {:error, reason} ->
+        handle_structure_fallback(base_context, raw_structure, planner_meta, reason)
+    end
+  end
+
+  defp handle_structure_fallback(base_context, raw_structure, planner_meta, reason) do
+    case fallback_structure_plan(raw_structure, base_context.entry, base_context.target) do
+      {:ok, fallback_plan} ->
+        {:ok,
+         base_context
+         |> Map.put(:planner_meta, Map.put(planner_meta || %{}, :structure_fallback, reason))
+         |> Map.put(:structure_plan, fallback_plan)}
+
+      {:error, fallback_reason} ->
+        failed =
+          Helpers.halt_with_entry_result(
+            base_context,
+            :generation_failed,
+            "invalid structure response: #{reason}; fallback failed: #{fallback_reason}",
+            "generate_structure_plan"
+          )
+
+        {:ok, failed}
+    end
   end
 
   defp format_error(%{__exception__: true} = error), do: Exception.message(error)

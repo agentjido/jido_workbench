@@ -10,35 +10,71 @@ defmodule AgentJidoWeb.AdminContentGeneratorLiveTest do
 
   defmodule ContentGenRunStub do
     def run(opts) do
-      if is_pid(Application.get_env(:agent_jido, :content_gen_test_pid)) do
-        send(Application.get_env(:agent_jido, :content_gen_test_pid), {:content_gen_run_opts, opts})
-      end
+      notify_test_pid(opts)
 
+      entry_id = opts.entry || "docs/test-entry"
+      route = route_for(entry_id)
+
+      %{
+        run_id: run_id,
+        run_dir: run_dir,
+        report_path: report_path,
+        candidate_path: candidate_path
+      } = run_paths(entry_id)
+
+      :ok = write_candidate(candidate_path)
+
+      stats = stub_stats(opts)
+      report = stub_report(opts, run_id, run_dir, report_path, entry_id, route, candidate_path, stats)
+
+      :ok = write_report(report_path, report)
+
+      {:ok, stub_result(run_id, report, stats)}
+    end
+
+    defp notify_test_pid(opts) do
+      test_pid = Application.get_env(:agent_jido, :content_gen_test_pid)
+
+      if is_pid(test_pid) do
+        send(test_pid, {:content_gen_run_opts, opts})
+      end
+    end
+
+    defp run_paths(entry_id) do
       runs_root = Application.fetch_env!(:agent_jido, :content_gen_test_runs_root)
       run_id = "run_test_ui_#{System.unique_integer([:positive])}"
       run_dir = Path.join(runs_root, run_id)
       report_path = Path.join(run_dir, "report.json")
+      candidate_path = Path.join([run_dir, "candidates", candidate_filename(entry_id)])
 
-      entry_id = opts.entry || "docs/test-entry"
-      route = "/" <> String.trim_leading(String.replace(entry_id, "docs/", "docs/"), "/")
-      candidate_filename = String.replace(entry_id, "/", "__") <> ".livemd"
-      candidate_path = Path.join([run_dir, "candidates", candidate_filename])
+      %{
+        run_id: run_id,
+        run_dir: run_dir,
+        report_path: report_path,
+        candidate_path: candidate_path
+      }
+    end
 
+    defp candidate_filename(entry_id), do: String.replace(entry_id, "/", "__") <> ".livemd"
+    defp route_for(entry_id), do: "/" <> String.trim_leading(String.replace(entry_id, "docs/", "docs/"), "/")
+
+    defp write_candidate(candidate_path) do
       :ok = File.mkdir_p(Path.dirname(candidate_path))
 
-      :ok =
-        File.write(
-          candidate_path,
-          """
-          # Candidate
+      File.write(
+        candidate_path,
+        """
+        # Candidate
 
-          ```elixir
-          IO.puts(:ok)
-          ```
-          """
-        )
+        ```elixir
+        IO.puts(:ok)
+        ```
+        """
+      )
+    end
 
-      stats = %{
+    defp stub_stats(opts) do
+      %{
         selected: 1,
         written: if(opts.apply, do: 1, else: 0),
         dry_run_candidates: if(opts.apply, do: 0, else: 1),
@@ -52,81 +88,92 @@ defmodule AgentJidoWeb.AdminContentGeneratorLiveTest do
         churn_blocked: 0,
         verification_failed: 0
       }
+    end
 
-      verification_status = if(opts.verify, do: "passed", else: "skipped")
-
-      report = %{
+    defp stub_report(opts, run_id, run_dir, report_path, entry_id, route, candidate_path, stats) do
+      %{
         run_id: run_id,
         generated_at: DateTime.utc_now(),
         report_path: report_path,
         run_dir: run_dir,
-        options: %{
-          apply: opts.apply,
-          entry: opts.entry,
-          max: opts.max,
-          statuses: Enum.map(opts.statuses || [], &Atom.to_string/1),
-          sections: opts.sections || [],
-          backend: Atom.to_string(opts.backend || :auto),
-          update_mode: Atom.to_string(opts.update_mode || :improve),
-          source_root: opts.source_root,
-          report: opts.report,
-          fail_on_audit: opts.fail_on_audit,
-          verify: opts.verify,
-          docs_format: Atom.to_string(opts.docs_format || :tag)
-        },
+        options: stub_options(opts),
         stats: stats,
-        entries: [
-          %{
-            id: entry_id,
-            title: "Stub Entry",
-            section: "docs",
-            route: route,
-            status: if(opts.apply, do: "written", else: "dry_run_candidate"),
-            candidate_path: candidate_path,
-            target_path: "priv/pages/docs/stub-entry.livemd",
-            read_path: "priv/pages/docs/stub-entry.livemd",
-            diff: %{
-              changed: true,
-              old_bytes: 0,
-              new_bytes: 42,
-              delta_bytes: 42,
-              old_lines: 0,
-              new_lines: 4,
-              delta_lines: 4
-            },
-            audit: %{errors: [], warnings: [], summary: %{}, score: 1.0},
-            verification: %{
-              status: verification_status,
-              checks: ["audit_only", "route_render", "livebook_test"],
-              check_results: %{
-                audit_only: "passed",
-                route_render: "passed",
-                livebook_test: verification_status
-              },
-              livebook_test_file: nil,
-              command_output_excerpt: nil
-            }
-          }
-        ],
+        entries: [stub_entry(opts, entry_id, route, candidate_path)],
         change_requests: []
       }
+    end
 
+    defp stub_options(opts) do
+      %{
+        apply: opts.apply,
+        entry: opts.entry,
+        max: opts.max,
+        statuses: Enum.map(opts.statuses || [], &Atom.to_string/1),
+        sections: opts.sections || [],
+        backend: Atom.to_string(opts.backend || :auto),
+        update_mode: Atom.to_string(opts.update_mode || :improve),
+        source_root: opts.source_root,
+        report: opts.report,
+        fail_on_audit: opts.fail_on_audit,
+        verify: opts.verify,
+        docs_format: Atom.to_string(opts.docs_format || :tag)
+      }
+    end
+
+    defp stub_entry(opts, entry_id, route, candidate_path) do
+      verification_status = if(opts.verify, do: "passed", else: "skipped")
+
+      %{
+        id: entry_id,
+        title: "Stub Entry",
+        section: "docs",
+        route: route,
+        status: if(opts.apply, do: "written", else: "dry_run_candidate"),
+        candidate_path: candidate_path,
+        target_path: "priv/pages/docs/stub-entry.livemd",
+        read_path: "priv/pages/docs/stub-entry.livemd",
+        diff: %{
+          changed: true,
+          old_bytes: 0,
+          new_bytes: 42,
+          delta_bytes: 42,
+          old_lines: 0,
+          new_lines: 4,
+          delta_lines: 4
+        },
+        audit: %{errors: [], warnings: [], summary: %{}, score: 1.0},
+        verification: %{
+          status: verification_status,
+          checks: ["audit_only", "route_render", "livebook_test"],
+          check_results: %{
+            audit_only: "passed",
+            route_render: "passed",
+            livebook_test: verification_status
+          },
+          livebook_test_file: nil,
+          command_output_excerpt: nil
+        }
+      }
+    end
+
+    defp write_report(report_path, report) do
       :ok = File.mkdir_p(Path.dirname(report_path))
-      :ok = File.write(report_path, Jason.encode!(report))
+      File.write(report_path, Jason.encode!(report))
+    end
 
-      {:ok,
-       %{
-         run_id: run_id,
-         generated_at: report.generated_at,
-         report_path: report_path,
-         stats: %{
-           selected: 1,
-           written: stats.written,
-           dry_run_candidates: stats.dry_run_candidates,
-           audit_failed: 0,
-           verification_failed: 0
-         }
-       }}
+    defp stub_result(run_id, report, stats) do
+      %{
+        run_id: run_id,
+        generated_at: report.generated_at,
+        report_path: report.report_path,
+        stats: %{
+          selected: 1,
+          written: stats.written,
+          dry_run_candidates: stats.dry_run_candidates,
+          audit_failed: 0,
+          verification_failed: 0
+        }
+      }
     end
   end
 

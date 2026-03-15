@@ -108,14 +108,7 @@ defmodule Mix.Tasks.Content.Plan.Generate do
         |> Enum.map(&{to_string(&1.status), &1.status})
         |> Map.new()
 
-      Enum.map(status_values, fn value ->
-        key = String.trim(value)
-
-        case Map.fetch(known_statuses, key) do
-          {:ok, atom_status} -> atom_status
-          :error -> Mix.raise("Unknown --status value #{inspect(value)}")
-        end
-      end)
+      Enum.map(status_values, &parse_status_value(&1, known_statuses))
     end
   end
 
@@ -190,22 +183,44 @@ defmodule Mix.Tasks.Content.Plan.Generate do
 
   defp print_summary(report) do
     stats = report.stats || %{}
-
-    Mix.shell().info("Run ID: #{report.run_id}")
-    Mix.shell().info("Report: #{report.report_path}")
-    Mix.shell().info("Selected: #{stats.selected || 0}")
-    Mix.shell().info("Written: #{stats.written || 0}")
-    Mix.shell().info("Dry-run candidates: #{stats.dry_run_candidates || 0}")
-    Mix.shell().info("No-op skipped: #{stats.skipped_noop || 0}")
-    Mix.shell().info("Non-file skipped: #{stats.skipped_non_file_target || 0}")
-    Mix.shell().info("Audit failed: #{stats.audit_failed || 0}")
-    Mix.shell().info("Generation failed: #{stats.generation_failed || 0}")
-    Mix.shell().info("Parse failed: #{stats.parse_failed || 0}")
-    Mix.shell().info("Churn blocked: #{stats.churn_blocked || 0}")
-    Mix.shell().info("Verification failed: #{stats.verification_failed || 0}")
+    Enum.each(summary_lines(report, stats), &Mix.shell().info/1)
 
     if Map.get(report.options || %{}, :verify, false) do
       print_verify_summary(report)
+    end
+  end
+
+  defp summary_lines(report, stats) do
+    summary_pairs(report, stats)
+    |> Enum.map(&format_summary_line/1)
+  end
+
+  defp summary_pairs(report, stats) do
+    stat_pairs = [
+      {"Selected", :selected},
+      {"Written", :written},
+      {"Dry-run candidates", :dry_run_candidates},
+      {"No-op skipped", :skipped_noop},
+      {"Non-file skipped", :skipped_non_file_target},
+      {"Audit failed", :audit_failed},
+      {"Generation failed", :generation_failed},
+      {"Parse failed", :parse_failed},
+      {"Churn blocked", :churn_blocked},
+      {"Verification failed", :verification_failed}
+    ]
+
+    [{"Run ID", report.run_id}, {"Report", report.report_path}] ++
+      Enum.map(stat_pairs, fn {label, key} -> {label, Map.get(stats, key, 0)} end)
+  end
+
+  defp format_summary_line({label, value}), do: "#{label}: #{value}"
+
+  defp parse_status_value(value, known_statuses) do
+    key = String.trim(value)
+
+    case Map.fetch(known_statuses, key) do
+      {:ok, atom_status} -> atom_status
+      :error -> Mix.raise("Unknown --status value #{inspect(value)}")
     end
   end
 

@@ -189,20 +189,23 @@ defmodule AgentJido.LandingContent do
       |> String.downcase()
       |> String.replace("_", " ")
 
-    case normalized do
-      "opentelemetry" -> "observability"
-      "telemetry" -> "observability"
-      "tracing" -> "observability"
-      "discord" -> "messaging"
-      "slack" -> "messaging"
-      "telegram" -> "messaging"
-      "whatsapp" -> "messaging"
-      "chat" -> "messaging"
-      value -> value
-    end
+    Map.get(tag_aliases(), normalized, normalized)
   end
 
   defp normalize_tag(_tag), do: ""
+
+  defp tag_aliases do
+    %{
+      "opentelemetry" => "observability",
+      "telemetry" => "observability",
+      "tracing" => "observability",
+      "discord" => "messaging",
+      "slack" => "messaging",
+      "telegram" => "messaging",
+      "whatsapp" => "messaging",
+      "chat" => "messaging"
+    }
+  end
 
   defp build_links(pkg) do
     %{}

@@ -553,24 +553,10 @@ defmodule AgentJido.ContentAssistant.Retrieval do
 
   defp canonical_route(collection, metadata, source_id) do
     case normalize_collection(collection) do
-      "site_docs" ->
-        normalize_internal_url(string_value(metadata, :path)) ||
-          docs_route_from_source_id(source_id)
-
-      "site_blog" ->
-        case string_value(metadata, :id) || source_id_suffix(source_id, "blog:") do
-          nil -> nil
-          id -> normalize_internal_url("/blog/" <> id)
-        end
-
-      "site_ecosystem" ->
-        case string_value(metadata, :id) || source_id_suffix(source_id, "ecosystem:") do
-          nil -> nil
-          id -> normalize_internal_url("/ecosystem/" <> id)
-        end
-
-      _ ->
-        nil
+      "site_docs" -> normalize_internal_url(string_value(metadata, :path)) || docs_route_from_source_id(source_id)
+      "site_blog" -> route_from_collection_id(metadata, source_id, "blog:", "/blog/")
+      "site_ecosystem" -> route_from_collection_id(metadata, source_id, "ecosystem:", "/ecosystem/")
+      _other -> nil
     end
   end
 
@@ -621,20 +607,29 @@ defmodule AgentJido.ContentAssistant.Retrieval do
         normalize_path(candidate)
 
       true ->
-        case URI.parse(candidate) do
-          %URI{scheme: scheme, host: host, path: path, query: query, fragment: fragment}
-          when scheme in ["http", "https"] and is_binary(path) ->
-            if internal_host?(host) do
-              normalize_path_with_parts(path, query, fragment)
-            end
-
-          _ ->
-            nil
-        end
+        normalize_internal_http_url(candidate)
     end
   end
 
   defp normalize_internal_url(_url), do: nil
+
+  defp route_from_collection_id(metadata, source_id, prefix, route_prefix) do
+    case string_value(metadata, :id) || source_id_suffix(source_id, prefix) do
+      nil -> nil
+      id -> normalize_internal_url(route_prefix <> id)
+    end
+  end
+
+  defp normalize_internal_http_url(candidate) do
+    case URI.parse(candidate) do
+      %URI{scheme: scheme, host: host, path: path, query: query, fragment: fragment}
+      when scheme in ["http", "https"] and is_binary(path) and is_binary(host) ->
+        if internal_host?(host), do: normalize_path_with_parts(path, query, fragment)
+
+      _other ->
+        nil
+    end
+  end
 
   defp normalize_path(path) when is_binary(path) do
     case URI.parse(path) do

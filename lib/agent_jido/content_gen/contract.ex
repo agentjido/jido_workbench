@@ -4,6 +4,13 @@ defmodule AgentJido.ContentGen.Contract do
   """
 
   @docs_hub_tags [:hub_getting_started, :hub_concepts, :hub_guides, :hub_reference, :hub_operations]
+  @docs_profiles %{
+    :hub_reference => :docs_reference,
+    :hub_guides => :docs_guide,
+    :hub_concepts => :docs_concept,
+    :hub_operations => :docs_operations,
+    :hub_getting_started => :docs_getting_started
+  }
 
   @type profile ::
           :docs_concept
@@ -35,14 +42,15 @@ defmodule AgentJido.ContentGen.Contract do
   def profile(entry, target) do
     hub = docs_hub(entry)
 
-    cond do
-      entry.section == "docs" and hub == :hub_reference -> :docs_reference
-      entry.section == "docs" and hub == :hub_guides -> :docs_guide
-      entry.section == "docs" and hub == :hub_concepts -> :docs_concept
-      entry.section == "docs" and hub == :hub_operations -> :docs_operations
-      entry.section == "docs" and hub == :hub_getting_started -> :docs_getting_started
-      target.format == :livemd -> :livebook_general
-      true -> :general
+    case {entry.section, hub, target.format} do
+      {"docs", docs_hub, _format} when docs_hub in @docs_hub_tags ->
+        Map.fetch!(@docs_profiles, docs_hub)
+
+      {_section, _hub, :livemd} ->
+        :livebook_general
+
+      _other ->
+        :general
     end
   end
 

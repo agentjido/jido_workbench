@@ -162,30 +162,40 @@ defmodule AgentJido.ContentGen.SimpleOrchestrator do
 
     case ReqLLMBackend.generate(prompt, backend_opts) do
       {:ok, %{text: text}} ->
-        case OutputParser.parse(to_string(text || "")) do
-          {:ok, envelope} ->
-            {:ok, envelope, envelope.parse_mode, writer_model, warnings}
-
-          {:error, parse_reason} ->
-            trimmed = to_string(text || "") |> String.trim()
-
-            if trimmed == "" do
-              {:error, "writer returned empty output and parser failed: #{parse_reason}"}
-            else
-              envelope = %{
-                frontmatter: %{},
-                body_markdown: trimmed <> "\n",
-                citations: [],
-                audit_notes: ["writer_raw_text_fallback"],
-                parse_mode: :fallback_markdown
-              }
-
-              {:ok, envelope, :fallback_markdown, writer_model, warnings ++ ["writer parse fallback used: #{parse_reason}"]}
-            end
-        end
+        parse_generated_draft(text, writer_model, warnings)
 
       {:error, reason} ->
         {:error, "writer call failed: #{normalize_error(reason)}"}
+    end
+  end
+
+  defp parse_generated_draft(text, writer_model, warnings) do
+    raw_text = to_string(text || "")
+
+    case OutputParser.parse(raw_text) do
+      {:ok, envelope} ->
+        {:ok, envelope, envelope.parse_mode, writer_model, warnings}
+
+      {:error, parse_reason} ->
+        fallback_draft(raw_text, parse_reason, writer_model, warnings)
+    end
+  end
+
+  defp fallback_draft(raw_text, parse_reason, writer_model, warnings) do
+    trimmed = String.trim(raw_text)
+
+    if trimmed == "" do
+      {:error, "writer returned empty output and parser failed: #{parse_reason}"}
+    else
+      envelope = %{
+        frontmatter: %{},
+        body_markdown: trimmed <> "\n",
+        citations: [],
+        audit_notes: ["writer_raw_text_fallback"],
+        parse_mode: :fallback_markdown
+      }
+
+      {:ok, envelope, :fallback_markdown, writer_model, warnings ++ ["writer parse fallback used: #{parse_reason}"]}
     end
   end
 
