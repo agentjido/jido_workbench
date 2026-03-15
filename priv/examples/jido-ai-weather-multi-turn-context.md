@@ -1,7 +1,7 @@
 %{
   title: "Jido.AI Weather Multi-Turn Context",
-  description: "Conversation demo showing city context carryover and resilient retry behavior across turns.",
-  tags: ["primary", "showcase", "simulated", "ai", "l2", "ai-tool-use", "weather", "jido_ai"],
+  description: "Local weather assistant demo showing real city context carryover, deterministic tool calls, and one intentional retry/backoff event across turns.",
+  tags: ["primary", "showcase", "ai", "l2", "ai-tool-use", "weather", "jido_ai"],
   category: :ai,
   emoji: "🌦",
   related_resources: [
@@ -20,9 +20,13 @@
     }
   ],
   source_files: [
-    "lib/agent_jido_web/examples/simulated_showcase_live.ex"
+    "lib/agent_jido/demos/weather_multi_turn_context/fixtures.ex",
+    "lib/agent_jido/demos/weather_multi_turn_context/forecast_action.ex",
+    "lib/agent_jido/demos/weather_multi_turn_context/weather_assistant.ex",
+    "lib/agent_jido/demos/weather_multi_turn_context/runtime_demo.ex",
+    "lib/agent_jido_web/examples/weather_multi_turn_context_live.ex"
   ],
-  live_view_module: "AgentJidoWeb.Examples.SimulatedShowcaseLive",
+  live_view_module: "AgentJidoWeb.Examples.WeatherMultiTurnContextLive",
   difficulty: :intermediate,
   status: :live,
   scenario_cluster: :ai_tool_use,
@@ -31,17 +35,17 @@
   content_intent: :tutorial,
   capability_theme: :ai_intelligence,
   evidence_surface: :runnable_example,
-  demo_mode: :simulated,
+  demo_mode: :real,
   sort_order: 21
 }
 ---
 
 ## What you'll learn
 
-- How multi-turn prompts preserve location context across follow-ups
-- How retry/backoff behavior can be modeled for transient busy responses
-- How to validate semantic constraints in weather assistant responses
+- How multi-turn prompts preserve location context across follow-ups without repeating the city
+- How a local weather tool can trigger deterministic retry/backoff behavior on a transient busy response
+- How to inspect preserved context, retry events, and tool-call payloads from a real local example
 
 ## Demo note
 
-This demo uses deterministic turn outcomes and retry traces for predictable interaction and testability.
+This page now runs a real local weather assistant workflow. The weather data is deterministic and local, but the turn execution, context carryover, retry handling, and transcript are all produced by the shipped demo modules rather than a replayed transcript.

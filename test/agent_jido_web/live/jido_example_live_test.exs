@@ -8,7 +8,6 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
 
   @endpoint AgentJidoWeb.Endpoint
   @new_simulated_showcase_examples [
-    {"jido-ai-weather-multi-turn-context", "Jido.AI Weather Multi-Turn Context"},
     {"jido-ai-weather-reasoning-strategy-suite", "Jido.AI Weather Reasoning Strategy Suite"},
     {"jido-ai-operational-agents-pack", "Jido.AI Operational Agents Pack"}
   ]
@@ -473,6 +472,67 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
                "lib/agent_jido/demos/runic_delegating_orchestrator/orchestrator_agent.ex",
                "lib/agent_jido/demos/runic_delegating_orchestrator/runtime_demo.ex",
                "lib/agent_jido_web/examples/runic_delegating_orchestrator_live.ex"
+             ]
+
+      assert Enum.map(example.sources, & &1.path) == example.source_files
+    end
+  end
+
+  describe "/examples/jido-ai-weather-multi-turn-context" do
+    test "renders explanation tab with real local weather-tool guidance", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/jido-ai-weather-multi-turn-context?tab=explanation")
+
+      assert html =~ "Jido.AI Weather Multi-Turn Context"
+      assert html =~ "real local weather assistant workflow"
+      assert html =~ "context carryover"
+      assert html =~ "retry/backoff"
+    end
+
+    test "renders source tab for the dedicated weather example", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/jido-ai-weather-multi-turn-context?tab=source")
+
+      assert html =~ "fixtures.ex"
+      assert html =~ "forecast_action.ex"
+      assert html =~ "weather_assistant.ex"
+      assert html =~ "runtime_demo.ex"
+      assert html =~ "weather_multi_turn_context_live.ex"
+      refute html =~ "simulated_showcase_live.ex"
+    end
+
+    test "demo tab preserves context and records the deterministic retry", %{conn: conn} do
+      {:ok, view, html} = live(conn, "/examples/jido-ai-weather-multi-turn-context?tab=demo")
+
+      assert html =~ "Jido.AI Weather Multi-Turn Context"
+      refute html =~ "Simulated demo"
+
+      demo_view = find_live_child(view, "demo-jido-ai-weather-multi-turn-context")
+
+      html =
+        demo_view
+        |> element("#weather-multi-turn-context-demo button[phx-click='run_all']")
+        |> render_click()
+
+      assert has_element?(demo_view, "#weather-context-city", "Seattle")
+      assert has_element?(demo_view, "#weather-turn-count", "3")
+      assert has_element?(demo_view, "#weather-retry-count", "1")
+      assert html =~ "Should I bring an umbrella?"
+      assert html =~ "Seattle"
+      assert html =~ "outdoor"
+      assert html =~ "indoor"
+    end
+
+    test "example registry metadata resolves new weather source files", %{conn: _conn} do
+      example = Examples.get_example!("jido-ai-weather-multi-turn-context")
+
+      assert example.title == "Jido.AI Weather Multi-Turn Context"
+      assert example.live_view_module == "AgentJidoWeb.Examples.WeatherMultiTurnContextLive"
+
+      assert example.source_files == [
+               "lib/agent_jido/demos/weather_multi_turn_context/fixtures.ex",
+               "lib/agent_jido/demos/weather_multi_turn_context/forecast_action.ex",
+               "lib/agent_jido/demos/weather_multi_turn_context/weather_assistant.ex",
+               "lib/agent_jido/demos/weather_multi_turn_context/runtime_demo.ex",
+               "lib/agent_jido_web/examples/weather_multi_turn_context_live.ex"
              ]
 
       assert Enum.map(example.sources, & &1.path) == example.source_files

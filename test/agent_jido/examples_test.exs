@@ -19,7 +19,7 @@ defmodule AgentJido.ExamplesTest do
     {"runic-delegating-orchestrator", "AgentJidoWeb.Examples.RunicDelegatingOrchestratorLive"},
     {"jido-ai-actions-runtime-demos", "AgentJidoWeb.Examples.ActionsRuntimeDemoLive"},
     {"jido-ai-browser-web-workflow", "AgentJidoWeb.Examples.BrowserDocsScoutAgentLive"},
-    {"jido-ai-weather-multi-turn-context", "AgentJidoWeb.Examples.SimulatedShowcaseLive"},
+    {"jido-ai-weather-multi-turn-context", "AgentJidoWeb.Examples.WeatherMultiTurnContextLive"},
     {"jido-ai-task-execution-workflow", "AgentJidoWeb.Examples.TaskExecutionWorkflowLive"},
     {"jido-ai-skills-runtime-foundations", "AgentJidoWeb.Examples.SkillsRuntimeFoundationsLive"},
     {"jido-ai-skills-multi-agent-orchestration", "AgentJidoWeb.Examples.SkillsMultiAgentOrchestrationLive"},
