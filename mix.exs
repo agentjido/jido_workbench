@@ -149,7 +149,7 @@ defmodule AgentJido.MixProject do
       quality: [
         "format --check-formatted",
         "compile --warnings-as-errors",
-        "credo --min-priority higher",
+        "credo --strict",
         "dialyzer"
       ]
     ]
