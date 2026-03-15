@@ -776,6 +776,8 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
       assert html =~ "Jido.AI.Skill.Loader.load/1"
       assert html =~ "Jido.AI.Skill.Registry.load_from_paths/1"
       assert html =~ "Jido.AI.Skill.Prompt.render/2"
+      assert html =~ "priv/skills/builder-*/SKILL.md"
+      assert html =~ "jido_skill"
       assert html =~ "No API keys, LLM providers, or network access are required for this example."
     end
 
@@ -785,11 +787,12 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
       assert html =~ "calculator_skill.ex"
       assert html =~ "runtime_demo.ex"
       assert html =~ "skills_runtime_foundations_live.ex"
+      assert html =~ "jido_skill.md"
       assert html =~ "SKILL.md"
       refute html =~ "simulated_showcase_live.ex"
     end
 
-    test "demo tab runs the deterministic skills runtime flow", %{conn: conn} do
+    test "demo tab runs the deterministic skills runtime and builder workflow flows", %{conn: conn} do
       {:ok, view, html} = live(conn, "/examples/jido-ai-skills-runtime-foundations?tab=demo")
 
       assert html =~ "Jido.AI Skills Runtime Foundations"
@@ -831,6 +834,26 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
       assert html =~ "demo-runtime-calculator"
       assert html =~ "demo-code-review"
       assert html =~ "format_release_notes"
+
+      html =
+        demo_view
+        |> element("#skills-runtime-foundations-demo button[phx-click='load_builder_catalog']")
+        |> render_click()
+
+      assert html =~ "Loaded 7 builder SKILL.md file(s)"
+      assert html =~ "builder-action-scaffold"
+      assert html =~ "builder-package-review"
+
+      html =
+        demo_view
+        |> element("#skills-runtime-foundations-demo button[phx-click='run_builder_workflow']")
+        |> render_click()
+
+      assert html =~ "Refresh Jido Skill package coverage"
+      assert html =~ "priv/ecosystem/jido_skill.md"
+      assert html =~ "builder-ecosystem-page-author"
+      assert html =~ "Builder Ecosystem Page Author"
+      assert html =~ "Jido.AI, jido_skill, Codex"
     end
 
     test "example registry metadata resolves new skills runtime source files", %{conn: _conn} do
@@ -843,6 +866,14 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
                "lib/agent_jido/demos/skills_runtime_foundations/calculator_skill.ex",
                "lib/agent_jido/demos/skills_runtime_foundations/runtime_demo.ex",
                "lib/agent_jido_web/examples/skills_runtime_foundations_live.ex",
+               "priv/ecosystem/jido_skill.md",
+               "priv/skills/builder-action-scaffold/SKILL.md",
+               "priv/skills/builder-agent-scaffold/SKILL.md",
+               "priv/skills/builder-plugin-scaffold/SKILL.md",
+               "priv/skills/builder-adapter-package/SKILL.md",
+               "priv/skills/builder-ecosystem-page-author/SKILL.md",
+               "priv/skills/builder-example-tutorial-author/SKILL.md",
+               "priv/skills/builder-package-review/SKILL.md",
                "priv/skills/skills-runtime-foundations/demo-code-review/SKILL.md",
                "priv/skills/skills-runtime-foundations/demo-release-notes/SKILL.md"
              ]

@@ -47,6 +47,29 @@ Jido Skill is the dedicated skill runtime package for teams standardizing markdo
 - Provides CLI and mix-task operational interfaces for skill runtime workflows.
 - Does not own general command orchestration, chat transport integration, or provider-specific adapter behavior.
 
+## Builder Skill Catalog In This Workbench
+
+This repo now carries a starter builder-skill catalog under `priv/skills/builder-*/SKILL.md` for ecosystem work that touches `jido_skill` and companion packages.
+
+- Load individual builder skills with `Jido.AI.Skill.Loader.load/1`.
+- Load the full checked-in catalog with `Jido.AI.Skill.Registry.load_from_paths/1`.
+- The intended runtime targets for this catalog are `Jido.AI`, `jido_skill`, and Codex-style contributor workflows.
+
+The package boundary stays explicit:
+
+- `jido_skill` owns markdown-skill runtime behavior, registry and dispatch surfaces, CLI/mix tasks, and release artifacts.
+- `jido_run` owns the ecosystem page, example/tutorial presentation, and contributor-facing narrative around how those skills are used.
+
+### Current Builder Catalog
+
+- `builder-action-scaffold`
+- `builder-agent-scaffold`
+- `builder-plugin-scaffold`
+- `builder-adapter-package`
+- `builder-ecosystem-page-author`
+- `builder-example-tutorial-author`
+- `builder-package-review`
+
 ## Major Components
 
 ### Skill Registry
@@ -64,4 +87,3 @@ Provides commands for run/list/reload/routes/watch/signal operations in local en
 ### Runtime Observability
 
 Exposes lifecycle signal streams for tracking skill execution and registry events.
-

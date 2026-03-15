@@ -1,6 +1,7 @@
 %{
   title: "Jido.AI Skills Runtime Foundations",
-  description: "Real skill manifest loading, registry setup, and prompt rendering with checked-in `SKILL.md` fixtures.",
+  description:
+    "Real skill manifest loading, registry setup, prompt rendering, and builder-skill catalog walkthroughs with checked-in `SKILL.md` fixtures.",
   tags: ["primary", "showcase", "ai", "l2", "ai-tool-use", "skills", "runtime", "jido_ai"],
   category: :ai,
   emoji: "📚",
@@ -30,6 +31,14 @@
     "lib/agent_jido/demos/skills_runtime_foundations/calculator_skill.ex",
     "lib/agent_jido/demos/skills_runtime_foundations/runtime_demo.ex",
     "lib/agent_jido_web/examples/skills_runtime_foundations_live.ex",
+    "priv/ecosystem/jido_skill.md",
+    "priv/skills/builder-action-scaffold/SKILL.md",
+    "priv/skills/builder-agent-scaffold/SKILL.md",
+    "priv/skills/builder-plugin-scaffold/SKILL.md",
+    "priv/skills/builder-adapter-package/SKILL.md",
+    "priv/skills/builder-ecosystem-page-author/SKILL.md",
+    "priv/skills/builder-example-tutorial-author/SKILL.md",
+    "priv/skills/builder-package-review/SKILL.md",
     "priv/skills/skills-runtime-foundations/demo-code-review/SKILL.md",
     "priv/skills/skills-runtime-foundations/demo-release-notes/SKILL.md"
   ],
@@ -52,6 +61,9 @@
 - How `Jido.AI.Skill.Loader.load/1` parses checked-in `SKILL.md` files into runtime manifests
 - How `Jido.AI.Skill.Registry.load_from_paths/1` and `Jido.AI.Skill.Registry.register/1` populate one deterministic registry
 - How `Jido.AI.Skill.Prompt.render/2` turns those registered skills into reusable prompt instructions
+- Where the builder-skill catalog lives under `priv/skills/builder-*/SKILL.md`
+- How the same builder skills can support `Jido.AI`, `jido_skill`, and Codex-oriented contributor workflows
+- How one real workbench task for `jido_skill` is assembled from checked-in builder skills
 
 ## How this demo stays truthful
 
@@ -59,9 +71,28 @@ This page runs **real skills runtime code**.
 
 - One skill is defined as an Elixir module with `use Jido.AI.Skill`.
 - Two skills are loaded from checked-in `priv/skills/.../SKILL.md` files.
-- The demo registers only those three demo skills, renders the combined prompt, and never calls external services.
+- Seven builder skills are loaded from checked-in `priv/skills/builder-*/SKILL.md` files.
+- The demo uses those builder skills to render a real contributor workflow for refreshing the `jido_skill` ecosystem package coverage in this repo.
+- The demo renders prompts and workflow plans only. It does not call external services or mutate package repos.
 
 No API keys, LLM providers, or network access are required for this example.
+
+## Builder catalog included here
+
+The checked-in builder catalog currently includes:
+
+- `builder-action-scaffold`
+- `builder-agent-scaffold`
+- `builder-plugin-scaffold`
+- `builder-adapter-package`
+- `builder-ecosystem-page-author`
+- `builder-example-tutorial-author`
+- `builder-package-review`
+
+The catalog is intentionally split across package-repo and workbench-repo boundaries:
+
+- package repos own implementation modules, tests, changelog updates, and release work
+- this workbench owns ecosystem pages, examples, tutorials, and contributor-facing guidance
 
 ## Pull the pattern into your own app
 
@@ -71,3 +102,4 @@ Keep the same runtime steps in your own project:
 - add file-backed `SKILL.md` assets when you want editable runtime instructions
 - register those skills into the runtime registry
 - render the combined prompt text once your agent or workflow needs it
+- keep boundary notes inside the skill metadata so package-repo work and workbench follow-up stay explicit
