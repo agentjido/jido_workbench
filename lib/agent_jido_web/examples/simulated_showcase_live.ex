@@ -242,26 +242,6 @@ defmodule AgentJidoWeb.Examples.SimulatedShowcaseLive do
     }
   end
 
-  defp scenario_for("runic-delegating-orchestrator") do
-    %{
-      title: "Runic Delegating Orchestrator",
-      steps: [
-        %{label: "Local nodes", detail: "Ran PlanQueries, SimulateSearch, and BuildOutline locally"},
-        %{label: "Delegate draft", detail: "Dispatched DraftArticle runnable to child:drafter"},
-        %{label: "Apply child result", detail: "Parent applied runnable completion to workflow"},
-        %{label: "Delegate edit", detail: "Dispatched EditAndAssemble runnable to child:editor"},
-        %{label: "Finalize", detail: "Parent merged child outputs and emitted final article"}
-      ],
-      result: """
-      {
-        "model": "simulated:runic-orchestrator",
-        "delegated_nodes": ["draft_article", "edit_and_assemble"],
-        "status": "completed"
-      }
-      """
-    }
-  end
-
   defp scenario_for("jido-ai-weather-multi-turn-context") do
     %{
       title: "Jido.AI Weather Multi-Turn Context",

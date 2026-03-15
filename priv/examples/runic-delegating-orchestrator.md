@@ -1,7 +1,7 @@
 %{
   title: "Runic Delegating Orchestrator",
-  description: "Parent workflow that delegates selected nodes to child agents for execution.",
-  tags: ["primary", "showcase", "simulated", "ai", "l2", "coordination", "runic", "multi-agent"],
+  description: "Parent Runic workflow that executes early stages locally and delegates drafting/editing stages through the real child-worker handoff strategy path.",
+  tags: ["primary", "showcase", "ai", "l2", "coordination", "runic", "multi-agent"],
   category: :ai,
   emoji: "🛰",
   related_resources: [
@@ -27,10 +27,14 @@
     }
   ],
   source_files: [
-    "lib/agent_jido_web/examples/simulated_showcase_live.ex"
+    "lib/agent_jido/demos/runic_research_studio/fixtures.ex",
+    "lib/agent_jido/demos/runic_research_studio/actions.ex",
+    "lib/agent_jido/demos/runic_delegating_orchestrator/orchestrator_agent.ex",
+    "lib/agent_jido/demos/runic_delegating_orchestrator/runtime_demo.ex",
+    "lib/agent_jido_web/examples/runic_delegating_orchestrator_live.ex"
   ],
-  live_view_module: "AgentJidoWeb.Examples.SimulatedShowcaseLive",
-  difficulty: :advanced,
+  live_view_module: "AgentJidoWeb.Examples.RunicDelegatingOrchestratorLive",
+  difficulty: :intermediate,
   status: :live,
   scenario_cluster: :coordination,
   wave: :l2,
@@ -38,7 +42,7 @@
   content_intent: :tutorial,
   capability_theme: :coordination_orchestration,
   evidence_surface: :runnable_example,
-  demo_mode: :simulated,
+  demo_mode: :real,
   sort_order: 18
 }
 ---
@@ -47,7 +51,7 @@
 
 - How to mix local node execution with delegated child-agent nodes
 - How `executor: {:child, tag}` affects workflow dispatch behavior
-- How to surface parent/child handoff traces in a deterministic demo UI
+- How to surface parent/child handoff traces in a deterministic demo UI without starting external services
 
 ## Delegated stages
 
@@ -55,4 +59,4 @@
 
 ## Demo note
 
-This page simulates child-agent handoffs and runnable completion signals using fixtures, not live child processes.
+This page runs the real Runic delegation strategy path locally. The child-worker outputs are deterministic fixtures, but the handoff states, delegated runnable execution, and final article artifact come from the actual workflow and strategy commands.
