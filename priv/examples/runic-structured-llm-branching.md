@@ -1,7 +1,7 @@
 %{
   title: "Runic Structured LLM Branching",
-  description: "Two-phase orchestrator that routes into direct, analysis, or safe branch workflows.",
-  tags: ["primary", "showcase", "simulated", "ai", "l2", "ai-tool-use", "runic", "branching"],
+  description: "Two-phase Runic orchestrator that makes a real deterministic route decision, hot-swaps the branch DAG, and executes the selected workflow locally.",
+  tags: ["primary", "showcase", "ai", "l2", "ai-tool-use", "runic", "branching"],
   category: :ai,
   emoji: "🌿",
   related_resources: [
@@ -27,10 +27,14 @@
     }
   ],
   source_files: [
-    "lib/agent_jido_web/examples/simulated_showcase_live.ex"
+    "lib/agent_jido/demos/runic_structured_branching/fixtures.ex",
+    "lib/agent_jido/demos/runic_structured_branching/actions.ex",
+    "lib/agent_jido/demos/runic_structured_branching/orchestrator_agent.ex",
+    "lib/agent_jido/demos/runic_structured_branching/runtime_demo.ex",
+    "lib/agent_jido_web/examples/runic_structured_branching_live.ex"
   ],
-  live_view_module: "AgentJidoWeb.Examples.SimulatedShowcaseLive",
-  difficulty: :advanced,
+  live_view_module: "AgentJidoWeb.Examples.RunicStructuredBranchingLive",
+  difficulty: :intermediate,
   status: :live,
   scenario_cluster: :ai_tool_use,
   wave: :l2,
@@ -38,16 +42,16 @@
   content_intent: :tutorial,
   capability_theme: :ai_intelligence,
   evidence_surface: :runnable_example,
-  demo_mode: :simulated,
+  demo_mode: :real,
   sort_order: 17
 }
 ---
 
 ## What you'll learn
 
-- How phase-1 structured routing output can select a phase-2 DAG
-- How route metadata (`route`, `detail_level`, `confidence`) can drive UX and observability
-- How to expose all branch outcomes without nondeterministic model behavior
+- How a phase-1 Runic router can select a phase-2 DAG with real `runic.set_workflow` calls
+- How route metadata (`route`, `detail_level`, `confidence`) can drive both branch choice and UI evidence
+- How to expose direct, analysis, and safe outcomes without any provider or network dependency
 
 ## Route outcomes
 
@@ -55,6 +59,14 @@
 - `:analysis` -> plan + synthesis branch
 - `:safe` -> fallback response branch
 
+## Workflow shape
+
+```text
+RouteQuestion -> runic.set_workflow(route) -> DirectAnswer | AnalysisPlan -> AnalysisAnswer | SafeResponse
+```
+
+The page runs the actual Runic command surface in-process. The route decision is deterministic fixture data, but the branch selection, workflow swap, node execution, and final outputs are real local workflow transitions.
+
 ## Demo note
 
-All route decisions and branch traces here are deterministic fixtures designed for repeatable interaction and testing.
+No LLM provider, browser session, or remote network call is required. The source tab shows the real local orchestrator, actions, and LiveView used by this page.
