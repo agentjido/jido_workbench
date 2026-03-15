@@ -1,7 +1,7 @@
 %{
   title: "Jido.AI Operational Agents Pack",
-  description: "Operational workflows for API smoke tests, GitHub issue triage, and release notes synthesis.",
-  tags: ["primary", "showcase", "simulated", "ai", "l2", "ops-governance", "jido_ai", "operations"],
+  description: "Operational overview/index linking to deterministic workbench examples and upstream Jido.AI ops-agent sources.",
+  tags: ["primary", "reference", "ai", "l2", "ops-governance", "jido_ai", "operations", "overview"],
   category: :ai,
   emoji: "🛠",
   related_resources: [
@@ -34,34 +34,49 @@
     }
   ],
   source_files: [
-    "lib/agent_jido_web/examples/simulated_showcase_live.ex"
+    "lib/agent_jido/demos/operational_agents_pack/catalog.ex",
+    "lib/agent_jido_web/examples/operational_agents_pack_live.ex"
   ],
-  live_view_module: "AgentJidoWeb.Examples.SimulatedShowcaseLive",
+  live_view_module: "AgentJidoWeb.Examples.OperationalAgentsPackLive",
   difficulty: :advanced,
   status: :live,
   scenario_cluster: :ops_governance,
   wave: :l2,
   journey_stage: :operationalization,
-  content_intent: :case_study,
+  content_intent: :reference,
   capability_theme: :operations_observability,
-  evidence_surface: :runnable_example,
-  demo_mode: :simulated,
+  evidence_surface: :docs_reference,
+  demo_mode: :real,
   sort_order: 26
 }
 ---
 
 ## What you'll learn
 
-- How operational agents combine tool-use and safety controls
-- How secure context injection patterns keep credentials out of model context
-- How to package practical operations workflows into reproducible demos
+- How to break a broad operational pack into narrower deterministic examples
+- How to choose which local workbench example best matches your ops workflow
+- Where to go for upstream Jido.AI ops-agent sources that preserve the original API smoke, triage, and release-notes concepts
+
+## What this page is
+
+This page is an overview/index. It is not one runnable “operational pack” demo.
+
+The demo tab now points to a dedicated operational index surface that links to real deterministic examples already in this repo. Use those linked pages when you want runnable proof, and use the upstream source links when you want the original Jido.AI operational agent implementations.
 
 ## Included workflows
 
+- release or handoff workflow coordination
+- scheduled follow-up and remediation
+- durable state and restart-friendly operational flows
+
+## Upstream source references
+
+The original pack concepts are still preserved as source references:
+
 - API smoke testing
 - GitHub issue triage
-- Release notes synthesis
+- release notes synthesis
 
 ## Demo note
 
-This page simulates operational traces and explicitly avoids live write operations or external API calls.
+No simulator-backed “run this whole pack” trace remains on this page. The interactive tab is a navigable operational index, and the linked local examples are the deterministic runnable surfaces.

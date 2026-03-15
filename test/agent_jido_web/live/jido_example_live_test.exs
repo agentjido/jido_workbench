@@ -7,10 +7,6 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
   alias AgentJido.Examples
 
   @endpoint AgentJidoWeb.Endpoint
-  @remaining_simulated_showcase_examples [
-    {"jido-ai-operational-agents-pack", "Jido.AI Operational Agents Pack"}
-  ]
-
   setup_all do
     ensure_started(:telemetry)
     ensure_started(:phoenix_pubsub)
@@ -1004,33 +1000,71 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
     end
   end
 
-  describe "remaining simulated showcase examples" do
-    test "render explanation tabs", %{conn: conn} do
-      Enum.each(@remaining_simulated_showcase_examples, fn {slug, title} ->
-        {:ok, _view, html} = live(conn, "/examples/#{slug}?tab=explanation")
-        assert html =~ title
-        assert html =~ "simulated"
-      end)
+  describe "/examples/jido-ai-operational-agents-pack" do
+    test "renders explanation tab with explicit overview framing", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/jido-ai-operational-agents-pack?tab=explanation")
+
+      assert html =~ "Jido.AI Operational Agents Pack"
+      assert html =~ "This page is an overview/index."
+      assert html =~ "not one runnable"
+      assert html =~ "Use those linked pages when you want runnable proof"
     end
 
-    test "run deterministic interactive traces", %{conn: conn} do
-      Enum.each(@remaining_simulated_showcase_examples, fn {slug, title} ->
-        {:ok, view, html} = live(conn, "/examples/#{slug}?tab=demo")
-        assert html =~ title
-        assert html =~ "Simulated demo"
+    test "renders source tab for the dedicated operational index modules", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/jido-ai-operational-agents-pack?tab=source")
 
-        demo_view = find_live_child(view, "demo-#{slug}")
+      assert html =~ "catalog.ex"
+      assert html =~ "operational_agents_pack_live.ex"
+      refute html =~ "simulated_showcase_live.ex"
+    end
 
+    test "demo tab selects deterministic local example cards and exposes real routes", %{conn: conn} do
+      {:ok, view, html} = live(conn, "/examples/jido-ai-operational-agents-pack?tab=demo")
+
+      assert html =~ "Jido.AI Operational Agents Pack"
+      refute html =~ "Simulated demo"
+      assert html =~ "overview"
+      assert html =~ "Jido.AI Task Execution Workflow"
+      assert has_element?(view, "#operational-selected-route", "/examples/jido-ai-task-execution-workflow")
+
+      demo_view = find_live_child(view, "demo-jido-ai-operational-agents-pack")
+
+      html =
         demo_view
-        |> element("#simulated-showcase-demo-#{slug} button[phx-click='run_demo']")
+        |> element("#operational-agents-pack-demo button[phx-value-entry='schedule-directive']")
         |> render_click()
 
-        Enum.each(1..8, fn _ -> send(demo_view.pid, :advance_step) end)
+      assert html =~ "Schedule Directive Agent"
+      assert html =~ "/examples/schedule-directive-agent"
+      assert html =~ "schedule directives"
 
-        final_html = render(demo_view)
-        assert final_html =~ "Simulated Result"
-        assert final_html =~ "simulated:"
-      end)
+      html =
+        demo_view
+        |> element("#operational-agents-pack-demo button[phx-value-entry='persistence-storage']")
+        |> render_click()
+
+      assert html =~ "Persistence Storage Agent"
+      assert html =~ "/examples/persistence-storage-agent"
+      assert html =~ "durable storage"
+      assert html =~ "API Smoke Test Agent"
+      assert html =~ "Issue Triage Agent"
+      assert html =~ "Release Notes Agent"
+    end
+
+    test "example registry metadata resolves operational index source files", %{conn: _conn} do
+      example = Examples.get_example!("jido-ai-operational-agents-pack")
+
+      assert example.title == "Jido.AI Operational Agents Pack"
+      assert example.live_view_module == "AgentJidoWeb.Examples.OperationalAgentsPackLive"
+      assert example.evidence_surface == :docs_reference
+      assert example.demo_mode == :real
+
+      assert example.source_files == [
+               "lib/agent_jido/demos/operational_agents_pack/catalog.ex",
+               "lib/agent_jido_web/examples/operational_agents_pack_live.ex"
+             ]
+
+      assert Enum.map(example.sources, & &1.path) == example.source_files
     end
   end
 
