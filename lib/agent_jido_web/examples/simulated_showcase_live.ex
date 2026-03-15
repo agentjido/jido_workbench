@@ -242,25 +242,6 @@ defmodule AgentJidoWeb.Examples.SimulatedShowcaseLive do
     }
   end
 
-  defp scenario_for("jido-ai-operational-agents-pack") do
-    %{
-      title: "Jido.AI Operational Agents Pack",
-      steps: [
-        %{label: "API smoke run", detail: "Validated endpoint status and response diagnostics"},
-        %{label: "Issue triage run", detail: "Categorized issue queue with safe write policy disabled"},
-        %{label: "Release synthesis", detail: "Generated themed release notes draft via GoT pattern"},
-        %{label: "Security checks", detail: "Confirmed token-context injection and write guard behavior"}
-      ],
-      result: """
-      {
-        "model": "simulated:ops-coordinator",
-        "workflows": ["api_smoke","issue_triage","release_notes"],
-        "safe_by_default": true
-      }
-      """
-    }
-  end
-
   defp scenario_for(_slug) do
     %{
       title: "Simulated Example",
