@@ -28,7 +28,7 @@ defmodule AgentJidoWeb.Examples.SkillsRuntimeFoundationsLive do
         </div>
       </div>
 
-      <div class="grid gap-3 sm:grid-cols-4">
+      <div class="grid gap-3 sm:grid-cols-3 xl:grid-cols-6">
         <div class="rounded-md border border-border bg-elevated p-3 text-center">
           <div class="text-[10px] uppercase tracking-wider text-muted-foreground">File Manifest</div>
           <div class="text-sm font-semibold text-foreground mt-2">
@@ -49,6 +49,18 @@ defmodule AgentJidoWeb.Examples.SkillsRuntimeFoundationsLive do
           <div class="text-[10px] uppercase tracking-wider text-muted-foreground">Prompt Ready</div>
           <div class="text-sm font-semibold text-foreground mt-2">
             {if @demo.prompt != "", do: "yes", else: "no"}
+          </div>
+        </div>
+        <div class="rounded-md border border-border bg-elevated p-3 text-center">
+          <div class="text-[10px] uppercase tracking-wider text-muted-foreground">Builder Catalog</div>
+          <div class="text-sm font-semibold text-foreground mt-2">
+            {if @demo.builder_specs == [], do: "pending", else: "#{length(@demo.builder_specs)} loaded"}
+          </div>
+        </div>
+        <div class="rounded-md border border-border bg-elevated p-3 text-center">
+          <div class="text-[10px] uppercase tracking-wider text-muted-foreground">Builder Workflow</div>
+          <div class="text-sm font-semibold text-foreground mt-2">
+            {if @demo.builder_workflow_steps == [], do: "pending", else: "ready"}
           </div>
         </div>
       </div>
@@ -76,11 +88,25 @@ defmodule AgentJidoWeb.Examples.SkillsRuntimeFoundationsLive do
           Load Runtime Directory
         </button>
         <button
+          id="skills-load-builder-btn"
+          phx-click="load_builder_catalog"
+          class="px-4 py-2 rounded-md bg-fuchsia-500/10 border border-fuchsia-500/30 text-fuchsia-200 hover:bg-fuchsia-500/20 transition-colors text-sm font-semibold"
+        >
+          Load Builder Catalog
+        </button>
+        <button
           id="skills-render-prompt-btn"
           phx-click="render_prompt"
           class="px-4 py-2 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:bg-amber-500/20 transition-colors text-sm font-semibold"
         >
           Render Prompt
+        </button>
+        <button
+          id="skills-run-builder-btn"
+          phx-click="run_builder_workflow"
+          class="px-4 py-2 rounded-md bg-indigo-500/10 border border-indigo-500/30 text-indigo-200 hover:bg-indigo-500/20 transition-colors text-sm font-semibold"
+        >
+          Run Builder Workflow
         </button>
         <button
           id="skills-reset-btn"
@@ -153,6 +179,31 @@ defmodule AgentJidoWeb.Examples.SkillsRuntimeFoundationsLive do
               <% end %>
             </div>
           </div>
+
+          <div class="rounded-md border border-border bg-elevated p-4">
+            <div class="flex items-center justify-between mb-2">
+              <div class="text-[10px] uppercase tracking-wider text-muted-foreground">Builder Skill Catalog</div>
+              <div id="skills-builder-count" class="text-[10px] text-muted-foreground">
+                {@demo.builder_loaded_count} file skill(s) loaded
+              </div>
+            </div>
+
+            <div :if={@demo.builder_specs == []} class="text-xs text-muted-foreground">
+              Load the builder catalog to inspect the checked-in workbench contributor skills.
+            </div>
+
+            <div :if={@demo.builder_specs != []} id="skills-builder-list" class="space-y-2">
+              <%= for spec <- @demo.builder_specs do %>
+                <div class="rounded-md border border-border bg-background/70 p-3">
+                  <div class="text-xs font-semibold text-foreground">{spec.name}</div>
+                  <div class="text-[11px] text-muted-foreground mt-1">{spec.description}</div>
+                  <div class="text-[11px] text-muted-foreground mt-2">
+                    boundary: {Map.get(spec.metadata, "boundary")}
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
         </div>
 
         <div class="space-y-4">
@@ -166,6 +217,75 @@ defmodule AgentJidoWeb.Examples.SkillsRuntimeFoundationsLive do
           <div class="rounded-md border border-border bg-elevated p-4">
             <div class="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Rendered Prompt</div>
             <pre id="skills-prompt-output" class="text-[11px] text-foreground whitespace-pre-wrap font-mono"><%= if @demo.prompt == "", do: "Render the prompt to inspect the combined skill instructions.", else: @demo.prompt %></pre>
+          </div>
+
+          <div class="rounded-md border border-border bg-elevated p-4 space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="text-[10px] uppercase tracking-wider text-muted-foreground">Builder Workflow Task</div>
+              <div id="skills-builder-runtime-targets" class="text-[10px] text-muted-foreground">
+                {if @demo.builder_runtime_targets == [], do: "runtime targets pending", else: Enum.join(@demo.builder_runtime_targets, ", ")}
+              </div>
+            </div>
+
+            <div id="skills-builder-task-summary" class="space-y-2 text-[11px] text-foreground">
+              <div><span class="font-semibold">task:</span> {@demo.builder_task.title}</div>
+              <div><span class="font-semibold">target package:</span> {@demo.builder_task.target_package}</div>
+              <div><span class="font-semibold">summary:</span> {@demo.builder_task.summary}</div>
+            </div>
+
+            <div>
+              <div class="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Reference Paths</div>
+              <div id="skills-builder-reference-paths" class="space-y-1 text-[11px] text-foreground">
+                <%= for path <- @demo.builder_task.reference_paths do %>
+                  <div>{path}</div>
+                <% end %>
+              </div>
+            </div>
+
+            <div>
+              <div class="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Deliverables</div>
+              <div id="skills-builder-deliverables" class="space-y-1 text-[11px] text-foreground">
+                <%= for path <- @demo.builder_task.deliverable_paths do %>
+                  <div>{path}</div>
+                <% end %>
+              </div>
+            </div>
+
+            <div :if={@demo.builder_selected_skill_names != []}>
+              <div class="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Selected Builder Skills</div>
+              <div id="skills-builder-selected-skills" class="space-y-1 text-[11px] text-foreground">
+                <%= for skill_name <- @demo.builder_selected_skill_names do %>
+                  <div>{skill_name}</div>
+                <% end %>
+              </div>
+            </div>
+
+            <div :if={@demo.builder_workflow_steps != []}>
+              <div class="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Workflow Steps</div>
+              <div id="skills-builder-workflow-steps" class="space-y-2">
+                <%= for step <- @demo.builder_workflow_steps do %>
+                  <div class="rounded-md border border-border bg-background/70 p-3">
+                    <div class="text-xs font-semibold text-foreground">{step.title}</div>
+                    <div class="text-[11px] text-muted-foreground mt-1">{step.detail}</div>
+                    <div class="text-[11px] text-muted-foreground mt-2">deliverable: {step.deliverable}</div>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+
+            <div :if={@demo.builder_boundary_notes != []}>
+              <div class="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Boundary Notes</div>
+              <div id="skills-builder-boundary-notes" class="space-y-1 text-[11px] text-foreground">
+                <%= for note <- @demo.builder_boundary_notes do %>
+                  <div>{note}</div>
+                <% end %>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-md border border-border bg-elevated p-4">
+            <div class="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Builder Prompt</div>
+            <pre id="skills-builder-prompt-output" class="text-[11px] text-foreground whitespace-pre-wrap font-mono"><%= if @demo.builder_prompt == "", do: "Run the builder workflow to inspect the contributor prompt assembled from the catalog.", else: @demo.builder_prompt %></pre>
           </div>
 
           <div class="rounded-md border border-border bg-elevated p-4">
@@ -206,8 +326,16 @@ defmodule AgentJidoWeb.Examples.SkillsRuntimeFoundationsLive do
     {:noreply, assign_demo(socket, RuntimeDemo.load_runtime_skills(socket.assigns.demo))}
   end
 
+  def handle_event("load_builder_catalog", _params, socket) do
+    {:noreply, assign_demo(socket, RuntimeDemo.load_builder_catalog(socket.assigns.demo))}
+  end
+
   def handle_event("render_prompt", _params, socket) do
     {:noreply, assign_demo(socket, RuntimeDemo.render_prompt(socket.assigns.demo))}
+  end
+
+  def handle_event("run_builder_workflow", _params, socket) do
+    {:noreply, assign_demo(socket, RuntimeDemo.run_builder_workflow(socket.assigns.demo))}
   end
 
   def handle_event("reset_demo", _params, socket) do
