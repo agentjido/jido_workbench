@@ -242,48 +242,6 @@ defmodule AgentJidoWeb.Examples.SimulatedShowcaseLive do
     }
   end
 
-  defp scenario_for("runic-adaptive-researcher") do
-    %{
-      title: "Runic Adaptive Researcher",
-      steps: [
-        %{label: "Phase 1 research", detail: "Ran PlanQueries -> SimulateSearch with topic feed"},
-        %{label: "Assess richness", detail: "Measured research_summary length against threshold"},
-        %{label: "Hot-swap workflow", detail: "Applied runic.set_workflow to phase_2_full DAG"},
-        %{label: "Phase 2 writing", detail: "Executed BuildOutline -> DraftArticle -> EditAndAssemble"},
-        %{label: "Emit outputs", detail: "Published final markdown and phase selection metadata"}
-      ],
-      result: """
-      {
-        "model": "simulated:haiku",
-        "status": "completed",
-        "phase_2_type": "full",
-        "productions": 6
-      }
-      """
-    }
-  end
-
-  defp scenario_for("runic-structured-llm-branching") do
-    %{
-      title: "Runic Structured LLM Branching",
-      steps: [
-        %{label: "RouteQuestion", detail: "Produced structured decision with route/detail/confidence"},
-        %{label: "Select branch", detail: "Normalized route=:analysis and mapped to phase_2_analysis"},
-        %{label: "Swap DAG", detail: "runic.set_workflow applied analysis branch workflow"},
-        %{label: "Run phase 2", detail: "Executed AnalysisPlan -> AnalysisAnswer"},
-        %{label: "Publish decision", detail: "Returned selected_branch and branch_result payload"}
-      ],
-      result: """
-      {
-        "model": "simulated:haiku",
-        "selected_branch": "analysis",
-        "confidence": 0.84,
-        "detail_level": "detailed"
-      }
-      """
-    }
-  end
-
   defp scenario_for("runic-delegating-orchestrator") do
     %{
       title: "Runic Delegating Orchestrator",

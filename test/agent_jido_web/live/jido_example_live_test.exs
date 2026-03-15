@@ -8,8 +8,6 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
 
   @endpoint AgentJidoWeb.Endpoint
   @new_simulated_showcase_examples [
-    {"runic-adaptive-researcher", "Runic Adaptive Researcher"},
-    {"runic-structured-llm-branching", "Runic Structured LLM Branching"},
     {"runic-delegating-orchestrator", "Runic Delegating Orchestrator"},
     {"jido-ai-weather-multi-turn-context", "Jido.AI Weather Multi-Turn Context"},
     {"jido-ai-weather-reasoning-strategy-suite", "Jido.AI Weather Reasoning Strategy Suite"},
@@ -282,6 +280,141 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
                "lib/agent_jido/demos/runic_research_studio/orchestrator_agent.ex",
                "lib/agent_jido/demos/runic_research_studio/runtime_demo.ex",
                "lib/agent_jido_web/examples/runic_research_studio_step_mode_live.ex"
+             ]
+
+      assert Enum.map(example.sources, & &1.path) == example.source_files
+    end
+  end
+
+  describe "/examples/runic-structured-llm-branching" do
+    test "renders explanation tab with real branching guidance", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/runic-structured-llm-branching?tab=explanation")
+
+      assert html =~ "Runic Structured LLM Branching"
+      assert html =~ "runic.set_workflow"
+      assert html =~ "DirectAnswer"
+      assert html =~ "SafeResponse"
+      assert html =~ "No LLM provider, browser session, or remote network call is required"
+    end
+
+    test "renders source tab for the dedicated branching example", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/runic-structured-llm-branching?tab=source")
+
+      assert html =~ "fixtures.ex"
+      assert html =~ "actions.ex"
+      assert html =~ "orchestrator_agent.ex"
+      assert html =~ "runtime_demo.ex"
+      assert html =~ "runic_structured_branching_live.ex"
+      refute html =~ "simulated_showcase_live.ex"
+    end
+
+    test "demo tab runs the deterministic branching workflow", %{conn: conn} do
+      {:ok, view, html} = live(conn, "/examples/runic-structured-llm-branching?tab=demo")
+
+      assert html =~ "Runic Structured LLM Branching"
+      refute html =~ "Simulated demo"
+
+      demo_view = find_live_child(view, "demo-runic-structured-llm-branching")
+
+      html =
+        demo_view
+        |> element("#runic-structured-branching-demo button[phx-click='run_workflow']")
+        |> render_click()
+
+      assert has_element?(demo_view, "#runic-branching-selected-branch", "analysis")
+      assert has_element?(demo_view, "#runic-branching-selected-workflow", "phase_2_analysis")
+      assert html =~ "analysis_plan"
+      assert html =~ "analysis_answer"
+      assert html =~ "gather more evidence first"
+    end
+
+    test "example registry metadata resolves new branching source files", %{conn: _conn} do
+      example = Examples.get_example!("runic-structured-llm-branching")
+
+      assert example.title == "Runic Structured LLM Branching"
+      assert example.live_view_module == "AgentJidoWeb.Examples.RunicStructuredBranchingLive"
+
+      assert example.source_files == [
+               "lib/agent_jido/demos/runic_structured_branching/fixtures.ex",
+               "lib/agent_jido/demos/runic_structured_branching/actions.ex",
+               "lib/agent_jido/demos/runic_structured_branching/orchestrator_agent.ex",
+               "lib/agent_jido/demos/runic_structured_branching/runtime_demo.ex",
+               "lib/agent_jido_web/examples/runic_structured_branching_live.ex"
+             ]
+
+      assert Enum.map(example.sources, & &1.path) == example.source_files
+    end
+  end
+
+  describe "/examples/runic-adaptive-researcher" do
+    test "renders explanation tab with real adaptive workflow guidance", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/runic-adaptive-researcher?tab=explanation")
+
+      assert html =~ "Runic Adaptive Researcher"
+      assert html =~ "runic.set_workflow"
+      assert html =~ "full and slim"
+      assert html =~ "real local Runic workflow"
+    end
+
+    test "renders source tab for the dedicated adaptive example", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/runic-adaptive-researcher?tab=source")
+
+      assert html =~ "fixtures.ex"
+      assert html =~ "actions.ex"
+      assert html =~ "orchestrator_agent.ex"
+      assert html =~ "runtime_demo.ex"
+      assert html =~ "runic_adaptive_researcher_live.ex"
+      refute html =~ "simulated_showcase_live.ex"
+    end
+
+    test "demo tab runs the deterministic adaptive workflow", %{conn: conn} do
+      {:ok, view, html} = live(conn, "/examples/runic-adaptive-researcher?tab=demo")
+
+      assert html =~ "Runic Adaptive Researcher"
+      refute html =~ "Simulated demo"
+
+      demo_view = find_live_child(view, "demo-runic-adaptive-researcher")
+
+      html =
+        demo_view
+        |> element("#runic-adaptive-researcher-demo button[phx-click='run_workflow']")
+        |> render_click()
+
+      assert has_element?(demo_view, "#runic-adaptive-selected-phase", "full")
+      assert has_element?(demo_view, "#runic-adaptive-selected-workflow", "phase_2_full")
+      assert html =~ "build_outline"
+      assert html =~ "edit_and_assemble"
+      assert html =~ "## Research Sources"
+
+      html =
+        demo_view
+        |> element("button[phx-click='select_topic'][phx-value-topic='release-brief-slim']")
+        |> render_click()
+
+      assert html =~ "Release Brief Digest"
+
+      html =
+        demo_view
+        |> element("#runic-adaptive-researcher-demo button[phx-click='run_workflow']")
+        |> render_click()
+
+      assert has_element?(demo_view, "#runic-adaptive-selected-phase", "slim")
+      assert has_element?(demo_view, "#runic-adaptive-selected-workflow", "phase_2_slim")
+      assert html =~ "Thin research results can skip the outline stage"
+    end
+
+    test "example registry metadata resolves new adaptive source files", %{conn: _conn} do
+      example = Examples.get_example!("runic-adaptive-researcher")
+
+      assert example.title == "Runic Adaptive Researcher"
+      assert example.live_view_module == "AgentJidoWeb.Examples.RunicAdaptiveResearcherLive"
+
+      assert example.source_files == [
+               "lib/agent_jido/demos/runic_adaptive_researcher/fixtures.ex",
+               "lib/agent_jido/demos/runic_adaptive_researcher/actions.ex",
+               "lib/agent_jido/demos/runic_adaptive_researcher/orchestrator_agent.ex",
+               "lib/agent_jido/demos/runic_adaptive_researcher/runtime_demo.ex",
+               "lib/agent_jido_web/examples/runic_adaptive_researcher_live.ex"
              ]
 
       assert Enum.map(example.sources, & &1.path) == example.source_files
