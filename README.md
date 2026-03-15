@@ -51,6 +51,28 @@ mix quality
 
 `mix quality` now runs the strict Credo baseline, warnings-as-errors compile, and Dialyzer. The managed `pre_push` hook also runs `mix credo --strict`, `mix test`, and `mix dialyzer`.
 
+## MCP Docs Server
+
+The workbench now ships a read-only MCP docs server for the published documentation corpus.
+
+- `stdio` entrypoint: `mix mcp.docs`
+- public HTTP endpoint: `POST /mcp/docs`
+- v1 tools: `search_docs`, `get_doc`, `list_sections`
+- v1 scope: docs only
+
+Notes:
+
+- The MCP server reads from the same docs Arcana collection populated by the local content ingestion flow.
+- Search uses the existing hybrid retrieval pipeline and falls back to lexical docs search when the Arcana backend fails.
+- `get_doc` returns markdown plus canonical metadata for docs routes.
+- Compile the project before launching `mix mcp.docs` from an MCP client so stdout stays reserved for JSON-RPC.
+
+If you need to refresh the underlying search index locally, run:
+
+```bash
+mix content.ingest.local
+```
+
 ## Content Layout
 
 - `priv/content_plan/**` contains content briefs and planning docs.

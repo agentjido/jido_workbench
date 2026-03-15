@@ -66,6 +66,15 @@ config :agent_jido, AgentJido.ContentAssistant,
   search_retrieval_mode: :hybrid,
   progressive_swap_min_ms: 1_200
 
+config :agent_jido, AgentJido.MCP,
+  protocol_version: "2025-11-25",
+  server_name: "agent_jido_docs",
+  http_max_body_bytes: 32_768,
+  http_rate_limit_max_requests: 60,
+  http_rate_limit_window_seconds: 60,
+  search_limit: 10,
+  query_max_length: 500
+
 config :agent_jido, AgentJidoWeb.ContentOpsGithubLive,
   owner: "agentjido",
   repo: "agentjido_xyz",

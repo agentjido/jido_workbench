@@ -42,6 +42,11 @@ defmodule AgentJidoWeb.LLMSTxtController do
     - Sitemap: #{endpoint_url}/sitemap.xml
     - Feed: #{endpoint_url}/feed
 
+    MCP docs server
+    - HTTP endpoint: #{endpoint_url}/mcp/docs
+    - Tools: search_docs, get_doc, list_sections
+    - Scope: published docs only
+
     Rendered fallback pattern
     - If source markdown is unavailable, request the canonical route with:
       - Accept: text/markdown
