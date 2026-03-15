@@ -1,0 +1,4 @@
+interface:
+  display_name: "LLM DB"
+  short_description: "Build and query LLM DB catalogs"
+  default_prompt: "Use $llm-db to build or update model catalog workflows for my Elixir app."

@@ -45,6 +45,7 @@ defmodule AgentJidoWeb.Router do
 
     live_session :public_site, session: {__MODULE__, :examples_live_session, []} do
       live "/", JidoHomeLive, :index
+      live "/skills", JidoSkillsLive, :index
       live "/ecosystem", JidoEcosystemLive, :index
       # Keep static route above /ecosystem/:id so this page never collides with package ids.
       live "/ecosystem/matrix", JidoEcosystemPackageMatrixLive, :index

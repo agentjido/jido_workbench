@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jido Browser"
+  short_description: "Build Jido browser automation"
+  default_prompt: "Use $jido-browser to build browser-backed Jido automations, actions, and agent workflows."

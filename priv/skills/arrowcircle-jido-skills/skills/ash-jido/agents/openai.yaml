@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ash Jido"
+  short_description: "Expose Ash actions to Jido"
+  default_prompt: "Use $ash-jido to connect Ash resources, actions, and domains to Jido agents or skills."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jido Messaging"
+  short_description: "Plan Jido messaging adapters"
+  default_prompt: "Use $jido-messaging to design messaging adapters, buses, and delivery boundaries for Jido systems."

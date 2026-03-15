@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jido Skill Router"
+  short_description: "Route tasks across Jido skills"
+  default_prompt: "Use $jido-skill-router to choose and sequence the right Jido ecosystem skills for this task."

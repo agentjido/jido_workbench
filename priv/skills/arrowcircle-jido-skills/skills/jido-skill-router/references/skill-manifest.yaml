@@ -1,0 +1,178 @@
+version: 1
+group: jido-ecosystem
+router_skill: jido-skill-router
+shared_references:
+  - https://jido.run/ecosystem
+  - https://hexdocs.pm/jido/readme.html
+  - https://hexdocs.pm/jido_ai/readme.html
+  - https://github.com/agentjido/jido_run/issues/51
+skills:
+  - skill: jido
+    upstream_package: jido
+    role: core runtime and orchestration
+    use_when:
+      - agents
+      - directives
+      - runtime loops
+      - cross-package composition
+    related_skills:
+      - jido-action
+      - jido-signal
+      - jido-memory
+      - jido-behaviortree
+      - req-llm
+      - llm-db
+      - ash-jido
+      - jido-otel
+  - skill: jido-action
+    upstream_package: jido_action
+    role: executable units of work
+    use_when:
+      - action scaffolding
+      - action validation
+      - action refactors
+    related_skills:
+      - jido
+      - jido-signal
+      - ash-jido
+  - skill: jido-signal
+    upstream_package: jido_signal
+    role: signal contracts and dispatch
+    use_when:
+      - event schemas
+      - signal validation
+      - routing semantics
+    related_skills:
+      - jido
+      - jido-messaging
+      - jido-action
+  - skill: llm-db
+    upstream_package: llm_db
+    role: model and provider catalog selection
+    use_when:
+      - model catalogs
+      - provider metadata
+      - capability filtering
+      - price-aware routing
+    related_skills:
+      - req-llm
+      - jido
+  - skill: req-llm
+    upstream_package: req_llm
+    role: provider transport and LLM request execution
+    use_when:
+      - provider adapters
+      - request shaping
+      - streaming
+      - structured output transport
+    related_skills:
+      - llm-db
+      - jido
+  - skill: jido-browser
+    upstream_package: jido_browser
+    role: browser-backed automation
+    use_when:
+      - DOM interaction
+      - rendered-page automation
+      - authenticated browser flows
+    related_skills:
+      - jido-action
+      - jido
+  - skill: jido-memory
+    upstream_package: jido_memory
+    role: memory policy and recall
+    use_when:
+      - episodic memory
+      - long-lived recall
+      - retrieval flows
+      - memory-aware agents
+    related_skills:
+      - jido
+      - req-llm
+  - skill: jido-behaviortree
+    upstream_package: jido_behaviortree
+    role: explicit branching and fallback trees
+    use_when:
+      - selectors
+      - sequences
+      - fallback logic
+      - guard-driven branching
+    related_skills:
+      - jido
+      - jido-action
+  - skill: ash-jido
+    upstream_package: ash_jido
+    role: Ash and Jido boundary integration
+    use_when:
+      - Ash action exposure
+      - generated Jido actions
+      - domain-context propagation
+      - Ash-triggered agents
+    related_skills:
+      - jido
+      - jido-action
+      - jido-signal
+  - skill: jido-studio
+    upstream_package: jido_studio
+    role: operator tooling and ecosystem demos
+    use_when:
+      - workbench pages
+      - operator surfaces
+      - package demos
+      - ecosystem presentation
+    related_skills:
+      - jido
+      - ash-jido
+      - jido-otel
+  - skill: jido-messaging
+    upstream_package: jido_messaging
+    role: external transport adapters
+    use_when:
+      - broker integration
+      - delivery semantics
+      - queue or pubsub adapters
+    related_skills:
+      - jido-signal
+      - jido
+  - skill: jido-otel
+    upstream_package: jido_otel
+    role: OpenTelemetry tracing integration
+    use_when:
+      - spans
+      - trace correlation
+      - tracer backends
+      - observability hooks
+    related_skills:
+      - jido
+      - jido-action
+      - jido-signal
+common_flows:
+  - name: model-routed-ai-workflow
+    sequence:
+      - llm-db
+      - req-llm
+      - jido
+  - name: action-driven-agent
+    sequence:
+      - jido-action
+      - jido
+      - jido-signal
+  - name: ash-triggered-agent
+    sequence:
+      - ash-jido
+      - jido-action
+      - jido
+      - jido-signal
+  - name: browser-agent
+    sequence:
+      - jido-browser
+      - jido-action
+      - jido
+  - name: observable-runtime
+    sequence:
+      - jido
+      - jido-otel
+  - name: external-event-delivery
+    sequence:
+      - jido-signal
+      - jido-messaging

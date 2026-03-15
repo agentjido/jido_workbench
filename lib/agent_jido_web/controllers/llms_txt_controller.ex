@@ -19,6 +19,7 @@ defmodule AgentJidoWeb.LLMSTxtController do
       - /docs*
       - /blog*
       - /ecosystem*
+      - /skills
       - /features*
       - /build*
       - /community*
@@ -31,6 +32,7 @@ defmodule AgentJidoWeb.LLMSTxtController do
     - Docs: #{endpoint_url}/docs
     - Blog: #{endpoint_url}/blog
     - Ecosystem: #{endpoint_url}/ecosystem
+    - Skills: #{endpoint_url}/skills
     - Features: #{endpoint_url}/features
     - Build: #{endpoint_url}/build
     - Community: #{endpoint_url}/community

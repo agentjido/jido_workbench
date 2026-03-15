@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jido Memory"
+  short_description: "Build Jido memory workflows"
+  default_prompt: "Use $jido-memory to add memory spaces, recall flows, and memory-aware agents to a Jido app."

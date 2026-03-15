@@ -1,0 +1,4 @@
+interface:
+  display_name: "ReqLLM"
+  short_description: "Build ReqLLM provider workflows"
+  default_prompt: "Use $req-llm to add or refine ReqLLM providers, calls, or streaming workflows."
