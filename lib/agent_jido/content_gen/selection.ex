@@ -13,11 +13,10 @@ defmodule AgentJido.ContentGen.Selection do
     explicit_entry = normalize_explicit_entry(Map.get(opts, :entry))
 
     entries
-    |> Enum.filter(&pages_collection?/1)
-    |> Enum.filter(&destination_route?/1)
-    |> Enum.filter(&section_match?(&1, section_filters, explicit_entry))
-    |> Enum.filter(&status_match?(&1, status_filters, explicit_entry))
-    |> Enum.filter(&entry_match?(&1, explicit_entry))
+    |> Enum.filter(
+      &(pages_collection?(&1) and destination_route?(&1) and section_match?(&1, section_filters, explicit_entry) and
+          status_match?(&1, status_filters, explicit_entry) and entry_match?(&1, explicit_entry))
+    )
     |> Enum.sort_by(&{&1.section, &1.order, &1.id})
     |> limit(max_entries)
   end

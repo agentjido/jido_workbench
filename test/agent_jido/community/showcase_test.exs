@@ -6,7 +6,7 @@ defmodule AgentJido.Community.ShowcaseTest do
   test "loads published showcase projects from markdown" do
     projects = Showcase.all_projects()
 
-    assert length(projects) > 0
+    assert Enum.any?(projects)
     assert Enum.any?(projects, &(&1.slug == "loomkin"))
     assert Enum.any?(projects, &(&1.slug == "screentour"))
     refute Enum.any?(projects, &(&1.slug == "agent-jido-workbench"))

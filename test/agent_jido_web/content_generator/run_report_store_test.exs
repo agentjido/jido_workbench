@@ -88,7 +88,15 @@ defmodule AgentJidoWeb.ContentGenerator.RunReportStoreTest do
           status: "written",
           candidate_path: candidate_path,
           audit: %{errors: [], warnings: [], summary: %{}, score: 1.0},
-          diff: %{changed: true, old_bytes: 0, new_bytes: 1, delta_bytes: 1, old_lines: 0, new_lines: 1, delta_lines: 1},
+          diff: %{
+            changed: true,
+            old_bytes: 0,
+            new_bytes: 1,
+            delta_bytes: 1,
+            old_lines: 0,
+            new_lines: 1,
+            delta_lines: 1
+          },
           verification: %{
             status: verification_status,
             checks: ["audit_only", "route_render", "livebook_test"],

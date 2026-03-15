@@ -72,27 +72,30 @@ defmodule AgentJido.ContentGen.Report do
   end
 
   defp accumulate_stats(report, %{status: status}) do
-    key =
-      case status do
-        :written -> :written
-        :dry_run_candidate -> :dry_run_candidates
-        :skipped_noop -> :skipped_noop
-        :skipped_non_file_target -> :skipped_non_file_target
-        :skipped_missing_for_audit -> :skipped_missing_for_audit
-        :audit_only_passed -> :audit_only_passed
-        :audit_failed -> :audit_failed
-        :generation_failed -> :generation_failed
-        :parse_failed -> :parse_failed
-        :churn_blocked -> :churn_blocked
-        :verification_failed -> :verification_failed
-        _other -> nil
-      end
+    key = status_stat_key(status)
 
     if key do
       update_in(report, [:stats, key], &(&1 + 1))
     else
       report
     end
+  end
+
+  defp status_stat_key(status) do
+    %{
+      written: :written,
+      dry_run_candidate: :dry_run_candidates,
+      skipped_noop: :skipped_noop,
+      skipped_non_file_target: :skipped_non_file_target,
+      skipped_missing_for_audit: :skipped_missing_for_audit,
+      audit_only_passed: :audit_only_passed,
+      audit_failed: :audit_failed,
+      generation_failed: :generation_failed,
+      parse_failed: :parse_failed,
+      churn_blocked: :churn_blocked,
+      verification_failed: :verification_failed
+    }
+    |> Map.get(status)
   end
 
   defp accumulate_change_requests(report, %{status: status, target_path: target_path, content_hash: content_hash} = entry_result)

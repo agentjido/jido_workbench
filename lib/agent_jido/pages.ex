@@ -43,8 +43,7 @@ defmodule AgentJido.Pages do
   for {canonical_path, pages} <- @canonical_path_groups, length(pages) > 1 do
     files =
       pages
-      |> Enum.map(& &1.source_path)
-      |> Enum.join(", ")
+      |> Enum.map_join(", ", & &1.source_path)
 
     raise ArgumentError,
           "Duplicate canonical page path #{canonical_path}: #{files}"
@@ -114,8 +113,7 @@ defmodule AgentJido.Pages do
   for {legacy_path, entries} <- @legacy_path_groups, length(entries) > 1 do
     paths =
       entries
-      |> Enum.map(fn {_legacy, page} -> page.path end)
-      |> Enum.join(", ")
+      |> Enum.map_join(", ", fn {_legacy, page} -> page.path end)
 
     raise ArgumentError,
           "Duplicate legacy path #{legacy_path} is assigned to multiple pages: #{paths}"
@@ -259,21 +257,19 @@ defmodule AgentJido.Pages do
   def resolve_page_for_path(path) do
     normalized = normalize_path_lookup(path)
 
-    case Map.get(@pages_by_path, normalized) do
-      %Page{} = page ->
-        {:ok, page, :canonical}
+    resolve_page_lookup(normalized, [
+      {@pages_by_path, :canonical},
+      {@pages_by_legacy_path, :legacy},
+      {@pages_by_route, :route_alias}
+    ])
+  end
 
-      nil ->
-        case Map.get(@pages_by_legacy_path, normalized) do
-          %Page{} = page ->
-            {:ok, page, :legacy}
+  defp resolve_page_lookup(_path, []), do: :error
 
-          nil ->
-            case Map.get(@pages_by_route, normalized) do
-              %Page{} = page -> {:ok, page, :route_alias}
-              nil -> :error
-            end
-        end
+  defp resolve_page_lookup(path, [{lookup, match_type} | rest]) do
+    case Map.get(lookup, path) do
+      %Page{} = page -> {:ok, page, match_type}
+      nil -> resolve_page_lookup(path, rest)
     end
   end
 
@@ -312,8 +308,7 @@ defmodule AgentJido.Pages do
   def docs_sections do
     :docs
     |> pages_by_category()
-    |> Enum.filter(&docs_section_root_page?/1)
-    |> Enum.filter(& &1.in_menu)
+    |> Enum.filter(&(docs_section_root_page?(&1) and &1.in_menu))
     |> Enum.sort_by(&{&1.order, &1.path})
   end
 
@@ -326,8 +321,7 @@ defmodule AgentJido.Pages do
 
     :docs
     |> pages_by_category()
-    |> Enum.filter(&docs_page_in_section?(&1, normalized_section))
-    |> Enum.filter(& &1.in_menu)
+    |> Enum.filter(&(docs_page_in_section?(&1, normalized_section) and &1.in_menu))
     |> Enum.sort_by(fn page ->
       # Section root pages always sort first (0), regardless of their order value.
       # This decouples section-tab ordering (controlled by order) from sidebar position.

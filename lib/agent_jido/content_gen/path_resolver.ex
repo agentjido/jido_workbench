@@ -76,19 +76,17 @@ defmodule AgentJido.ContentGen.PathResolver do
   defp source_tree_path(path, cwd) do
     relative = Path.relative_to(path, cwd)
 
-    cond do
-      String.starts_with?(relative, "priv/pages/") ->
-        preferred_source_variant(relative)
+    if String.starts_with?(relative, "priv/pages/") do
+      preferred_source_variant(relative)
+    else
+      case String.split(relative, "/priv/pages/", parts: 2) do
+        [_prefix, page_suffix] when page_suffix != "" ->
+          Path.join("priv/pages", page_suffix)
+          |> preferred_source_variant()
 
-      true ->
-        case String.split(relative, "/priv/pages/", parts: 2) do
-          [_prefix, page_suffix] when page_suffix != "" ->
-            Path.join("priv/pages", page_suffix)
-            |> preferred_source_variant()
-
-          _other ->
-            nil
-        end
+        _other ->
+          nil
+      end
     end
   end
 

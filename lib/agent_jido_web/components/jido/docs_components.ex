@@ -292,30 +292,30 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
 
   defp livebook_notice(doc) do
     livebook_meta = Map.get(doc, :livebook, %{}) || %{}
-    parts = []
 
     parts =
-      case Map.get(livebook_meta, :elixir_version) do
-        v when is_binary(v) and v != "" -> ["Elixir #{v}" | parts]
-        _ -> parts
-      end
-
-    parts =
-      case Map.get(livebook_meta, :required_env_vars, []) do
-        vars when is_list(vars) and vars != [] ->
-          shown = Enum.take(vars, 2) |> Enum.join(", ")
-          extra = if length(vars) > 2, do: " +#{length(vars) - 2} more", else: ""
-          ["Env: #{shown}#{extra}" | parts]
-
-        _ ->
-          parts
-      end
+      []
+      |> maybe_add_elixir_notice(Map.get(livebook_meta, :elixir_version))
+      |> maybe_add_env_notice(Map.get(livebook_meta, :required_env_vars, []))
 
     case parts do
       [] -> nil
-      _ -> Enum.reverse(parts) |> Enum.join(" · ")
+      _ -> Enum.join(parts, " · ")
     end
   end
+
+  defp maybe_add_elixir_notice(parts, version) when is_binary(version) and version != "",
+    do: parts ++ ["Elixir #{version}"]
+
+  defp maybe_add_elixir_notice(parts, _version), do: parts
+
+  defp maybe_add_env_notice(parts, vars) when is_list(vars) and vars != [] do
+    shown = Enum.take(vars, 2) |> Enum.join(", ")
+    extra = if length(vars) > 2, do: " +#{length(vars) - 2} more", else: ""
+    parts ++ ["Env: #{shown}#{extra}"]
+  end
+
+  defp maybe_add_env_notice(parts, _vars), do: parts
 
   defp quick_links(selected_document) do
     doc = selected_document || %{}

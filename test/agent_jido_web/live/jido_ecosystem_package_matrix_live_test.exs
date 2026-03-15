@@ -18,8 +18,10 @@ defmodule AgentJidoWeb.JidoEcosystemPackageMatrixLiveTest do
 
     unstable_curated_id =
       Ecosystem.public_packages()
-      |> Enum.filter(&(&1.id in ~w(ash_jido jido_runic jido_memory jido_otel jido_studio jido_messaging jido_behaviortree)))
-      |> Enum.filter(&(&1.maturity in [:experimental, :planned]))
+      |> Enum.filter(
+        &(&1.id in ~w(ash_jido jido_runic jido_memory jido_otel jido_studio jido_messaging jido_behaviortree) and
+            &1.maturity in [:experimental, :planned])
+      )
       |> Enum.map(& &1.id)
       |> List.first()
 

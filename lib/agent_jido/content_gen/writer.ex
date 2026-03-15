@@ -38,12 +38,10 @@ defmodule AgentJido.ContentGen.Writer do
 
   @spec parse_existing(String.t(), String.t()) :: {:ok, map()} | {:error, String.t()}
   def parse_existing(path, raw) do
-    try do
-      {frontmatter, body} = LivebookParser.parse(path, raw)
-      {:ok, %{frontmatter: frontmatter, body: body, raw: raw}}
-    rescue
-      e -> {:error, "failed to parse existing frontmatter for #{path}: #{Exception.message(e)}"}
-    end
+    {frontmatter, body} = LivebookParser.parse(path, raw)
+    {:ok, %{frontmatter: frontmatter, body: body, raw: raw}}
+  rescue
+    e -> {:error, "failed to parse existing frontmatter for #{path}: #{Exception.message(e)}"}
   end
 
   @spec merge_frontmatter(map() | nil, map(), struct(), String.t()) :: map()
@@ -181,8 +179,7 @@ defmodule AgentJido.ContentGen.Writer do
   defp to_elixir_literal(value) when is_map(value) do
     pairs =
       value
-      |> Enum.map(fn {k, v} -> "#{to_elixir_literal(k)} => #{to_elixir_literal(v)}" end)
-      |> Enum.join(", ")
+      |> Enum.map_join(", ", fn {k, v} -> "#{to_elixir_literal(k)} => #{to_elixir_literal(v)}" end)
 
     "%{" <> pairs <> "}"
   end
@@ -192,8 +189,7 @@ defmodule AgentJido.ContentGen.Writer do
   defp normalize_text(text) do
     text
     |> String.split("\n")
-    |> Enum.map(&String.trim_trailing/1)
-    |> Enum.join("\n")
+    |> Enum.map_join("\n", &String.trim_trailing/1)
     |> String.trim()
   end
 

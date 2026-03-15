@@ -6,10 +6,20 @@ defmodule AgentJido.Demos.TaskExecution.Workflow do
   task transitions users can copy into their own projects.
   """
 
-  alias Jido.AI.Examples.Tools.TaskList.{AddTasks, CompleteTask, GetState, NextTask, StartTask}
+  alias Jido.AI.Examples.Tools.TaskList.{
+    AddTasks,
+    CompleteTask,
+    GetState,
+    NextTask,
+    StartTask
+  }
 
   defstruct tasks: [],
-            state: %{tasks: [], summary: %{total: 0, pending: 0, in_progress: 0, done: 0, blocked: 0}, all_complete: false},
+            state: %{
+              tasks: [],
+              summary: %{total: 0, pending: 0, in_progress: 0, done: 0, blocked: 0},
+              all_complete: false
+            },
             next: %{status: "no_tasks", message: "No tasks in the list. Add tasks first."},
             log: [],
             completion_count: 0

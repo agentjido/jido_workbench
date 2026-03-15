@@ -143,15 +143,13 @@ defmodule AgentJido.Pages.LivebookParser do
   end
 
   defp ensure_literal_map!(path, {:%{}, _meta, _pairs} = ast) do
-    try do
-      {map, _bindings} = Code.eval_quoted(ast)
-      map
-    rescue
-      e ->
-        reraise ArgumentError,
-                [message: "Failed to evaluate frontmatter in #{inspect(path)}: #{Exception.message(e)}"],
-                __STACKTRACE__
-    end
+    {map, _bindings} = Code.eval_quoted(ast)
+    map
+  rescue
+    e ->
+      reraise ArgumentError,
+              [message: "Failed to evaluate frontmatter in #{inspect(path)}: #{Exception.message(e)}"],
+              __STACKTRACE__
   end
 
   defp ensure_literal_map!(path, _other) do
@@ -197,40 +195,41 @@ defmodule AgentJido.Pages.LivebookParser do
       {:learning_outcomes, &is_list/1, "must be a list"}
     ]
 
-    Enum.each(validations, fn {key, validator, message} ->
-      if Map.has_key?(attrs, key) do
-        value = Map.get(attrs, key)
-
-        unless validator.(value) do
-          raise ArgumentError,
-                "Invalid frontmatter in #{inspect(path)}: #{key} #{message}, got: #{inspect(value)}"
-        end
-      end
-    end)
-
-    if Map.has_key?(attrs, :menu_label) do
-      unless is_binary(attrs.menu_label) do
-        raise ArgumentError,
-              "Invalid frontmatter in #{inspect(path)}: menu_label must be a string"
-      end
-    end
-
-    if Map.has_key?(attrs, :og_image) do
-      unless is_binary(attrs.og_image) do
-        raise ArgumentError,
-              "Invalid frontmatter in #{inspect(path)}: og_image must be a string"
-      end
-    end
-
-    if Map.has_key?(attrs, :legacy_paths) do
-      Enum.each(attrs.legacy_paths, fn legacy_path ->
-        unless is_binary(legacy_path) and String.starts_with?(legacy_path, "/") do
-          raise ArgumentError,
-                "Invalid frontmatter in #{inspect(path)}: legacy_paths entries must be strings starting with '/'"
-        end
-      end)
-    end
+    Enum.each(validations, &validate_attr_type(attrs, path, &1))
+    validate_optional_string(attrs, path, :menu_label)
+    validate_optional_string(attrs, path, :og_image)
+    validate_legacy_paths(attrs, path)
 
     attrs
+  end
+
+  defp validate_attr_type(attrs, path, {key, validator, message}) do
+    if Map.has_key?(attrs, key) do
+      value = Map.get(attrs, key)
+
+      unless validator.(value) do
+        raise ArgumentError,
+              "Invalid frontmatter in #{inspect(path)}: #{key} #{message}, got: #{inspect(value)}"
+      end
+    end
+  end
+
+  defp validate_optional_string(attrs, path, key) do
+    if Map.has_key?(attrs, key) and not is_binary(Map.fetch!(attrs, key)) do
+      raise ArgumentError, "Invalid frontmatter in #{inspect(path)}: #{key} must be a string"
+    end
+  end
+
+  defp validate_legacy_paths(attrs, path) do
+    if Map.has_key?(attrs, :legacy_paths) do
+      Enum.each(attrs.legacy_paths, &validate_legacy_path!(&1, path))
+    end
+  end
+
+  defp validate_legacy_path!(legacy_path, path) do
+    unless is_binary(legacy_path) and String.starts_with?(legacy_path, "/") do
+      raise ArgumentError,
+            "Invalid frontmatter in #{inspect(path)}: legacy_paths entries must be strings starting with '/'"
+    end
   end
 end

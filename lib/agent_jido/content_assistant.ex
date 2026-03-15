@@ -25,66 +25,65 @@ defmodule AgentJido.ContentAssistant do
   def respond(query, opts) when is_binary(query) and is_list(opts) do
     normalized_query = normalize_query(query, query_max_length(opts))
 
-    cond do
-      normalized_query == "" ->
-        {:ok,
-         build_response(normalized_query,
-           answer_markdown: "",
-           answer_mode: :no_results,
-           citations: [],
-           related_queries: [],
-           retrieval_status: :success,
-           llm_attempted?: false,
-           llm_enhanced?: false,
-           enhancement_blocked_reason: nil,
-           link_source: @default_link_source,
-           link_channel: link_channel(opts),
-           query_log_id: Keyword.get(opts, :query_log_id)
-         )}
-
-      true ->
-        do_respond(normalized_query, opts)
+    if normalized_query == "" do
+      {:ok,
+       build_response(normalized_query,
+         answer_markdown: "",
+         answer_mode: :no_results,
+         citations: [],
+         related_queries: [],
+         retrieval_status: :success,
+         llm_attempted?: false,
+         llm_enhanced?: false,
+         enhancement_blocked_reason: nil,
+         link_source: @default_link_source,
+         link_channel: link_channel(opts),
+         query_log_id: Keyword.get(opts, :query_log_id)
+       )}
+    else
+      do_respond(normalized_query, opts)
     end
   end
 
   def respond(_query, opts), do: respond("", opts)
 
   defp do_respond(query, opts) do
-    with {:ok, citations, retrieval_status} <- run_retrieval(query, opts) do
-      query_log_id = Keyword.get(opts, :query_log_id)
+    case run_retrieval(query, opts) do
+      {:ok, citations, retrieval_status} ->
+        query_log_id = Keyword.get(opts, :query_log_id)
 
-      if citations == [] do
-        {:ok,
-         build_response(query,
-           answer_markdown: "",
-           answer_mode: :no_results,
-           citations: [],
-           related_queries: related_queries(query, opts),
-           retrieval_status: retrieval_status,
-           llm_attempted?: false,
-           llm_enhanced?: false,
-           enhancement_blocked_reason: nil,
-           link_source: @default_link_source,
-           link_channel: link_channel(opts),
-           query_log_id: query_log_id
-         )}
-      else
-        {:ok,
-         build_response(query,
-           answer_markdown: deterministic_summary(query, citations),
-           answer_mode: :deterministic,
-           citations: citations,
-           related_queries: [],
-           retrieval_status: retrieval_status,
-           llm_attempted?: false,
-           llm_enhanced?: false,
-           enhancement_blocked_reason: nil,
-           link_source: @default_link_source,
-           link_channel: link_channel(opts),
-           query_log_id: query_log_id
-         )}
-      end
-    else
+        if citations == [] do
+          {:ok,
+           build_response(query,
+             answer_markdown: "",
+             answer_mode: :no_results,
+             citations: [],
+             related_queries: related_queries(query, opts),
+             retrieval_status: retrieval_status,
+             llm_attempted?: false,
+             llm_enhanced?: false,
+             enhancement_blocked_reason: nil,
+             link_source: @default_link_source,
+             link_channel: link_channel(opts),
+             query_log_id: query_log_id
+           )}
+        else
+          {:ok,
+           build_response(query,
+             answer_markdown: deterministic_summary(query, citations),
+             answer_mode: :deterministic,
+             citations: citations,
+             related_queries: [],
+             retrieval_status: retrieval_status,
+             llm_attempted?: false,
+             llm_enhanced?: false,
+             enhancement_blocked_reason: nil,
+             link_source: @default_link_source,
+             link_channel: link_channel(opts),
+             query_log_id: query_log_id
+           )}
+        end
+
       _error ->
         {:ok,
          build_response(query,
@@ -165,29 +164,33 @@ defmodule AgentJido.ContentAssistant do
   defp normalize_results(_results, _limit), do: []
 
   defp normalize_result(%Result{} = result) do
-    with url when is_binary(url) <- URL.normalize_href(result.url) do
-      %Result{
-        result
-        | url: url,
-          snippet: normalize_snippet(result.snippet)
-      }
-    else
-      _ -> nil
+    case URL.normalize_href(result.url) do
+      url when is_binary(url) ->
+        %Result{
+          result
+          | url: url,
+            snippet: normalize_snippet(result.snippet)
+        }
+
+      _ ->
+        nil
     end
   end
 
   defp normalize_result(%{title: title, snippet: snippet, url: url, source_type: source_type} = map)
        when is_binary(title) and is_binary(snippet) and is_binary(url) do
-    with normalized_url when is_binary(normalized_url) <- URL.normalize_href(url) do
-      %Result{
-        title: String.trim(title),
-        snippet: normalize_snippet(snippet),
-        url: normalized_url,
-        source_type: normalize_source_type(source_type),
-        score: Map.get(map, :score) || Map.get(map, "score")
-      }
-    else
-      _ -> nil
+    case URL.normalize_href(url) do
+      normalized_url when is_binary(normalized_url) ->
+        %Result{
+          title: String.trim(title),
+          snippet: normalize_snippet(snippet),
+          url: normalized_url,
+          source_type: normalize_source_type(source_type),
+          score: Map.get(map, :score) || Map.get(map, "score")
+        }
+
+      _ ->
+        nil
     end
   end
 
@@ -218,17 +221,7 @@ defmodule AgentJido.ContentAssistant do
     results
     |> Enum.reduce(%{}, fn
       %Result{url: url, score: score} = result, acc ->
-        case Map.get(acc, url) do
-          nil ->
-            Map.put(acc, url, result)
-
-          %Result{score: existing_score} = existing ->
-            if score_value(score) > score_value(existing_score) do
-              Map.put(acc, url, result)
-            else
-              Map.put(acc, url, existing)
-            end
-        end
+        Map.update(acc, url, result, &best_result(&1, result, score))
 
       _, acc ->
         acc
@@ -238,6 +231,10 @@ defmodule AgentJido.ContentAssistant do
   end
 
   defp dedupe_results(_results), do: []
+
+  defp best_result(%Result{score: existing_score} = existing, result, score) do
+    if score_value(score) > score_value(existing_score), do: result, else: existing
+  end
 
   defp score_value(score) when is_number(score), do: score * 1.0
   defp score_value(_score), do: 0.0

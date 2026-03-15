@@ -1,5 +1,13 @@
 defmodule AgentJido.CodeExamples do
+  @moduledoc """
+  Provides curated code examples used in marketing and onboarding surfaces.
+  """
+
   defmodule Example do
+    @moduledoc """
+    Lightweight struct describing a rendered code example and optional Livebook source.
+    """
+
     defstruct [:id, :title, :content, :livebook_url]
   end
 

@@ -33,15 +33,19 @@ defmodule AgentJido.ContentOps.Chat.RoomInventory do
     messaging = Keyword.get(opts, :messaging, Messaging)
 
     if runtime_available?(messaging) do
-      with {:ok, rooms} <- safe_messaging_call(fn -> messaging.list_rooms(limit: 500) end) do
-        {:ok,
-         rooms
-         |> Enum.map(&build_room(&1, messaging))
-         |> Enum.reject(&is_nil/1)
-         |> Enum.sort_by(& &1.room_id)}
-      else
-        {:error, :messaging_unavailable} -> {:ok, []}
-        {:error, reason} -> {:error, reason}
+      case safe_messaging_call(fn -> messaging.list_rooms(limit: 500) end) do
+        {:ok, rooms} ->
+          {:ok,
+           rooms
+           |> Enum.map(&build_room(&1, messaging))
+           |> Enum.reject(&is_nil/1)
+           |> Enum.sort_by(& &1.room_id)}
+
+        {:error, :messaging_unavailable} ->
+          {:ok, []}
+
+        {:error, reason} ->
+          {:error, reason}
       end
     else
       {:ok, []}

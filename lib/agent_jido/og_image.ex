@@ -61,30 +61,40 @@ defmodule AgentJido.OGImage do
         generator_fn.()
 
       _table ->
-        case :ets.lookup(@ets_table, cache_key) do
-          [{^cache_key, png_data, expires_at}] when expires_at > now ->
+        case cached_png(cache_key, now) do
+          {:ok, png_data} ->
             {:ok, png_data}
 
-          _ ->
-            case generator_fn.() do
-              {:ok, png_data} ->
-                expires_at = now + cache_ttl_ms()
-                :ets.insert(@ets_table, {cache_key, png_data, expires_at})
-                {:ok, png_data}
-
-              error ->
-                error
-            end
+          :miss ->
+            generate_and_cache_png(cache_key, now, generator_fn)
         end
+    end
+  end
+
+  defp cached_png(cache_key, now) do
+    case :ets.lookup(@ets_table, cache_key) do
+      [{^cache_key, png_data, expires_at}] when expires_at > now -> {:ok, png_data}
+      _other -> :miss
+    end
+  end
+
+  defp generate_and_cache_png(cache_key, now, generator_fn) do
+    case generator_fn.() do
+      {:ok, png_data} ->
+        expires_at = now + cache_ttl_ms()
+        :ets.insert(@ets_table, {cache_key, png_data, expires_at})
+        {:ok, png_data}
+
+      error ->
+        error
     end
   end
 
   defp render_descriptor(descriptor) do
     svg = Templates.render_svg(descriptor)
 
-    with {:ok, image} <- Image.from_svg(svg, width: @image_width, height: @image_height),
-         {:ok, png_data} <- Image.write(image, :memory, suffix: ".png") do
-      {:ok, png_data}
+    with {:ok, image} <- Image.from_svg(svg, width: @image_width, height: @image_height) do
+      Image.write(image, :memory, suffix: ".png")
     end
   end
 end

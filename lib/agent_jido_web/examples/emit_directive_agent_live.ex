@@ -167,26 +167,10 @@ defmodule AgentJidoWeb.Examples.EmitDirectiveAgentLive do
   def handle_event("process_payment", _params, socket) do
     order_id = socket.assigns.agent.state.last_order_id
 
-    cond do
-      order_id in [nil, ""] ->
-        {:noreply, assign(socket, :last_error, "Create an order first.")}
-
-      true ->
-        with {:ok, pid} <- fetch_server_pid(socket) do
-          case AgentServer.call(pid, Signal.new!("process_payment", %{order_id: order_id}, source: "/demo")) do
-            {:ok, agent} ->
-              {:noreply,
-               socket
-               |> assign(:agent, agent)
-               |> assign(:last_error, nil)
-               |> append_log("process_payment", order_id)}
-
-            {:error, reason} ->
-              {:noreply, assign(socket, :last_error, inspect(reason))}
-          end
-        else
-          {:error, reason} -> {:noreply, assign(socket, :last_error, inspect(reason))}
-        end
+    if order_id in [nil, ""] do
+      {:noreply, assign(socket, :last_error, "Create an order first.")}
+    else
+      process_payment(socket, order_id)
     end
   end
 
@@ -205,6 +189,20 @@ defmodule AgentJidoWeb.Examples.EmitDirectiveAgentLive do
         {:error, reason} ->
           {:noreply, assign(socket, :last_error, inspect(reason))}
       end
+    else
+      {:error, reason} ->
+        {:noreply, assign(socket, :last_error, inspect(reason))}
+    end
+  end
+
+  defp process_payment(socket, order_id) do
+    with {:ok, pid} <- fetch_server_pid(socket),
+         {:ok, agent} <- AgentServer.call(pid, Signal.new!("process_payment", %{order_id: order_id}, source: "/demo")) do
+      {:noreply,
+       socket
+       |> assign(:agent, agent)
+       |> assign(:last_error, nil)
+       |> append_log("process_payment", order_id)}
     else
       {:error, reason} ->
         {:noreply, assign(socket, :last_error, inspect(reason))}

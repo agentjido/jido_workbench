@@ -200,10 +200,7 @@ defmodule AgentJido.Examples.Taxonomy do
   end
 
   defp infer_demo_mode(tags, _category) do
-    cond do
-      has_any?(tags, ["simulated", "fake", "mocked"]) -> :simulated
-      true -> :real
-    end
+    if has_any?(tags, ["simulated", "fake", "mocked"]), do: :simulated, else: :real
   end
 
   defp has_any?(tags, candidates) do

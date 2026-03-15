@@ -19,6 +19,13 @@ defmodule AgentJido.Demos.ScheduleDirective.StartRetryAction do
     retry_signal = Signal.new!("retry.attempt", %{}, source: "/schedule")
     schedule = %Directive.Schedule{delay_ms: retry_delay_ms, message: retry_signal}
 
-    {:ok, %{status: :retrying, attempts: 0, max_attempts: max_attempts, retry_delay_ms: retry_delay_ms, last_event: "retry.started"}, schedule}
+    {:ok,
+     %{
+       status: :retrying,
+       attempts: 0,
+       max_attempts: max_attempts,
+       retry_delay_ms: retry_delay_ms,
+       last_event: "retry.started"
+     }, schedule}
   end
 end

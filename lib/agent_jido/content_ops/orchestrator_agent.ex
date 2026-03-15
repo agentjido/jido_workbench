@@ -218,7 +218,16 @@ defmodule AgentJido.ContentOps.OrchestratorAgent do
           (state[:total_runs] || 0) + 1
         end
 
-      %{agent | state: %{state | last_run_id: run_id, last_run_mode: mode, last_run_at: completed_at, total_runs: total_runs}}
+      %{
+        agent
+        | state: %{
+            state
+            | last_run_id: run_id,
+              last_run_mode: mode,
+              last_run_at: completed_at,
+              total_runs: total_runs
+          }
+      }
     else
       _other ->
         agent

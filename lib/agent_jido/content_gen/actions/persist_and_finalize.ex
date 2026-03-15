@@ -58,61 +58,29 @@ defmodule AgentJido.ContentGen.Actions.PersistAndFinalize do
   defp after_write(context) do
     verify_after_persist? = Map.get(context, :verify_after_persist?, false)
 
-    verification =
-      cond do
-        verify_after_persist? ->
-          run_verification(context)
+    verification = verification_for_persist(context, verify_after_persist?)
 
-        context.verify? ->
-          context.verification || Helpers.default_verification()
+    if verify_after_persist? and Helpers.verification_failed?(verification) do
+      verification_failure_context(context, verification)
+    else
+      case Helpers.maybe_cleanup_converted_source(context.target, verification) do
+        :ok ->
+          %{
+            context
+            | status: :written,
+              reason: "applied to target",
+              verification: verification
+          }
 
-        true ->
-          context.verification || Helpers.default_verification()
+        {:error, cleanup_reason} ->
+          %{
+            context
+            | status: :generation_failed,
+              reason: cleanup_reason,
+              halted?: true,
+              verification: verification
+          }
       end
-
-    cond do
-      verify_after_persist? and Helpers.verification_failed?(verification) ->
-        case Helpers.rollback_failed_conversion(context.target) do
-          :ok ->
-            %{
-              context
-              | status: :verification_failed,
-                reason: "verification checks failed",
-                halted?: true,
-                verification: verification
-            }
-
-          {:error, rollback_reason} ->
-            %{
-              context
-              | status: :generation_failed,
-                reason:
-                  "#{verification.command_output_excerpt || "verification failed"} " <>
-                    "(rollback failed: #{rollback_reason})",
-                halted?: true,
-                verification: verification
-            }
-        end
-
-      true ->
-        case Helpers.maybe_cleanup_converted_source(context.target, verification) do
-          :ok ->
-            %{
-              context
-              | status: :written,
-                reason: "applied to target",
-                verification: verification
-            }
-
-          {:error, cleanup_reason} ->
-            %{
-              context
-              | status: :generation_failed,
-                reason: cleanup_reason,
-                halted?: true,
-                verification: verification
-            }
-        end
     end
   end
 
@@ -141,32 +109,67 @@ defmodule AgentJido.ContentGen.Actions.PersistAndFinalize do
       context.entry_result ||
         Helpers.base_entry_result(context)
 
-    verification =
-      context.verification ||
-        base[:verification] ||
-        Helpers.default_verification()
-
     base
     |> Map.put(:status, context.status || base[:status] || :unknown)
     |> Map.put(:reason, context.reason || base[:reason])
-    |> Map.put(:verification, verification)
+    |> Map.put(:verification, finalized_verification(context, base))
     |> Map.put(:workflow_step_failures, context.step_failures || [])
-    |> maybe_put(:route, context.target && context.target.route)
-    |> maybe_put(:target_path, context.target && context.target.target_path)
-    |> maybe_put(:read_path, context.target && context.target.read_path)
-    |> maybe_put(:conversion_source_path, context.target && context.target.conversion_source_path)
-    |> maybe_put(:format, context.target && context.target.format)
-    |> maybe_put(:parse_mode, context.parse_mode)
-    |> maybe_put(:backend_meta, context.backend_meta)
-    |> maybe_put(:candidate_path, context.candidate_path)
-    |> maybe_put(:audit, context.audit)
-    |> maybe_put(:diff, context.diff)
-    |> maybe_put(:content_hash, context.candidate && Helpers.content_hash(context.candidate.raw))
-    |> maybe_put(:citations, context.candidate && context.candidate.citations)
-    |> maybe_put(:audit_notes, context.candidate && context.candidate.audit_notes)
-    |> maybe_put(:output_excerpt, context.output_excerpt)
+    |> maybe_put_optional_result_fields(context)
   end
 
   defp maybe_put(map, _key, nil), do: map
   defp maybe_put(map, key, value), do: Map.put(map, key, value)
+
+  defp verification_for_persist(context, true), do: run_verification(context)
+  defp verification_for_persist(context, false), do: context.verification || Helpers.default_verification()
+
+  defp verification_failure_context(context, verification) do
+    case Helpers.rollback_failed_conversion(context.target) do
+      :ok ->
+        %{
+          context
+          | status: :verification_failed,
+            reason: "verification checks failed",
+            halted?: true,
+            verification: verification
+        }
+
+      {:error, rollback_reason} ->
+        %{
+          context
+          | status: :generation_failed,
+            reason:
+              "#{verification.command_output_excerpt || "verification failed"} " <>
+                "(rollback failed: #{rollback_reason})",
+            halted?: true,
+            verification: verification
+        }
+    end
+  end
+
+  defp finalized_verification(context, base) do
+    context.verification ||
+      base[:verification] ||
+      Helpers.default_verification()
+  end
+
+  defp maybe_put_optional_result_fields(result, context) do
+    [
+      {:route, context.target && context.target.route},
+      {:target_path, context.target && context.target.target_path},
+      {:read_path, context.target && context.target.read_path},
+      {:conversion_source_path, context.target && context.target.conversion_source_path},
+      {:format, context.target && context.target.format},
+      {:parse_mode, context.parse_mode},
+      {:backend_meta, context.backend_meta},
+      {:candidate_path, context.candidate_path},
+      {:audit, context.audit},
+      {:diff, context.diff},
+      {:content_hash, context.candidate && Helpers.content_hash(context.candidate.raw)},
+      {:citations, context.candidate && context.candidate.citations},
+      {:audit_notes, context.candidate && context.candidate.audit_notes},
+      {:output_excerpt, context.output_excerpt}
+    ]
+    |> Enum.reduce(result, fn {key, value}, acc -> maybe_put(acc, key, value) end)
+  end
 end

@@ -49,12 +49,10 @@ defmodule AgentJido.ContentOps.Chat.Authorizer do
   defp normalize_channel(:discord), do: :discord
 
   defp normalize_channel(module) when is_atom(module) do
-    cond do
-      Code.ensure_loaded?(module) and function_exported?(module, :channel_type, 0) ->
-        normalize_channel(module.channel_type())
-
-      true ->
-        nil
+    if Code.ensure_loaded?(module) and function_exported?(module, :channel_type, 0) do
+      normalize_channel(module.channel_type())
+    else
+      nil
     end
   end
 

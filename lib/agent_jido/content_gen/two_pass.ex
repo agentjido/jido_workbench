@@ -42,34 +42,20 @@ defmodule AgentJido.ContentGen.TwoPass do
            writer_model
          ) do
       {:ok, %{object: raw_structure, meta: planner_meta, planner_model_used: planner_model_used}} ->
-        with {:ok, structure_plan} <- normalize_structure_plan(raw_structure) do
-          writer_prompt = PromptBuilder.build_writing_pass(entry, target, prompt_opts, structure_plan)
+        case normalize_structure_plan(raw_structure) do
+          {:ok, structure_plan} ->
+            writer_prompt = PromptBuilder.build_writing_pass(entry, target, prompt_opts, structure_plan)
 
-          writer_opts =
-            backend_opts
-            |> Keyword.put(:model, writer_model)
-            |> Keyword.put(:system_prompt, @writer_system_prompt)
-            |> with_generation_defaults(temperature: 0.2)
+            run_writer_pass(
+              backend_module,
+              writer_prompt,
+              backend_opts,
+              writer_model,
+              planner_model_used,
+              planner_meta,
+              structure_plan
+            )
 
-          case backend_module.generate(writer_prompt, writer_opts) do
-            {:ok, %{text: text, meta: writer_meta}} ->
-              meta =
-                writer_meta
-                |> Map.merge(%{
-                  backend: :req_llm,
-                  mode: :two_pass,
-                  planner_model: planner_model_used,
-                  writer_model: writer_model,
-                  planner_meta: planner_meta,
-                  structure_plan: structure_plan
-                })
-
-              {:ok, %{text: text, meta: meta}}
-
-            {:error, reason} ->
-              {:error, "writing pass failed: #{format_error(reason)}"}
-          end
-        else
           {:error, reason} ->
             run_single_pass_fallback(
               entry,
@@ -119,6 +105,41 @@ defmodule AgentJido.ContentGen.TwoPass do
 
       {:error, fallback_reason} ->
         {:error, "#{reason}; single-pass fallback failed: #{format_error(fallback_reason)}"}
+    end
+  end
+
+  defp run_writer_pass(
+         backend_module,
+         writer_prompt,
+         backend_opts,
+         writer_model,
+         planner_model_used,
+         planner_meta,
+         structure_plan
+       ) do
+    writer_opts =
+      backend_opts
+      |> Keyword.put(:model, writer_model)
+      |> Keyword.put(:system_prompt, @writer_system_prompt)
+      |> with_generation_defaults(temperature: 0.2)
+
+    case backend_module.generate(writer_prompt, writer_opts) do
+      {:ok, %{text: text, meta: writer_meta}} ->
+        meta =
+          writer_meta
+          |> Map.merge(%{
+            backend: :req_llm,
+            mode: :two_pass,
+            planner_model: planner_model_used,
+            writer_model: writer_model,
+            planner_meta: planner_meta,
+            structure_plan: structure_plan
+          })
+
+        {:ok, %{text: text, meta: meta}}
+
+      {:error, reason} ->
+        {:error, "writing pass failed: #{format_error(reason)}"}
     end
   end
 

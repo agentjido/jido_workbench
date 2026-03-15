@@ -15,11 +15,7 @@ defmodule AgentJidoWeb.AdminContentIngestionLiveTest do
         raise "targeted ingest must set reconcile_stale: false"
       end
 
-      total_sources =
-        case selected_sources do
-          [] -> 12
-          list -> length(list)
-        end
+      total_sources = if selected_sources == [], do: 12, else: length(selected_sources)
 
       %{
         mode: if(dry_run?, do: :dry_run, else: :apply),
