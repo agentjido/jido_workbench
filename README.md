@@ -57,6 +57,7 @@ The workbench now ships a read-only MCP docs server for the published documentat
 
 - `stdio` entrypoint: `mix mcp.docs`
 - public HTTP endpoint: `POST /mcp/docs`
+- local question helper: `mix run scripts/ask_mcp_docs.exs -- "How do plugins work?"`
 - v1 tools: `search_docs`, `get_doc`, `list_sections`
 - v1 scope: docs only
 
@@ -66,6 +67,14 @@ Notes:
 - Search uses the existing hybrid retrieval pipeline and falls back to lexical docs search when the Arcana backend fails.
 - `get_doc` returns markdown plus canonical metadata for docs routes.
 - Compile the project before launching `mix mcp.docs` from an MCP client so stdout stays reserved for JSON-RPC.
+
+You can also ask the HTTP endpoint questions from the repo with:
+
+```bash
+mix run scripts/ask_mcp_docs.exs -- "How do plugins work?"
+mix run scripts/ask_mcp_docs.exs -- --sections
+mix run scripts/ask_mcp_docs.exs -- --get /docs/learn/ai-chat-agent
+```
 
 If you need to refresh the underlying search index locally, run:
 
