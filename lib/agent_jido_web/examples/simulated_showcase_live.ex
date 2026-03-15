@@ -242,26 +242,6 @@ defmodule AgentJidoWeb.Examples.SimulatedShowcaseLive do
     }
   end
 
-  defp scenario_for("jido-ai-weather-multi-turn-context") do
-    %{
-      title: "Jido.AI Weather Multi-Turn Context",
-      steps: [
-        %{label: "Turn 1", detail: "Anchored forecast response to Seattle context"},
-        %{label: "Retry guard", detail: "Applied busy backoff policy before second turn"},
-        %{label: "Turn 2", detail: "Answered umbrella guidance while preserving city context"},
-        %{label: "Turn 3", detail: "Returned outdoor + indoor suggestions with city retained"}
-      ],
-      result: """
-      {
-        "model": "simulated:haiku",
-        "city_context_preserved": true,
-        "retry_count": 1,
-        "turns": 3
-      }
-      """
-    }
-  end
-
   defp scenario_for("jido-ai-weather-reasoning-strategy-suite") do
     %{
       title: "Jido.AI Weather Reasoning Strategy Suite",
