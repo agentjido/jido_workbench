@@ -242,25 +242,6 @@ defmodule AgentJidoWeb.Examples.SimulatedShowcaseLive do
     }
   end
 
-  defp scenario_for("jido-ai-weather-reasoning-strategy-suite") do
-    %{
-      title: "Jido.AI Weather Reasoning Strategy Suite",
-      steps: [
-        %{label: "Shared scenario", detail: "Applied one travel-weather prompt across eight strategies"},
-        %{label: "Collect outputs", detail: "Captured style and structure per strategy family"},
-        %{label: "Compare tradeoffs", detail: "Ranked concise vs exploratory vs synthesis-heavy outputs"},
-        %{label: "Recommendation", detail: "Selected best-fit strategy per task complexity class"}
-      ],
-      result: """
-      {
-        "model": "simulated:router",
-        "strategies": ["react","cod","aot","cot","tot","got","trm","adaptive"],
-        "comparison_ready": true
-      }
-      """
-    }
-  end
-
   defp scenario_for("jido-ai-operational-agents-pack") do
     %{
       title: "Jido.AI Operational Agents Pack",

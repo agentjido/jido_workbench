@@ -7,8 +7,7 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
   alias AgentJido.Examples
 
   @endpoint AgentJidoWeb.Endpoint
-  @new_simulated_showcase_examples [
-    {"jido-ai-weather-reasoning-strategy-suite", "Jido.AI Weather Reasoning Strategy Suite"},
+  @remaining_simulated_showcase_examples [
     {"jido-ai-operational-agents-pack", "Jido.AI Operational Agents Pack"}
   ]
 
@@ -939,9 +938,75 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
     end
   end
 
-  describe "new simulated showcase examples" do
+  describe "/examples/jido-ai-weather-reasoning-strategy-suite" do
+    test "renders explanation tab with explicit comparison framing", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/jido-ai-weather-reasoning-strategy-suite?tab=explanation")
+
+      assert html =~ "Jido.AI Weather Reasoning Strategy Suite"
+      assert html =~ "deterministic comparison lab"
+      assert html =~ "not one copy-pasteable weather agent implementation"
+      assert html =~ "The source tab shows the actual comparison harness"
+    end
+
+    test "renders source tab for the dedicated comparison harness", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/jido-ai-weather-reasoning-strategy-suite?tab=source")
+
+      assert html =~ "fixtures.ex"
+      assert html =~ "comparison_lab.ex"
+      assert html =~ "weather_reasoning_strategy_suite_live.ex"
+      refute html =~ "simulated_showcase_live.ex"
+    end
+
+    test "demo tab switches presets and strategy details without simulated framing", %{conn: conn} do
+      {:ok, view, html} = live(conn, "/examples/jido-ai-weather-reasoning-strategy-suite?tab=demo")
+
+      assert html =~ "Jido.AI Weather Reasoning Strategy Suite"
+      refute html =~ "Simulated demo"
+      assert html =~ "reference"
+      assert html =~ "Commuter Decision"
+      assert has_element?(view, "#weather-reasoning-recommended-strategy", "CoT")
+
+      demo_view = find_live_child(view, "demo-jido-ai-weather-reasoning-strategy-suite")
+
+      html =
+        demo_view
+        |> element("#weather-reasoning-strategy-suite-demo button[phx-value-preset='weekend-trip']")
+        |> render_click()
+
+      assert html =~ "Weekend Trip Planning"
+      assert html =~ "ToT"
+
+      html =
+        demo_view
+        |> element("#weather-reasoning-strategy-suite-demo button[phx-value-strategy='adaptive']")
+        |> render_click()
+
+      assert html =~ ~s(id="weather-reasoning-selected-strategy")
+      assert html =~ "Adaptive"
+      assert html =~ "route to ToT or GoT automatically"
+    end
+
+    test "example registry metadata resolves comparison source files", %{conn: _conn} do
+      example = Examples.get_example!("jido-ai-weather-reasoning-strategy-suite")
+
+      assert example.title == "Jido.AI Weather Reasoning Strategy Suite"
+      assert example.live_view_module == "AgentJidoWeb.Examples.WeatherReasoningStrategySuiteLive"
+      assert example.evidence_surface == :docs_reference
+      assert example.demo_mode == :real
+
+      assert example.source_files == [
+               "lib/agent_jido/demos/weather_reasoning_strategy_suite/fixtures.ex",
+               "lib/agent_jido/demos/weather_reasoning_strategy_suite/comparison_lab.ex",
+               "lib/agent_jido_web/examples/weather_reasoning_strategy_suite_live.ex"
+             ]
+
+      assert Enum.map(example.sources, & &1.path) == example.source_files
+    end
+  end
+
+  describe "remaining simulated showcase examples" do
     test "render explanation tabs", %{conn: conn} do
-      Enum.each(@new_simulated_showcase_examples, fn {slug, title} ->
+      Enum.each(@remaining_simulated_showcase_examples, fn {slug, title} ->
         {:ok, _view, html} = live(conn, "/examples/#{slug}?tab=explanation")
         assert html =~ title
         assert html =~ "simulated"
@@ -949,7 +1014,7 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
     end
 
     test "run deterministic interactive traces", %{conn: conn} do
-      Enum.each(@new_simulated_showcase_examples, fn {slug, title} ->
+      Enum.each(@remaining_simulated_showcase_examples, fn {slug, title} ->
         {:ok, view, html} = live(conn, "/examples/#{slug}?tab=demo")
         assert html =~ title
         assert html =~ "Simulated demo"

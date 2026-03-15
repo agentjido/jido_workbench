@@ -1,7 +1,7 @@
 %{
   title: "Jido.AI Weather Reasoning Strategy Suite",
-  description: "Side-by-side strategy showcase across ReAct, CoD, AoT, CoT, ToT, GoT, TRM, and Adaptive weather agents.",
-  tags: ["primary", "showcase", "simulated", "ai", "l2", "ai-tool-use", "weather", "reasoning", "jido_ai"],
+  description: "Deterministic comparison lab for choosing between ReAct, CoD, AoT, CoT, ToT, GoT, TRM, and Adaptive weather reasoning strategies.",
+  tags: ["primary", "showcase", "ai", "l2", "ai-tool-use", "weather", "reasoning", "jido_ai", "comparison", "reference"],
   category: :ai,
   emoji: "🧠",
   related_resources: [
@@ -20,32 +20,56 @@
     }
   ],
   source_files: [
-    "lib/agent_jido_web/examples/simulated_showcase_live.ex"
+    "lib/agent_jido/demos/weather_reasoning_strategy_suite/fixtures.ex",
+    "lib/agent_jido/demos/weather_reasoning_strategy_suite/comparison_lab.ex",
+    "lib/agent_jido_web/examples/weather_reasoning_strategy_suite_live.ex"
   ],
-  live_view_module: "AgentJidoWeb.Examples.SimulatedShowcaseLive",
+  live_view_module: "AgentJidoWeb.Examples.WeatherReasoningStrategySuiteLive",
   difficulty: :advanced,
   status: :live,
   scenario_cluster: :ai_tool_use,
   wave: :l2,
   journey_stage: :evaluation,
-  content_intent: :decision_brief,
+  content_intent: :reference,
   capability_theme: :ai_intelligence,
-  evidence_surface: :runnable_example,
-  demo_mode: :simulated,
+  evidence_surface: :docs_reference,
+  demo_mode: :real,
   sort_order: 25
 }
 ---
 
 ## What you'll learn
 
-- How one scenario differs across eight reasoning strategies
-- How to evaluate strategy tradeoffs for output shape, latency, and complexity
-- How to communicate strategy selection without live provider variance
+- How the same weather prompt shifts across eight reasoning strategies
+- How to choose between transparent, fast, exploratory, and self-review-heavy reasoning surfaces
+- How to frame this page as a strategy comparison reference instead of a single runnable example
+
+## What this page is
+
+This page is a deterministic comparison lab. It helps you decide which reasoning strategy to build around for a weather scenario, but it is not one copy-pasteable weather agent implementation.
+
+The interactive tab compares fixed scenario presets, recommended strategy fits, and deterministic reference snippets. The source tab shows the actual comparison harness that powers those cards.
 
 ## Strategy set
 
 ReAct, CoD, AoT, CoT, ToT, GoT, TRM, and Adaptive.
 
+## How to use the comparison
+
+Start with the preset that best matches your use case:
+
+- short single-answer decisions like commute calls
+- multi-option planning questions like trips and packing
+- higher-stakes operational calls where self-review matters
+
+Then use the comparison cards to decide whether you want:
+
+- a transparent single path
+- a quick draft
+- a branching planner
+- a reflected safety-first answer
+- or an adaptive router that chooses for you
+
 ## Demo note
 
-Comparisons on this page are deterministic fixtures for repeatable side-by-side evaluation.
+No live model or weather API call runs here. The page uses deterministic fixtures and a dedicated comparison harness so the framing matches the product surface.
