@@ -92,7 +92,7 @@ contentops_chat_bindings = [
 ]
 
 config :agent_jido, AgentJido.ContentOps.Chat,
-  enabled: config_env() == :dev,
+  enabled: false,
   bindings: contentops_chat_bindings,
   allowed_telegram_user_ids: ["645038810"],
   allowed_discord_user_ids: ["281856954903691264", "1235534042062131258"],
