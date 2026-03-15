@@ -150,6 +150,15 @@ defmodule AgentJido.PagesTest do
     test "returns nil when not found" do
       assert Pages.get_page_by_path("/nonexistent/path") == nil
     end
+
+    test "AI chat agent guide uses supported Jido.AI.Agent lifecycle hooks" do
+      source =
+        File.read!(Path.expand("priv/pages/docs/learn/ai-chat-agent.livemd", File.cwd!()))
+
+      refute source =~ "def init(_opts)"
+      assert source =~ "{:ai_react_start, params}"
+      assert source =~ "super(%{agent | state: updated_state}, {:ai_react_start, updated_params})"
+    end
   end
 
   describe "pages_by_category/1" do
