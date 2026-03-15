@@ -449,6 +449,7 @@ defmodule AgentJidoWeb.PageLive do
     "concepts" => "hero-light-bulb",
     "learn" => "hero-academic-cap",
     "guides" => "hero-wrench-screwdriver",
+    "contributors" => "hero-user-group",
     "reference" => "hero-book-open",
     "operations" => "hero-server-stack"
   }
@@ -458,6 +459,7 @@ defmodule AgentJidoWeb.PageLive do
     "concepts" => "yellow",
     "learn" => "cyan",
     "guides" => "red",
+    "contributors" => "yellow",
     "reference" => "green",
     "operations" => "cyan"
   }

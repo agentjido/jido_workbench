@@ -186,6 +186,7 @@ defmodule AgentJidoWeb.PageLiveTest do
 
       assert html =~ "Jido Documentation"
       assert html =~ "Get Started"
+      assert html =~ ~s(href="/docs/contributors")
       assert html =~ ~s(href="https://jido.run/discord")
     end
 
@@ -290,7 +291,7 @@ defmodule AgentJidoWeb.PageLiveTest do
     end
 
     test "smoke routes for required docs IA stubs", %{conn: conn} do
-      sections = ~w(getting-started concepts guides reference operations)
+      sections = ~w(getting-started concepts guides contributors reference operations)
 
       Enum.each(sections, fn section ->
         path = "/docs/#{section}"
@@ -303,7 +304,7 @@ defmodule AgentJidoWeb.PageLiveTest do
 
       docs_pages = Pages.pages_by_category(:docs)
 
-      Enum.each(~w(concepts guides reference operations), fn section ->
+      Enum.each(~w(concepts guides contributors reference operations), fn section ->
         child =
           docs_pages
           |> Enum.filter(&String.starts_with?(&1.path, "/docs/#{section}/"))
