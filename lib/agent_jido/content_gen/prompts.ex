@@ -238,7 +238,7 @@ defmodule AgentJido.ContentGen.Prompts do
 
   defp render_source_snippets(snippets) do
     snippets
-    |> Enum.map(fn %{path: path, snippet: snippet} ->
+    |> Enum.map_join("\n", fn %{path: path, snippet: snippet} ->
       """
       File: #{path}
       ```text
@@ -246,7 +246,6 @@ defmodule AgentJido.ContentGen.Prompts do
       ```
       """
     end)
-    |> Enum.join("\n")
   end
 
   defp render_contract(contract) do
@@ -290,8 +289,7 @@ defmodule AgentJido.ContentGen.Prompts do
 
   defp render_list(items) do
     items
-    |> Enum.map(&"- #{&1}")
-    |> Enum.join("\n")
+    |> Enum.map_join("\n", &"- #{&1}")
   end
 
   defp normalize_brief_body(body) do

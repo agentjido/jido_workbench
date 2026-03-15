@@ -55,7 +55,7 @@ mix format
 mix test
 ```
 
-`mix credo` and `mix quality` are encouraged for larger changes.
+`mix credo --strict` and `mix quality` are encouraged for larger changes. The managed `pre_push` hook now enforces `mix credo --strict`, `mix test`, and `mix dialyzer` before a branch is pushed.
 
 ## Pull Request Guidelines
 

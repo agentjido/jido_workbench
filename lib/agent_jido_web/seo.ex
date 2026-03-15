@@ -1,4 +1,8 @@
 defmodule AgentJidoWeb.SEO do
+  @moduledoc """
+  Central SEO configuration for page metadata, Open Graph, and Twitter cards.
+  """
+
   use AgentJidoWeb, :verified_routes
 
   use SEO,

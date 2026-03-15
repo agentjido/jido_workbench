@@ -53,8 +53,7 @@ defmodule AgentJido.ContentGen.LivebookTestGenerator do
     suffix =
       route
       |> doc_route_segments()
-      |> Enum.map(&Macro.camelize/1)
-      |> Enum.join()
+      |> Enum.map_join("", &Macro.camelize/1)
 
     "AgentJido.Livebooks.Docs.#{suffix}LivebookTest"
   end

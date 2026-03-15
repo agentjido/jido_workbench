@@ -1,10 +1,10 @@
 defmodule AgentJidoWeb.UserAuthTest do
   use AgentJidoWeb.ConnCase, async: true
 
-  alias Phoenix.LiveView
   alias AgentJido.Accounts
   alias AgentJido.Accounts.Scope
   alias AgentJidoWeb.UserAuth
+  alias Phoenix.LiveView
 
   import AgentJido.AccountsFixtures
 

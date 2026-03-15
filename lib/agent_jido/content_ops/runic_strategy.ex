@@ -6,6 +6,7 @@ defmodule AgentJido.ContentOps.RunicStrategy do
 
   use Jido.Agent.Strategy
 
+  alias AgentJido.ContentOps.OrchestratorAgent
   alias Jido.Instruction
   alias Jido.Runic.Strategy, as: BaseStrategy
 
@@ -96,7 +97,7 @@ defmodule AgentJido.ContentOps.RunicStrategy do
     %Instruction{
       instruction
       | action: :runic_set_workflow,
-        params: %{workflow: AgentJido.ContentOps.OrchestratorAgent.build_workflow()}
+        params: %{workflow: OrchestratorAgent.build_workflow()}
     }
   end
 

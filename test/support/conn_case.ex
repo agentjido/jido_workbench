@@ -16,6 +16,8 @@ defmodule AgentJidoWeb.ConnCase do
   """
 
   use ExUnit.CaseTemplate
+  alias AgentJido.Accounts.Scope
+  alias Ecto.Adapters.SQL.Sandbox
 
   using do
     quote do
@@ -32,8 +34,8 @@ defmodule AgentJidoWeb.ConnCase do
   end
 
   setup tags do
-    pid = Ecto.Adapters.SQL.Sandbox.start_owner!(AgentJido.Repo, shared: not tags[:async])
-    on_exit(fn -> Ecto.Adapters.SQL.Sandbox.stop_owner(pid) end)
+    pid = Sandbox.start_owner!(AgentJido.Repo, shared: not tags[:async])
+    on_exit(fn -> Sandbox.stop_owner(pid) end)
 
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
@@ -48,7 +50,7 @@ defmodule AgentJidoWeb.ConnCase do
   """
   def register_and_log_in_user(%{conn: conn} = context) do
     user = AgentJido.AccountsFixtures.user_fixture()
-    scope = AgentJido.Accounts.Scope.for_user(user)
+    scope = Scope.for_user(user)
 
     opts =
       context

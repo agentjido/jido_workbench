@@ -80,29 +80,31 @@ defmodule AgentJido.ContentAssistant.Retrieval do
       |> maybe_put_graph_opt(opts)
 
     try do
-      with {:ok, rows} when is_list(rows) <- safe_search(search_fun, query, search_opts) do
-        docs_by_id = safe_document_lookup(document_lookup_fun, rows, repo)
+      case safe_search(search_fun, query, search_opts) do
+        {:ok, rows} when is_list(rows) ->
+          docs_by_id = safe_document_lookup(document_lookup_fun, rows, repo)
 
-        normalized_results =
-          rows
-          |> normalize_results(docs_by_id)
+          normalized_results =
+            rows
+            |> normalize_results(docs_by_id)
 
-        primary_results = filter_disabled_results(normalized_results, limit)
+          primary_results = filter_disabled_results(normalized_results, limit)
 
-        cond do
-          primary_results != [] ->
-            {:ok, primary_results, :success}
+          cond do
+            primary_results != [] ->
+              {:ok, primary_results, :success}
 
-          # Backend returned rows but all normalized results were retired routes
-          # (for example /training). In this case, try fallback before returning empty.
-          normalized_results != [] ->
-            fallback_response(fallback_fun, query, limit)
+            # Backend returned rows but all normalized results were retired routes
+            # (for example /training). In this case, try fallback before returning empty.
+            normalized_results != [] ->
+              fallback_response(fallback_fun, query, limit)
 
-          true ->
-            {:ok, [], :success}
-        end
-      else
-        _ -> fallback_response(fallback_fun, query, limit)
+            true ->
+              {:ok, [], :success}
+          end
+
+        _other ->
+          fallback_response(fallback_fun, query, limit)
       end
     rescue
       _ -> fallback_response(fallback_fun, query, limit)
@@ -551,24 +553,10 @@ defmodule AgentJido.ContentAssistant.Retrieval do
 
   defp canonical_route(collection, metadata, source_id) do
     case normalize_collection(collection) do
-      "site_docs" ->
-        normalize_internal_url(string_value(metadata, :path)) ||
-          docs_route_from_source_id(source_id)
-
-      "site_blog" ->
-        case string_value(metadata, :id) || source_id_suffix(source_id, "blog:") do
-          nil -> nil
-          id -> normalize_internal_url("/blog/" <> id)
-        end
-
-      "site_ecosystem" ->
-        case string_value(metadata, :id) || source_id_suffix(source_id, "ecosystem:") do
-          nil -> nil
-          id -> normalize_internal_url("/ecosystem/" <> id)
-        end
-
-      _ ->
-        nil
+      "site_docs" -> normalize_internal_url(string_value(metadata, :path)) || docs_route_from_source_id(source_id)
+      "site_blog" -> route_from_collection_id(metadata, source_id, "blog:", "/blog/")
+      "site_ecosystem" -> route_from_collection_id(metadata, source_id, "ecosystem:", "/ecosystem/")
+      _other -> nil
     end
   end
 
@@ -619,20 +607,29 @@ defmodule AgentJido.ContentAssistant.Retrieval do
         normalize_path(candidate)
 
       true ->
-        case URI.parse(candidate) do
-          %URI{scheme: scheme, host: host, path: path, query: query, fragment: fragment}
-          when scheme in ["http", "https"] and is_binary(path) ->
-            if internal_host?(host) do
-              normalize_path_with_parts(path, query, fragment)
-            end
-
-          _ ->
-            nil
-        end
+        normalize_internal_http_url(candidate)
     end
   end
 
   defp normalize_internal_url(_url), do: nil
+
+  defp route_from_collection_id(metadata, source_id, prefix, route_prefix) do
+    case string_value(metadata, :id) || source_id_suffix(source_id, prefix) do
+      nil -> nil
+      id -> normalize_internal_url(route_prefix <> id)
+    end
+  end
+
+  defp normalize_internal_http_url(candidate) do
+    case URI.parse(candidate) do
+      %URI{scheme: scheme, host: host, path: path, query: query, fragment: fragment}
+      when scheme in ["http", "https"] and is_binary(path) and is_binary(host) ->
+        if internal_host?(host), do: normalize_path_with_parts(path, query, fragment)
+
+      _other ->
+        nil
+    end
+  end
 
   defp normalize_path(path) when is_binary(path) do
     case URI.parse(path) do

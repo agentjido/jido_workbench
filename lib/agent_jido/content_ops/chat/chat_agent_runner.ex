@@ -61,11 +61,9 @@ defmodule AgentJido.ContentOps.Chat.ChatAgentRunner do
   end
 
   defp get_agent_pid_safe do
-    try do
-      {:ok, get_agent_pid()}
-    catch
-      :exit, _ -> {:error, :not_running}
-    end
+    {:ok, get_agent_pid()}
+  catch
+    :exit, _ -> {:error, :not_running}
   end
 
   defp extract_text(%{content: content}) when is_list(content) do

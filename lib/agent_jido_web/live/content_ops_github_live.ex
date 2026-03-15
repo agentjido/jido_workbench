@@ -287,9 +287,7 @@ defmodule AgentJidoWeb.ContentOpsGithubLive do
   end
 
   def handle_event("merge_pr", %{"number" => number_str, "title" => title}, socket) do
-    if not socket.assigns.github_mutations_enabled do
-      {:noreply, put_flash(socket, :error, "GitHub mutations are disabled for this environment.")}
-    else
+    if socket.assigns.github_mutations_enabled do
       number = String.to_integer(number_str)
       token = socket.assigns.token
       owner = socket.assigns.owner
@@ -307,13 +305,13 @@ defmodule AgentJidoWeb.ContentOpsGithubLive do
         |> put_flash(:info, "Merging PR ##{number}…")
 
       {:noreply, socket}
+    else
+      {:noreply, put_flash(socket, :error, "GitHub mutations are disabled for this environment.")}
     end
   end
 
   def handle_event("solve_issue", %{"number" => number_str, "title" => title}, socket) do
-    if not socket.assigns.github_mutations_enabled do
-      {:noreply, put_flash(socket, :error, "GitHub mutations are disabled for this environment.")}
-    else
+    if socket.assigns.github_mutations_enabled do
       timeout = config(:contentops_timeout_ms)
 
       task =
@@ -327,6 +325,8 @@ defmodule AgentJidoWeb.ContentOpsGithubLive do
         |> put_flash(:info, "🤖 ContentOps triggered for issue ##{number_str}: #{title}")
 
       {:noreply, socket}
+    else
+      {:noreply, put_flash(socket, :error, "GitHub mutations are disabled for this environment.")}
     end
   end
 
@@ -382,51 +382,10 @@ defmodule AgentJidoWeb.ContentOpsGithubLive do
     case socket.assigns.merge_task_ref do
       {^ref, number, title} ->
         Process.demonitor(ref, [:flush])
-        socket = assign(socket, :merge_task_ref, nil)
-
-        socket =
-          case result do
-            {200, %{"merged" => true}, _} ->
-              invalidate_cache()
-
-              socket
-              |> put_flash(:info, "✓ PR ##{number} (#{title}) merged successfully!")
-              |> assign(:loading, true)
-              |> fetch_data()
-
-            {status, body, _} ->
-              put_flash(
-                socket,
-                :error,
-                "Failed to merge PR ##{number}: HTTP #{status} — #{inspect(body)}"
-              )
-
-            error ->
-              put_flash(socket, :error, "Failed to merge PR ##{number}: #{inspect(error)}")
-          end
-
-        {:noreply, socket}
+        {:noreply, handle_merge_result(assign(socket, :merge_task_ref, nil), result, number, title)}
 
       _ ->
-        case socket.assigns.solve_task_ref do
-          {^ref, number, _title} ->
-            Process.demonitor(ref, [:flush])
-            socket = assign(socket, :solve_task_ref, nil)
-
-            socket =
-              case result do
-                %{status: :completed} ->
-                  put_flash(socket, :info, "✓ ContentOps completed for issue ##{number}!")
-
-                _ ->
-                  put_flash(socket, :info, "ContentOps run finished for issue ##{number}.")
-              end
-
-            {:noreply, socket}
-
-          _ ->
-            {:noreply, socket}
-        end
+        {:noreply, handle_solve_result(socket, ref, result)}
     end
   end
 
@@ -480,6 +439,43 @@ defmodule AgentJidoWeb.ContentOpsGithubLive do
   def handle_info(_msg, socket), do: {:noreply, socket}
 
   # ── Private helpers ────────────────────────────────────────────────
+
+  defp handle_merge_result(socket, {200, %{"merged" => true}, _}, number, title) do
+    invalidate_cache()
+
+    socket
+    |> put_flash(:info, "✓ PR ##{number} (#{title}) merged successfully!")
+    |> assign(:loading, true)
+    |> fetch_data()
+  end
+
+  defp handle_merge_result(socket, {status, body, _}, number, _title) do
+    put_flash(socket, :error, "Failed to merge PR ##{number}: HTTP #{status} — #{inspect(body)}")
+  end
+
+  defp handle_merge_result(socket, error, number, _title) do
+    put_flash(socket, :error, "Failed to merge PR ##{number}: #{inspect(error)}")
+  end
+
+  defp handle_solve_result(socket, ref, result) do
+    case socket.assigns.solve_task_ref do
+      {^ref, number, _title} ->
+        Process.demonitor(ref, [:flush])
+        socket = assign(socket, :solve_task_ref, nil)
+        solve_flash(socket, result, number)
+
+      _other ->
+        socket
+    end
+  end
+
+  defp solve_flash(socket, %{status: :completed}, number) do
+    put_flash(socket, :info, "✓ ContentOps completed for issue ##{number}!")
+  end
+
+  defp solve_flash(socket, _result, number) do
+    put_flash(socket, :info, "ContentOps run finished for issue ##{number}.")
+  end
 
   defp fetch_data(socket) do
     token = socket.assigns.token

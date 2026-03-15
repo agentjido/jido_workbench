@@ -7,6 +7,7 @@ defmodule AgentJido.ContentOps.Chat.Bridge do
 
   require Logger
 
+  alias Jido.Signal.Bus
   alias JidoMessaging.Supervisor, as: MessagingSupervisor
 
   @type state :: %{
@@ -41,7 +42,7 @@ defmodule AgentJido.ContentOps.Chat.Bridge do
   def handle_info(:subscribe, state) do
     bus_name = MessagingSupervisor.signal_bus_name(state.instance_module)
 
-    case Jido.Signal.Bus.subscribe(bus_name, "jido.messaging.room.message_added") do
+    case Bus.subscribe(bus_name, "jido.messaging.room.message_added") do
       {:ok, _id} ->
         {:noreply, %{state | subscribed: true}}
 
@@ -67,11 +68,7 @@ defmodule AgentJido.ContentOps.Chat.Bridge do
       text = format_message(message)
 
       unless text == "" do
-        Enum.each(bindings, fn binding ->
-          if should_forward?(binding, origin_channel) do
-            send_to_binding(binding, text, state)
-          end
-        end)
+        Enum.each(bindings, &maybe_forward_binding(&1, origin_channel, text, state))
       end
     end
 
@@ -82,6 +79,12 @@ defmodule AgentJido.ContentOps.Chat.Bridge do
 
   defp should_forward?(binding, origin_channel) do
     binding.enabled != false and normalize_channel(binding.channel) != origin_channel
+  end
+
+  defp maybe_forward_binding(binding, origin_channel, text, state) do
+    if should_forward?(binding, origin_channel) do
+      send_to_binding(binding, text, state)
+    end
   end
 
   defp send_to_binding(%{channel: :telegram, external_room_id: external_id}, text, state) do

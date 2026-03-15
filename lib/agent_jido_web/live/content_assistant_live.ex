@@ -573,69 +573,7 @@ defmodule AgentJidoWeb.ContentAssistantLive do
         restored_socket
 
       :miss ->
-        query_log_id = if origin == :user_submit, do: track_query_id(query, socket), else: nil
-        if origin == :user_submit, do: emit_query_issued(query)
-
-        with :ok <- ensure_assistant_task_supervisor(),
-             task <-
-               Task.Supervisor.async_nolink(@assistant_task_supervisor, fn ->
-                 run_assistant(socket.assigns.content_assistant_module, query, assistant_opts, query_log_id)
-               end) do
-          timeout_ref = Process.send_after(self(), {:assistant_timeout, task.ref}, assistant_timeout_ms())
-
-          assign(socket,
-            status: :loading,
-            response: nil,
-            assistant_task_ref: task.ref,
-            assistant_task_pid: task.pid,
-            assistant_timeout_ref: timeout_ref,
-            assistant_started_at: System.monotonic_time(),
-            assistant_query_log_id: query_log_id,
-            assistant_origin: origin,
-            assistant_cache_key: cache_key,
-            last_query_log_id: nil,
-            feedback_value: nil,
-            feedback_note: "",
-            feedback_submitted: false,
-            enhancement_task_ref: nil,
-            enhancement_task_pid: nil,
-            enhancement_timeout_ref: nil,
-            enhancement_status: :idle
-          )
-        else
-          {:error, reason} ->
-            Logger.warning("content assistant task supervisor unavailable; falling back to inline execution: #{inspect(reason)}")
-
-            socket_for_run =
-              assign(socket,
-                assistant_started_at: System.monotonic_time(),
-                assistant_query_log_id: query_log_id,
-                assistant_origin: origin,
-                assistant_cache_key: cache_key,
-                enhancement_task_ref: nil,
-                enhancement_task_pid: nil,
-                enhancement_timeout_ref: nil,
-                enhancement_status: :idle
-              )
-
-            response =
-              run_assistant(
-                socket.assigns.content_assistant_module,
-                query,
-                assistant_opts,
-                query_log_id
-              )
-
-            response = maybe_prepare_progressive_fast_response(socket_for_run, response, turnstile_token)
-
-            socket_for_run
-            |> maybe_cache_response(response)
-            |> maybe_finalize_query_log(response)
-            |> maybe_emit_query_outcome(response)
-            |> maybe_track_restore(response, false)
-            |> apply_response(response)
-            |> maybe_start_progressive_enhancement(response, turnstile_token)
-        end
+        start_assistant_run(socket, query, origin, assistant_opts, cache_key, turnstile_token)
     end
   end
 
@@ -876,21 +814,8 @@ defmodule AgentJidoWeb.ContentAssistantLive do
 
     if should_start_progressive_enhancement?(socket, response, enhancement_opts) do
       with :ok <- ensure_assistant_task_supervisor(),
-           task <-
-             Task.Supervisor.async_nolink(@assistant_task_supervisor, fn ->
-               enhancement_started_at_ms = monotonic_ms()
-               enhancement_response = run_assistant(socket.assigns.content_assistant_module, response.query, enhancement_opts, nil)
-               maybe_wait_for_progressive_dwell(enhancement_started_at_ms)
-               enhancement_response
-             end) do
-        timeout_ref = Process.send_after(self(), {:assistant_enhancement_timeout, task.ref}, assistant_timeout_ms())
-
-        assign(socket,
-          enhancement_task_ref: task.ref,
-          enhancement_task_pid: task.pid,
-          enhancement_timeout_ref: timeout_ref,
-          enhancement_status: :running
-        )
+           task <- start_enhancement_task(socket, response, enhancement_opts) do
+        assign_enhancement_task(socket, task)
       else
         _ -> clear_enhancement_state(socket, :failed)
       end
@@ -922,15 +847,123 @@ defmodule AgentJidoWeb.ContentAssistantLive do
   end
 
   defp should_start_progressive_enhancement?(socket, %Response{} = response, enhancement_opts) when is_list(enhancement_opts) do
+    citations = response.citations || []
+
     progressive_mode?() and
       status_from_response(response) == :answer and
       response.answer_mode != :llm and
-      length(response.citations || []) > 0 and
+      citations != [] and
       llm_enabled?(enhancement_opts) and
       not is_reference(socket.assigns.enhancement_task_ref)
   end
 
   defp should_start_progressive_enhancement?(_socket, _response, _enhancement_opts), do: false
+
+  defp maybe_track_query_id(:user_submit, query, socket), do: track_query_id(query, socket)
+  defp maybe_track_query_id(_origin, _query, _socket), do: nil
+
+  defp maybe_emit_query_issued(:user_submit, query), do: emit_query_issued(query)
+  defp maybe_emit_query_issued(_origin, _query), do: :ok
+
+  defp start_assistant_run(socket, query, origin, assistant_opts, cache_key, turnstile_token) do
+    query_log_id = maybe_track_query_id(origin, query, socket)
+    maybe_emit_query_issued(origin, query)
+
+    with :ok <- ensure_assistant_task_supervisor(),
+         task <-
+           Task.Supervisor.async_nolink(@assistant_task_supervisor, fn ->
+             run_assistant(socket.assigns.content_assistant_module, query, assistant_opts, query_log_id)
+           end) do
+      build_loading_socket(socket, task, query_log_id, origin, cache_key)
+    else
+      {:error, reason} ->
+        fallback_assistant_run(socket, reason, query, assistant_opts, query_log_id, origin, cache_key, turnstile_token)
+    end
+  end
+
+  defp build_loading_socket(socket, task, query_log_id, origin, cache_key) do
+    timeout_ref = Process.send_after(self(), {:assistant_timeout, task.ref}, assistant_timeout_ms())
+
+    assign(socket,
+      status: :loading,
+      response: nil,
+      assistant_task_ref: task.ref,
+      assistant_task_pid: task.pid,
+      assistant_timeout_ref: timeout_ref,
+      assistant_started_at: System.monotonic_time(),
+      assistant_query_log_id: query_log_id,
+      assistant_origin: origin,
+      assistant_cache_key: cache_key,
+      last_query_log_id: nil,
+      feedback_value: nil,
+      feedback_note: "",
+      feedback_submitted: false,
+      enhancement_task_ref: nil,
+      enhancement_task_pid: nil,
+      enhancement_timeout_ref: nil,
+      enhancement_status: :idle
+    )
+  end
+
+  defp fallback_assistant_run(socket, reason, query, assistant_opts, query_log_id, origin, cache_key, turnstile_token) do
+    Logger.warning("content assistant task supervisor unavailable; falling back to inline execution: #{inspect(reason)}")
+
+    socket_for_run =
+      assign(socket,
+        assistant_started_at: System.monotonic_time(),
+        assistant_query_log_id: query_log_id,
+        assistant_origin: origin,
+        assistant_cache_key: cache_key,
+        enhancement_task_ref: nil,
+        enhancement_task_pid: nil,
+        enhancement_timeout_ref: nil,
+        enhancement_status: :idle
+      )
+
+    response =
+      run_assistant(
+        socket.assigns.content_assistant_module,
+        query,
+        assistant_opts,
+        query_log_id
+      )
+      |> prepare_fast_response_for_fallback(socket_for_run, turnstile_token)
+
+    socket_for_run
+    |> maybe_cache_response(response)
+    |> maybe_finalize_query_log(response)
+    |> maybe_emit_query_outcome(response)
+    |> maybe_track_restore(response, false)
+    |> apply_response(response)
+    |> maybe_start_progressive_enhancement(response, turnstile_token)
+  end
+
+  defp prepare_fast_response_for_fallback(response, socket, turnstile_token) do
+    maybe_prepare_progressive_fast_response(socket, response, turnstile_token)
+  end
+
+  defp start_enhancement_task(socket, response, enhancement_opts) do
+    Task.Supervisor.async_nolink(@assistant_task_supervisor, fn ->
+      enhancement_started_at_ms = monotonic_ms()
+
+      enhancement_response =
+        run_assistant(socket.assigns.content_assistant_module, response.query, enhancement_opts, nil)
+
+      maybe_wait_for_progressive_dwell(enhancement_started_at_ms)
+      enhancement_response
+    end)
+  end
+
+  defp assign_enhancement_task(socket, task) do
+    timeout_ref = Process.send_after(self(), {:assistant_enhancement_timeout, task.ref}, assistant_timeout_ms())
+
+    assign(socket,
+      enhancement_task_ref: task.ref,
+      enhancement_task_pid: task.pid,
+      enhancement_timeout_ref: timeout_ref,
+      enhancement_status: :running
+    )
+  end
 
   defp llm_enabled?(opts) when is_list(opts) do
     case Keyword.fetch(opts, :llm) do

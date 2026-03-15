@@ -3,6 +3,7 @@ defmodule Mix.Tasks.Agentjido.SignalTest do
   @moduletag :flaky
 
   import ExUnit.CaptureIO
+  alias Mix.Tasks.Agentjido.Signal
 
   setup do
     original_runtime_flag = System.get_env("AGENTJIDO_RUNTIME_ENABLED")
@@ -26,7 +27,7 @@ defmodule Mix.Tasks.Agentjido.SignalTest do
   test "self-bootstraps runtime and executes a run" do
     output =
       capture_io(fn ->
-        Mix.Tasks.Agentjido.Signal.run(["run", "--mode", "hourly", "--timeout", "120"])
+        Signal.run(["run", "--mode", "hourly", "--timeout", "120"])
       end)
 
     assert output =~ "Run completed"

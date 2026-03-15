@@ -22,9 +22,8 @@ defmodule AgentJido.ContentOps.Chat.ContextRetriever do
     if query == "" do
       {:ok, []}
     else
-      with {:ok, snippets} <- search(query, repo, preferred_collection, limit),
-           {:ok, fallback} <- maybe_fallback(query, repo, snippets, limit) do
-        {:ok, fallback}
+      with {:ok, snippets} <- search(query, repo, preferred_collection, limit) do
+        maybe_fallback(query, repo, snippets, limit)
       end
     end
   end

@@ -1,8 +1,8 @@
 defmodule AgentJido.Demos.DemandTrackerAgentTest do
   use ExUnit.Case, async: true
 
-  alias AgentJido.Demos.DemandTrackerAgent
   alias AgentJido.Demos.Demand.{BoostAction, CleanupAction, CoolAction, DecayAction, HeartbeatAction}
+  alias AgentJido.Demos.DemandTrackerAgent
 
   describe "DemandTrackerAgent.new/0" do
     test "creates agent with default state" do

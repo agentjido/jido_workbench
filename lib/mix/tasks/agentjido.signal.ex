@@ -42,6 +42,8 @@ defmodule Mix.Tasks.Agentjido.Signal do
   """
   use Mix.Task
 
+  alias AgentJido.ContentOps.OrchestratorAgent
+
   @shortdoc "Send signals to running Jido agents"
 
   @switches [
@@ -120,15 +122,19 @@ defmodule Mix.Tasks.Agentjido.Signal do
             :ok
 
           {:error, {:already_started, _pid}} ->
-            if Process.whereis(registry_name) do
-              :ok
-            else
-              Mix.raise("AgentJido.Jido started without registry; restart runtime and retry.")
-            end
+            ensure_registry_started!(registry_name)
 
           {:error, reason} ->
             Mix.raise("Failed to start AgentJido.Jido: #{inspect(reason)}")
         end
+    end
+  end
+
+  defp ensure_registry_started!(registry_name) do
+    if Process.whereis(registry_name) do
+      :ok
+    else
+      Mix.raise("AgentJido.Jido started without registry; restart runtime and retry.")
     end
   end
 
@@ -158,7 +164,7 @@ defmodule Mix.Tasks.Agentjido.Signal do
     Mix.shell().info("🤖 ContentOps: starting #{mode} run...")
 
     result =
-      AgentJido.ContentOps.OrchestratorAgent.run(
+      OrchestratorAgent.run(
         mode: mode,
         timeout: timeout
       )
@@ -243,7 +249,7 @@ defmodule Mix.Tasks.Agentjido.Signal do
     Mix.shell().info("   Mode:        #{result.mode}")
     Mix.shell().info("   Productions: #{length(result.productions)}")
 
-    report = AgentJido.ContentOps.OrchestratorAgent.run_report(result)
+    report = OrchestratorAgent.run_report(result)
 
     if report do
       Mix.shell().info("   Changes:     #{report[:stats][:change_requests] || 0}")

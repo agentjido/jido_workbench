@@ -118,7 +118,13 @@ defmodule AgentJido.ContentOntology.Exporter do
       |> add_web_links(web_docs, web_by_route, web_doc_uri_by_id)
       |> add_web_relations(web_docs, web_by_id, plan_by_id, web_doc_uri_by_id, plan_uri_by_id)
       |> add_content_plan_relations(plan_entries, plan_by_id, web_by_route, plan_uri_by_id, web_doc_uri_by_id)
-      |> add_web_library_version_references(web_docs, web_by_id, web_doc_uri_by_id, web_doc_by_qname, source_uri_by_path)
+      |> add_web_library_version_references(
+        web_docs,
+        web_by_id,
+        web_doc_uri_by_id,
+        web_doc_by_qname,
+        source_uri_by_path
+      )
       |> add_content_plan_library_version_references(
         plan_entries,
         web_by_route,
@@ -126,7 +132,14 @@ defmodule AgentJido.ContentOntology.Exporter do
         web_doc_by_qname,
         plan_uri_by_id
       )
-      |> add_tags_for_resources(web_docs, plan_entries, tag_labels, web_doc_uri_by_id, plan_uri_by_id, source_uri_by_path)
+      |> add_tags_for_resources(
+        web_docs,
+        plan_entries,
+        tag_labels,
+        web_doc_uri_by_id,
+        plan_uri_by_id,
+        source_uri_by_path
+      )
       |> add_versions_for_web_docs(web_docs, source_uri_by_path, web_doc_uri_by_id, git_commit_hash, now)
 
     body =
@@ -216,7 +229,7 @@ defmodule AgentJido.ContentOntology.Exporter do
           related_docs: normalize_ref_list(Map.get(page, :related_docs, [])),
           related_posts: normalize_ref_list(Map.get(page, :related_posts, [])),
           ecosystem_packages: normalize_ref_list(map_value(validation, :ecosystem_packages, [])),
-          min_package_versions: normalize_package_version_requirements(map_value(validation, :min_package_versions, [])),
+          min_package_versions: validation_package_versions(validation),
           body_html: normalize_optional(page.body),
           content_hash: normalize_optional(map_value(freshness, :content_hash)),
           version_label: normalize_optional(map_value(freshness, :last_refreshed_at))
@@ -261,7 +274,7 @@ defmodule AgentJido.ContentOntology.Exporter do
           related_docs: normalize_ref_list(Map.get(post, :related_docs, [])),
           related_posts: normalize_ref_list(Map.get(post, :related_posts, [])),
           ecosystem_packages: normalize_ref_list(map_value(validation, :ecosystem_packages, [])),
-          min_package_versions: normalize_package_version_requirements(map_value(validation, :min_package_versions, [])),
+          min_package_versions: validation_package_versions(validation),
           body_html: normalize_optional(post.body),
           content_hash: normalize_optional(map_value(freshness, :content_hash)),
           version_label: Date.to_iso8601(post.date),
@@ -514,30 +527,12 @@ defmodule AgentJido.ContentOntology.Exporter do
       doc_qn = Map.fetch!(web_doc_uri_by_id, doc.id)
       source_qn = Map.get(source_uri_by_path, doc.source_path)
 
-      acc =
-        if source_qn do
-          acc
-          |> add_obj(doc_qn, "ajc:hasSourceDocument", source_qn)
-          |> add_obj(source_qn, "ajc:isSourceFor", doc_qn)
-        else
-          acc
-        end
+      acc = maybe_link_source_document(acc, doc_qn, source_qn)
 
       route = normalize_route(doc.route)
       entries = Map.get(plan_by_route, route, [])
 
-      Enum.reduce(entries, acc, fn entry, inner ->
-        plan_qn = Map.get(plan_uri_by_id, entry.id)
-
-        if plan_qn do
-          inner
-          |> maybe_promote_to_generated(doc_qn)
-          |> add_obj(doc_qn, "ajc:generatedFromPlanEntry", plan_qn)
-          |> add_obj(plan_qn, "ajc:isSourceFor", doc_qn)
-        else
-          inner
-        end
-      end)
+      Enum.reduce(entries, acc, &link_plan_entry(&2, &1, plan_uri_by_id, doc_qn))
     end)
   end
 
@@ -747,22 +742,7 @@ defmodule AgentJido.ContentOntology.Exporter do
         doc_qn = Map.fetch!(web_doc_uri_by_id, doc.id)
         source_qn = Map.get(source_uri_by_path, doc.source_path)
 
-        Enum.reduce(doc.tags, acc, fn tag, inner ->
-          tag_qn = tag_qname(tag)
-
-          inner =
-            inner
-            |> add_obj(doc_qn, "ajc:hasTag", tag_qn)
-            |> add_obj(tag_qn, "ajc:tagsResource", doc_qn)
-
-          if source_qn do
-            inner
-            |> add_obj(source_qn, "ajc:hasTag", tag_qn)
-            |> add_obj(tag_qn, "ajc:tagsResource", source_qn)
-          else
-            inner
-          end
-        end)
+        Enum.reduce(doc.tags, acc, &attach_doc_tag(&2, &1, doc_qn, source_qn))
       end)
 
     Enum.reduce(plan_entries, set, fn entry, acc ->
@@ -1010,22 +990,15 @@ defmodule AgentJido.ContentOntology.Exporter do
     normalized = normalize_identifier(ref)
     by_id = Map.get(web_doc_uri_by_id, "ecosystem:" <> normalized)
 
-    cond do
-      by_id ->
-        by_id
+    if by_id do
+      by_id
+    else
+      route_candidates =
+        [normalize_route(ref), "/ecosystem/#{normalized}", "/ecosystem/#{String.replace(normalized, "-", "_")}"]
+        |> Enum.reject(&is_nil/1)
+        |> Enum.uniq()
 
-      true ->
-        route_candidates =
-          [normalize_route(ref), "/ecosystem/#{normalized}", "/ecosystem/#{String.replace(normalized, "-", "_")}"]
-          |> Enum.reject(&is_nil/1)
-          |> Enum.uniq()
-
-        Enum.find_value(route_candidates, fn route ->
-          case Map.get(web_by_route, route) do
-            nil -> nil
-            doc -> Map.get(web_doc_uri_by_id, doc.id)
-          end
-        end)
+      Enum.find_value(route_candidates, &package_target_qname(&1, web_by_route, web_doc_uri_by_id))
     end
   end
 
@@ -1074,35 +1047,51 @@ defmodule AgentJido.ContentOntology.Exporter do
   defp collection_qname(_), do: "ajc:collection_priv_pages"
 
   defp concept_qname(prefix, value, _class_qname) do
-    base = "ajc:#{prefix}_#{safe_token(to_string(value))}"
+    "ajc:#{prefix}_#{safe_token(to_string(value))}"
+  end
 
-    case base do
-      "ajc:doc_type_guide" -> "ajc:doc_type_guide"
-      "ajc:doc_type_reference" -> "ajc:doc_type_reference"
-      "ajc:doc_type_tutorial" -> "ajc:doc_type_tutorial"
-      "ajc:doc_type_explanation" -> "ajc:doc_type_explanation"
-      "ajc:doc_type_cookbook" -> "ajc:doc_type_cookbook"
-      "ajc:audience_beginner" -> "ajc:audience_beginner"
-      "ajc:audience_intermediate" -> "ajc:audience_intermediate"
-      "ajc:audience_advanced" -> "ajc:audience_advanced"
-      "ajc:audience_general" -> "ajc:audience_general"
-      "ajc:difficulty_beginner" -> "ajc:difficulty_beginner"
-      "ajc:difficulty_intermediate" -> "ajc:difficulty_intermediate"
-      "ajc:difficulty_advanced" -> "ajc:difficulty_advanced"
-      "ajc:track_foundations" -> "ajc:track_foundations"
-      "ajc:track_coordination" -> "ajc:track_coordination"
-      "ajc:track_integration" -> "ajc:track_integration"
-      "ajc:track_operations" -> "ajc:track_operations"
-      "ajc:status_planned" -> "ajc:status_planned"
-      "ajc:status_outline" -> "ajc:status_outline"
-      "ajc:status_draft" -> "ajc:status_draft"
-      "ajc:status_review" -> "ajc:status_review"
-      "ajc:status_published" -> "ajc:status_published"
-      "ajc:priority_critical" -> "ajc:priority_critical"
-      "ajc:priority_high" -> "ajc:priority_high"
-      "ajc:priority_medium" -> "ajc:priority_medium"
-      "ajc:priority_low" -> "ajc:priority_low"
-      _ -> base
+  defp maybe_link_source_document(acc, _doc_qn, nil), do: acc
+
+  defp maybe_link_source_document(acc, doc_qn, source_qn) do
+    acc
+    |> add_obj(doc_qn, "ajc:hasSourceDocument", source_qn)
+    |> add_obj(source_qn, "ajc:isSourceFor", doc_qn)
+  end
+
+  defp link_plan_entry(inner, entry, plan_uri_by_id, doc_qn) do
+    case Map.get(plan_uri_by_id, entry.id) do
+      nil ->
+        inner
+
+      plan_qn ->
+        inner
+        |> maybe_promote_to_generated(doc_qn)
+        |> add_obj(doc_qn, "ajc:generatedFromPlanEntry", plan_qn)
+        |> add_obj(plan_qn, "ajc:isSourceFor", doc_qn)
+    end
+  end
+
+  defp attach_doc_tag(inner, tag, doc_qn, source_qn) do
+    tag_qn = tag_qname(tag)
+
+    inner
+    |> add_obj(doc_qn, "ajc:hasTag", tag_qn)
+    |> add_obj(tag_qn, "ajc:tagsResource", doc_qn)
+    |> maybe_attach_source_tag(source_qn, tag_qn)
+  end
+
+  defp maybe_attach_source_tag(inner, nil, _tag_qn), do: inner
+
+  defp maybe_attach_source_tag(inner, source_qn, tag_qn) do
+    inner
+    |> add_obj(source_qn, "ajc:hasTag", tag_qn)
+    |> add_obj(tag_qn, "ajc:tagsResource", source_qn)
+  end
+
+  defp package_target_qname(route, web_by_route, web_doc_uri_by_id) do
+    case Map.get(web_by_route, route) do
+      nil -> nil
+      doc -> Map.get(web_doc_uri_by_id, doc.id)
     end
   end
 
@@ -1113,10 +1102,7 @@ defmodule AgentJido.ContentOntology.Exporter do
   end
 
   defp source_class_for_path(path) do
-    cond do
-      String.ends_with?(path, ".livemd") -> :LivebookSourceDocument
-      true -> :MarkdownSourceDocument
-    end
+    if String.ends_with?(path, ".livemd"), do: :LivebookSourceDocument, else: :MarkdownSourceDocument
   end
 
   defp collection_from_path(path) when is_binary(path) do
@@ -1151,6 +1137,12 @@ defmodule AgentJido.ContentOntology.Exporter do
     |> Enum.uniq()
   end
 
+  defp validation_package_versions(validation) do
+    validation
+    |> map_value(:min_package_versions, [])
+    |> normalize_package_version_requirements()
+  end
+
   defp normalize_package_version_requirements(raw) do
     raw
     |> package_version_requirement_entries()
@@ -1178,18 +1170,8 @@ defmodule AgentJido.ContentOntology.Exporter do
   end
 
   defp normalize_package_version_requirement(entry) when is_map(entry) do
-    package_ref =
-      map_value(entry, :package) ||
-        map_value(entry, :package_id) ||
-        map_value(entry, :id) ||
-        map_value(entry, :name) ||
-        map_value(entry, :library)
-
-    constraint =
-      map_value(entry, :version) ||
-        map_value(entry, :constraint) ||
-        map_value(entry, :requirement) ||
-        map_value(entry, :min_version)
+    package_ref = requirement_package_ref(entry)
+    constraint = requirement_constraint(entry)
 
     cond do
       package_ref ->
@@ -1278,31 +1260,9 @@ defmodule AgentJido.ContentOntology.Exporter do
         nil
 
       true ->
-        route =
-          case URI.parse(trimmed) do
-            %URI{path: nil} -> trimmed
-            %URI{path: path} -> path
-          end
-
-        route =
-          route
-          |> String.replace(~r/[?#].*$/, "")
-          |> case do
-            "" ->
-              "/"
-
-            "/" = root ->
-              root
-
-            path ->
-              if String.starts_with?(path, "/") do
-                String.trim_trailing(path, "/")
-              else
-                "/" <> String.trim_trailing(path, "/")
-              end
-          end
-
-        if route == "", do: "/", else: route
+        trimmed
+        |> route_path_from_uri()
+        |> normalize_route_path()
     end
   end
 
@@ -1327,13 +1287,7 @@ defmodule AgentJido.ContentOntology.Exporter do
       {:ok, nodes} ->
         nodes
         |> Floki.find("a[href]")
-        |> Enum.map(fn {_tag, attrs, _children} ->
-          attrs
-          |> Enum.find_value(fn
-            {"href", href} -> href
-            _ -> nil
-          end)
-        end)
+        |> Enum.map(&extract_href/1)
         |> Enum.map(&normalize_internal_href/1)
         |> Enum.reject(&is_nil/1)
 
@@ -1343,6 +1297,48 @@ defmodule AgentJido.ContentOntology.Exporter do
   end
 
   defp extract_internal_routes(_), do: []
+
+  defp requirement_package_ref(entry) do
+    map_value(entry, :package) ||
+      map_value(entry, :package_id) ||
+      map_value(entry, :id) ||
+      map_value(entry, :name) ||
+      map_value(entry, :library)
+  end
+
+  defp requirement_constraint(entry) do
+    map_value(entry, :version) ||
+      map_value(entry, :constraint) ||
+      map_value(entry, :requirement) ||
+      map_value(entry, :min_version)
+  end
+
+  defp route_path_from_uri(trimmed) do
+    case URI.parse(trimmed) do
+      %URI{path: nil} -> trimmed
+      %URI{path: path} -> path
+    end
+  end
+
+  defp normalize_route_path(route) do
+    route
+    |> String.replace(~r/[?#].*$/, "")
+    |> case do
+      "" -> "/"
+      "/" = root -> root
+      path -> ensure_leading_slash(String.trim_trailing(path, "/"))
+    end
+  end
+
+  defp ensure_leading_slash("/" <> _ = path), do: path
+  defp ensure_leading_slash(path), do: "/" <> path
+
+  defp extract_href({_tag, attrs, _children}) do
+    Enum.find_value(attrs, fn
+      {"href", href} -> href
+      _ -> nil
+    end)
+  end
 
   defp normalize_internal_href(nil), do: nil
 
@@ -1402,10 +1398,7 @@ defmodule AgentJido.ContentOntology.Exporter do
 
     base = safe_token(text)
 
-    cond do
-      base == "" -> "id_#{short}"
-      true -> "#{base}_#{short}"
-    end
+    if base == "", do: "id_#{short}", else: "#{base}_#{short}"
   end
 
   defp safe_token(value) do
@@ -1418,8 +1411,7 @@ defmodule AgentJido.ContentOntology.Exporter do
 
   defp sha256_hex(parts) when is_list(parts) do
     parts
-    |> Enum.map(&to_string/1)
-    |> Enum.join("|")
+    |> Enum.map_join("|", &to_string/1)
     |> sha256_hex()
   end
 

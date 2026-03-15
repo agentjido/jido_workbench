@@ -132,30 +132,23 @@ defmodule AgentJidoWeb.Examples.SimulatedShowcaseLive do
     next_index = socket.assigns.step_index + 1
     next_step = Enum.at(scenario.steps, socket.assigns.step_index)
 
-    cond do
-      next_step == nil ->
-        {:noreply,
-         socket
-         |> assign(:running, false)
-         |> assign(:result, scenario.result)}
+    if next_step == nil do
+      {:noreply,
+       socket
+       |> assign(:running, false)
+       |> assign(:result, scenario.result)}
+    else
+      updated_socket =
+        socket
+        |> assign(:step_index, next_index)
+        |> assign(:timeline, socket.assigns.timeline ++ [next_step])
 
-      true ->
-        updated_socket =
-          socket
-          |> assign(:step_index, next_index)
-          |> assign(:timeline, socket.assigns.timeline ++ [next_step])
-
-        if next_index < length(scenario.steps) do
-          Process.send_after(self(), :advance_step, @step_delay_ms)
-          {:noreply, updated_socket}
-        else
-          Process.send_after(self(), :advance_step, @step_delay_ms)
-          {:noreply, updated_socket}
-        end
+      Process.send_after(self(), :advance_step, @step_delay_ms)
+      {:noreply, updated_socket}
     end
   end
 
-  defp progress_pct(step_index, steps) when is_list(steps) and length(steps) > 0 do
+  defp progress_pct(step_index, steps) when is_list(steps) and steps != [] do
     pct = step_index / length(steps) * 100
     pct |> min(100.0) |> Float.round(0) |> trunc()
   end

@@ -12,4 +12,8 @@ defmodule AgentJido.Demos.PluginBasicsAgent do
       status: [type: :atom, default: :ready]
     ],
     plugins: [{NotesPlugin, %{label: "demo"}}]
+
+  @doc false
+  @spec plugin_specs() :: nonempty_list(Jido.Plugin.Spec.t())
+  def plugin_specs, do: super()
 end

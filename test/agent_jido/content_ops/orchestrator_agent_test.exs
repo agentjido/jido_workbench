@@ -7,11 +7,11 @@ defmodule AgentJido.ContentOps.OrchestratorAgentTest do
 
   alias AgentJido.ContentOps.Actions.{
     BuildRunContext,
-    LoadPolicyBundle,
-    SelectWork,
     CollectChangeRequests,
     DeliverySink,
-    PublishRunReport
+    LoadPolicyBundle,
+    PublishRunReport,
+    SelectWork
   }
 
   @server_name AgentJido.ContentOps.OrchestratorServer

@@ -93,8 +93,8 @@ defmodule AgentJidoWeb do
       use Gettext, backend: AgentJidoWeb.Gettext
 
       # Shortcut for generating JS commands
-      alias Phoenix.LiveView.JS
       alias AgentJidoWeb.Layouts
+      alias Phoenix.LiveView.JS
 
       # Routes generation with the ~p sigil
       unquote(verified_routes())

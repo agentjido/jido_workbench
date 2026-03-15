@@ -40,14 +40,10 @@ defmodule AgentJido.Analytics.Composite do
   @spec track_event(term(), map() | keyword()) ::
           {:ok, AnalyticsEvent.t() | :excluded_admin} | {:error, term()}
   def track_event(current_scope, attrs) do
-    case Analytics.track_event(current_scope, attrs) do
-      {:ok, %AnalyticsEvent{} = event} = result ->
-        PostHog.capture_analytics_event_safe(current_scope, event)
-        result
-
-      other ->
-        other
-    end
+    normalized_attrs = normalize_attrs(attrs)
+    result = Analytics.track_event(current_scope, normalized_attrs)
+    maybe_capture_posthog(current_scope, normalized_attrs, result)
+    result
   end
 
   @spec track_event_safe(term(), map() | keyword()) :: :ok
@@ -73,4 +69,14 @@ defmodule AgentJido.Analytics.Composite do
   defp normalize_attrs(attrs) when is_map(attrs), do: attrs
   defp normalize_attrs(attrs) when is_list(attrs), do: Enum.into(attrs, %{})
   defp normalize_attrs(_attrs), do: %{}
+
+  defp maybe_capture_posthog(current_scope, attrs, result) do
+    event_name = Map.get(attrs, "event") || Map.get(attrs, :event)
+
+    if is_binary(event_name) and match?({:ok, _}, result) and not match?({:ok, :excluded_admin}, result) do
+      PostHog.capture_event_safe(current_scope, event_name, attrs)
+    else
+      :ok
+    end
+  end
 end

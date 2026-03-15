@@ -365,25 +365,7 @@ defmodule AgentJidoWeb.PageLive do
       {:ok, document} ->
         document
         |> Floki.find("h1, h2, h3")
-        |> Enum.map(fn header ->
-          {tag_name, attrs, _content} = header
-          level = String.to_integer(String.trim_leading(tag_name, "h"))
-
-          id =
-            Enum.find_value(attrs, fn
-              {"id", id} -> id
-              _ -> nil
-            end) || slugify(Floki.text(header))
-
-          title = Floki.text(header)
-
-          %{
-            id: id,
-            title: title,
-            level: level,
-            children: []
-          }
-        end)
+        |> Enum.map(&header_to_toc_item/1)
 
       {:error, _} ->
         []
@@ -661,23 +643,7 @@ defmodule AgentJidoWeb.PageLive do
     session_id = get_in(socket.assigns, [:analytics_identity, :session_id])
 
     if function_exported?(module, :latest_feedback_for_identity, 4) do
-      case module.latest_feedback_for_identity(visitor_id, session_id, path, surface: "docs_page") do
-        %{feedback_value: value, feedback_note: note} ->
-          case normalize_feedback_value(value) do
-            nil ->
-              empty_docs_feedback()
-
-            normalized_value ->
-              %{
-                submitted: true,
-                value: normalized_value,
-                note: normalize_feedback_note(note)
-              }
-          end
-
-        _other ->
-          empty_docs_feedback()
-      end
+      normalize_existing_feedback(module.latest_feedback_for_identity(visitor_id, session_id, path, surface: "docs_page"))
     else
       empty_docs_feedback()
     end
@@ -690,6 +656,38 @@ defmodule AgentJidoWeb.PageLive do
   defp empty_docs_feedback do
     %{submitted: false, value: nil, note: nil}
   end
+
+  defp header_to_toc_item({tag_name, attrs, _content} = header) do
+    %{
+      id: header_id(attrs, header),
+      title: Floki.text(header),
+      level: String.to_integer(String.trim_leading(tag_name, "h")),
+      children: []
+    }
+  end
+
+  defp header_id(attrs, header) do
+    Enum.find_value(attrs, fn
+      {"id", id} -> id
+      _ -> nil
+    end) || slugify(Floki.text(header))
+  end
+
+  defp normalize_existing_feedback(%{feedback_value: value, feedback_note: note}) do
+    case normalize_feedback_value(value) do
+      nil ->
+        empty_docs_feedback()
+
+      normalized_value ->
+        %{
+          submitted: true,
+          value: normalized_value,
+          note: normalize_feedback_note(note)
+        }
+    end
+  end
+
+  defp normalize_existing_feedback(_other), do: empty_docs_feedback()
 
   defp analytics_module do
     Application.get_env(:agent_jido, :analytics_module, Analytics)

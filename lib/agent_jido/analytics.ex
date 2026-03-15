@@ -197,27 +197,29 @@ defmodule AgentJido.Analytics do
   def latest_feedback_for_identity(visitor_id, session_id, path, opts \\ [])
 
   def latest_feedback_for_identity(visitor_id, session_id, path, opts) when is_binary(path) do
-    with {:ok, identity_filter} <- feedback_identity_filter(visitor_id, session_id) do
-      surface = opts |> Keyword.get(:surface) |> normalize_feedback_surface_filter()
+    case feedback_identity_filter(visitor_id, session_id) do
+      {:ok, identity_filter} ->
+        surface = opts |> Keyword.get(:surface) |> normalize_feedback_surface_filter()
 
-      query =
-        from(e in AnalyticsEvent,
-          where: e.event == "feedback_submitted" and e.path == ^path and ^identity_filter,
-          order_by: [desc: e.inserted_at, desc: e.id],
-          limit: 1,
-          select: %{feedback_value: e.feedback_value, feedback_note: e.feedback_note}
-        )
+        query =
+          from(e in AnalyticsEvent,
+            where: e.event == "feedback_submitted" and e.path == ^path and ^identity_filter,
+            order_by: [desc: e.inserted_at, desc: e.id],
+            limit: 1,
+            select: %{feedback_value: e.feedback_value, feedback_note: e.feedback_note}
+          )
 
-      query =
-        if is_binary(surface) do
-          from(e in query, where: fragment("?->>'surface' = ?", e.metadata, ^surface))
-        else
-          query
-        end
+        query =
+          if is_binary(surface) do
+            from(e in query, where: fragment("?->>'surface' = ?", e.metadata, ^surface))
+          else
+            query
+          end
 
-      Repo.one(query)
-    else
-      :error -> nil
+        Repo.one(query)
+
+      :error ->
+        nil
     end
   rescue
     _ -> nil
@@ -230,7 +232,11 @@ defmodule AgentJido.Analytics do
   @doc """
   Prunes raw analytics and query-log records older than the retention window.
   """
-  @spec prune_older_than(pos_integer()) :: %{cutoff: NaiveDateTime.t(), deleted_events: non_neg_integer(), deleted_query_logs: non_neg_integer()}
+  @spec prune_older_than(pos_integer()) :: %{
+          cutoff: NaiveDateTime.t(),
+          deleted_events: non_neg_integer(),
+          deleted_query_logs: non_neg_integer()
+        }
   def prune_older_than(days \\ @default_prune_days) when is_integer(days) and days > 0 do
     cutoff = since_naive(days)
 

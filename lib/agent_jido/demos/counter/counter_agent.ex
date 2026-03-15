@@ -13,7 +13,7 @@ defmodule AgentJido.Demos.CounterAgent do
       count: [type: :integer, default: 0]
     ]
 
-  alias AgentJido.Demos.Counter.{IncrementAction, DecrementAction, ResetAction}
+  alias AgentJido.Demos.Counter.{DecrementAction, IncrementAction, ResetAction}
 
   @impl true
   def signal_routes(_ctx) do

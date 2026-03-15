@@ -613,9 +613,11 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
   end
 
   defp should_start_progressive_enhancement?(%Response{} = response, enhancement_opts) when is_list(enhancement_opts) do
+    citations = response.citations || []
+
     progressive_mode?() and
       response.answer_mode != :llm and
-      length(response.citations || []) > 0 and
+      citations != [] and
       llm_enabled?(enhancement_opts)
   end
 

@@ -37,13 +37,13 @@ defmodule AgentJido.Community.Showcase do
   @doc """
   Returns all live showcase projects.
   """
-  @spec all_projects() :: [Project.t()]
+  @spec all_projects() :: nonempty_list(Project.t())
   def all_projects, do: @projects
 
   @doc """
   Returns showcase projects with optional draft inclusion.
   """
-  @spec all_projects(keyword()) :: [Project.t()]
+  @spec all_projects(keyword()) :: nonempty_list(Project.t())
   def all_projects(opts) when is_list(opts) do
     if include_drafts?(opts), do: @all_projects, else: @projects
   end

@@ -1,8 +1,8 @@
 defmodule AgentJido.ContentAssistant.RetrievalTest do
   use ExUnit.Case, async: true
 
-  alias AgentJido.ContentAssistant.Retrieval
   alias AgentJido.ContentAssistant.Result
+  alias AgentJido.ContentAssistant.Retrieval
 
   describe "query/2" do
     test "returns empty results for empty queries without calling backend" do

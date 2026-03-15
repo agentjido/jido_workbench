@@ -46,19 +46,23 @@ defmodule AgentJido.ContentOps.Chat.MessageTimeline do
       normalize_limit(Keyword.get(opts, :room_message_limit, @default_room_message_limit), @default_room_message_limit)
 
     if runtime_available?(messaging) do
-      with {:ok, rooms} <- safe_messaging_call(fn -> messaging.list_rooms(limit: rooms_limit) end) do
-        entries =
-          rooms
-          |> Enum.flat_map(&load_room_messages(&1, messaging, room_message_limit))
-          |> Enum.map(&normalize_message/1)
-          |> Enum.reject(&is_nil/1)
-          |> Enum.sort_by(&message_sort_key/1, :desc)
-          |> Enum.take(limit)
+      case safe_messaging_call(fn -> messaging.list_rooms(limit: rooms_limit) end) do
+        {:ok, rooms} ->
+          entries =
+            rooms
+            |> Enum.flat_map(&load_room_messages(&1, messaging, room_message_limit))
+            |> Enum.map(&normalize_message/1)
+            |> Enum.reject(&is_nil/1)
+            |> Enum.sort_by(&message_sort_key/1, :desc)
+            |> Enum.take(limit)
 
-        {:ok, entries}
-      else
-        {:error, :messaging_unavailable} -> {:ok, []}
-        {:error, reason} -> {:error, reason}
+          {:ok, entries}
+
+        {:error, :messaging_unavailable} ->
+          {:ok, []}
+
+        {:error, reason} ->
+          {:error, reason}
       end
     else
       {:ok, []}

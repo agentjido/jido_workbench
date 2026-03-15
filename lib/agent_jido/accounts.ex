@@ -6,7 +6,7 @@ defmodule AgentJido.Accounts do
   import Ecto.Query, warn: false
   alias AgentJido.Repo
 
-  alias AgentJido.Accounts.{User, UserToken, UserNotifier}
+  alias AgentJido.Accounts.{User, UserNotifier, UserToken}
 
   ## Database getters
 

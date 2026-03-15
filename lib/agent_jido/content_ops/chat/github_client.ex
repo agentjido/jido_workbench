@@ -151,12 +151,15 @@ defmodule AgentJido.ContentOps.Chat.GithubClient do
   defmodule DefaultAPI do
     @moduledoc false
 
+    alias Tentacat.Issues
+    alias Tentacat.Issues.Comments
+
     def issues_create(client, owner, repo, payload) do
-      Tentacat.Issues.create(client, owner, repo, payload)
+      Issues.create(client, owner, repo, payload)
     end
 
     def issue_comments_create(client, owner, repo, number, payload) do
-      Tentacat.Issues.Comments.create(client, owner, repo, number, payload)
+      Comments.create(client, owner, repo, number, payload)
     end
   end
 end

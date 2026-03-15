@@ -4,6 +4,7 @@ defmodule AgentJido.ContentOps.RunicStrategyTest do
   @moduletag :content_ops
 
   alias AgentJido.ContentOps.{OrchestratorAgent, RunicStrategy}
+  alias Jido.Agent.Strategy.State, as: StrategyState
 
   @server_name AgentJido.ContentOps.OrchestratorServer
   @jido_registry AgentJido.Jido.Registry
@@ -63,7 +64,7 @@ defmodule AgentJido.ContentOps.RunicStrategyTest do
   end
 
   defp run_productions(agent) do
-    strat = Jido.Agent.Strategy.State.get(agent)
+    strat = StrategyState.get(agent)
     Runic.Workflow.raw_productions(strat.workflow)
   end
 

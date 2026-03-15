@@ -4,6 +4,13 @@ defmodule AgentJido.ContentGen.Contract do
   """
 
   @docs_hub_tags [:hub_getting_started, :hub_concepts, :hub_guides, :hub_reference, :hub_operations]
+  @docs_profiles %{
+    :hub_reference => :docs_reference,
+    :hub_guides => :docs_guide,
+    :hub_concepts => :docs_concept,
+    :hub_operations => :docs_operations,
+    :hub_getting_started => :docs_getting_started
+  }
 
   @type profile ::
           :docs_concept
@@ -35,14 +42,15 @@ defmodule AgentJido.ContentGen.Contract do
   def profile(entry, target) do
     hub = docs_hub(entry)
 
-    cond do
-      entry.section == "docs" and hub == :hub_reference -> :docs_reference
-      entry.section == "docs" and hub == :hub_guides -> :docs_guide
-      entry.section == "docs" and hub == :hub_concepts -> :docs_concept
-      entry.section == "docs" and hub == :hub_operations -> :docs_operations
-      entry.section == "docs" and hub == :hub_getting_started -> :docs_getting_started
-      target.format == :livemd -> :livebook_general
-      true -> :general
+    case {entry.section, hub, target.format} do
+      {"docs", docs_hub, _format} when docs_hub in @docs_hub_tags ->
+        Map.fetch!(@docs_profiles, docs_hub)
+
+      {_section, _hub, :livemd} ->
+        :livebook_general
+
+      _other ->
+        :general
     end
   end
 
@@ -87,7 +95,12 @@ defmodule AgentJido.ContentGen.Contract do
           base.document_intent,
       min_words: override_integer(prompt_overrides, :min_words, base.min_words),
       max_words: override_integer(prompt_overrides, :max_words, base.max_words),
-      minimum_code_blocks: override_non_negative_integer(prompt_overrides, :minimum_code_blocks, base.minimum_code_blocks),
+      minimum_code_blocks:
+        override_non_negative_integer(
+          prompt_overrides,
+          :minimum_code_blocks,
+          base.minimum_code_blocks
+        ),
       minimum_fun_refs: override_non_negative_integer(prompt_overrides, :minimum_fun_refs, base.minimum_fun_refs),
       diagram_policy:
         override_string(prompt_overrides, :diagram_policy) ||
@@ -327,10 +340,7 @@ defmodule AgentJido.ContentGen.Contract do
   defp merge_list(base, override, opts) do
     replace? = Keyword.get(opts, :replace?, false)
 
-    cond do
-      replace? and override != [] -> Enum.uniq(override)
-      true -> Enum.uniq(base ++ override)
-    end
+    if replace? and override != [], do: Enum.uniq(override), else: Enum.uniq(base ++ override)
   end
 
   defp override_get(overrides, key, default \\ nil) do

@@ -25,8 +25,7 @@ defmodule AgentJidoWeb.Plugs.LegacyRouteRedirect do
         |> put_resp_header("vary", "Accept")
         |> put_resp_header(
           "link",
-          "</llms.txt>; rel=\"alternate\"; type=\"text/plain\", " <>
-            "<#{markdown_url}>; rel=\"alternate\"; type=\"text/markdown\""
+          ~s(</llms.txt>; rel="alternate"; type="text/plain", <#{markdown_url}>; rel="alternate"; type="text/markdown")
         )
         |> put_resp_header("location", destination)
         |> send_resp(301, "")

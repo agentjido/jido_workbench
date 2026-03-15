@@ -296,15 +296,15 @@ defmodule AgentJido.ContentIngest.Ingestor do
         value
 
       :error ->
-        Enum.find_value(metadata, fn
-          {atom_key, value} when is_atom(atom_key) ->
-            if Atom.to_string(atom_key) == key, do: value
-
-          _other ->
-            nil
-        end)
+        Enum.find_value(metadata, &string_key_value(&1, key))
     end
   end
+
+  defp string_key_value({atom_key, value}, key) when is_atom(atom_key) do
+    if Atom.to_string(atom_key) == key, do: value
+  end
+
+  defp string_key_value(_entry, _key), do: nil
 
   defp require_repo!(opts) do
     Keyword.get(opts, :repo) ||

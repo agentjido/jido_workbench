@@ -2,6 +2,7 @@ defmodule Mix.Tasks.Site.LinkAuditTest do
   use ExUnit.Case, async: false
 
   import ExUnit.CaptureIO
+  alias Mix.Tasks.Site.LinkAudit
 
   setup do
     Mix.Task.reenable("site.link_audit")
@@ -21,7 +22,7 @@ defmodule Mix.Tasks.Site.LinkAuditTest do
   test "runs and writes a report when configured for launch hidden routes", %{report_path: report_path} do
     output =
       capture_io(fn ->
-        Mix.Tasks.Site.LinkAudit.run([
+        LinkAudit.run([
           "--include-heex",
           "--allow-prefix",
           "/training",
@@ -42,7 +43,7 @@ defmodule Mix.Tasks.Site.LinkAuditTest do
   test "raises for invalid options" do
     assert_raise Mix.Error, ~r/Invalid options/, fn ->
       capture_io(fn ->
-        Mix.Tasks.Site.LinkAudit.run(["--does-not-exist"])
+        LinkAudit.run(["--does-not-exist"])
       end)
     end
   end

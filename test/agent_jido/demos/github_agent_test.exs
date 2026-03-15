@@ -8,6 +8,9 @@ defmodule AgentJido.Demos.GithubAgentTest do
   Run with: mix test test/agent_jido/demos/github_agent_test.exs --include github_agent
   """
   use ExUnit.Case, async: false
+  alias AgentJido.Demos.GithubAgent
+  alias Jido.Tools.Github.IssueComments.Create
+  alias Jido.Tools.Github.Issues.Find
 
   @moduletag :github_agent
   @owner "agentjido"
@@ -37,7 +40,7 @@ defmodule AgentJido.Demos.GithubAgentTest do
 
       # Find via tool
       {:ok, find_result} =
-        Jido.Tools.Github.Issues.Find.run(
+        Find.run(
           %{owner: @owner, repo: @repo, number: issue_num},
           context
         )
@@ -84,7 +87,7 @@ defmodule AgentJido.Demos.GithubAgentTest do
 
       # Create comment via tool
       {:ok, comment_result} =
-        Jido.Tools.Github.IssueComments.Create.run(
+        Create.run(
           %{
             owner: @owner,
             repo: @repo,
@@ -150,7 +153,7 @@ defmodule AgentJido.Demos.GithubAgentTest do
         )
 
       {:ok, result} =
-        AgentJido.Demos.GithubAgent.ask_sync(
+        GithubAgent.ask_sync(
           pid,
           "List all open issues on #{@owner}/#{@repo}. Just give me the count and the issue numbers/titles.",
           timeout: 90_000

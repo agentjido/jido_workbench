@@ -2,8 +2,8 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
   use AgentJidoWeb, :live_view
 
   alias AgentJido.Ecosystem
-  alias AgentJido.GithubStarsTracker
   alias AgentJido.Ecosystem.Layering
+  alias AgentJido.GithubStarsTracker
   alias AgentJido.LandingContent
 
   import AgentJidoWeb.Jido.MarketingLayouts

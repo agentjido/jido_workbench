@@ -32,15 +32,11 @@ defmodule AgentJido.ContentAssistant.URL do
         path = uri.path || "/"
         query = uri.query
         fragment = uri.fragment
+        path_with_parts = normalize_path_with_parts(path, query, fragment)
 
-        if internal_host?(normalized_host) do
-          normalize_path_with_parts(path, query, fragment)
-        else
-          normalize_path_with_parts(path, query, fragment)
-          |> case do
-            nil -> nil
-            path_with_parts -> "#{normalized_scheme}://#{normalized_host}#{path_with_parts}"
-          end
+        case internal_host?(normalized_host) do
+          true -> path_with_parts
+          false -> external_absolute_url(normalized_scheme, normalized_host, path_with_parts)
         end
 
       _ ->
@@ -77,6 +73,9 @@ defmodule AgentJido.ContentAssistant.URL do
   end
 
   defp normalize_path_with_parts(_path, _query, _fragment), do: nil
+
+  defp external_absolute_url(_scheme, _host, nil), do: nil
+  defp external_absolute_url(scheme, host, path_with_parts), do: "#{scheme}://#{host}#{path_with_parts}"
 
   defp internal_host?(host) when is_binary(host) do
     host in AgentJido.Site.internal_hosts()

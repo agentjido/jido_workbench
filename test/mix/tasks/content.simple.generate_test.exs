@@ -2,6 +2,7 @@ defmodule Mix.Tasks.Content.Simple.GenerateTest do
   use ExUnit.Case, async: false
 
   import ExUnit.CaptureIO
+  alias Mix.Tasks.Content.Simple.Generate
 
   defmodule StubOrchestrator do
     @spec run(map(), keyword()) :: {:ok, map()}
@@ -46,7 +47,7 @@ defmodule Mix.Tasks.Content.Simple.GenerateTest do
   test "requires --entry" do
     assert_raise Mix.Error, ~r/--entry is required/, fn ->
       capture_io(fn ->
-        Mix.Tasks.Content.Simple.Generate.run([])
+        Generate.run([])
       end)
     end
   end
@@ -54,7 +55,7 @@ defmodule Mix.Tasks.Content.Simple.GenerateTest do
   test "rejects invalid options" do
     assert_raise Mix.Error, ~r/Invalid options/, fn ->
       capture_io(fn ->
-        Mix.Tasks.Content.Simple.Generate.run(["--not-a-real-option"])
+        Generate.run(["--not-a-real-option"])
       end)
     end
   end
@@ -62,7 +63,7 @@ defmodule Mix.Tasks.Content.Simple.GenerateTest do
   test "defaults docs entries to livemd format" do
     output =
       capture_io(fn ->
-        Mix.Tasks.Content.Simple.Generate.run(["--entry", "docs/agents", "--dry-run"])
+        Generate.run(["--entry", "docs/agents", "--dry-run"])
       end)
 
     assert_received {:simple_generate_opts, opts}
@@ -73,7 +74,7 @@ defmodule Mix.Tasks.Content.Simple.GenerateTest do
 
   test "uses tag format for non-docs entries by default" do
     capture_io(fn ->
-      Mix.Tasks.Content.Simple.Generate.run(["--entry", "build/installation", "--dry-run"])
+      Generate.run(["--entry", "build/installation", "--dry-run"])
     end)
 
     assert_received {:simple_generate_opts, opts}

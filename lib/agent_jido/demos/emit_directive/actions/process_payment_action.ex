@@ -23,6 +23,8 @@ defmodule AgentJido.Demos.EmitDirective.ProcessPaymentAction do
         source: "/emit"
       )
 
-    {:ok, %{last_payment: %{order_id: order_id, method: payment_method, status: :success}}, %Directive.Emit{signal: signal}}
+    last_payment = %{order_id: order_id, method: payment_method, status: :success}
+
+    {:ok, %{last_payment: last_payment}, %Directive.Emit{signal: signal}}
   end
 end

@@ -111,6 +111,8 @@ defmodule AgentJido.Demos.GithubAgent do
     """,
     max_iterations: 15
 
+  alias Jido.AI.Request
+
   @default_timeout 60_000
 
   @impl true
@@ -159,7 +161,7 @@ defmodule AgentJido.Demos.GithubAgent do
 
     agent =
       if snap.done? do
-        Jido.AI.Request.complete_request(agent, request_id, snap.result, meta: thinking_meta(snap))
+        Request.complete_request(agent, request_id, snap.result, meta: thinking_meta(snap))
       else
         agent
       end
