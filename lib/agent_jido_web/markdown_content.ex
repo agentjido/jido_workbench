@@ -122,21 +122,10 @@ defmodule AgentJidoWeb.MarkdownContent do
 
   defp resolve_from_ecosystem("/ecosystem/" <> id_path) do
     if valid_single_segment?(id_path) do
-      id = String.trim(id_path)
-
-      case Ecosystem.get_public_package(id) do
-        nil ->
-          :no_match
-
-        package ->
-          case read_source_markdown(map_get(package, :path)) do
-            {:ok, markdown} ->
-              {:ok, markdown}
-
-            _other ->
-              {:fallback, map_get(package, :title) || "Ecosystem Package", package_summary(package)}
-          end
-      end
+      id_path
+      |> String.trim()
+      |> Ecosystem.get_public_package()
+      |> resolve_markdown_target("Ecosystem Package", &package_summary/1, &map_get(&1, :path), &map_get(&1, :title))
     else
       :no_match
     end
@@ -150,21 +139,10 @@ defmodule AgentJidoWeb.MarkdownContent do
 
   defp resolve_from_examples("/examples/" <> slug_path) do
     if valid_single_segment?(slug_path) do
-      slug = String.trim(slug_path)
-
-      case Examples.get_example(slug) do
-        nil ->
-          :no_match
-
-        example ->
-          case read_source_markdown(map_get(example, :source_path)) do
-            {:ok, markdown} ->
-              {:ok, markdown}
-
-            _other ->
-              {:fallback, map_get(example, :title) || "Example", example_summary(example)}
-          end
-      end
+      slug_path
+      |> String.trim()
+      |> Examples.get_example()
+      |> resolve_markdown_target("Example", &example_summary/1, &map_get(&1, :source_path), &map_get(&1, :title))
     else
       :no_match
     end
@@ -187,6 +165,18 @@ defmodule AgentJidoWeb.MarkdownContent do
   end
 
   defp resolve_from_showcase(_path), do: nil
+
+  defp resolve_markdown_target(nil, _default_title, _summary_fun, _path_fun, _title_fun), do: :no_match
+
+  defp resolve_markdown_target(item, default_title, summary_fun, path_fun, title_fun) do
+    case read_source_markdown(path_fun.(item)) do
+      {:ok, markdown} ->
+        {:ok, markdown}
+
+      _other ->
+        {:fallback, title_fun.(item) || default_title, summary_fun.(item)}
+    end
+  end
 
   defp resolve_misc("/") do
     {:fallback, "Agent Jido",

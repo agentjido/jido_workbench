@@ -329,30 +329,7 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLive do
     source_items = important_source_items(pkg)
 
     source_items
-    |> Enum.reduce({MapSet.new(), []}, fn %{id: id, reason: reason}, {seen, acc} ->
-      if MapSet.member?(seen, id) do
-        {seen, acc}
-      else
-        case Ecosystem.get_public_package(id) do
-          nil ->
-            {MapSet.put(seen, id), acc}
-
-          related ->
-            {label, href} = external_doc_link(related)
-
-            item = %{
-              id: related.id,
-              title: related.title,
-              path: "/ecosystem/#{related.id}",
-              reason: normalize_text(reason),
-              external_label: label,
-              external_href: href
-            }
-
-            {MapSet.put(seen, id), acc ++ [item]}
-        end
-      end
-    end)
+    |> Enum.reduce({MapSet.new(), []}, &reduce_related_package(&1, &2))
     |> elem(1)
   end
 
@@ -481,17 +458,15 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLive do
       label = node |> get_key(:label, id) |> normalize_text() |> default_if_empty(id)
       note = node |> get_key(:note, "") |> normalize_text()
 
-      cond do
-        label == "" ->
-          nil
-
-        true ->
-          %{
-            id: id,
-            label: label,
-            note: note,
-            path: module_node_path(id)
-          }
+      if label == "" do
+        nil
+      else
+        %{
+          id: id,
+          label: label,
+          note: note,
+          path: module_node_path(id)
+        }
       end
     end)
     |> Enum.reject(&is_nil/1)
@@ -616,17 +591,7 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLive do
       case URI.parse(trimmed) do
         %URI{scheme: scheme, host: host, path: path}
         when scheme in ["http", "https"] and host in ["github.com", "www.github.com"] ->
-          path
-          |> to_string()
-          |> String.trim("/")
-          |> String.split("/", trim: true)
-          |> case do
-            [owner, repo | _rest] when owner != "" and repo != "" ->
-              "https://github.com/#{owner}/#{String.trim_trailing(repo, ".git")}/issues"
-
-            _other ->
-              nil
-          end
+          github_issue_url(path)
 
         _other ->
           nil
@@ -637,4 +602,39 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLive do
   defp present?(nil), do: false
   defp present?(""), do: false
   defp present?(_), do: true
+
+  defp reduce_related_package(%{id: id, reason: reason}, {seen, acc}) do
+    if MapSet.member?(seen, id) do
+      {seen, acc}
+    else
+      case Ecosystem.get_public_package(id) do
+        nil ->
+          {MapSet.put(seen, id), acc}
+
+        related ->
+          {label, href} = external_doc_link(related)
+
+          item = %{
+            id: related.id,
+            title: related.title,
+            path: "/ecosystem/#{related.id}",
+            reason: normalize_text(reason),
+            external_label: label,
+            external_href: href
+          }
+
+          {MapSet.put(seen, id), acc ++ [item]}
+      end
+    end
+  end
+
+  defp github_issue_url(path) do
+    case path |> to_string() |> String.trim("/") |> String.split("/", trim: true) do
+      [owner, repo | _rest] when owner != "" and repo != "" ->
+        "https://github.com/#{owner}/#{String.trim_trailing(repo, ".git")}/issues"
+
+      _other ->
+        nil
+    end
+  end
 end

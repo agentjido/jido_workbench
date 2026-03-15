@@ -20,20 +20,7 @@ defmodule AgentJidoWeb.Plugs.LLMResponse do
       when method in ["GET", "HEAD"] and is_binary(request_path) do
     case markdown_paths(request_path) do
       {canonical_path, markdown_path} ->
-        if MarkdownContent.eligible_public_path?(canonical_path) do
-          canonical_url = MarkdownLinks.absolute_url(canonical_path, conn.query_string)
-          markdown_url = MarkdownLinks.absolute_url(markdown_path, conn.query_string)
-
-          cond do
-            markdown_route_request?(request_path) or markdown_request?(conn) ->
-              maybe_render_markdown(conn, canonical_path, canonical_url, markdown_url)
-
-            true ->
-              register_discovery_headers(conn, markdown_url)
-          end
-        else
-          conn
-        end
+        handle_markdown_match(conn, request_path, canonical_path, markdown_path)
 
       :no_match ->
         conn
@@ -41,6 +28,21 @@ defmodule AgentJidoWeb.Plugs.LLMResponse do
   end
 
   def call(conn, _opts), do: conn
+
+  defp handle_markdown_match(conn, request_path, canonical_path, markdown_path) do
+    if MarkdownContent.eligible_public_path?(canonical_path) do
+      canonical_url = MarkdownLinks.absolute_url(canonical_path, conn.query_string)
+      markdown_url = MarkdownLinks.absolute_url(markdown_path, conn.query_string)
+
+      if markdown_route_request?(request_path) or markdown_request?(conn) do
+        maybe_render_markdown(conn, canonical_path, canonical_url, markdown_url)
+      else
+        register_discovery_headers(conn, markdown_url)
+      end
+    else
+      conn
+    end
+  end
 
   defp maybe_render_markdown(conn, canonical_path, canonical_url, markdown_url) do
     case MarkdownContent.resolve(canonical_path, canonical_url) do

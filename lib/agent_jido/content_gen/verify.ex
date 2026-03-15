@@ -121,6 +121,11 @@ defmodule AgentJido.ContentGen.Verify do
         {"failed", nil, "livebook verification requires at least one ```elixir code cell"}
 
       true ->
+        livebook_test_result = fn
+          _output, 0, livebook_test_file -> {"passed", livebook_test_file, nil}
+          output, _exit_code, livebook_test_file -> {"failed", livebook_test_file, excerpt_output(output)}
+        end
+
         case test_generator.ensure_test_file(target.target_path, target.route) do
           {:error, reason} ->
             {"failed", nil, reason}
@@ -134,11 +139,7 @@ defmodule AgentJido.ContentGen.Verify do
                 stderr_to_stdout: true
               )
 
-            if exit_code == 0 do
-              {"passed", livebook_test_file, nil}
-            else
-              {"failed", livebook_test_file, excerpt_output(output)}
-            end
+            livebook_test_result.(output, exit_code, livebook_test_file)
         end
     end
   end

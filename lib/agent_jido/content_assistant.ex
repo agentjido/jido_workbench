@@ -25,25 +25,23 @@ defmodule AgentJido.ContentAssistant do
   def respond(query, opts) when is_binary(query) and is_list(opts) do
     normalized_query = normalize_query(query, query_max_length(opts))
 
-    cond do
-      normalized_query == "" ->
-        {:ok,
-         build_response(normalized_query,
-           answer_markdown: "",
-           answer_mode: :no_results,
-           citations: [],
-           related_queries: [],
-           retrieval_status: :success,
-           llm_attempted?: false,
-           llm_enhanced?: false,
-           enhancement_blocked_reason: nil,
-           link_source: @default_link_source,
-           link_channel: link_channel(opts),
-           query_log_id: Keyword.get(opts, :query_log_id)
-         )}
-
-      true ->
-        do_respond(normalized_query, opts)
+    if normalized_query == "" do
+      {:ok,
+       build_response(normalized_query,
+         answer_markdown: "",
+         answer_mode: :no_results,
+         citations: [],
+         related_queries: [],
+         retrieval_status: :success,
+         llm_attempted?: false,
+         llm_enhanced?: false,
+         enhancement_blocked_reason: nil,
+         link_source: @default_link_source,
+         link_channel: link_channel(opts),
+         query_log_id: Keyword.get(opts, :query_log_id)
+       )}
+    else
+      do_respond(normalized_query, opts)
     end
   end
 
@@ -223,17 +221,7 @@ defmodule AgentJido.ContentAssistant do
     results
     |> Enum.reduce(%{}, fn
       %Result{url: url, score: score} = result, acc ->
-        case Map.get(acc, url) do
-          nil ->
-            Map.put(acc, url, result)
-
-          %Result{score: existing_score} = existing ->
-            if score_value(score) > score_value(existing_score) do
-              Map.put(acc, url, result)
-            else
-              Map.put(acc, url, existing)
-            end
-        end
+        Map.update(acc, url, result, &best_result(&1, result, score))
 
       _, acc ->
         acc
@@ -243,6 +231,10 @@ defmodule AgentJido.ContentAssistant do
   end
 
   defp dedupe_results(_results), do: []
+
+  defp best_result(%Result{score: existing_score} = existing, result, score) do
+    if score_value(score) > score_value(existing_score), do: result, else: existing
+  end
 
   defp score_value(score) when is_number(score), do: score * 1.0
   defp score_value(_score), do: 0.0

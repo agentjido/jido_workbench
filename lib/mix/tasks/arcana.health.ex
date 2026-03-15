@@ -102,75 +102,61 @@ defmodule Mix.Tasks.Arcana.Health do
       |> maybe_add(not is_nil(dirty_error), "Could not count dirty communities: #{dirty_error}")
       |> maybe_add(not is_nil(summarized_error), "Could not count summarized communities: #{summarized_error}")
 
-    print_report(
-      embedder,
-      embedding_info,
-      db_dims,
-      graph_enabled,
-      graph_extractor,
-      graph_entity_extractor,
-      llm,
-      docs_count,
-      chunks_count,
-      entities_count,
-      rels_count,
-      communities_count,
-      dirty_count,
-      summarized_count,
-      warnings,
-      issues
-    )
+    print_report(%{
+      embedder: embedder,
+      embedding_info: embedding_info,
+      db_dims: db_dims,
+      graph_enabled: graph_enabled,
+      graph_extractor: graph_extractor,
+      graph_entity_extractor: graph_entity_extractor,
+      llm: llm,
+      docs_count: docs_count,
+      chunks_count: chunks_count,
+      entities_count: entities_count,
+      rels_count: rels_count,
+      communities_count: communities_count,
+      dirty_count: dirty_count,
+      summarized_count: summarized_count,
+      warnings: warnings,
+      issues: issues
+    })
 
     if issues != [] or (strict and warnings != []) do
       Mix.raise("Arcana health check failed (issues: #{length(issues)}, warnings: #{length(warnings)})")
     end
   end
 
-  defp print_report(
-         embedder,
-         embedding_info,
-         db_dims,
-         graph_enabled,
-         graph_extractor,
-         graph_entity_extractor,
-         llm,
-         docs_count,
-         chunks_count,
-         entities_count,
-         rels_count,
-         communities_count,
-         dirty_count,
-         summarized_count,
-         warnings,
-         issues
-       ) do
+  defp print_report(report) do
     shell = Mix.shell()
 
     shell.info("Arcana Health")
-    shell.info("embedder_config: #{inspect(embedder)}")
-    shell.info("embedder_info: #{inspect(embedding_info)}")
-    shell.info("db_embedding_dimensions: #{inspect(db_dims)}")
-    shell.info("graph_enabled: #{inspect(graph_enabled)}")
-    shell.info("graph_extractor: #{inspect(graph_extractor)}")
-    shell.info("graph_entity_extractor: #{inspect(graph_entity_extractor)}")
-    shell.info("llm_configured: #{inspect(not is_nil(llm))}")
-    shell.info("documents: #{format_count(docs_count)}")
-    shell.info("chunks: #{format_count(chunks_count)}")
-    shell.info("graph_entities: #{format_count(entities_count)}")
-    shell.info("graph_relationships: #{format_count(rels_count)}")
-    shell.info("graph_communities: #{format_count(communities_count)}")
-    shell.info("graph_communities_dirty: #{format_count(dirty_count)}")
-    shell.info("graph_communities_summarized: #{format_count(summarized_count)}")
-
-    Enum.each(warnings, &shell.error("WARNING: " <> &1))
-    Enum.each(issues, &shell.error("ISSUE: " <> &1))
-
-    if issues == [] and warnings == [] do
-      shell.info("status: healthy")
-    else
-      shell.info("status: unhealthy")
-    end
+    Enum.each(report_lines(report), &shell.info/1)
+    Enum.each(report.warnings, &shell.error("WARNING: " <> &1))
+    Enum.each(report.issues, &shell.error("ISSUE: " <> &1))
+    shell.info("status: #{report_status(report)}")
   end
+
+  defp report_lines(report) do
+    [
+      "embedder_config: #{inspect(report.embedder)}",
+      "embedder_info: #{inspect(report.embedding_info)}",
+      "db_embedding_dimensions: #{inspect(report.db_dims)}",
+      "graph_enabled: #{inspect(report.graph_enabled)}",
+      "graph_extractor: #{inspect(report.graph_extractor)}",
+      "graph_entity_extractor: #{inspect(report.graph_entity_extractor)}",
+      "llm_configured: #{inspect(not is_nil(report.llm))}",
+      "documents: #{format_count(report.docs_count)}",
+      "chunks: #{format_count(report.chunks_count)}",
+      "graph_entities: #{format_count(report.entities_count)}",
+      "graph_relationships: #{format_count(report.rels_count)}",
+      "graph_communities: #{format_count(report.communities_count)}",
+      "graph_communities_dirty: #{format_count(report.dirty_count)}",
+      "graph_communities_summarized: #{format_count(report.summarized_count)}"
+    ]
+  end
+
+  defp report_status(%{issues: [], warnings: []}), do: "healthy"
+  defp report_status(_report), do: "unhealthy"
 
   defp local_embedder?(embedder) do
     match?(:local, embedder) or

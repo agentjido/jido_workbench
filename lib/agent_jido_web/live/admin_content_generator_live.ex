@@ -1013,29 +1013,27 @@ defmodule AgentJidoWeb.AdminContentGeneratorLive do
       |> assign(@run_params_key, params)
       |> assign(@run_form_key, to_form(params, as: :generator))
 
-    cond do
-      socket.assigns[@running_key] ->
-        {:noreply, put_flash(socket, :error, "A content generation run is already in progress.")}
+    if socket.assigns[@running_key] do
+      {:noreply, put_flash(socket, :error, "A content generation run is already in progress.")}
+    else
+      with {:ok, run_opts} <- build_run_opts(params),
+           {:ok, socket} <- ensure_task_supervisor(socket),
+           {:ok, ref} <- start_content_run_task(socket, run_opts) do
+        command = build_mix_command(params)
+        run_context = start_run_context(run_opts, "run", command)
+        schedule_run_tick()
 
-      true ->
-        with {:ok, run_opts} <- build_run_opts(params),
-             {:ok, socket} <- ensure_task_supervisor(socket),
-             {:ok, ref} <- start_content_run_task(socket, run_opts) do
-          command = build_mix_command(params)
-          run_context = start_run_context(run_opts, "run", command)
-          schedule_run_tick()
-
-          {:noreply,
-           socket
-           |> assign(@running_key, true)
-           |> assign(@run_task_ref_key, ref)
-           |> assign(@active_command_key, command)
-           |> assign(@run_context_key, run_context)
-           |> put_flash(:info, "Content generation run started.")}
-        else
-          {:error, reason} ->
-            {:noreply, put_flash(socket, :error, reason)}
-        end
+        {:noreply,
+         socket
+         |> assign(@running_key, true)
+         |> assign(@run_task_ref_key, ref)
+         |> assign(@active_command_key, command)
+         |> assign(@run_context_key, run_context)
+         |> put_flash(:info, "Content generation run started.")}
+      else
+        {:error, reason} ->
+          {:noreply, put_flash(socket, :error, reason)}
+      end
     end
   end
 
@@ -1044,29 +1042,11 @@ defmodule AgentJidoWeb.AdminContentGeneratorLive do
     if ref == socket.assigns[@run_task_ref_key] do
       Process.demonitor(ref, [:flush])
 
-      {flash_type, message, run_id} =
-        case result do
-          {:ok, report} ->
-            if selected_count(report) == 0 do
-              {:error, "Content generation run completed with 0 selected entries. Check status/section filters for the selected entry.",
-               report.run_id}
-            else
-              {:info, "Content generation run completed.", report.run_id}
-            end
-
-          {:error, report} ->
-            {:error, blocking_failure_message(report), report.run_id}
-
-          other ->
-            {:error, "Unexpected run result: #{inspect(other)}", nil}
-        end
+      {flash_type, message, run_id} = result_flash(result)
 
       {:noreply,
        socket
-       |> assign(@running_key, false)
-       |> assign(@run_task_ref_key, nil)
-       |> assign(@active_command_key, nil)
-       |> assign(@run_context_key, nil)
+       |> reset_run_state()
        |> refresh_run_store()
        |> refresh_plan_rows()
        |> refresh_runs()
@@ -1083,10 +1063,7 @@ defmodule AgentJidoWeb.AdminContentGeneratorLive do
     if ref == socket.assigns[@run_task_ref_key] do
       {:noreply,
        socket
-       |> assign(@running_key, false)
-       |> assign(@run_task_ref_key, nil)
-       |> assign(@active_command_key, nil)
-       |> assign(@run_context_key, nil)
+       |> reset_run_state()
        |> refresh_run_store()
        |> refresh_plan_rows()
        |> refresh_runs()
@@ -1260,25 +1237,7 @@ defmodule AgentJidoWeb.AdminContentGeneratorLive do
     artifact_status = filters["artifact_status"] || "all"
     verify_status = filters["verify_status"] || "all"
 
-    Enum.filter(rows, fn row ->
-      matches_q? =
-        if q == "" do
-          true
-        else
-          [row.id, row.title, row.route]
-          |> Enum.map(&to_string/1)
-          |> Enum.join(" ")
-          |> String.downcase()
-          |> String.contains?(q)
-        end
-
-      matches_section? = section == "all" or row.section == section
-      matches_plan_status? = plan_status == "all" or Atom.to_string(row.plan_status) == plan_status
-      matches_artifact_status? = artifact_status == "all" or Atom.to_string(row.status.artifact_status) == artifact_status
-      matches_verify_status? = verify_status == "all" or Atom.to_string(row.status.verify_status) == verify_status
-
-      matches_q? and matches_section? and matches_plan_status? and matches_artifact_status? and matches_verify_status?
-    end)
+    Enum.filter(rows, &plan_row_matches?(&1, q, section, plan_status, artifact_status, verify_status))
   end
 
   defp filter_runs(runs, filters) do
@@ -1287,33 +1246,7 @@ defmodule AgentJidoWeb.AdminContentGeneratorLive do
     window_days = parse_window_days(filters["window"])
     now = DateTime.utc_now()
 
-    Enum.filter(runs, fn run ->
-      matches_q? =
-        if q == "" do
-          true
-        else
-          haystack =
-            run.run_id <> " " <> Enum.map_join(run.entries, " ", fn entry -> entry.id || "" end)
-
-          String.contains?(String.downcase(haystack), q)
-        end
-
-      matches_status? = status_filter == "all" or Atom.to_string(run.status) == status_filter
-
-      matches_window? =
-        case window_days do
-          :all ->
-            true
-
-          days when is_integer(days) ->
-            case run.generated_at do
-              %DateTime{} = generated_at -> DateTime.diff(now, generated_at, :day) <= days
-              _other -> false
-            end
-        end
-
-      matches_q? and matches_status? and matches_window?
-    end)
+    Enum.filter(runs, &run_matches_filters?(&1, q, status_filter, window_days, now))
   end
 
   defp parse_window_days(nil), do: :all
@@ -1411,22 +1344,97 @@ defmodule AgentJidoWeb.AdminContentGeneratorLive do
   end
 
   defp build_mix_command_from_options(options) do
-    params = %{
-      "entry" => options.entry || "",
-      "sections" => Enum.join(options.sections || [], ","),
-      "statuses" => Enum.join(options.statuses || [], ","),
-      "max" => Integer.to_string(options.max || 10),
-      "backend" => options.backend || "auto",
-      "docs_format" => options.docs_format || "tag",
-      "update_mode" => options.update_mode || "improve",
-      "source_root" => options.source_root || "..",
-      "report" => options.report || "",
-      "apply" => if(options.apply, do: "true", else: "false"),
-      "verify" => if(options.verify, do: "true", else: "false"),
-      "fail_on_audit" => if(options.fail_on_audit, do: "true", else: "false")
-    }
+    options
+    |> mix_command_params()
+    |> build_mix_command()
+  end
 
-    build_mix_command(params)
+  defp result_flash({:ok, report}) do
+    if selected_count(report) == 0 do
+      {:error, "Content generation run completed with 0 selected entries. Check status/section filters for the selected entry.", report.run_id}
+    else
+      {:info, "Content generation run completed.", report.run_id}
+    end
+  end
+
+  defp result_flash({:error, report}), do: {:error, blocking_failure_message(report), report.run_id}
+  defp result_flash(other), do: {:error, "Unexpected run result: #{inspect(other)}", nil}
+
+  defp reset_run_state(socket) do
+    socket
+    |> assign(@running_key, false)
+    |> assign(@run_task_ref_key, nil)
+    |> assign(@active_command_key, nil)
+    |> assign(@run_context_key, nil)
+  end
+
+  defp plan_row_matches?(row, q, section, plan_status, artifact_status, verify_status) do
+    plan_row_matches_query?(row, q) and
+      (section == "all" or row.section == section) and
+      (plan_status == "all" or Atom.to_string(row.plan_status) == plan_status) and
+      (artifact_status == "all" or Atom.to_string(row.status.artifact_status) == artifact_status) and
+      (verify_status == "all" or Atom.to_string(row.status.verify_status) == verify_status)
+  end
+
+  defp plan_row_matches_query?(_row, ""), do: true
+
+  defp plan_row_matches_query?(row, q) do
+    [row.id, row.title, row.route]
+    |> Enum.map_join(" ", &to_string/1)
+    |> String.downcase()
+    |> String.contains?(q)
+  end
+
+  defp run_matches_filters?(run, q, status_filter, window_days, now) do
+    run_matches_query?(run, q) and
+      (status_filter == "all" or Atom.to_string(run.status) == status_filter) and
+      run_in_window?(run, window_days, now)
+  end
+
+  defp run_matches_query?(_run, ""), do: true
+
+  defp run_matches_query?(run, q) do
+    haystack = run.run_id <> " " <> Enum.map_join(run.entries, " ", fn entry -> entry.id || "" end)
+    String.contains?(String.downcase(haystack), q)
+  end
+
+  defp run_in_window?(_run, :all, _now), do: true
+
+  defp run_in_window?(run, days, now) when is_integer(days) do
+    case run.generated_at do
+      %DateTime{} = generated_at -> DateTime.diff(now, generated_at, :day) <= days
+      _other -> false
+    end
+  end
+
+  defp mix_command_params(options) do
+    defaults = [
+      {"entry", options.entry, ""},
+      {"sections", Enum.join(options.sections || [], ","), ""},
+      {"statuses", Enum.join(options.statuses || [], ","), ""},
+      {"max", options.max, 10},
+      {"backend", options.backend, "auto"},
+      {"docs_format", options.docs_format, "tag"},
+      {"update_mode", options.update_mode, "improve"},
+      {"source_root", options.source_root, ".."},
+      {"report", options.report, ""}
+    ]
+
+    defaults
+    |> Enum.reduce(%{}, &put_option_param(&2, &1))
+    |> Map.put("apply", boolean_string(options.apply))
+    |> Map.put("verify", boolean_string(options.verify))
+    |> Map.put("fail_on_audit", boolean_string(options.fail_on_audit))
+  end
+
+  defp boolean_string(value), do: if(value, do: "true", else: "false")
+
+  defp put_option_param(params, {"max", value, default}) do
+    Map.put(params, "max", Integer.to_string(value || default))
+  end
+
+  defp put_option_param(params, {key, value, default}) do
+    Map.put(params, key, value || default)
   end
 
   defp build_run_opts(params) do
@@ -1572,7 +1580,7 @@ defmodule AgentJidoWeb.AdminContentGeneratorLive do
     %{
       "entry" => "",
       "sections" => "",
-      "statuses" => Enum.join(Enum.map(ContentGen.default_statuses(), &Atom.to_string/1), ","),
+      "statuses" => Enum.map_join(ContentGen.default_statuses(), ",", &Atom.to_string/1),
       "max" => Integer.to_string(ContentGen.default_batch_size()),
       "backend" => "req_llm",
       "docs_format" => "tag",

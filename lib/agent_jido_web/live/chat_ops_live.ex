@@ -465,25 +465,7 @@ defmodule AgentJidoWeb.ChatOpsLive do
   defp fetch_inventory(_provider), do: {:error, :invalid_inventory_provider}
 
   defp fetch_recent_messages(provider, opts) when is_atom(provider) and is_list(opts) do
-    response =
-      cond do
-        function_exported?(provider, :fetch_recent_messages, 1) ->
-          provider.fetch_recent_messages(opts)
-
-        function_exported?(provider, :fetch_recent_messages, 0) ->
-          provider.fetch_recent_messages()
-
-        function_exported?(provider, :fetch, 1) ->
-          provider.fetch(opts)
-
-        function_exported?(provider, :fetch, 0) ->
-          provider.fetch()
-
-        true ->
-          {:error, :invalid_message_provider}
-      end
-
-    case response do
+    case invoke_provider(provider, [{:fetch_recent_messages, opts}, {:fetch, opts}], :invalid_message_provider) do
       {:ok, recent_messages} when is_list(recent_messages) ->
         {:ok, recent_messages}
 
@@ -507,25 +489,11 @@ defmodule AgentJidoWeb.ChatOpsLive do
   defp fetch_recent_messages(_provider, _opts), do: {:error, :invalid_message_provider}
 
   defp fetch_action_timeline(provider, opts) when is_atom(provider) and is_list(opts) do
-    response =
-      cond do
-        function_exported?(provider, :fetch_action_timeline, 1) ->
-          provider.fetch_action_timeline(opts)
-
-        function_exported?(provider, :fetch_action_timeline, 0) ->
-          provider.fetch_action_timeline()
-
-        function_exported?(provider, :fetch, 1) ->
-          provider.fetch(opts)
-
-        function_exported?(provider, :fetch, 0) ->
-          provider.fetch()
-
-        true ->
-          {:error, :invalid_action_timeline_provider}
-      end
-
-    case response do
+    case invoke_provider(
+           provider,
+           [{:fetch_action_timeline, opts}, {:fetch, opts}],
+           :invalid_action_timeline_provider
+         ) do
       {:ok, entries} when is_list(entries) ->
         {:ok, entries}
 
@@ -659,26 +627,15 @@ defmodule AgentJidoWeb.ChatOpsLive do
 
   defp normalize_action_entry(entry) when is_map(entry) do
     %{
-      id: normalize_string(Map.get(entry, :id) || Map.get(entry, "id"), nil),
-      timestamp: normalize_datetime(Map.get(entry, :timestamp) || Map.get(entry, "timestamp")),
-      type: normalize_entry_type(Map.get(entry, :type) || Map.get(entry, "type")),
-      label:
-        normalize_string(
-          Map.get(entry, :label) || Map.get(entry, "label"),
-          "ChatOps event"
-        ),
-      outcome: normalize_outcome(Map.get(entry, :outcome) || Map.get(entry, "outcome")),
-      authz_status: normalize_authz_status(Map.get(entry, :authz_status) || Map.get(entry, "authz_status")),
-      mutation_enabled: normalize_optional_boolean(Map.get(entry, :mutation_enabled, Map.get(entry, "mutation_enabled"))),
-      actor: normalize_action_actor(Map.get(entry, :actor, Map.get(entry, "actor"))),
-      details:
-        normalize_string(
-          Map.get(entry, :details) ||
-            Map.get(entry, "details") ||
-            Map.get(entry, :message) ||
-            Map.get(entry, "message"),
-          nil
-        )
+      id: normalize_string(entry_value(entry, :id), nil),
+      timestamp: normalize_datetime(entry_value(entry, :timestamp)),
+      type: normalize_entry_type(entry_value(entry, :type)),
+      label: normalize_string(entry_value(entry, :label), "ChatOps event"),
+      outcome: normalize_outcome(entry_value(entry, :outcome)),
+      authz_status: normalize_authz_status(entry_value(entry, :authz_status)),
+      mutation_enabled: normalize_optional_boolean(entry_value(entry, :mutation_enabled)),
+      actor: normalize_action_actor(entry_value(entry, :actor)),
+      details: normalize_string(entry_value(entry, :details) || entry_value(entry, :message), nil)
     }
   end
 
@@ -703,6 +660,18 @@ defmodule AgentJidoWeb.ChatOpsLive do
   end
 
   defp normalize_guardrails(_guardrails), do: default_guardrail_state()
+
+  defp invoke_provider(provider, [{fun, opts} | rest], invalid_reason) do
+    cond do
+      function_exported?(provider, fun, 1) -> apply(provider, fun, [opts])
+      function_exported?(provider, fun, 0) -> apply(provider, fun, [])
+      true -> invoke_provider(provider, rest, invalid_reason)
+    end
+  end
+
+  defp invoke_provider(_provider, [], invalid_reason), do: {:error, invalid_reason}
+
+  defp entry_value(entry, key), do: Map.get(entry, key) || Map.get(entry, Atom.to_string(key))
 
   defp normalize_guardrail_counts(counts) when is_map(counts) do
     %{

@@ -240,10 +240,7 @@ defmodule AgentJido.ContentOps.Chat.OpsService do
         list ->
           lines =
             list
-            |> Enum.map(fn snippet ->
-              "- #{snippet.snippet}"
-            end)
-            |> Enum.join("\n")
+            |> Enum.map_join("\n", fn snippet -> "- #{snippet.snippet}" end)
 
           "Context:\n" <> lines
       end
@@ -270,10 +267,9 @@ defmodule AgentJido.ContentOps.Chat.OpsService do
   defp ambiguity_message(candidates) do
     options =
       candidates
-      |> Enum.map(fn candidate ->
+      |> Enum.map_join("\n", fn candidate ->
         "- #{candidate.id} (#{candidate.type})#{if candidate.path, do: " path=#{candidate.path}", else: ""}"
       end)
-      |> Enum.join("\n")
 
     "I found multiple matching content targets. Reply with an exact id/path:\n#{options}"
   end
@@ -404,7 +400,6 @@ defmodule AgentJido.ContentOps.Chat.OpsService do
 
   defp format_metadata(metadata) when is_map(metadata) do
     metadata
-    |> Enum.map(fn {key, value} -> "#{key}=#{inspect(value)}" end)
-    |> Enum.join(" ")
+    |> Enum.map_join(" ", fn {key, value} -> "#{key}=#{inspect(value)}" end)
   end
 end

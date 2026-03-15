@@ -454,20 +454,7 @@ defmodule AgentJidoWeb.ContentOpsLive do
     socket =
       case result do
         %{mode: _mode, productions: productions, status: :completed} ->
-          # Try to find the report to get the run_id
-          report = OrchestratorAgent.run_report(result)
-          run_id = if report, do: report.run_id, else: nil
-
-          if run_id do
-            runs =
-              Enum.map(socket.assigns.runs, fn run ->
-                if run.run_id == run_id, do: Map.put(run, :productions, productions), else: run
-              end)
-
-            assign(socket, :runs, runs)
-          else
-            socket
-          end
+          attach_run_productions(socket, result, productions)
 
         _ ->
           socket
@@ -493,6 +480,21 @@ defmodule AgentJidoWeb.ContentOpsLive do
   def handle_info(_msg, socket), do: {:noreply, socket}
 
   # ── Server status helpers ──────────────────────────────────────────
+
+  defp attach_run_productions(socket, result, productions) do
+    case OrchestratorAgent.run_report(result) do
+      %{run_id: run_id} ->
+        runs = Enum.map(socket.assigns.runs, &replace_run_productions(&1, run_id, productions))
+        assign(socket, :runs, runs)
+
+      _other ->
+        socket
+    end
+  end
+
+  defp replace_run_productions(run, run_id, productions) do
+    if run.run_id == run_id, do: Map.put(run, :productions, productions), else: run
+  end
 
   defp refresh_server_status(socket) do
     case Jido.AgentServer.status(@server_name) do

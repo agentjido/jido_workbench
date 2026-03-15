@@ -96,15 +96,13 @@ defmodule AgentJidoWeb.AdminAnalyticsExportController do
 
   defp to_csv(headers, rows) when is_list(headers) and is_list(rows) do
     [headers | rows]
-    |> Enum.map(&csv_line/1)
-    |> Enum.join("\n")
+    |> Enum.map_join("\n", &csv_line/1)
     |> Kernel.<>("\n")
   end
 
   defp csv_line(values) do
     values
-    |> Enum.map(&csv_escape/1)
-    |> Enum.join(",")
+    |> Enum.map_join(",", &csv_escape/1)
   end
 
   defp csv_escape(nil), do: ""

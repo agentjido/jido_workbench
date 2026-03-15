@@ -179,8 +179,7 @@ defmodule AgentJido.ContentGen.Writer do
   defp to_elixir_literal(value) when is_map(value) do
     pairs =
       value
-      |> Enum.map(fn {k, v} -> "#{to_elixir_literal(k)} => #{to_elixir_literal(v)}" end)
-      |> Enum.join(", ")
+      |> Enum.map_join(", ", fn {k, v} -> "#{to_elixir_literal(k)} => #{to_elixir_literal(v)}" end)
 
     "%{" <> pairs <> "}"
   end
@@ -190,8 +189,7 @@ defmodule AgentJido.ContentGen.Writer do
   defp normalize_text(text) do
     text
     |> String.split("\n")
-    |> Enum.map(&String.trim_trailing/1)
-    |> Enum.join("\n")
+    |> Enum.map_join("\n", &String.trim_trailing/1)
     |> String.trim()
   end
 

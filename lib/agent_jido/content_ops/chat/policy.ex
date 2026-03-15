@@ -20,15 +20,13 @@ defmodule AgentJido.ContentOps.Chat.Policy do
   def actor_from_tool_context(context) when is_map(context) do
     actor = Map.get(context, :actor, Map.get(context, "actor", %{}))
 
-    cond do
-      is_map(actor) and map_size(actor) > 0 ->
-        %{
-          channel: normalize_channel(Map.get(actor, :channel, Map.get(actor, "channel"))),
-          external_user_id: normalize_id(Map.get(actor, :external_user_id, Map.get(actor, "external_user_id")))
-        }
-
-      true ->
-        %{channel: nil, external_user_id: ""}
+    if is_map(actor) and map_size(actor) > 0 do
+      %{
+        channel: normalize_channel(Map.get(actor, :channel, Map.get(actor, "channel"))),
+        external_user_id: normalize_id(Map.get(actor, :external_user_id, Map.get(actor, "external_user_id")))
+      }
+    else
+      %{channel: nil, external_user_id: ""}
     end
   end
 
