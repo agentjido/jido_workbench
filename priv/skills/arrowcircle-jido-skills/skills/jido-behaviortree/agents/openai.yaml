@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jido BehaviorTree"
+  short_description: "Build Jido behavior tree flows"
+  default_prompt: "Use $jido-behaviortree to model agent decision trees, selectors, and fallback execution paths."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jido"
+  short_description: "Build Jido agents and runtimes"
+  default_prompt: "Use $jido to design or review Jido agents, directives, and runtime workflows."

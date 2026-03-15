@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jido Studio"
+  short_description: "Plan Jido Studio integrations"
+  default_prompt: "Use $jido-studio to plan or review Jido Studio workflows, pages, and operator tooling."

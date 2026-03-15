@@ -191,6 +191,11 @@ defmodule AgentJidoWeb.MarkdownContent do
     {:fallback, "Jido Features", "Runtime capabilities, orchestration strategies, and ecosystem components for reliable multi-agent systems."}
   end
 
+  defp resolve_misc("/skills") do
+    {:fallback, "Jido Skills Catalog",
+     "Vendored upstream Jido package skills plus the router skill, surfaced as a public catalog page in the workbench."}
+  end
+
   defp resolve_misc(_path), do: nil
 
   defp fallback_markdown(title, absolute_url, summary) do

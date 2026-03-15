@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jido OpenTelemetry"
+  short_description: "Instrument Jido with OpenTelemetry"
+  default_prompt: "Use $jido-otel to add traces, events, and observability boundaries to a Jido application."

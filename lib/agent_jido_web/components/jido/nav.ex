@@ -12,6 +12,7 @@ defmodule AgentJidoWeb.Jido.Nav do
 
   @primary_nav_links [
     {"Features", "/features"},
+    {"Skills", "/skills"},
     {"Ecosystem", "/ecosystem"},
     {"Examples", "/examples"},
     {"Community", "/community"},
@@ -65,6 +66,7 @@ defmodule AgentJidoWeb.Jido.Nav do
   def footer_resource_links do
     [
       {"Docs", primary_nav_path!("Docs")},
+      {"Skills", primary_nav_path!("Skills")},
       {"Examples", primary_nav_path!("Examples")},
       {"Compare", "/compare"}
     ]

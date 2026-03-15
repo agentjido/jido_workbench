@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jido Action"
+  short_description: "Build validated Jido actions"
+  default_prompt: "Use $jido-action to design, scaffold, or review Jido.Action modules and execution flows."

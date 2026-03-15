@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jido Signal"
+  short_description: "Build typed signal workflows"
+  default_prompt: "Use $jido-signal to design signal schemas, routing, buses, and dispatch workflows."
