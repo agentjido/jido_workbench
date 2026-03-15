@@ -5,6 +5,7 @@ defmodule AgentJidoWeb.Examples.PluginBasicsAgentLive do
   use AgentJidoWeb, :live_view
 
   alias AgentJido.Demos.PluginBasicsAgent
+  alias AgentJidoWeb.Examples.RuntimeDemoHelpers
   alias Jido.AgentServer
   alias Jido.Signal
 
@@ -22,30 +23,14 @@ defmodule AgentJidoWeb.Examples.PluginBasicsAgentLive do
       |> assign(:log_entries, [])
       |> assign(:last_error, nil)
 
-    socket =
-      if connected?(socket) do
-        case start_demo_server() do
-          {:ok, pid, agent} ->
-            Process.send_after(self(), :poll_state, @poll_interval_ms)
-            socket |> assign(:server_pid, pid) |> assign(:agent, agent)
-
-          {:error, reason} ->
-            assign(socket, :last_error, "Failed to start runtime: #{inspect(reason)}")
-        end
-      else
-        socket
-      end
+    socket = RuntimeDemoHelpers.start_runtime(socket, &start_demo_server/0, @poll_interval_ms)
 
     {:ok, socket}
   end
 
   @impl true
   def terminate(_reason, socket) do
-    if pid = socket.assigns[:server_pid] do
-      if Process.alive?(pid), do: GenServer.stop(pid, :normal)
-    end
-
-    :ok
+    RuntimeDemoHelpers.stop_runtime(socket)
   end
 
   @impl true
@@ -107,7 +92,7 @@ defmodule AgentJidoWeb.Examples.PluginBasicsAgentLive do
   def handle_event("add_note", %{"text" => text}, socket) do
     trimmed = String.trim(text)
 
-    with {:ok, pid} <- fetch_server_pid(socket),
+    with {:ok, pid} <- RuntimeDemoHelpers.fetch_server_pid(socket),
          true <- trimmed != "",
          {:ok, agent} <- AgentServer.call(pid, Signal.new!("notes.add", %{text: trimmed}, source: "/demo")) do
       entry = %{action: "notes.add", detail: trimmed, at: DateTime.utc_now()}
@@ -125,7 +110,7 @@ defmodule AgentJidoWeb.Examples.PluginBasicsAgentLive do
   end
 
   def handle_event("clear_notes", _params, socket) do
-    with {:ok, pid} <- fetch_server_pid(socket),
+    with {:ok, pid} <- RuntimeDemoHelpers.fetch_server_pid(socket),
          {:ok, agent} <- AgentServer.call(pid, Signal.new!("notes.clear", %{}, source: "/demo")) do
       entry = %{action: "notes.clear", detail: "all entries removed", at: DateTime.utc_now()}
 
@@ -141,17 +126,7 @@ defmodule AgentJidoWeb.Examples.PluginBasicsAgentLive do
 
   @impl true
   def handle_info(:poll_state, socket) do
-    socket =
-      case fetch_server_pid(socket) do
-        {:ok, pid} ->
-          case AgentServer.state(pid) do
-            {:ok, %{agent: agent}} -> assign(socket, :agent, agent)
-            _ -> socket
-          end
-
-        _ ->
-          socket
-      end
+    socket = RuntimeDemoHelpers.refresh_agent(socket)
 
     Process.send_after(self(), :poll_state, @poll_interval_ms)
     {:noreply, socket}
@@ -163,13 +138,6 @@ defmodule AgentJidoWeb.Examples.PluginBasicsAgentLive do
     with {:ok, pid} <- AgentServer.start_link(jido: AgentJido.Jido, agent: PluginBasicsAgent, id: id),
          {:ok, %{agent: agent}} <- AgentServer.state(pid) do
       {:ok, pid, agent}
-    end
-  end
-
-  defp fetch_server_pid(socket) do
-    case socket.assigns.server_pid do
-      pid when is_pid(pid) -> if(Process.alive?(pid), do: {:ok, pid}, else: {:error, :runtime_not_started})
-      _ -> {:error, :runtime_not_started}
     end
   end
 end

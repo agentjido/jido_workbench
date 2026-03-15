@@ -5,6 +5,7 @@ defmodule AgentJidoWeb.Examples.ScheduleDirectiveAgentLive do
   use AgentJidoWeb, :live_view
 
   alias AgentJido.Demos.ScheduleDirectiveAgent
+  alias AgentJidoWeb.Examples.RuntimeDemoHelpers
   alias Jido.AgentServer
   alias Jido.Signal
 
@@ -24,30 +25,14 @@ defmodule AgentJidoWeb.Examples.ScheduleDirectiveAgentLive do
       |> assign(:log_entries, [])
       |> assign(:last_error, nil)
 
-    socket =
-      if connected?(socket) do
-        case start_demo_server() do
-          {:ok, pid, agent} ->
-            Process.send_after(self(), :poll_state, @poll_interval_ms)
-            socket |> assign(:server_pid, pid) |> assign(:agent, agent)
-
-          {:error, reason} ->
-            assign(socket, :last_error, "Failed to start runtime: #{inspect(reason)}")
-        end
-      else
-        socket
-      end
+    socket = RuntimeDemoHelpers.start_runtime(socket, &start_demo_server/0, @poll_interval_ms)
 
     {:ok, socket}
   end
 
   @impl true
   def terminate(_reason, socket) do
-    if pid = socket.assigns[:server_pid] do
-      if Process.alive?(pid), do: GenServer.stop(pid, :normal)
-    end
-
-    :ok
+    RuntimeDemoHelpers.stop_runtime(socket)
   end
 
   @impl true
@@ -164,7 +149,7 @@ defmodule AgentJidoWeb.Examples.ScheduleDirectiveAgentLive do
 
   @impl true
   def handle_event("start_timer", %{"delay_ms" => delay_raw}, socket) do
-    with {:ok, pid} <- fetch_server_pid(socket),
+    with {:ok, pid} <- RuntimeDemoHelpers.fetch_server_pid(socket),
          {:ok, delay_ms} <- parse_positive_integer(delay_raw) do
       timer_id = "T-#{System.unique_integer([:positive])}"
 
@@ -188,7 +173,7 @@ defmodule AgentJidoWeb.Examples.ScheduleDirectiveAgentLive do
   end
 
   def handle_event("start_retry", %{"max_attempts" => max_raw, "delay_ms" => delay_raw}, socket) do
-    with {:ok, pid} <- fetch_server_pid(socket),
+    with {:ok, pid} <- RuntimeDemoHelpers.fetch_server_pid(socket),
          {:ok, max_attempts} <- parse_positive_integer(max_raw),
          {:ok, delay_ms} <- parse_positive_integer(delay_raw) do
       signal =
@@ -226,24 +211,14 @@ defmodule AgentJidoWeb.Examples.ScheduleDirectiveAgentLive do
 
   @impl true
   def handle_info(:poll_state, socket) do
-    socket =
-      case fetch_server_pid(socket) do
-        {:ok, pid} ->
-          case AgentServer.state(pid) do
-            {:ok, %{agent: agent}} -> assign(socket, :agent, agent)
-            _ -> socket
-          end
-
-        _ ->
-          socket
-      end
+    socket = RuntimeDemoHelpers.refresh_agent(socket)
 
     Process.send_after(self(), :poll_state, @poll_interval_ms)
     {:noreply, socket}
   end
 
   defp send_manual_cron(socket, signal_type, log_label) do
-    case fetch_server_pid(socket) do
+    case RuntimeDemoHelpers.fetch_server_pid(socket) do
       {:ok, pid} ->
         case AgentServer.call(pid, Signal.new!(signal_type, %{}, source: "/demo")) do
           {:ok, agent} ->
@@ -268,13 +243,6 @@ defmodule AgentJidoWeb.Examples.ScheduleDirectiveAgentLive do
     with {:ok, pid} <- AgentServer.start_link(jido: AgentJido.Jido, agent: ScheduleDirectiveAgent, id: id),
          {:ok, %{agent: agent}} <- AgentServer.state(pid) do
       {:ok, pid, agent}
-    end
-  end
-
-  defp fetch_server_pid(socket) do
-    case socket.assigns.server_pid do
-      pid when is_pid(pid) -> if(Process.alive?(pid), do: {:ok, pid}, else: {:error, :runtime_not_started})
-      _ -> {:error, :runtime_not_started}
     end
   end
 
