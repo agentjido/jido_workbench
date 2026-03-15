@@ -98,4 +98,25 @@ defmodule AgentJido.ExamplesTest do
       assert Enum.all?(example.source_files, &File.exists?/1)
     end)
   end
+
+  test "live runnable examples no longer use the shared simulated showcase surface" do
+    offenders =
+      Examples.all_examples()
+      |> Enum.filter(fn example ->
+        example.evidence_surface == :runnable_example and
+          (example.live_view_module == "AgentJidoWeb.Examples.SimulatedShowcaseLive" or
+             "lib/agent_jido_web/examples/simulated_showcase_live.ex" in example.source_files)
+      end)
+      |> Enum.map(& &1.slug)
+
+    assert offenders == []
+  end
+
+  test "shared simulated showcase examples are restricted to draft examples only" do
+    simulator_backed_examples =
+      Examples.all_examples(include_unpublished: true)
+      |> Enum.filter(&(&1.live_view_module == "AgentJidoWeb.Examples.SimulatedShowcaseLive"))
+
+    assert Enum.all?(simulator_backed_examples, &(&1.status == :draft))
+  end
 end
