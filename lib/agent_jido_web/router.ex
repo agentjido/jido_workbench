@@ -86,6 +86,12 @@ defmodule AgentJidoWeb.Router do
     get("/llms.txt", LLMSTxtController, :index)
   end
 
+  scope "/mcp", AgentJidoWeb do
+    pipe_through(:api)
+
+    match :*, "/docs", MCPDocsController, :handle
+  end
+
   if Application.compile_env(:agent_jido, :dev_routes) do
     scope "/dev" do
       pipe_through([:browser])

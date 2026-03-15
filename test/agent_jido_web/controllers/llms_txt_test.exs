@@ -12,6 +12,8 @@ defmodule AgentJidoWeb.LLMSTxtTest do
     assert body =~ "#{endpoint_url}/docs/reference/why-not-just-a-genserver.md"
     assert body =~ "Accept: text/markdown"
     assert body =~ "#{endpoint_url}/sitemap.xml"
+    assert body =~ "#{endpoint_url}/mcp/docs"
+    assert body =~ "search_docs, get_doc, list_sections"
     assert body =~ "If source markdown is unavailable"
   end
 end
