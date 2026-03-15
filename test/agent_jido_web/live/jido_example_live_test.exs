@@ -8,7 +8,6 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
 
   @endpoint AgentJidoWeb.Endpoint
   @new_simulated_showcase_examples [
-    {"runic-delegating-orchestrator", "Runic Delegating Orchestrator"},
     {"jido-ai-weather-multi-turn-context", "Jido.AI Weather Multi-Turn Context"},
     {"jido-ai-weather-reasoning-strategy-suite", "Jido.AI Weather Reasoning Strategy Suite"},
     {"jido-ai-operational-agents-pack", "Jido.AI Operational Agents Pack"}
@@ -415,6 +414,65 @@ defmodule AgentJidoWeb.JidoExampleLiveTest do
                "lib/agent_jido/demos/runic_adaptive_researcher/orchestrator_agent.ex",
                "lib/agent_jido/demos/runic_adaptive_researcher/runtime_demo.ex",
                "lib/agent_jido_web/examples/runic_adaptive_researcher_live.ex"
+             ]
+
+      assert Enum.map(example.sources, & &1.path) == example.source_files
+    end
+  end
+
+  describe "/examples/runic-delegating-orchestrator" do
+    test "renders explanation tab with real delegation guidance", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/runic-delegating-orchestrator?tab=explanation")
+
+      assert html =~ "Runic Delegating Orchestrator"
+      assert html =~ "executor: {:child, tag}"
+      assert html =~ "child-worker handoff strategy path"
+      assert html =~ "real Runic delegation strategy path locally"
+    end
+
+    test "renders source tab for the dedicated delegating example", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/examples/runic-delegating-orchestrator?tab=source")
+
+      assert html =~ "fixtures.ex"
+      assert html =~ "actions.ex"
+      assert html =~ "orchestrator_agent.ex"
+      assert html =~ "runtime_demo.ex"
+      assert html =~ "runic_delegating_orchestrator_live.ex"
+      refute html =~ "simulated_showcase_live.ex"
+    end
+
+    test "demo tab runs the deterministic delegating workflow", %{conn: conn} do
+      {:ok, view, html} = live(conn, "/examples/runic-delegating-orchestrator?tab=demo")
+
+      assert html =~ "Runic Delegating Orchestrator"
+      refute html =~ "Simulated demo"
+
+      demo_view = find_live_child(view, "demo-runic-delegating-orchestrator")
+
+      html =
+        demo_view
+        |> element("#runic-delegating-orchestrator-demo button[phx-click='run_workflow']")
+        |> render_click()
+
+      assert has_element?(demo_view, "#runic-delegating-local-count", "3")
+      assert has_element?(demo_view, "#runic-delegating-delegated-count", "2")
+      assert html =~ "child:drafter"
+      assert html =~ "child:editor"
+      assert html =~ "## Research Sources"
+    end
+
+    test "example registry metadata resolves new delegating source files", %{conn: _conn} do
+      example = Examples.get_example!("runic-delegating-orchestrator")
+
+      assert example.title == "Runic Delegating Orchestrator"
+      assert example.live_view_module == "AgentJidoWeb.Examples.RunicDelegatingOrchestratorLive"
+
+      assert example.source_files == [
+               "lib/agent_jido/demos/runic_research_studio/fixtures.ex",
+               "lib/agent_jido/demos/runic_research_studio/actions.ex",
+               "lib/agent_jido/demos/runic_delegating_orchestrator/orchestrator_agent.ex",
+               "lib/agent_jido/demos/runic_delegating_orchestrator/runtime_demo.ex",
+               "lib/agent_jido_web/examples/runic_delegating_orchestrator_live.ex"
              ]
 
       assert Enum.map(example.sources, & &1.path) == example.source_files

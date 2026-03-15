@@ -16,7 +16,7 @@ defmodule AgentJido.ExamplesTest do
     {"runic-ai-research-studio-step-mode", "AgentJidoWeb.Examples.RunicResearchStudioStepModeLive"},
     {"runic-adaptive-researcher", "AgentJidoWeb.Examples.RunicAdaptiveResearcherLive"},
     {"runic-structured-llm-branching", "AgentJidoWeb.Examples.RunicStructuredBranchingLive"},
-    {"runic-delegating-orchestrator", "AgentJidoWeb.Examples.SimulatedShowcaseLive"},
+    {"runic-delegating-orchestrator", "AgentJidoWeb.Examples.RunicDelegatingOrchestratorLive"},
     {"jido-ai-actions-runtime-demos", "AgentJidoWeb.Examples.ActionsRuntimeDemoLive"},
     {"jido-ai-browser-web-workflow", "AgentJidoWeb.Examples.BrowserDocsScoutAgentLive"},
     {"jido-ai-weather-multi-turn-context", "AgentJidoWeb.Examples.SimulatedShowcaseLive"},
