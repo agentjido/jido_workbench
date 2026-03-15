@@ -16,7 +16,7 @@
 ## Prerequisites
 
 - Elixir `~> 1.18` and OTP 27+
-- An existing Elixir app, or create one with `mix new my_agent_app`
+- An existing Elixir app, or create one with `mix new my_agent_app --sup`
 - An API key for an LLM provider if you plan to use AI-backed features
 
 ## Add dependencies
