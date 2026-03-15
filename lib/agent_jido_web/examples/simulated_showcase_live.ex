@@ -9,6 +9,89 @@ defmodule AgentJidoWeb.Examples.SimulatedShowcaseLive do
   use AgentJidoWeb, :live_view
 
   @step_delay_ms 550
+  @default_scenario %{
+    title: "Simulated Example",
+    steps: [
+      %{label: "Load fixtures", detail: "Prepared deterministic demo inputs"},
+      %{label: "Execute flow", detail: "Ran scenario with no external calls"},
+      %{label: "Publish output", detail: "Returned stable simulated result"}
+    ],
+    result: "Demo completed in deterministic simulation mode."
+  }
+  @scenarios %{
+    "deep-research" => %{
+      title: "Deep Research",
+      steps: [
+        %{label: "Collect sources", detail: "Loaded 5 deterministic source snippets"},
+        %{label: "Synthesize findings", detail: "Clustered claims into consensus and risk buckets"},
+        %{label: "Draft memo", detail: "Generated summary and open questions"}
+      ],
+      result: """
+      Summary:
+      - Adoption is accelerating in ops and support workflows.
+      - Main risk remains evaluation quality under ambiguous inputs.
+      - Recommendation: pilot with bounded, high-observability tasks first.
+      """
+    },
+    "coding-assistant" => %{
+      title: "Coding Assistant",
+      steps: [
+        %{label: "Read files", detail: "Indexed 4 fixture files in lib/ and test/"},
+        %{label: "Detect issue", detail: "Found one nil-handling edge case in parser"},
+        %{label: "Propose patch", detail: "Built patch suggestion with unit test update"}
+      ],
+      result: """
+      Patch plan:
+      1. Guard nil input before trim/1.
+      2. Add parser unit test for nil payload.
+      3. Run mix test for parser suite.
+      """
+    },
+    "incident-triage" => %{
+      title: "Incident Triage",
+      steps: [
+        %{label: "Ingest alerts", detail: "Loaded 12 fixture alerts from logs + paging"},
+        %{label: "Cluster incidents", detail: "Grouped alerts into 2 active incidents"},
+        %{label: "Recommend action", detail: "Escalated API latency issue to SRE owner"}
+      ],
+      result: """
+      Incident: api-latency-degradation
+      Severity: SEV-2
+      Owner: sre-oncall
+      Suggested next step: rollback deploy #742
+      """
+    },
+    "text-to-sql-analytics" => %{
+      title: "Text-to-SQL Analytics",
+      steps: [
+        %{label: "Interpret question", detail: "Mapped request to monthly revenue trend"},
+        %{label: "Compile SQL", detail: "Generated parameterized query from fixture schema"},
+        %{label: "Render chart data", detail: "Returned 12 monthly points for visualization"}
+      ],
+      result: """
+      SQL:
+      SELECT month, SUM(revenue) AS total_revenue
+      FROM analytics.monthly_revenue
+      WHERE year = 2025
+      GROUP BY month
+      ORDER BY month;
+      """
+    },
+    "workflow-coordinator" => %{
+      title: "Workflow Coordinator",
+      steps: [
+        %{label: "Plan graph", detail: "Built 4-node workflow with retry boundaries"},
+        %{label: "Dispatch workers", detail: "Started classifier, enricher, and notifier stages"},
+        %{label: "Recover fault", detail: "Injected node failure and replayed from checkpoint"}
+      ],
+      result: """
+      Workflow status:
+      - completed_nodes: 4/4
+      - retries: 1
+      - checkpoint_recovery: true
+      """
+    }
+  }
 
   @impl true
   def mount(_params, session, socket) do
@@ -155,102 +238,5 @@ defmodule AgentJidoWeb.Examples.SimulatedShowcaseLive do
 
   defp progress_pct(_step_index, _steps), do: 0
 
-  defp scenario_for("deep-research") do
-    %{
-      title: "Deep Research",
-      steps: [
-        %{label: "Collect sources", detail: "Loaded 5 deterministic source snippets"},
-        %{label: "Synthesize findings", detail: "Clustered claims into consensus and risk buckets"},
-        %{label: "Draft memo", detail: "Generated summary and open questions"}
-      ],
-      result: """
-      Summary:
-      - Adoption is accelerating in ops and support workflows.
-      - Main risk remains evaluation quality under ambiguous inputs.
-      - Recommendation: pilot with bounded, high-observability tasks first.
-      """
-    }
-  end
-
-  defp scenario_for("coding-assistant") do
-    %{
-      title: "Coding Assistant",
-      steps: [
-        %{label: "Read files", detail: "Indexed 4 fixture files in lib/ and test/"},
-        %{label: "Detect issue", detail: "Found one nil-handling edge case in parser"},
-        %{label: "Propose patch", detail: "Built patch suggestion with unit test update"}
-      ],
-      result: """
-      Patch plan:
-      1. Guard nil input before trim/1.
-      2. Add parser unit test for nil payload.
-      3. Run mix test for parser suite.
-      """
-    }
-  end
-
-  defp scenario_for("incident-triage") do
-    %{
-      title: "Incident Triage",
-      steps: [
-        %{label: "Ingest alerts", detail: "Loaded 12 fixture alerts from logs + paging"},
-        %{label: "Cluster incidents", detail: "Grouped alerts into 2 active incidents"},
-        %{label: "Recommend action", detail: "Escalated API latency issue to SRE owner"}
-      ],
-      result: """
-      Incident: api-latency-degradation
-      Severity: SEV-2
-      Owner: sre-oncall
-      Suggested next step: rollback deploy #742
-      """
-    }
-  end
-
-  defp scenario_for("text-to-sql-analytics") do
-    %{
-      title: "Text-to-SQL Analytics",
-      steps: [
-        %{label: "Interpret question", detail: "Mapped request to monthly revenue trend"},
-        %{label: "Compile SQL", detail: "Generated parameterized query from fixture schema"},
-        %{label: "Render chart data", detail: "Returned 12 monthly points for visualization"}
-      ],
-      result: """
-      SQL:
-      SELECT month, SUM(revenue) AS total_revenue
-      FROM analytics.monthly_revenue
-      WHERE year = 2025
-      GROUP BY month
-      ORDER BY month;
-      """
-    }
-  end
-
-  defp scenario_for("workflow-coordinator") do
-    %{
-      title: "Workflow Coordinator",
-      steps: [
-        %{label: "Plan graph", detail: "Built 4-node workflow with retry boundaries"},
-        %{label: "Dispatch workers", detail: "Started classifier, enricher, and notifier stages"},
-        %{label: "Recover fault", detail: "Injected node failure and replayed from checkpoint"}
-      ],
-      result: """
-      Workflow status:
-      - completed_nodes: 4/4
-      - retries: 1
-      - checkpoint_recovery: true
-      """
-    }
-  end
-
-  defp scenario_for(_slug) do
-    %{
-      title: "Simulated Example",
-      steps: [
-        %{label: "Load fixtures", detail: "Prepared deterministic demo inputs"},
-        %{label: "Execute flow", detail: "Ran scenario with no external calls"},
-        %{label: "Publish output", detail: "Returned stable simulated result"}
-      ],
-      result: "Demo completed in deterministic simulation mode."
-    }
-  end
+  defp scenario_for(slug), do: Map.get(@scenarios, slug, @default_scenario)
 end
