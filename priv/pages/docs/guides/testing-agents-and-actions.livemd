@@ -12,8 +12,8 @@
 
 ```elixir
 Mix.install([
-  {:jido, "~> 2.0"},
-  {:jido_ai, "~> 0.2"}
+  {{mix_dep:jido}},
+  {{mix_dep:jido_ai}}
 ])
 
 Jido.start()

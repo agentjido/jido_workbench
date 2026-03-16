@@ -27,9 +27,9 @@ This recipe keeps the flow deliberately small: configure a provider key, send on
 
 ```elixir
 Mix.install([
-  {:jido, "~> 2.0"},
-  {:jido_ai, github: "agentjido/jido_ai", branch: "main"},
-  {:req_llm, "~> 1.6"}
+  {{mix_dep:jido}},
+  {{mix_dep:jido_ai}},
+  {{mix_dep:req_llm}}
 ])
 
 Logger.configure(level: :warning)

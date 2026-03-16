@@ -24,9 +24,9 @@ Complete [Your first agent](/docs/getting-started/first-agent) before starting. 
 
 ```elixir
 Mix.install([
-  {:jido, "~> 2.0"},
-  {:jido_ai, github: "agentjido/jido_ai", branch: "main"},
-  {:req_llm, "~> 1.6"}
+  {{mix_dep:jido}},
+  {{mix_dep:jido_ai}},
+  {{mix_dep:req_llm}}
 ])
 
 # Suppress verbose runtime logs so we only see warnings and errors
@@ -118,9 +118,9 @@ When you move from Livebook to a Mix project, add the dependencies to `mix.exs` 
 ```elixir
 defp deps do
   [
-    {:jido, "~> 2.0"},
-    {:jido_ai, github: "agentjido/jido_ai", branch: "main"},
-    {:req_llm, "~> 1.6"}
+    {{mix_dep:jido}},
+    {{mix_dep:jido_ai}},
+    {{mix_dep:req_llm}}
   ]
 end
 ```

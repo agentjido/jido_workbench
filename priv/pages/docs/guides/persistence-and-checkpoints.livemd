@@ -12,7 +12,7 @@
 
 ```elixir
 Mix.install([
-  {:jido, "~> 2.0"}
+  {{mix_dep:jido}}
 ])
 ```
 

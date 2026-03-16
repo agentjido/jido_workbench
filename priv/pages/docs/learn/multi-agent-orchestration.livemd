@@ -16,9 +16,9 @@ Complete [Memory and retrieval-augmented agents](/docs/learn/memory-and-retrieva
 
 ```elixir
 Mix.install([
-  {:jido, "~> 2.0"},
-  {:jido_ai, github: "agentjido/jido_ai", branch: "main"},
-  {:req_llm, "~> 1.6"}
+  {{mix_dep:jido}},
+  {{mix_dep:jido_ai}},
+  {{mix_dep:req_llm}}
 ])
 ```
 

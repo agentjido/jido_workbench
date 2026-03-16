@@ -22,7 +22,7 @@ Complete [Installation and setup](/docs/getting-started/installation) before sta
 
 ```elixir
 Mix.install([
-  {:jido, "~> 2.0"}
+  {{mix_dep:jido}}
 ])
 ```
 

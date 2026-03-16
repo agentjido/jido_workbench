@@ -26,7 +26,7 @@ A [Req](https://hexdocs.pm/req) plugin that provides a unified interface for cal
 
 ```elixir
 # Add to mix.exs
-{:req_llm, "~> 0.3"}
+{{mix_dep:req_llm}}
 
 # Make a request
 req = Req.new() |> ReqLLM.attach()

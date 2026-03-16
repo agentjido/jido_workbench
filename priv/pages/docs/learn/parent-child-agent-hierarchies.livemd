@@ -16,7 +16,7 @@ Complete [State machines with FSM](/docs/learn/state-machines-with-fsm) before s
 
 ```elixir
 Mix.install([
-  {:jido, "~> 2.0"}
+  {{mix_dep:jido}}
 ])
 ```
 

@@ -6,7 +6,7 @@ defmodule AgentJido.Demos.TaskExecution.Workflow do
   task transitions users can copy into their own projects.
   """
 
-  alias Jido.AI.Examples.Tools.TaskList.{
+  alias AgentJido.Demos.TaskExecution.{
     AddTasks,
     CompleteTask,
     GetState,
@@ -40,19 +40,19 @@ defmodule AgentJido.Demos.TaskExecution.Workflow do
 
   @seed_tasks [
     %{
-      "title" => "Validate release metadata",
-      "description" => "Check mix.exs version, changelog notes, and package metadata.",
-      "priority" => 10
+      title: "Validate release metadata",
+      description: "Check mix.exs version, changelog notes, and package metadata.",
+      priority: 10
     },
     %{
-      "title" => "Run quality gates",
-      "description" => "Run tests and quality checks before publishing.",
-      "priority" => 20
+      title: "Run quality gates",
+      description: "Run tests and quality checks before publishing.",
+      priority: 20
     },
     %{
-      "title" => "Publish beta package",
-      "description" => "Perform dry run and publish to Hex with release notes.",
-      "priority" => 30
+      title: "Publish beta package",
+      description: "Perform dry run and publish to Hex with release notes.",
+      priority: 30
     }
   ]
 

@@ -21,14 +21,14 @@
 
 ## Add dependencies
 
-Add `jido` and `jido_ai` to `mix.exs`:
+Add `jido`, `jido_ai`, and `req_llm` to `mix.exs`:
 
 ```elixir
 defp deps do
   [
-    {:jido, "~> 2.0"},
-    {:jido_ai, github: "agentjido/jido_ai", branch: "main"},
-    {:req_llm, "~> 1.6"}
+    {{mix_dep:jido}},
+    {{mix_dep:jido_ai}},
+    {{mix_dep:req_llm}}
   ]
 end
 ```

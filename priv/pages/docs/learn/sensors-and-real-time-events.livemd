@@ -16,7 +16,7 @@ Complete [Parent-child agent hierarchies](/docs/learn/parent-child-agent-hierarc
 
 ```elixir
 Mix.install([
-  {:jido, "~> 2.0"}
+  {{mix_dep:jido}}
 ])
 ```
 

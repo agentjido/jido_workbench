@@ -16,7 +16,7 @@ Complete [Build your first workflow](/docs/learn/first-workflow) before starting
 
 ```elixir
 Mix.install([
-  {:jido, "~> 2.0"}
+  {{mix_dep:jido}}
 ])
 ```
 

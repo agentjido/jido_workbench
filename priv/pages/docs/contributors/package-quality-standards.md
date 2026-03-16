@@ -674,12 +674,10 @@ Instead, use plain direct dependencies:
 defp deps do
   [
     # Jido ecosystem - use Hex versions directly
-    {:jido, "~> 2.0.0-rc.2"},
-    {:jido_action, "~> 2.0.0-rc.2"},
-    {:jido_signal, "~> 2.0.0-rc.2"},
-
-    # For unpublished deps, use github
-    {:req_llm, github: "agentjido/req_llm", branch: "main"},
+    {{mix_dep:jido}},
+    {{mix_dep:jido_action}},
+    {{mix_dep:jido_signal}},
+    {{mix_dep:req_llm}},
 
     # Runtime deps
     {:jason, "~> 1.4"},

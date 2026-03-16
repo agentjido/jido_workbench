@@ -1,6 +1,8 @@
 defmodule AgentJidoWeb.JidoGettingStartedLive do
   use AgentJidoWeb, :live_view
 
+  alias AgentJido.ReleaseCatalog
+
   import AgentJidoWeb.Jido.MarketingLayouts
   import AgentJidoWeb.Jido.MarketingCode
 
@@ -95,14 +97,7 @@ defmodule AgentJidoWeb.JidoGettingStartedLive do
   end
 
   defp deps_snippet do
-    ~S"""
-    defp deps do
-      [
-        {:jido, "~> 2.0"},
-        {:jido_ai, "~> 2.0"}
-      ]
-    end
-    """
+    ReleaseCatalog.deps_block(["jido", "jido_ai"])
   end
 
   defp agent_snippet do

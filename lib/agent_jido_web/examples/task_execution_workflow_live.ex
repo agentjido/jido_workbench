@@ -57,6 +57,13 @@ defmodule AgentJidoWeb.Examples.TaskExecutionWorkflowLive do
         </div>
       </div>
 
+      <div
+        :if={@workflow.state.all_complete}
+        class="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-emerald-200"
+      >
+        All {@summary.total} tasks are complete!
+      </div>
+
       <div class="flex gap-3 flex-wrap">
         <button
           id="task-seed-btn"

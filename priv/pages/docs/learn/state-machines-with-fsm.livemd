@@ -16,7 +16,7 @@ Complete [Plugins and composable agents](/docs/learn/plugins-and-composable-agen
 
 ```elixir
 Mix.install([
-  {:jido, "~> 2.0"}
+  {{mix_dep:jido}}
 ])
 ```
 

@@ -54,6 +54,8 @@ defmodule AgentJido.Pages.LivebookParser do
   @frontmatter_separator ~r/^---\s*$/m
   @html_comment_pattern ~r/\A\s*<!--\s*(%{.*?})\s*-->/s
 
+  alias AgentJido.ReleaseCatalog
+
   @doc """
   Parses the content of a file and extracts metadata and body.
 
@@ -74,6 +76,8 @@ defmodule AgentJido.Pages.LivebookParser do
   """
   @spec parse(String.t(), String.t()) :: {map(), String.t()}
   def parse(path, contents) do
+    contents = ReleaseCatalog.expand_placeholders(contents)
+
     {raw_attrs, body} =
       if String.ends_with?(path, ".livemd") do
         parse_livebook(path, contents)

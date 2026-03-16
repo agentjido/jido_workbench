@@ -21,7 +21,7 @@ Complete [Your first agent](/docs/getting-started/first-agent) before starting t
 
 ```elixir
 Mix.install([
-  {:jido, "~> 2.0"}
+  {{mix_dep:jido}}
 ])
 ```
 

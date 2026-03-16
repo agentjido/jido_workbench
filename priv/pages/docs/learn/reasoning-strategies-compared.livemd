@@ -16,9 +16,9 @@ Complete [Your first LLM agent](/docs/getting-started/first-llm-agent) and [AI a
 
 ```elixir
 Mix.install([
-  {:jido, "~> 2.0"},
-  {:jido_ai, github: "agentjido/jido_ai", branch: "main"},
-  {:req_llm, "~> 1.6"}
+  {{mix_dep:jido}},
+  {{mix_dep:jido_ai}},
+  {{mix_dep:req_llm}}
 ])
 ```
 
