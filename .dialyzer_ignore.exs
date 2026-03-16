@@ -1,6 +1,7 @@
 [
   # Nostrum's generated consumer callback metadata is not available in all build environments.
   ~r/Callback info about the Nostrum\.Consumer behaviour is not available\./,
+  ~r/Function Nostrum\.ConsumerGroup\.join\/1 does not exist\./,
   {"deps/nostrum/lib/nostrum/consumer.ex", :unknown_function},
   {"lib/agent_jido/analytics.ex", :call},
   {"lib/agent_jido/analytics.ex", :unused_fun},

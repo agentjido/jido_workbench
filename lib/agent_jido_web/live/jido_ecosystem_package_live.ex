@@ -816,7 +816,7 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLive do
   defp normalize_faq_items(_), do: []
 
   defp landing_install(pkg) do
-    install = pkg.landing_install || %{}
+    install = pkg.landing_install
     snippet = install |> get_key(:snippet, "") |> normalize_multiline_text()
     source = install |> get_key(:source, nil) |> normalize_install_source()
 
@@ -988,8 +988,7 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLive do
   defp default_if_empty("", fallback), do: fallback
   defp default_if_empty(value, _fallback), do: value
 
-  defp internal_path?(href) when is_binary(href), do: String.starts_with?(String.trim(href), "/")
-  defp internal_path?(_href), do: false
+  defp internal_path?(href), do: String.starts_with?(normalize_text(href), "/")
 
   defp get_key(map, key, default) when is_map(map) do
     Map.get(map, key) || Map.get(map, Atom.to_string(key), default)
@@ -1006,24 +1005,22 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLive do
     end
   end
 
-  defp issue_queue_url(github_url) when is_binary(github_url) do
-    trimmed = String.trim(github_url)
+  defp issue_queue_url(github_url) do
+    case normalize_optional_text(github_url) do
+      nil ->
+        nil
 
-    if trimmed == "" do
-      nil
-    else
-      case URI.parse(trimmed) do
-        %URI{scheme: scheme, host: host, path: path}
-        when scheme in ["http", "https"] and host in ["github.com", "www.github.com"] ->
-          github_issue_url(path)
+      trimmed ->
+        case URI.parse(trimmed) do
+          %URI{scheme: scheme, host: host, path: path}
+          when scheme in ["http", "https"] and host in ["github.com", "www.github.com"] ->
+            github_issue_url(path)
 
-        _other ->
-          nil
-      end
+          _other ->
+            nil
+        end
     end
   end
-
-  defp issue_queue_url(_github_url), do: nil
 
   defp github_issue_url(path) do
     case path |> to_string() |> String.trim("/") |> String.split("/", trim: true) do

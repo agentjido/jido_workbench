@@ -27,7 +27,7 @@ defmodule AgentJidoWeb.JidoEcosystemPackageMatrixLiveTest do
     Enum.each(~w(jido jido_action), fn package_id ->
       {:ok, _view, html} = live(recycle(conn), "/ecosystem/#{package_id}")
 
-      assert html =~ "FULL OVERVIEW"
+      assert html =~ "DEEP DIVE"
       refute html =~ "Ecosystem Package Matrix"
     end)
   end

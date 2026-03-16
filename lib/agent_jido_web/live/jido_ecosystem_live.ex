@@ -725,7 +725,6 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
   defp layer_rank(:core), do: 2
   defp layer_rank(:ai), do: 3
   defp layer_rank(:app), do: 4
-  defp layer_rank(_layer), do: 99
 
   defp layer_filter_label(:all), do: "ALL"
   defp layer_filter_label(:foundation), do: "FOUNDATION"
