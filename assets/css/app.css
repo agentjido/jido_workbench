@@ -327,6 +327,24 @@
     background: hsl(var(--accent-red) / 0.15);
   }
 
+  .support-badge-stable {
+    @apply text-[9px] font-bold tracking-wider px-2 py-0.5 rounded;
+    color: hsl(var(--accent-green));
+    background: hsl(var(--accent-green) / 0.15);
+  }
+
+  .support-badge-beta {
+    @apply text-[9px] font-bold tracking-wider px-2 py-0.5 rounded;
+    color: hsl(var(--accent-yellow));
+    background: hsl(var(--accent-yellow) / 0.15);
+  }
+
+  .support-badge-experimental {
+    @apply text-[9px] font-bold tracking-wider px-2 py-0.5 rounded;
+    color: hsl(var(--accent-red));
+    background: hsl(var(--accent-red) / 0.15);
+  }
+
   .code-block {
     @apply rounded-lg border overflow-hidden;
     border-color: hsl(var(--code-border));
@@ -572,7 +590,7 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    min-height: 52rem;
+    min-height: 48rem;
     background:
       radial-gradient(
         120% 90% at 50% 55%,
@@ -614,50 +632,12 @@
     letter-spacing: 0.06em;
   }
 
-  .ecosystem-orbit-controls {
-    display: flex;
-    align-items: center;
-    gap: 0.45rem;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-  }
-
-  .ecosystem-orbit-control-group {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    padding: 0.16rem;
-    border-radius: 0.4rem;
-    border: 1px solid hsl(var(--orbit-border));
-    background: hsl(var(--orbit-surface) / 0.88);
-  }
-
-  .ecosystem-orbit-control {
-    border: 1px solid transparent;
-    border-radius: 0.3rem;
-    background: transparent;
+  .ecosystem-orbit-guidance {
+    font-size: 0.68rem;
     color: hsl(var(--orbit-muted));
-    font-size: 0.64rem;
-    letter-spacing: 0.08em;
-    font-weight: 600;
-    padding: 0.32rem 0.5rem;
-    transition: all 140ms ease;
-  }
-
-  .ecosystem-orbit-control:hover {
-    color: hsl(var(--orbit-fg));
-  }
-
-  .ecosystem-orbit-control-active {
-    color: var(--orbit-control-color, hsl(var(--orbit-fg)));
-    border-color: var(--orbit-control-color, hsl(var(--orbit-border-strong)));
-    background: hsl(var(--orbit-surface-soft));
-  }
-
-  .ecosystem-orbit-control-secondary {
-    border-color: hsl(var(--orbit-border));
-    background: hsl(var(--orbit-surface) / 0.82);
-    color: hsl(var(--orbit-fg));
+    letter-spacing: 0.03em;
+    text-align: right;
+    max-width: 18rem;
   }
 
   .ecosystem-orbit-stage {
@@ -674,14 +654,17 @@
   }
 
   .ecosystem-orbit-node,
-  .ecosystem-orbit-ring,
   .ecosystem-orbit-sun {
     cursor: pointer;
   }
 
+  .ecosystem-orbit-ring {
+    pointer-events: none;
+  }
+
   .ecosystem-orbit-bottom {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(18rem, 22rem);
+    grid-template-columns: minmax(0, 1fr) minmax(16rem, 18rem);
     gap: 1rem;
     padding: 0.25rem 0.9rem 0.9rem;
     align-items: start;
@@ -755,19 +738,17 @@
   }
 
   .ecosystem-orbit-detail {
-    min-height: 8rem;
+    min-height: 6.25rem;
   }
 
-  .ecosystem-orbit-detail-card,
-  .ecosystem-orbit-detail-empty {
+  .ecosystem-orbit-detail-card {
     border: 1px solid hsl(var(--orbit-border));
     border-radius: 0.45rem;
-    padding: 0.7rem;
+    padding: 0.65rem 0.7rem;
     background: hsl(var(--orbit-surface) / 0.92);
     box-shadow: inset 0 1px 0 hsl(var(--orbit-fg) / 0.05);
   }
 
-  .ecosystem-orbit-detail-title,
   .ecosystem-orbit-detail-heading {
     font-size: 0.72rem;
     color: hsl(var(--orbit-fg));
@@ -789,6 +770,14 @@
     font-size: 0.69rem;
     color: hsl(var(--orbit-fg));
     line-height: 1.5;
+  }
+
+  .ecosystem-orbit-detail-hint {
+    font-size: 0.68rem;
+    color: hsl(var(--orbit-muted));
+    line-height: 1.45;
+    padding: 0.35rem 0;
+    max-width: 15rem;
   }
 
   .ecosystem-orbit-detail-group {
@@ -863,6 +852,10 @@
   @media (max-width: 640px) {
     .ecosystem-depth-grid {
       grid-template-columns: 1fr;
+    }
+
+    .ecosystem-orbit-guidance {
+      display: none;
     }
 
     .ecosystem-graph-node {

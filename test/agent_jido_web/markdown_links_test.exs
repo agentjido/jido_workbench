@@ -38,4 +38,8 @@ defmodule AgentJidoWeb.MarkdownLinksTest do
     assert action.label == "Open canonical page"
     assert action.url == request_url
   end
+
+  test "preserves fragments when building markdown paths" do
+    assert MarkdownLinks.markdown_path("/ecosystem#compare") == "/ecosystem.md#compare"
+  end
 end

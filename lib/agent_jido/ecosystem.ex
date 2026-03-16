@@ -9,6 +9,7 @@ defmodule AgentJido.Ecosystem do
   """
 
   alias AgentJido.Ecosystem.Package
+  alias AgentJido.Ecosystem.SupportLevel
 
   use NimblePublisher,
     build: Package,
@@ -30,6 +31,14 @@ defmodule AgentJido.Ecosystem do
   @packages_by_tier @packages
                     |> Enum.group_by(& &1.tier)
                     |> Map.new()
+
+  @packages_by_support_level @packages
+                             |> Enum.group_by(&SupportLevel.normalize(&1.support_level))
+                             |> Map.new()
+
+  @public_packages_by_support_level @public_packages
+                                    |> Enum.group_by(&SupportLevel.normalize(&1.support_level))
+                                    |> Map.new()
 
   @tags @packages
         |> Enum.flat_map(& &1.tags)
@@ -86,11 +95,21 @@ defmodule AgentJido.Ecosystem do
   @spec packages_by_tier(integer()) :: [Package.t()]
   def packages_by_tier(tier), do: Map.get(@packages_by_tier, tier, [])
 
+  @spec packages_by_support_level(SupportLevel.t() | String.t()) :: [Package.t()]
+  def packages_by_support_level(level), do: Map.get(@packages_by_support_level, SupportLevel.normalize(level), [])
+
+  @spec public_packages_by_support_level(SupportLevel.t() | String.t()) :: [Package.t()]
+  def public_packages_by_support_level(level),
+    do: Map.get(@public_packages_by_support_level, SupportLevel.normalize(level), [])
+
   @spec all_categories() :: [atom()]
   def all_categories, do: @categories
 
   @spec all_tags() :: [atom()]
   def all_tags, do: @tags
+
+  @spec support_levels() :: [SupportLevel.definition()]
+  def support_levels, do: SupportLevel.all()
 
   @spec ecosystem_deps(String.t()) :: [String.t()]
   def ecosystem_deps(id) do

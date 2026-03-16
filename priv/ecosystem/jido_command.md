@@ -14,6 +14,7 @@
   github_repo: "jido_command",
   elixir: "~> 1.19",
   maturity: :experimental,
+  support_level: :experimental,
   hex_status: "unreleased",
   api_stability: "unstable - command schema and lifecycle event contracts may change",
   stub: false,
@@ -64,4 +65,3 @@ Publishes typed command lifecycle events so execution can be observed and integr
 ### CLI Surface
 
 Provides escript and mix-task entry points for invoking, listing, reloading, and monitoring command operations.
-

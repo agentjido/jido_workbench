@@ -44,10 +44,10 @@ defmodule AgentJido.OGImage.Resolver do
     },
     "/ecosystem/matrix" => %{
       template: :marketing,
-      title: "Jido Ecosystem Package Matrix",
-      subtitle: "Compare responsibilities, dependencies, and maturity across the curated Jido ecosystem packages.",
-      eyebrow: "PACKAGE MATRIX",
-      badges: ["Matrix", "Dependencies", "Maturity"]
+      title: "Jido Ecosystem Compare Packages",
+      subtitle: "Compare responsibilities, dependencies, and support levels from the main Jido ecosystem hub.",
+      eyebrow: "COMPARE PACKAGES",
+      badges: ["Compare", "Dependencies", "Support Levels"]
     },
     "/examples" => %{
       template: :marketing,

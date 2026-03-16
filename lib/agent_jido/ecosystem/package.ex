@@ -8,6 +8,8 @@ defmodule AgentJido.Ecosystem.Package do
   as raw Markdown for RAG ingestion.
   """
 
+  alias AgentJido.Ecosystem.SupportLevel
+
   @schema Zoi.struct(
             __MODULE__,
             %{
@@ -22,6 +24,9 @@ defmodule AgentJido.Ecosystem.Package do
                 |> Zoi.optional(),
               orbit_order:
                 Zoi.integer(description: "Optional explicit orbit sort order within a domain")
+                |> Zoi.optional(),
+              compare_order:
+                Zoi.integer(description: "Optional explicit sort order for ecosystem comparison views")
                 |> Zoi.optional(),
               orbit_label:
                 Zoi.string(description: "Optional short label override for orbit node rendering")
@@ -65,6 +70,9 @@ defmodule AgentJido.Ecosystem.Package do
                 Zoi.any(description: "List of ecosystem package id strings this depends on")
                 |> Zoi.default([]),
               key_features: Zoi.any(description: "List of feature highlight strings") |> Zoi.default([]),
+              support_level:
+                Zoi.atom(description: "Public support level (stable, beta, experimental)")
+                |> Zoi.optional(),
               maturity:
                 Zoi.atom(description: "Maturity tier (stable, beta, experimental, planned)")
                 |> Zoi.default(:experimental),
@@ -106,6 +114,12 @@ defmodule AgentJido.Ecosystem.Package do
       |> Path.rootname()
       |> Path.basename()
 
+    support_level =
+      attrs
+      |> Map.get(:support_level)
+      |> Kernel.||(Map.get(attrs, :maturity))
+      |> SupportLevel.normalize()
+
     attrs =
       attrs
       |> Map.put(:id, id)
@@ -113,10 +127,14 @@ defmodule AgentJido.Ecosystem.Package do
       |> Map.put(:path, filename)
       |> Map.put_new(:name, id)
       |> Map.put_new(:title, id |> String.replace("_", " ") |> String.split() |> Enum.map_join(" ", &String.capitalize/1))
+      |> maybe_put(:support_level, support_level)
 
     case Zoi.parse(@schema, attrs) do
       {:ok, package} -> package
       {:error, errors} -> raise "Invalid package #{id}: #{inspect(errors)}"
     end
   end
+
+  defp maybe_put(attrs, _key, nil), do: attrs
+  defp maybe_put(attrs, key, value), do: Map.put(attrs, key, value)
 end

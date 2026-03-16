@@ -36,13 +36,21 @@ defmodule AgentJidoWeb.MarkdownLinks do
   """
   @spec markdown_path(String.t()) :: String.t()
   def markdown_path(path) when is_binary(path) do
-    normalized_path =
-      if String.starts_with?(path, "/"), do: path, else: "/" <> path
+    {base_path, fragment} = split_fragment(path)
 
-    cond do
-      normalized_path == "/" -> "/index.md"
-      String.ends_with?(normalized_path, ".md") -> normalized_path
-      true -> normalized_path <> ".md"
+    normalized_path =
+      if String.starts_with?(base_path, "/"), do: base_path, else: "/" <> base_path
+
+    markdown_base =
+      cond do
+        normalized_path == "/" -> "/index.md"
+        String.ends_with?(normalized_path, ".md") -> normalized_path
+        true -> normalized_path <> ".md"
+      end
+
+    case fragment do
+      nil -> markdown_base
+      value -> markdown_base <> "#" <> value
     end
   end
 
@@ -200,5 +208,13 @@ defmodule AgentJidoWeb.MarkdownLinks do
 
   defp markdown_file_url?(url) when is_binary(url) do
     String.match?(url, ~r/\.(md|livemd)(?:$|[?#])/i)
+  end
+
+  defp split_fragment(path) do
+    case String.split(path, "#", parts: 2) do
+      [base_path, fragment] when fragment != "" -> {base_path, fragment}
+      [base_path, _fragment] -> {base_path, nil}
+      [base_path] -> {base_path, nil}
+    end
   end
 end

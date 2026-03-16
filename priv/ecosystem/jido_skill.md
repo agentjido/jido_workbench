@@ -14,6 +14,7 @@
   github_repo: "jido_skill",
   elixir: "~> 1.18",
   maturity: :experimental,
+  support_level: :experimental,
   hex_status: "unreleased",
   api_stability: "unstable - pre-1.0 skill dispatch and registry behavior may change",
   stub: false,

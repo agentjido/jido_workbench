@@ -13,6 +13,7 @@
   github_org: "agentjido",
   github_repo: "jido_flame",
   maturity: :experimental,
+  support_level: :experimental,
   hex_status: "unreleased",
   api_stability: "unstable — expect breaking changes",
   stub: false,

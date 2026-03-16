@@ -47,8 +47,6 @@ defmodule AgentJidoWeb.Router do
       live "/", JidoHomeLive, :index
       live "/skills", JidoSkillsLive, :index
       live "/ecosystem", JidoEcosystemLive, :index
-      # Keep static route above /ecosystem/:id so this page never collides with package ids.
-      live "/ecosystem/matrix", JidoEcosystemPackageMatrixLive, :index
       live "/ecosystem/:id", JidoEcosystemPackageLive, :show
       live "/getting-started", JidoGettingStartedLive, :index
 

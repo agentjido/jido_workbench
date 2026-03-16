@@ -3,6 +3,7 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLive do
 
   alias AgentJido.Ecosystem
   alias AgentJido.Ecosystem.Layering
+  alias AgentJido.Ecosystem.SupportLevel
   alias AgentJido.GithubStarsTracker
   alias AgentJidoWeb.MarkdownLinks
 
@@ -18,6 +19,9 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLive do
     package = Ecosystem.get_public_package!(id)
     stars = GithubStarsTracker.stars_for(package.id)
     package_hero_summary = hero_summary(package)
+    dependencies = resolve_packages(package.ecosystem_deps || [])
+    reverse_dependencies = resolve_packages(Ecosystem.reverse_deps(package.id))
+    support_level = SupportLevel.definition(package.support_level) || SupportLevel.definition(:experimental)
 
     {:ok,
      assign(socket,
@@ -28,13 +32,15 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLive do
        package_links: package_links(package, stars),
        markdown_action: MarkdownLinks.markdown_action(package, MarkdownLinks.absolute_url("/ecosystem/#{package.id}")),
        hero_summary: package_hero_summary,
+       support_level: support_level,
        cliff_notes: cliff_notes(package),
        major_components: major_components(package),
        important_packages: important_packages(package),
        module_map: module_map(package),
        quick_install: quick_install_snippet(package),
-       dependencies: resolve_packages(package.ecosystem_deps || []),
-       reverse_dependencies: resolve_packages(Ecosystem.reverse_deps(package.id))
+       dependencies: dependencies,
+       reverse_dependencies: reverse_dependencies,
+       structured_data: package_structured_data(package, package_hero_summary)
      )}
   end
 
@@ -56,8 +62,12 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLive do
         <section class="ecosystem-package-hero mb-10">
           <div class="flex flex-wrap items-center gap-3 mb-3">
             <.layer_badge layer={@layer} />
+            <.support_level_badge level={@support_level.id} />
             <span class="text-[11px] uppercase tracking-wide text-muted-foreground">
               version {@package.version}
+            </span>
+            <span class="text-[11px] uppercase tracking-wide text-muted-foreground">
+              {@package.hex_status}
             </span>
             <span class="text-[11px] uppercase tracking-wide text-muted-foreground">
               package {@package.name}
@@ -68,6 +78,46 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLive do
           <p class="copy-measure-wide mb-5 text-sm leading-relaxed text-secondary-foreground">
             {@hero_summary}
           </p>
+
+          <div class="grid gap-4 md:grid-cols-2 mb-6">
+            <article class="bg-card border border-border rounded-md p-4">
+              <div class="text-[10px] uppercase tracking-wide text-muted-foreground mb-2">Support Status</div>
+              <div class="flex flex-wrap items-center gap-2 mb-3">
+                <.support_level_badge level={@support_level.id} />
+                <span class="text-[11px] uppercase tracking-wide text-muted-foreground">
+                  {@package.hex_status}
+                </span>
+              </div>
+              <p class="text-xs text-muted-foreground leading-relaxed">{@support_level.short_commitment}</p>
+            </article>
+
+            <article class="bg-card border border-border rounded-md p-4">
+              <div class="text-[10px] uppercase tracking-wide text-muted-foreground mb-2">Ecosystem Fit</div>
+              <div class="flex flex-wrap gap-2 mb-3">
+                <span class="text-[10px] px-2 py-1 rounded bg-primary/10 text-primary">
+                  depends on {length(@dependencies)}
+                </span>
+                <span class="text-[10px] px-2 py-1 rounded bg-elevated text-muted-foreground">
+                  used by {length(@reverse_dependencies)}
+                </span>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <%= for pkg <- Enum.take(@dependencies, 3) do %>
+                  <.link navigate={pkg.path} class="text-[10px] px-2 py-1 rounded bg-primary/10 text-primary hover:bg-primary/15 transition-colors">
+                    {pkg.title}
+                  </.link>
+                <% end %>
+                <%= for pkg <- Enum.take(@reverse_dependencies, 3) do %>
+                  <.link navigate={pkg.path} class="text-[10px] px-2 py-1 rounded bg-card border border-border hover:border-primary/40 transition-colors">
+                    {pkg.title}
+                  </.link>
+                <% end %>
+                <%= if @dependencies == [] and @reverse_dependencies == [] do %>
+                  <span class="text-xs text-muted-foreground">No direct ecosystem relationships are declared.</span>
+                <% end %>
+              </div>
+            </article>
+          </div>
 
           <%= if @package_links != [] do %>
             <div class="flex gap-2 flex-wrap mb-5">
@@ -303,9 +353,16 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLive do
 
   defp package_meta_description(pkg, summary) do
     normalized_summary = normalize_text(summary)
+    support_label = SupportLevel.label(pkg.support_level)
 
     if normalized_summary == "" do
-      "Learn about #{pkg.title} in the Jido ecosystem and how it composes with related packages."
+      prefix =
+        case support_label do
+          nil -> pkg.title
+          label -> "#{pkg.title} (#{label})"
+        end
+
+      "Learn about #{prefix} in the Jido ecosystem and how it composes with related packages."
     else
       normalized_summary
     end
@@ -557,6 +614,56 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLive do
 
   defp default_if_empty("", fallback), do: fallback
   defp default_if_empty(value, _fallback), do: value
+
+  defp package_structured_data(pkg, summary) do
+    [
+      %{
+        "@context" => "https://schema.org",
+        "@type" => "BreadcrumbList",
+        "itemListElement" => [
+          breadcrumb_item(1, "Jido", "/"),
+          breadcrumb_item(2, "Ecosystem", "/ecosystem"),
+          breadcrumb_item(3, pkg.title, "/ecosystem/#{pkg.id}")
+        ]
+      },
+      software_source_code_schema(pkg, summary)
+    ]
+  end
+
+  defp software_source_code_schema(pkg, summary) do
+    %{
+      "@context" => "https://schema.org",
+      "@type" => "SoftwareSourceCode",
+      "name" => pkg.title,
+      "description" => normalize_text(summary),
+      "url" => MarkdownLinks.absolute_url("/ecosystem/#{pkg.id}"),
+      "codeRepository" => pkg.github_url,
+      "programmingLanguage" => "Elixir",
+      "runtimePlatform" => "Elixir/OTP",
+      "license" => pkg.license,
+      "version" => pkg.version,
+      "keywords" =>
+        [Layering.layer_for(pkg) |> Atom.to_string(), SupportLevel.label(pkg.support_level) | List.wrap(pkg.tags)]
+        |> Enum.reject(&is_nil/1)
+        |> Enum.map(&to_string/1)
+        |> Enum.join(", "),
+      "maintainer" => %{
+        "@type" => "Organization",
+        "name" => "Jido"
+      }
+    }
+    |> Enum.reject(fn {_key, value} -> is_nil(value) or value == "" end)
+    |> Map.new()
+  end
+
+  defp breadcrumb_item(position, name, path) do
+    %{
+      "@type" => "ListItem",
+      "position" => position,
+      "name" => name,
+      "item" => MarkdownLinks.absolute_url(path)
+    }
+  end
 
   defp get_key(map, key, default) when is_map(map) do
     Map.get(map, key) || Map.get(map, Atom.to_string(key), default)

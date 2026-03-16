@@ -199,6 +199,19 @@ defmodule AgentJidoWeb.PageLiveTest do
       assert html =~ page.title
     end
 
+    test "renders the package support levels contributors page", %{conn: conn} do
+      page = Pages.get_page_by_path("/docs/contributors/package-support-levels")
+      assert page != nil
+
+      {:ok, _view, html} = live(conn, page.path)
+
+      assert html =~ "Package Support Levels"
+      assert html =~ "Stable"
+      assert html =~ "Beta"
+      assert html =~ "Experimental"
+      assert html =~ "Every public ecosystem package should carry one public"
+    end
+
     test "docs right rail includes Livebook run link for livebook-backed docs pages", %{conn: conn} do
       page = Pages.get_page_by_path("/docs/concepts/agents")
       assert page != nil

@@ -9,7 +9,9 @@ defmodule AgentJidoWeb.Jido.MarketingCards do
   attr :desc_class, :string, default: "text-muted-foreground"
   attr :layer, :atom, values: [:core, :ai, :foundation, :app], required: true
   attr :path, :string, default: nil
-  attr :links, :map, default: %{}
+  attr :links, :list, default: []
+  attr :support_level, :atom, values: [:stable, :beta, :experimental], default: :experimental
+  attr :dependency_labels, :list, default: []
 
   def package_card(assigns) do
     ~H"""
@@ -25,9 +27,27 @@ defmodule AgentJidoWeb.Jido.MarketingCards do
 
       <div class="flex justify-between items-start mb-3">
         <span class="text-sm font-bold text-foreground group-hover:text-primary transition-colors">{@name}</span>
-        <.layer_badge layer={@layer} />
+        <div class="flex items-center gap-1.5">
+          <.layer_badge layer={@layer} />
+          <.support_level_badge level={@support_level} />
+        </div>
       </div>
       <p class={"text-xs #{@desc_class} leading-relaxed mb-4"}>{@desc}</p>
+
+      <div class="mb-4">
+        <div class="text-[9px] uppercase tracking-wider text-muted-foreground mb-1.5">depends on</div>
+        <div class="flex flex-wrap gap-1.5">
+          <%= if @dependency_labels == [] do %>
+            <span class="text-[10px] px-2 py-0.5 rounded border border-border/70 text-muted-foreground">none</span>
+          <% else %>
+            <%= for label <- @dependency_labels do %>
+              <span class="text-[10px] px-2 py-0.5 rounded border border-border bg-surface text-foreground">
+                {label}
+              </span>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
 
       <div class="relative z-20 flex gap-2 flex-wrap">
         <%= if @path do %>
@@ -50,6 +70,16 @@ defmodule AgentJidoWeb.Jido.MarketingCards do
   def layer_badge(assigns) do
     ~H"""
     <span class={"badge-#{@layer} uppercase"}>{@layer}</span>
+    """
+  end
+
+  attr :level, :atom, values: [:stable, :beta, :experimental], required: true
+
+  def support_level_badge(assigns) do
+    ~H"""
+    <span class={"support-badge-#{@level} uppercase"}>
+      {support_level_label(@level)}
+    </span>
     """
   end
 
@@ -97,4 +127,8 @@ defmodule AgentJidoWeb.Jido.MarketingCards do
     </div>
     """
   end
+
+  defp support_level_label(:stable), do: "stable"
+  defp support_level_label(:beta), do: "beta"
+  defp support_level_label(:experimental), do: "experimental"
 end

@@ -25,7 +25,6 @@ defmodule AgentJido.Ecosystem.Layering do
   }
 
   @category_defaults %{
-    core: :core,
     ai: :ai,
     integrations: :app,
     tools: :app,

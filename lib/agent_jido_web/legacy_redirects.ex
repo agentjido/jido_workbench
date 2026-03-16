@@ -8,7 +8,8 @@ defmodule AgentJidoWeb.LegacyRedirects do
 
   @doc_redirects AgentJido.Pages.docs_legacy_redirects()
   @extra_redirects [
-    {"/ecosystem/package-matrix", "/ecosystem/matrix"}
+    {"/ecosystem/matrix", "/ecosystem#compare"},
+    {"/ecosystem/package-matrix", "/ecosystem#compare"}
   ]
 
   @redirects Map.new(@doc_redirects ++ @extra_redirects)

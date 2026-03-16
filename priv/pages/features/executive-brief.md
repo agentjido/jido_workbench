@@ -18,7 +18,7 @@ This page is for engineering managers, CTOs, and architecture leads evaluating w
 | Core differentiator | Elixir/OTP runtime semantics: isolation, supervision, and concurrency |
 | Intelligence posture | LLM integration is optional, not mandatory |
 | Adoption model | Bounded pilot -> measured expansion -> operations hardening |
-| First decision path | [Package matrix](/ecosystem/matrix) -> [Reference architectures](/build/reference-architectures) |
+| First decision path | [Compare packages](/ecosystem#compare) -> [Reference architectures](/build/reference-architectures) |
 
 ## What you are buying architecturally
 
@@ -44,7 +44,7 @@ This page is for engineering managers, CTOs, and architecture leads evaluating w
 |---|---|---|
 | 0-30 days | prove runtime fit on one workflow | supervised pilot + acceptance criteria |
 | 31-60 days | operationalize with visibility and runbooks | telemetry baseline + incident playbook |
-| 61-90 days | expand package footprint where justified | package matrix update + architecture review |
+| 61-90 days | expand package footprint where justified | compare table review + architecture review |
 
 ## Proof: supervised orchestration runtime in one process
 
@@ -78,7 +78,7 @@ This is the same runtime model used for larger adoption phases.
 ## Recommended next moves
 
 - Build one pilot scope in [Quickstarts by persona](/build/quickstarts-by-persona).
-- Review package choices in [Package matrix](/ecosystem/matrix).
+- Review package choices in [Compare packages](/ecosystem#compare).
 - **Agent model foundations:** [BEAM-native agent model](/features/beam-native-agent-model)
 - Validate rollout criteria with [Production readiness checklist](/docs/operations/production-readiness-checklist).
 

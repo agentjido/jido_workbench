@@ -5,7 +5,7 @@
   version: "0.1.0",
   tagline: "Distributed keyed instance management and storage for multi-node Jido runtimes",
   license: "Apache-2.0",
-  visibility: :private,
+  visibility: :public,
   category: :runtime,
   tier: 2,
   tags: [:cluster, :distributed, :runtime, :storage, :agents],
@@ -14,6 +14,7 @@
   github_repo: "jido_cluster",
   elixir: "~> 1.18",
   maturity: :experimental,
+  support_level: :experimental,
   hex_status: "unreleased",
   api_stability: "unstable - distributed runtime and storage APIs are pre-1.0",
   stub: false,
@@ -64,4 +65,3 @@ Includes conservative periodic migration controls so ownership can adapt without
 ### Storage Integrations
 
 Provides cluster-friendly storage adapter options for shared persistence in distributed runtime topologies.
-

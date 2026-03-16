@@ -47,5 +47,5 @@ Cover:
 ### Validation Criteria
 
 - Includes a clear 30/60/90 plan with measurable gates
-- Includes cross-links to package matrix, operate baseline, and manager training roadmap
+- Includes cross-links to the ecosystem compare table, operate baseline, and manager training roadmap
 - Keeps claims bounded to demonstrable system behavior
