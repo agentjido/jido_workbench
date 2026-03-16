@@ -31,7 +31,7 @@ defmodule AgentJidoWeb.Jido.NavTest do
     refute Nav.jido_version() == "unknown"
   end
 
-  test "primary nav links exclude retired training/search routes" do
+  test "primary nav links exclude retired and hidden routes" do
     links = Nav.primary_nav_links()
     hrefs = Enum.map(links, &elem(&1, 1))
 
@@ -45,6 +45,7 @@ defmodule AgentJidoWeb.Jido.NavTest do
 
     refute "/training" in hrefs
     refute "/search" in hrefs
+    refute "/skills" in hrefs
   end
 
   test "footer resource links exclude retired training/search routes" do

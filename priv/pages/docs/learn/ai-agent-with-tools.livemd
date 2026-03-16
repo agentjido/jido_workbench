@@ -56,7 +56,7 @@ By the end of this tutorial, you will have an agent that answers weather questio
 IO.puts(answer)
 ```
 
-The agent geocodes "Denver" to coordinates, fetches the forecast from the National Weather Service API, and synthesizes practical advice. All tool calls happen automatically through the ReAct loop.
+The agent geocodes "Denver" to coordinates, resolves those coordinates into the NWS URLs it needs, fetches the forecast from the National Weather Service API, and synthesizes practical advice. All tool calls happen automatically through the ReAct loop.
 
 > Output varies between runs because the LLM generates different responses and real weather data changes.
 
@@ -77,11 +77,30 @@ Jido.Tools.Weather.Geocode.run(
 
 This returns `{:ok, %{lat: "39.7...", lng: "-104.9..."}}`. The geocode tool uses OpenStreetMap Nominatim, which is free and unauthenticated.
 
-`Jido.Tools.Weather.Forecast` fetches the NWS forecast for a coordinate pair:
+`Jido.Tools.Weather.LocationToGrid` resolves a `"lat,lng"` coordinate pair into the NWS URLs you need for downstream weather lookups:
+
+```elixir
+{:ok, grid_info} =
+  Jido.Tools.Weather.LocationToGrid.run(
+  %{location: "39.7392,-104.9903"},
+  %{}
+)
+```
+
+Then `Jido.Tools.Weather.Forecast` uses the forecast URL returned by `LocationToGrid`:
 
 ```elixir
 Jido.Tools.Weather.Forecast.run(
-  %{location: "39.7392,-104.9903"},
+  %{forecast_url: grid_info.urls.forecast},
+  %{}
+)
+```
+
+For current conditions, use the observation-stations URL from that same lookup:
+
+```elixir
+Jido.Tools.Weather.CurrentConditions.run(
+  %{observation_stations_url: grid_info.urls.observation_stations},
   %{}
 )
 ```
@@ -136,6 +155,7 @@ defmodule MyApp.WeatherAgent do
     description: "Weather assistant with tool access",
     tools: [
       Jido.Tools.Weather.Geocode,
+      Jido.Tools.Weather.LocationToGrid,
       Jido.Tools.Weather.Forecast,
       Jido.Tools.Weather.CurrentConditions,
       MyApp.TemperatureConverter
@@ -144,9 +164,9 @@ defmodule MyApp.WeatherAgent do
     max_iterations: 6,
     system_prompt: """
     You are a helpful weather assistant.
-    The weather tools accept "lat,lng" coordinate strings.
-    Always use weather_geocode to convert city names to coordinates first.
-    Then fetch the forecast or current conditions.
+    Use weather_geocode to convert city names to coordinates first.
+    Then use weather_location_to_grid to get the NWS forecast and observation URLs.
+    Use the forecast URL for forecasts and the observation stations URL for current conditions.
     Provide practical, conversational advice.
     """
 end
@@ -169,7 +189,7 @@ When you send a query, the agent runs a Reason-Act loop:
 4. The tool result is sent back to the LLM as additional context.
 5. Steps 2 through 4 repeat until the LLM produces a final text answer or `max_iterations` is reached.
 
-For a question like "What's the weather in Denver?", the loop typically runs two iterations: one to geocode "Denver" into coordinates, one to fetch the forecast. The LLM then synthesizes the raw forecast data into a conversational answer.
+For a question like "What's the weather in Denver?", the loop typically runs three iterations: one to geocode "Denver" into coordinates, one to resolve those coordinates into NWS URLs, and one to fetch the forecast or current conditions. The LLM then synthesizes the raw weather data into a conversational answer.
 
 The `max_iterations` bound prevents infinite loops. If the agent exhausts its iterations without a final answer, `ask_sync/3` returns `{:error, reason}`.
 
@@ -189,7 +209,7 @@ Start the Agent through `Jido.AgentServer` and send a query with `ask_sync/3`:
 IO.puts(answer)
 ```
 
-The timeout should be generous because the agent makes multiple LLM calls and external API requests in sequence. 60 seconds is reasonable for a two-tool chain.
+The timeout should be generous because the agent makes multiple LLM calls and external API requests in sequence. 60 seconds is reasonable for a three-step weather lookup chain.
 
 Try a follow-up query on the same agent process:
 
@@ -214,6 +234,7 @@ defmodule MyApp.WeatherAgent do
     description: "Weather assistant with tool access",
     tools: [
       Jido.Tools.Weather.Geocode,
+      Jido.Tools.Weather.LocationToGrid,
       Jido.Tools.Weather.Forecast,
       Jido.Tools.Weather.CurrentConditions,
       MyApp.TemperatureConverter
@@ -222,9 +243,9 @@ defmodule MyApp.WeatherAgent do
     max_iterations: 6,
     system_prompt: """
     You are a helpful weather assistant.
-    The weather tools accept "lat,lng" coordinate strings.
-    Always use weather_geocode to convert city names to coordinates first.
-    Then fetch the forecast or current conditions.
+    Use weather_geocode to convert city names to coordinates first.
+    Then use weather_location_to_grid to get the NWS forecast and observation URLs.
+    Use the forecast URL for forecasts and the observation stations URL for current conditions.
     Provide practical, conversational advice.
     """
 

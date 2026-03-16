@@ -173,6 +173,23 @@ defmodule AgentJido.PagesTest do
       assert source =~ "{:ai_react_start, params}"
       assert source =~ "super(%{agent | state: updated_state}, {:ai_react_start, updated_params})"
     end
+
+    test "AI agent with tools guide uses the LocationToGrid weather flow" do
+      source =
+        File.read!(Path.expand("priv/pages/docs/learn/ai-agent-with-tools.livemd", File.cwd!()))
+
+      assert source =~ "Jido.Tools.Weather.LocationToGrid.run"
+      assert source =~ "%{forecast_url: grid_info.urls.forecast}"
+      assert source =~ "%{observation_stations_url: grid_info.urls.observation_stations}"
+      assert source =~ "weather_location_to_grid"
+
+      refute source =~ """
+             Jido.Tools.Weather.Forecast.run(
+               %{location: "39.7392,-104.9903"},
+               %{}
+             )
+             """
+    end
   end
 
   describe "pages_by_category/1" do

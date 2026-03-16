@@ -236,11 +236,26 @@ defmodule AgentJidoWeb.PageLiveTest do
       assert recipe_html =~ "Cookbook: Chat Response"
     end
 
+    test "AI agent with tools page documents the LocationToGrid weather flow", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/docs/learn/ai-agent-with-tools")
+
+      assert html =~ "weather_location_to_grid"
+      assert html =~ "forecast URL"
+      assert html =~ "observation stations URL"
+    end
+
     test "docs right rail quick links include For Agents entry", %{conn: conn} do
       {:ok, _view, html} = live(conn, "/docs/concepts/agents")
 
       assert html =~ "For Agents"
       assert html =~ ~s(href="/docs/concepts/agents.md")
+    end
+
+    test "docs table of contents uses the right-rail breakpoint from lg upward", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/docs/concepts/agents")
+
+      assert html =~ ~s(class="lg:hidden")
+      assert html =~ ~s(class="docs-column-height hidden lg:flex)
     end
 
     test "docs code blocks preserve syntax highlighter whitespace tokens", %{conn: conn} do
