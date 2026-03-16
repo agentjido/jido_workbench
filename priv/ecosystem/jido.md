@@ -22,12 +22,146 @@
   api_stability: "evolving — 2.0 shipped, but expect continued API refinements across early 2.x",
   stub: false,
   support: :maintained,
+  landing_summary: "Jido is the Elixir agent framework for building long-running, autonomous, multi-agent systems on OTP and the BEAM.",
+  seo: %{
+    title: "Jido Elixir agent framework for autonomous multi-agent systems",
+    description: "Jido is an Elixir agent framework for long-running, deterministic, multi-agent systems on OTP. Learn when to use it, the key modules, and where to start.",
+    keywords: [
+      "jido",
+      "elixir agent framework",
+      "otp agents",
+      "multi-agent systems",
+      "beam agent runtime",
+      "Jido.Agent",
+      "Jido.AgentServer"
+    ],
+    og_title: "Jido: Elixir agent framework on OTP",
+    og_description: "Build long-running, multi-agent Elixir systems with a deterministic runtime, explicit directives, and BEAM-native supervision."
+  },
   limitations: [
     "Early 2.x hardening may still introduce focused breaking changes",
     "Persistence adapters are limited (hibernate/thaw only, no built-in DB adapter)",
     "Distributed multi-node agent coordination requires manual setup"
   ],
   ecosystem_deps: ["jido_action", "jido_signal"],
+  landing_use_when: [
+    "You need long-running, stateful agents that fit naturally into OTP supervision trees.",
+    "You want deterministic agent logic with explicit side effects and testable command handling.",
+    "You are building multi-agent workflows on the BEAM and need a stronger contract than raw GenServer callbacks."
+  ],
+  landing_not_for: [
+    "You only need a thin wrapper around a single LLM call or request-response helper.",
+    "You want a batteries-included end-user product UI rather than a runtime framework.",
+    "You need turnkey multi-node distributed coordination without designing those runtime boundaries yourself."
+  ],
+  landing_resources: [
+    %{
+      group: :start_here,
+      label: "Your first agent",
+      href: "/docs/getting-started/first-agent",
+      description: "Build a working Jido agent and run cmd/2 end to end."
+    },
+    %{
+      group: :start_here,
+      label: "Agents concept guide",
+      href: "/docs/concepts/agents",
+      description: "Understand the agent contract, state model, and directive loop before scaling out."
+    },
+    %{
+      group: :guides,
+      label: "Testing agents and actions",
+      href: "/docs/guides/testing-agents-and-actions",
+      description: "Write deterministic tests around actions, directives, and runtime behavior."
+    },
+    %{
+      group: :guides,
+      label: "Error handling and recovery",
+      href: "/docs/guides/error-handling-and-recovery",
+      description: "Set error policies and recover safely in long-running agent processes."
+    },
+    %{
+      group: :examples,
+      label: "Counter Agent example",
+      href: "/examples/counter-agent",
+      description: "Study the smallest runnable Jido example for state and action flow."
+    },
+    %{
+      group: :examples,
+      label: "Demand Tracker Agent example",
+      href: "/examples/demand-tracker-agent",
+      description: "See a more realistic stateful workflow built on the runtime."
+    },
+    %{
+      group: :reference,
+      label: "Agent runtime",
+      href: "/docs/concepts/agent-runtime",
+      description: "See how directives, signals, and AgentServer fit together operationally."
+    },
+    %{
+      group: :reference,
+      label: "Architecture decision guides",
+      href: "/docs/reference/architecture-decision-guides",
+      description: "Choose when Jido is the right abstraction versus adjacent BEAM patterns."
+    }
+  ],
+  landing_related_packages: [
+    %{
+      id: "jido_action",
+      relationship: :builds_on,
+      reason: "Defines the typed action contract that powers cmd/2 and directive-driven execution."
+    },
+    %{
+      id: "jido_signal",
+      relationship: :builds_on,
+      reason: "Provides the signal envelope and routing surface used for agent communication."
+    },
+    %{
+      id: "jido_ai",
+      relationship: :works_with,
+      reason: "Adds LLM reasoning, tool use, and higher-level intelligence on top of the runtime."
+    },
+    %{
+      id: "jido_live_dashboard",
+      relationship: :works_with,
+      reason: "Gives you live operational visibility into running agents during debugging and local ops work."
+    },
+    %{
+      id: "jido_memory",
+      relationship: :next_step,
+      reason: "Add memory and retrieval when the runtime needs persistent context beyond in-process state."
+    },
+    %{
+      id: "jido_runic",
+      relationship: :next_step,
+      reason: "Move from single-agent commands to workflow-style orchestration when execution graphs get more complex."
+    }
+  ],
+  landing_faq: [
+    %{
+      question: "Do I need jido_ai to use Jido?",
+      answer: "No. Jido is the runtime and agent framework. You can build deterministic agents, signals, directives, and workflows without any LLM layer, then add jido_ai later if the system needs model-driven reasoning."
+    },
+    %{
+      question: "How is Jido different from a GenServer?",
+      answer: "GenServer gives you process primitives. Jido adds an agent contract, validated state, explicit directives, signal routing, and a cleaner separation between decision logic and side effects."
+    },
+    %{
+      question: "Which packages usually come next after jido?",
+      answer: "Most stacks start with jido_action and jido_signal as the core runtime companions. From there, jido_ai, jido_memory, jido_browser, and jido_live_dashboard are common additions depending on whether you need reasoning, memory, tools, or observability."
+    }
+  ],
+  landing_install: %{
+    label: "Add to mix.exs",
+    source: :hex,
+    note: "Use the published Hex release for the stable runtime. Add companion packages only when your system needs those capabilities directly.",
+    snippet: """
+    defp deps do
+      [
+        {:jido, "~> 2.1.0"}
+      ]
+    end
+    """
+  },
   landing_major_components: [
     %{
       name: "Jido.Agent",
@@ -48,6 +182,11 @@
       name: "Jido.Plugin",
       summary: "Composable extension mechanism for capabilities, hooks, and state.",
       docs_url: "https://hexdocs.pm/jido/Jido.Plugin.html"
+    },
+    %{
+      name: "Jido.Discovery",
+      summary: "Persistent catalog for discovering actions, agents, plugins, and sensors at runtime.",
+      docs_url: "https://hexdocs.pm/jido/Jido.Discovery.html"
     },
     %{
       name: "Jido.Agent.Directive",

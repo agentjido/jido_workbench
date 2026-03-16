@@ -45,6 +45,34 @@ defmodule AgentJido.Ecosystem.Package do
               landing_cliff_notes:
                 Zoi.any(description: "List of short cliff-note bullets for landing pages")
                 |> Zoi.default([]),
+              landing_use_when:
+                Zoi.any(description: "List of concise reasons this package is the right choice")
+                |> Zoi.default([]),
+              landing_not_for:
+                Zoi.any(description: "List of concise cases where this package is not the right fit")
+                |> Zoi.default([]),
+              landing_resources:
+                Zoi.any(description: "Curated internal or external resource links grouped for package landing pages")
+                |> Zoi.default([]),
+              landing_related_packages:
+                Zoi.any(description: "Curated related package links grouped by relationship for landing pages")
+                |> Zoi.default([]),
+              landing_faq:
+                Zoi.any(description: "Curated FAQ entries for package landing pages")
+                |> Zoi.default([]),
+              landing_install:
+                Zoi.map(
+                  %{
+                    label: Zoi.string(description: "Short install box label") |> Zoi.optional(),
+                    snippet: Zoi.string(description: "Install snippet to render verbatim") |> Zoi.optional(),
+                    note: Zoi.string(description: "Short explanatory install note") |> Zoi.optional(),
+                    source:
+                      Zoi.atom(description: "Install source classification (hex, github, manual)")
+                      |> Zoi.optional()
+                  },
+                  description: "Curated install presentation metadata"
+                )
+                |> Zoi.default(%{}),
               landing_important_packages:
                 Zoi.any(description: "Important ecosystem package links and reasons")
                 |> Zoi.default([]),
@@ -53,6 +81,24 @@ defmodule AgentJido.Ecosystem.Package do
                 |> Zoi.default([]),
               landing_module_map:
                 Zoi.any(description: "Curated high-level module map metadata")
+                |> Zoi.default(%{}),
+              seo:
+                Zoi.map(
+                  %{
+                    title: Zoi.string(description: "Curated page title for the package page") |> Zoi.optional(),
+                    description:
+                      Zoi.string(description: "Curated meta description for the package page")
+                      |> Zoi.optional(),
+                    keywords: Zoi.any(description: "Curated SEO keywords for the package page") |> Zoi.default([]),
+                    og_title:
+                      Zoi.string(description: "Curated Open Graph title for the package page")
+                      |> Zoi.optional(),
+                    og_description:
+                      Zoi.string(description: "Curated Open Graph description for the package page")
+                      |> Zoi.optional()
+                  },
+                  description: "Curated SEO metadata for the package landing page"
+                )
                 |> Zoi.default(%{}),
               license: Zoi.string(description: "SPDX license identifier") |> Zoi.default("Apache-2.0"),
               visibility: Zoi.atom(description: "Public or private package") |> Zoi.default(:public),

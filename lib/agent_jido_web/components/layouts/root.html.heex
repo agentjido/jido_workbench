@@ -99,6 +99,15 @@
 
     page_title = assigns[:page_title]
 
+    og_title =
+      case assigns[:og_title] do
+        value when is_binary(value) ->
+          if String.trim(value) == "", do: page_title, else: value
+
+        _ ->
+          page_title
+      end
+
     meta_description =
       case assigns[:meta_description] do
         value when is_binary(value) ->
@@ -106,6 +115,25 @@
 
         _ ->
           default_description
+      end
+
+    meta_keywords =
+      case assigns[:meta_keywords] do
+        value when is_binary(value) ->
+          if String.trim(value) == "", do: nil, else: value
+
+        value when is_list(value) ->
+          value
+          |> Enum.map(&to_string/1)
+          |> Enum.map(&String.trim/1)
+          |> Enum.reject(&(&1 == ""))
+          |> case do
+            [] -> nil
+            keywords -> Enum.join(keywords, ", ")
+          end
+
+        _ ->
+          nil
       end
 
     og_description =
@@ -118,7 +146,7 @@
       end
 
     seo_item = %{
-      title: page_title,
+      title: og_title,
       description: og_description,
       canonical_url: canonical_url,
       url: canonical_url,
@@ -139,6 +167,7 @@
 
     <SEO.juice conn={@conn} config={AgentJidoWeb.SEO.config()} page_title={page_title} item={seo_item} />
 
+    <meta :if={meta_keywords} name="keywords" content={meta_keywords} />
     <meta property="og:image" content={og_image} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
