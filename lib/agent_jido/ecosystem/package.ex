@@ -22,6 +22,9 @@ defmodule AgentJido.Ecosystem.Package do
               orbit_domain:
                 Zoi.atom(description: "Optional orbit grouping key for ecosystem visualizations")
                 |> Zoi.optional(),
+              orbit_parent:
+                Zoi.string(description: "Optional parent package id for selective sub-orbit rendering")
+                |> Zoi.optional(),
               orbit_order:
                 Zoi.integer(description: "Optional explicit orbit sort order within a domain")
                 |> Zoi.optional(),

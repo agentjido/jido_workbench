@@ -46,6 +46,9 @@ const STAR_COUNT = 160;
 const INTRO_REVEAL_MS = 1100;
 const DATA_TRANSITION_MS = 380;
 const DEFAULT_LABEL_COUNT = 4;
+const MOON_ORBIT_RADIUS = 42;
+const MOON_GUIDE_OPACITY = 0.14;
+const MOON_SPEED = 0.000026;
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
@@ -142,6 +145,7 @@ function normalizePayload(raw) {
       domain,
       maturity: String(item.maturity || "experimental"),
       deps: Array.isArray(item.deps) ? item.deps.filter((dep) => typeof dep === "string" && dep !== item.id) : [],
+      orbitParent: typeof item.orbit_parent === "string" && item.orbit_parent.trim() !== "" ? item.orbit_parent : null,
       order: asNumber(item.order),
       weight: asNumber(item.weight),
       visible: item.visible !== false,
@@ -202,7 +206,27 @@ function computeModel(data) {
   const centerId = data.centerId;
   const centerPackage = centerId ? packageById[centerId] : null;
 
-  const orbitPackages = data.packages.filter((pkg) => pkg.id !== centerId && pkg.layer !== "core");
+  const moonParentById = Object.create(null);
+  const moonChildrenByParent = Object.create(null);
+  const orbitPackages = data.packages.filter((pkg) => {
+    if (pkg.id === centerId || pkg.layer === "core") {
+      return false;
+    }
+
+    if (pkg.orbitParent && packageById[pkg.orbitParent]) {
+      moonParentById[pkg.id] = pkg.orbitParent;
+
+      if (!moonChildrenByParent[pkg.orbitParent]) {
+        moonChildrenByParent[pkg.orbitParent] = [];
+      }
+
+      moonChildrenByParent[pkg.orbitParent].push(pkg);
+      return false;
+    }
+
+    return true;
+  });
+
   const grouped = Object.create(null);
   orbitPackages.forEach((pkg) => {
     const layer = pkg.layer === "foundation" || pkg.layer === "ai" || pkg.layer === "app" ? pkg.layer : "app";
@@ -229,7 +253,7 @@ function computeModel(data) {
     app: -Math.PI / 2 + Math.PI / 9,
   };
 
-  const nodes = [];
+  const mainNodes = [];
   Object.entries(grouped).forEach(([layer, group]) => {
     const total = Math.max(group.length, 1);
     const step = (Math.PI * 2) / total;
@@ -240,7 +264,7 @@ function computeModel(data) {
       const computedRadius = clamp(9 + dependentCount * 2.4, 9, 22);
       const radius = Number.isFinite(pkg.weight) ? clamp(pkg.weight, 8, 30) : computedRadius;
 
-      nodes.push({
+      mainNodes.push({
         ...pkg,
         ring: RINGS[pkg.layer] || RINGS.app,
         baseAngle: phase + index * step,
@@ -249,13 +273,48 @@ function computeModel(data) {
     });
   });
 
+  const moonNodes = [];
+  Object.entries(moonChildrenByParent).forEach(([parentId, children]) => {
+    children
+      .sort((a, b) => {
+        const aOrder = Number.isFinite(a.order) ? a.order : 9_999;
+        const bOrder = Number.isFinite(b.order) ? b.order : 9_999;
+
+        if (aOrder !== bOrder) {
+          return aOrder - bOrder;
+        }
+
+        return a.name.localeCompare(b.name);
+      })
+      .forEach((pkg, index, group) => {
+        const total = Math.max(group.length, 1);
+        const step = (Math.PI * 2) / total;
+        const dependentCount = dependentCounts[pkg.id] || 0;
+        const computedRadius = clamp(5 + dependentCount, 5, 8);
+        const radius = Number.isFinite(pkg.weight) ? clamp(pkg.weight, 5, 10) : computedRadius;
+
+        moonNodes.push({
+          ...pkg,
+          orbitParent: parentId,
+          orbitKind: "moon",
+          moonOrbitRadius: MOON_ORBIT_RADIUS,
+          moonDirection: 1,
+          moonSpeed: MOON_SPEED * (1 + index * 0.08),
+          baseAngle: -Math.PI / 2 + index * step,
+          radius,
+        });
+      });
+  });
+
+  const nodes = [...mainNodes, ...moonNodes];
+
   const nodeById = Object.create(null);
   nodes.forEach((node) => {
     nodeById[node.id] = node;
   });
 
   const defaultLabelIds = new Set(
-    nodes
+    mainNodes
       .slice()
       .sort((a, b) => {
         const aScore = a.deps.length + (dependentCounts[a.id] || 0);
@@ -287,6 +346,8 @@ function computeModel(data) {
     dependentCounts,
     nodes,
     nodeById,
+    moonParentById,
+    moonChildrenByParent,
     defaultLabelIds,
   };
 }
@@ -362,9 +423,9 @@ const EcosystemOrbit = {
         <div class="ecosystem-orbit-toolbar">
           <div class="ecosystem-orbit-title">
             <span class="ecosystem-orbit-title-main">JIDO ORBIT</span>
-            <span class="ecosystem-orbit-title-sub">architecture and direct dependencies</span>
+            <span class="ecosystem-orbit-title-sub">architecture map</span>
           </div>
-          <div class="ecosystem-orbit-guidance">Select a package to trace direct dependencies.</div>
+          <div class="ecosystem-orbit-guidance">Hover to focus a package family. Click to lock the view.</div>
         </div>
         <div class="ecosystem-orbit-stage">
           <svg class="ecosystem-orbit-svg" data-orbit-svg viewBox="${VIEWBOX}" preserveAspectRatio="xMidYMid meet"></svg>
@@ -507,8 +568,17 @@ const EcosystemOrbit = {
 
     set.add(id);
 
-    (this.model.depsById[id] || []).forEach((depId) => {
-      set.add(depId);
+    const moonParentId = this.model.moonParentById[id];
+    if (moonParentId) {
+      set.add(moonParentId);
+
+      (this.model.moonChildrenByParent[moonParentId] || []).forEach((child) => {
+        set.add(child.id);
+      });
+    }
+
+    (this.model.moonChildrenByParent[id] || []).forEach((child) => {
+      set.add(child.id);
     });
 
     return set;
@@ -519,11 +589,11 @@ const EcosystemOrbit = {
       return true;
     }
 
-    if (activeId && activeId !== this.model.centerId) {
-      return relatedIds.has(node.id);
+    if (node.orbitKind === "moon") {
+      return true;
     }
 
-    return this.model.defaultLabelIds.has(node.id);
+    return true;
   },
 
   startAnimation() {
@@ -560,7 +630,18 @@ const EcosystemOrbit = {
     this.raf = requestAnimationFrame(tick);
   },
 
-  positionForNode(node) {
+  positionForNode(node, positions) {
+    if (node.orbitKind === "moon" && node.orbitParent && positions[node.orbitParent]) {
+      const parent = positions[node.orbitParent];
+      const angle = node.baseAngle + this.state.motionMs * node.moonSpeed * node.moonDirection;
+      const reveal = 0.25 + this.introProgress() * 0.75;
+
+      return {
+        x: parent.x + Math.cos(angle) * node.moonOrbitRadius * reveal,
+        y: parent.y + Math.sin(angle) * node.moonOrbitRadius * reveal,
+      };
+    }
+
     const cfg = RING_CONFIG[node.layer] || RING_CONFIG.app;
     const angle = node.baseAngle + this.state.motionMs * cfg.speed * cfg.dir;
     const reveal = 0.25 + this.introProgress() * 0.75;
@@ -580,7 +661,7 @@ const EcosystemOrbit = {
 
     const positions = Object.create(null);
     this.model.nodes.forEach((node) => {
-      positions[node.id] = this.positionForNode(node);
+      positions[node.id] = this.positionForNode(node, positions);
     });
 
     const starsMarkup = this.stars
@@ -603,7 +684,7 @@ const EcosystemOrbit = {
       })
       .join("");
 
-    const dependencyMarkup = this.renderDependencyLines(positions);
+    const moonOrbitMarkup = this.renderMoonOrbitGuides(positions, activeId, relatedIds, sceneAlpha);
 
     const centerPkg = this.model.centerPackage;
     const sunId = this.model.centerId;
@@ -633,11 +714,26 @@ const EcosystemOrbit = {
         const layerColor = LAYER_COLORS[node.layer] || "#888";
         const nodeColor = this.domainColorById[node.domain] || "#9aa";
         const radius = isSelected ? node.radius + 4 : isHovered ? node.radius + 2 : node.radius;
+        const isMoon = node.orbitKind === "moon";
         const opacity =
-          (highlighted ? (isSelected ? 0.98 : isHovered ? 0.94 : 0.82) : 0.08) * sceneAlpha;
+          (highlighted ? (isSelected ? 0.98 : isHovered ? 0.94 : isMoon ? 0.9 : 0.82) : 0.08) * sceneAlpha;
         const textOpacity =
-          (showLabel ? (isSelected || isHovered ? 0.94 : activeId ? 0.7 : 0.42) : 0) * sceneAlpha;
-        const strokeWidth = isSelected ? 2.5 : node.maturity === "experimental" ? 0.9 : 1.4;
+          (showLabel
+            ? isSelected || isHovered
+              ? 0.94
+              : activeId && activeId !== this.model.centerId
+                ? relatedIds.has(node.id)
+                  ? isMoon
+                    ? 0.72
+                    : 0.78
+                  : isMoon
+                    ? 0.2
+                    : 0.24
+                : isMoon
+                  ? 0.58
+                  : 0.62
+            : 0) * sceneAlpha;
+        const strokeWidth = isSelected ? 2.5 : node.maturity === "experimental" ? 0.9 : isMoon ? 1.2 : 1.4;
         const dash = node.maturity === "experimental" ? "2 2" : "none";
 
         return `
@@ -652,7 +748,7 @@ const EcosystemOrbit = {
             <circle cx="${pos.x}" cy="${pos.y}" r="${radius}" fill="${highlighted ? layerColor : "#1a1a2a"}" stroke="${highlighted ? nodeColor : "#222"}" stroke-width="${strokeWidth}" stroke-dasharray="${dash}" opacity="${opacity}" filter="${
               isSelected ? "url(#orbitGlow)" : highlighted ? "url(#orbitSoftGlow)" : "none"
             }"></circle>
-            <text x="${pos.x}" y="${pos.y - radius - 7}" text-anchor="middle" fill="${highlighted ? "#ddd" : "#333"}" font-size="11" font-family="monospace" font-weight="${
+            <text x="${pos.x}" y="${pos.y - radius - 7}" text-anchor="middle" fill="${highlighted ? "#ddd" : "#333"}" font-size="${isMoon ? 10 : 11}" font-family="monospace" font-weight="${
               isSelected ? 700 : 400
             }" opacity="${textOpacity}">${escapeHtml(node.label)}</text>
           </g>
@@ -677,62 +773,28 @@ const EcosystemOrbit = {
       </defs>
       ${starsMarkup}
       ${ringMarkup}
-      ${dependencyMarkup}
+      ${moonOrbitMarkup}
       ${sunMarkup}
       ${nodesMarkup}
     `;
   },
 
-  renderDependencyLines(positions) {
-    const activeId = this.activeNodeId();
-    if (!activeId) {
-      return "";
-    }
+  renderMoonOrbitGuides(positions, activeId, relatedIds, sceneAlpha) {
+    return Object.entries(this.model.moonChildrenByParent)
+      .map(([parentId, children]) => {
+        const parent = positions[parentId];
+        if (!parent || !children.length) {
+          return "";
+        }
 
-    const sunId = this.model.centerId;
-    const selectedIsSun = activeId === sunId;
-    const lines = [];
+        const emphasized = activeId === parentId || relatedIds.has(parentId) || children.some((child) => child.id === activeId);
+        const opacity = (emphasized ? 0.28 : MOON_GUIDE_OPACITY) * sceneAlpha;
 
-    const sourcePos = selectedIsSun
-      ? { x: CENTER_X, y: CENTER_Y }
-      : positions[activeId] || { x: CENTER_X, y: CENTER_Y };
-
-    if (selectedIsSun) {
-      this.model.nodes.forEach((node) => {
-        const pos = positions[node.id];
-        if (!pos) return;
-        lines.push({
-          x1: CENTER_X,
-          y1: CENTER_Y,
-          x2: pos.x,
-          y2: pos.y,
-          color: LAYER_COLORS[node.layer] || "#999",
-          dashed: false,
-        });
-      });
-    } else {
-      (this.model.depsById[activeId] || []).forEach((depId) => {
-        const pos = positions[depId] || (depId === sunId ? { x: CENTER_X, y: CENTER_Y } : null);
-        if (!pos) return;
-        const depPkg = this.model.packageById[depId];
-        const depLayer = depPkg ? depPkg.layer : "app";
-
-        lines.push({
-          x1: sourcePos.x,
-          y1: sourcePos.y,
-          x2: pos.x,
-          y2: pos.y,
-          color: LAYER_COLORS[depLayer] || "#999",
-          dashed: false,
-        });
-      });
-    }
-
-    return lines
-      .map((line, index) => {
-        return `<line key="dep-${index}" x1="${line.x1}" y1="${line.y1}" x2="${line.x2}" y2="${line.y2}" stroke="${line.color}" stroke-width="1.4" stroke-dasharray="${
-          line.dashed ? "4 3" : "none"
-        }" opacity="${this.state.selectedId ? 0.42 : 0.26}"></line>`;
+        return `
+          <g class="ecosystem-orbit-moon-guide">
+            <circle cx="${parent.x}" cy="${parent.y}" r="${MOON_ORBIT_RADIUS}" fill="none" stroke="#ffffff" stroke-width="0.8" opacity="${opacity}" stroke-dasharray="2 4"></circle>
+          </g>
+        `;
       })
       .join("");
   },
@@ -779,7 +841,7 @@ const EcosystemOrbit = {
 
     if (!selectedPkg) {
       this.detailEl.innerHTML = `
-        <div class="ecosystem-orbit-detail-hint">Select a package to inspect direct dependencies.</div>
+        <div class="ecosystem-orbit-detail-hint">Select a package to inspect package relationships.</div>
       `;
       return;
     }

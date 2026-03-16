@@ -159,6 +159,14 @@ defmodule AgentJidoWeb.JidoEcosystemLiveTest do
     assert html =~ ~s(aria-label="Open GitHub for Jido")
   end
 
+  test "orbit payload marks chat adapters as moons of jido_chat", %{conn: conn} do
+    {:ok, _view, html} = live(conn, "/ecosystem")
+
+    assert html =~ "jido_chat_discord"
+    assert html =~ "jido_chat_telegram"
+    assert html =~ ~s(orbit_parent&quot;:&quot;jido_chat&quot;)
+  end
+
   defp package_for_support_level!(support_level) do
     Ecosystem.public_packages()
     |> Enum.find(&(AgentJido.Ecosystem.SupportLevel.normalize(&1.support_level) == support_level))

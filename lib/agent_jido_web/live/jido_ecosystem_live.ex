@@ -556,6 +556,7 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
       label: orbit_label(pkg),
       maturity: to_string_or_empty(normalize_support_level(pkg.support_level)),
       deps: deps,
+      orbit_parent: Map.get(pkg, :orbit_parent),
       order: Map.get(pkg, :orbit_order),
       weight: Map.get(pkg, :orbit_weight),
       visible: Map.get(pkg, :orbit_visible, true)
