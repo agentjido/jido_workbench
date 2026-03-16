@@ -20,7 +20,7 @@ If you are contributing content or docs, read these in order:
 
 | Tier | Meaning | Files |
 |---|---|---|
-| Canonical (normative) | Rules contributors are expected to follow in active PRs | `contributor-docs.md`, `positioning.md`, `style-voice.md`, `content-outline.md`, `content-system.md`, `content-governance.md`, `taxonomy.md`, `proof.md`, `templates/*` |
+| Canonical (normative) | Rules contributors are expected to follow in active PRs | `contributor-docs.md`, `positioning.md`, `style-voice.md`, `content-outline.md`, `content-system.md`, `content-governance.md`, `mcp-security-hardening.md`, `taxonomy.md`, `proof.md`, `templates/*` |
 | Operational | Run/ship procedures for maintainers | `runbooks/*` |
 | Planning backlog | Active open items only | `TODO.md`, `topic-briefs-todo.md` |
 | Reference and research | Useful context, not normative for PR acceptance | `docs-manifesto.md`, `competitors/*`, `brainstorms/*`, `ontology/*` |
@@ -39,6 +39,7 @@ If you are contributing content or docs, read these in order:
 
 - Treat `specs/` as policy and `priv/` as implementation.
 - `content-governance.md` includes the canonical ST-CONT-001 publish hard gate and must be enforced before publishing.
+- `mcp-security-hardening.md` is the normative security spec for the public docs MCP server.
 - If you change IA, routes, or nav: update `content-outline.md`, `content-system.md`, and `taxonomy.md` in the same PR.
 - If you change claims: update `proof.md` and ensure claim discipline still matches `positioning.md`.
 - If you change writing mechanics: update `style-voice.md` and confirm templates still align.
