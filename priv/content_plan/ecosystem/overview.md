@@ -39,7 +39,7 @@ Cover:
 
 - Layered package model (runtime, intelligence, tools, integrations)
 - What is required vs optional for common starting points
-- Links to package matrix and adoption path guides
+- Links to the ecosystem compare table and adoption path guides
 
 ### Validation Criteria
 

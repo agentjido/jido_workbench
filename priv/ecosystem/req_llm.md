@@ -1,7 +1,7 @@
 %{
   name: "req_llm",
   title: "ReqLLM",
-  version: "1.6.0",
+  version: "1.7.1",
   tagline: "Composable Elixir library for LLM interactions built on Req",
   graph_label: "ReqLLM",
   license: "Apache-2.0",
@@ -16,7 +16,8 @@
   github_repo: "req_llm",
   elixir: "~> 1.17",
   maturity: :stable,
-  hex_status: "1.6.0",
+  support_level: :stable,
+  hex_status: "1.7.1",
   api_stability: "stable",
   stub: false,
   support: :maintained,

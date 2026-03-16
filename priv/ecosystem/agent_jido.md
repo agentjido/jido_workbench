@@ -14,6 +14,7 @@
   github_repo: "agent_jido",
   elixir: "~> 1.17",
   maturity: :experimental,
+  support_level: :experimental,
   hex_status: "unreleased",
   api_stability: "not yet defined",
   stub: false,

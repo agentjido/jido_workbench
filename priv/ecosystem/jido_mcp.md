@@ -5,7 +5,7 @@
   version: "0.1.1",
   tagline: "MCP server integration package with pooled clients and Jido action surfaces",
   license: "Apache-2.0",
-  visibility: :private,
+  visibility: :public,
   category: :integrations,
   tier: 2,
   tags: [:mcp, :tools, :resources, :prompts, :integrations],
@@ -13,7 +13,8 @@
   github_org: "agentjido",
   github_repo: "jido_mcp",
   elixir: "~> 1.18",
-  maturity: :experimental,
+  maturity: :beta,
+  support_level: :beta,
   hex_status: "unreleased",
   api_stability: "unstable - pre-1.0 MCP endpoint and action APIs may change",
   stub: false,
@@ -64,4 +65,3 @@ Ships Jido action modules and plugin wiring so MCP operations can be used from s
 ### Server Bridge
 
 Supports bridging MCP server surfaces with explicit allowlists for controlled exposure.
-

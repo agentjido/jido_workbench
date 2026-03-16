@@ -113,7 +113,7 @@ defmodule AgentJidoWeb.MarkdownContent do
   end
 
   defp resolve_from_ecosystem("/ecosystem/matrix") do
-    {:fallback, "Jido Ecosystem Package Matrix", "Cross-package matrix view for capabilities, dependencies, and integrations."}
+    {:fallback, "Jido Ecosystem", "Compare packages from the main Jido ecosystem hub."}
   end
 
   defp resolve_from_ecosystem("/ecosystem/package-matrix") do

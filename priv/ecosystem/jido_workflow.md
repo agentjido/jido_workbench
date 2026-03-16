@@ -14,6 +14,7 @@
   github_repo: "jido_workflow",
   elixir: "~> 1.17",
   maturity: :experimental,
+  support_level: :experimental,
   hex_status: "unreleased",
   api_stability: "unstable - workflow run controls and CLI contract are pre-1.0",
   stub: false,
@@ -64,4 +65,3 @@ Includes run lifecycle controls (list/pause/etc.) and watch surfaces for operati
 ### Mix Task Integration
 
 Supports equivalent workflow operations through mix tasks for local development automation.
-

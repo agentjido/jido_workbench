@@ -8,6 +8,8 @@ defmodule AgentJido.Ecosystem.Package do
   as raw Markdown for RAG ingestion.
   """
 
+  alias AgentJido.Ecosystem.SupportLevel
+
   @schema Zoi.struct(
             __MODULE__,
             %{
@@ -20,8 +22,14 @@ defmodule AgentJido.Ecosystem.Package do
               orbit_domain:
                 Zoi.atom(description: "Optional orbit grouping key for ecosystem visualizations")
                 |> Zoi.optional(),
+              orbit_parent:
+                Zoi.string(description: "Optional parent package id for selective sub-orbit rendering")
+                |> Zoi.optional(),
               orbit_order:
                 Zoi.integer(description: "Optional explicit orbit sort order within a domain")
+                |> Zoi.optional(),
+              compare_order:
+                Zoi.integer(description: "Optional explicit sort order for ecosystem comparison views")
                 |> Zoi.optional(),
               orbit_label:
                 Zoi.string(description: "Optional short label override for orbit node rendering")
@@ -37,6 +45,34 @@ defmodule AgentJido.Ecosystem.Package do
               landing_cliff_notes:
                 Zoi.any(description: "List of short cliff-note bullets for landing pages")
                 |> Zoi.default([]),
+              landing_use_when:
+                Zoi.any(description: "List of concise reasons this package is the right choice")
+                |> Zoi.default([]),
+              landing_not_for:
+                Zoi.any(description: "List of concise cases where this package is not the right fit")
+                |> Zoi.default([]),
+              landing_resources:
+                Zoi.any(description: "Curated internal or external resource links grouped for package landing pages")
+                |> Zoi.default([]),
+              landing_related_packages:
+                Zoi.any(description: "Curated related package links grouped by relationship for landing pages")
+                |> Zoi.default([]),
+              landing_faq:
+                Zoi.any(description: "Curated FAQ entries for package landing pages")
+                |> Zoi.default([]),
+              landing_install:
+                Zoi.map(
+                  %{
+                    label: Zoi.string(description: "Short install box label") |> Zoi.optional(),
+                    snippet: Zoi.string(description: "Install snippet to render verbatim") |> Zoi.optional(),
+                    note: Zoi.string(description: "Short explanatory install note") |> Zoi.optional(),
+                    source:
+                      Zoi.atom(description: "Install source classification (hex, github, manual)")
+                      |> Zoi.optional()
+                  },
+                  description: "Curated install presentation metadata"
+                )
+                |> Zoi.default(%{}),
               landing_important_packages:
                 Zoi.any(description: "Important ecosystem package links and reasons")
                 |> Zoi.default([]),
@@ -45,6 +81,24 @@ defmodule AgentJido.Ecosystem.Package do
                 |> Zoi.default([]),
               landing_module_map:
                 Zoi.any(description: "Curated high-level module map metadata")
+                |> Zoi.default(%{}),
+              seo:
+                Zoi.map(
+                  %{
+                    title: Zoi.string(description: "Curated page title for the package page") |> Zoi.optional(),
+                    description:
+                      Zoi.string(description: "Curated meta description for the package page")
+                      |> Zoi.optional(),
+                    keywords: Zoi.any(description: "Curated SEO keywords for the package page") |> Zoi.default([]),
+                    og_title:
+                      Zoi.string(description: "Curated Open Graph title for the package page")
+                      |> Zoi.optional(),
+                    og_description:
+                      Zoi.string(description: "Curated Open Graph description for the package page")
+                      |> Zoi.optional()
+                  },
+                  description: "Curated SEO metadata for the package landing page"
+                )
                 |> Zoi.default(%{}),
               license: Zoi.string(description: "SPDX license identifier") |> Zoi.default("Apache-2.0"),
               visibility: Zoi.atom(description: "Public or private package") |> Zoi.default(:public),
@@ -65,6 +119,9 @@ defmodule AgentJido.Ecosystem.Package do
                 Zoi.any(description: "List of ecosystem package id strings this depends on")
                 |> Zoi.default([]),
               key_features: Zoi.any(description: "List of feature highlight strings") |> Zoi.default([]),
+              support_level:
+                Zoi.atom(description: "Public support level (stable, beta, experimental)")
+                |> Zoi.optional(),
               maturity:
                 Zoi.atom(description: "Maturity tier (stable, beta, experimental, planned)")
                 |> Zoi.default(:experimental),
@@ -106,6 +163,12 @@ defmodule AgentJido.Ecosystem.Package do
       |> Path.rootname()
       |> Path.basename()
 
+    support_level =
+      attrs
+      |> Map.get(:support_level)
+      |> Kernel.||(Map.get(attrs, :maturity))
+      |> SupportLevel.normalize()
+
     attrs =
       attrs
       |> Map.put(:id, id)
@@ -113,10 +176,14 @@ defmodule AgentJido.Ecosystem.Package do
       |> Map.put(:path, filename)
       |> Map.put_new(:name, id)
       |> Map.put_new(:title, id |> String.replace("_", " ") |> String.split() |> Enum.map_join(" ", &String.capitalize/1))
+      |> maybe_put(:support_level, support_level)
 
     case Zoi.parse(@schema, attrs) do
       {:ok, package} -> package
       {:error, errors} -> raise "Invalid package #{id}: #{inspect(errors)}"
     end
   end
+
+  defp maybe_put(attrs, _key, nil), do: attrs
+  defp maybe_put(attrs, key, value), do: Map.put(attrs, key, value)
 end

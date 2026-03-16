@@ -2,10 +2,13 @@
   name: "jido_chat_discord",
   title: "Jido Chat Discord",
   graph_label: "Jido Chat Discord",
+  orbit_parent: "jido_chat",
+  orbit_label: "Discord",
+  orbit_weight: 8,
   version: "0.1.0",
   tagline: "Discord adapter package implementing the Jido Chat adapter contract",
   license: "Apache-2.0",
-  visibility: :private,
+  visibility: :public,
   category: :integrations,
   tier: 2,
   tags: [:chat, :discord, :adapter, :nostrum, :messaging],
@@ -13,7 +16,8 @@
   github_org: "agentjido",
   github_repo: "jido_chat_discord",
   elixir: "~> 1.17",
-  maturity: :experimental,
+  maturity: :beta,
+  support_level: :beta,
   hex_status: "unreleased",
   api_stability: "unstable - pre-1.0 adapter and ingress surfaces may change",
   stub: false,
@@ -64,4 +68,3 @@ Converts Discord-native event structures into normalized typed envelopes used ac
 ### Compatibility Surface
 
 Maintains a compatibility wrapper for legacy channel interfaces during migration to canonical adapter modules.
-

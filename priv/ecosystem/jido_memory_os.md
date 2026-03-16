@@ -5,7 +5,7 @@
   version: "0.1.0",
   tagline: "Tiered memory orchestration and governance layer for Jido agents",
   license: "Apache-2.0",
-  visibility: :private,
+  visibility: :public,
   category: :ai,
   tier: 2,
   tags: [:memory, :agents, :retrieval, :governance, :context],
@@ -13,11 +13,12 @@
   github_org: "agentjido",
   github_repo: "jido_memory_os",
   elixir: "~> 1.19",
-  maturity: :experimental,
+  maturity: :stable,
+  support_level: :stable,
   hex_status: "unreleased",
-  api_stability: "unstable - pre-1.0 memory orchestration and policy surfaces may change",
+  api_stability: "stable — supported memory orchestration layer with continued policy and workflow refinement",
   stub: false,
-  support: :best_effort,
+  support: :maintained,
   limitations: [
     "Not published to Hex - available via GitHub dependency",
     "Depends on active integration points with `jido_memory` and core runtime packages",
@@ -64,4 +65,3 @@ Implements retrieval planning, ranking, and explain payload generation for conte
 ### Governance and Safety
 
 Applies policy enforcement, approvals, retention controls, masking, and auditing around memory operations.
-

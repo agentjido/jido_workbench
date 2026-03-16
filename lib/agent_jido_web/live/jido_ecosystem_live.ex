@@ -3,46 +3,96 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
 
   alias AgentJido.Ecosystem
   alias AgentJido.Ecosystem.Layering
+  alias AgentJido.Ecosystem.SupportLevel
   alias AgentJido.GithubStarsTracker
-  alias AgentJido.LandingContent
+  alias AgentJidoWeb.Jido.Nav
+  alias AgentJidoWeb.MarkdownLinks
 
-  import AgentJidoWeb.Jido.MarketingLayouts
   import AgentJidoWeb.Jido.MarketingCards
-
-  @curated_layer_rows %{
-    foundation: [~w(llm_db req_llm), ~w(jido_action jido_signal)],
-    core: [~w(jido)],
-    ai: [~w(jido_ai jido_browser), ~w(jido_memory jido_behaviortree jido_runic)],
-    app: [~w(ash_jido jido_studio), ~w(jido_messaging jido_otel)]
-  }
+  import AgentJidoWeb.Jido.MarketingLayouts
 
   @layer_order [:foundation, :core, :ai, :app]
+  @layer_filter_order [:all, :foundation, :core, :ai, :app]
+  @support_level_order [:stable, :beta, :experimental]
 
   @impl true
   def mount(_params, _session, socket) do
     public_packages = Ecosystem.public_packages()
-    stars_by_package = GithubStarsTracker.stars_map()
-    package_cards = public_packages |> LandingContent.packages_from() |> attach_star_labels(stars_by_package)
-    name_by_id = Map.new(public_packages, &{&1.id, &1.title})
-    orbit_payload = build_orbit_payload(public_packages)
 
     {:ok,
      assign(socket,
        page_title: "Jido Ecosystem",
-       meta_description: "Discover composable Jido packages across runtime core, AI orchestration, and production operations.",
+       meta_description: "Explore public Jido packages, support levels, and dependencies from a single ecosystem hub.",
        selected_layer: :all,
-       packages: package_cards,
-       layer_rows: build_layer_rows(public_packages),
-       package_name_by_id: name_by_id,
-       orbit_payload_json: Jason.encode!(orbit_payload),
-       package_count: length(package_cards),
-       layer_count: count_layers(package_cards)
+       selected_support_levels: [],
+       current_params: %{},
+       explorer_packages: [],
+       compare_rows: [],
+       package_count: 0,
+       layer_count: 0,
+       support_levels: Ecosystem.support_levels(),
+       orbit_payload_json: Jason.encode!(build_orbit_payload([])),
+       structured_data: [ecosystem_item_list(public_packages)]
+     )}
+  end
+
+  @impl true
+  def handle_params(params, _uri, socket) do
+    public_packages = Ecosystem.public_packages()
+    selected_support_levels = parse_support_levels(params)
+    selected_layer = parse_layer(params)
+
+    filtered_packages =
+      public_packages
+      |> filter_packages_by_support_levels(selected_support_levels)
+      |> filter_packages_by_layer(selected_layer)
+
+    title_by_id = Map.new(public_packages, &{&1.id, &1.title})
+    stars_by_package = GithubStarsTracker.stars_map()
+
+    {:noreply,
+     assign(socket,
+       current_params: params,
+       selected_layer: selected_layer,
+       selected_support_levels: selected_support_levels,
+       explorer_packages: build_explorer_packages(filtered_packages, title_by_id, stars_by_package),
+       compare_rows: build_compare_rows(filtered_packages, title_by_id, stars_by_package),
+       orbit_payload_json: Jason.encode!(build_orbit_payload(filtered_packages)),
+       package_count: length(filtered_packages),
+       layer_count: count_layers(filtered_packages)
      )}
   end
 
   @impl true
   def handle_event("filter_layer", %{"layer" => layer}, socket) do
-    {:noreply, assign(socket, selected_layer: String.to_existing_atom(layer))}
+    next_layer = toggle_layer(socket.assigns.selected_layer, layer)
+
+    next_params =
+      socket.assigns.current_params
+      |> Map.delete("layer")
+      |> maybe_put_layer(next_layer)
+
+    {:noreply, push_patch(socket, to: ecosystem_index_path(next_params))}
+  end
+
+  @impl true
+  def handle_event("toggle_support_level", %{"support_level" => level}, socket) do
+    next_support_levels =
+      socket.assigns.selected_support_levels
+      |> toggle_support_level(level)
+
+    next_params =
+      socket.assigns.current_params
+      |> Map.delete("support_level")
+      |> Map.delete("support_levels")
+      |> maybe_put_support_levels(next_support_levels)
+
+    {:noreply, push_patch(socket, to: ecosystem_index_path(next_params))}
+  end
+
+  @impl true
+  def handle_event("clear_filters", _params, socket) do
+    {:noreply, push_patch(socket, to: "/ecosystem")}
   end
 
   @impl true
@@ -54,7 +104,6 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
       analytics_identity={@analytics_identity}
     >
       <div class="container max-w-[1000px] mx-auto px-6 py-12">
-        <%!-- Hero Section --%>
         <section class="mb-12">
           <div class="inline-block px-4 py-2 rounded mb-5 bg-primary/10 border border-primary/30">
             <span class="text-primary text-[11px] font-semibold tracking-widest uppercase">
@@ -63,16 +112,21 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
           </div>
 
           <h1 class="text-3xl font-bold leading-tight mb-4 tracking-tight">
-            Most agent frameworks are monoliths.<br />
-            <span class="text-primary">Jido is composable.</span>
+            Public Jido packages, one ecosystem map.<br />
+            <span class="text-primary">Choose what you need without losing the system view.</span>
           </h1>
 
-          <p class="copy-measure text-sm leading-relaxed text-secondary-foreground mb-6">
-            Use the full stack or pick the packages you need. Foundation packages for LLM handling,
-            core framework for autonomy, and specialized packages for AI and coding workflows.
+          <p class="copy-measure text-sm leading-relaxed text-secondary-foreground mb-4">
+            The support policy, package explorer, architecture map, and compare table all come from the
+            same public package registry. Use the full stack or compose the specific runtime, AI, and
+            application packages your system needs.
           </p>
 
-          <%!-- Quick Stats --%>
+          <p class="copy-measure text-sm leading-relaxed text-secondary-foreground mb-6">
+            Package detail pages remain the canonical deep links. This page is the hub for comparing
+            packages, understanding support expectations, and tracing how the ecosystem fits together.
+          </p>
+
           <div class="flex flex-wrap items-center gap-6 mb-8">
             <div class="flex items-baseline gap-2">
               <span class="text-primary text-2xl font-bold">{@package_count}</span>
@@ -82,24 +136,115 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
               <span class="text-primary text-2xl font-bold">{@layer_count}</span>
               <span class="text-muted-foreground text-xs">layers</span>
             </div>
-            <.link
-              navigate="/ecosystem/matrix"
+            <a
+              href="#compare"
               class="text-xs text-primary hover:text-primary/80 transition-colors font-semibold"
             >
-              VIEW PACKAGE MATRIX →
-            </.link>
+              COMPARE PACKAGES ↓
+            </a>
           </div>
         </section>
 
-        <%!-- Desktop Orbit Section --%>
-        <section class="mb-16 hidden lg:block">
+        <section class="mb-16">
+          <div class="flex justify-between items-center mb-5">
+            <span class="text-sm font-bold tracking-wider">SUPPORT LEVELS</span>
+            <.link
+              navigate="/docs/contributors/package-support-levels"
+              class="text-xs text-primary hover:text-primary/80 transition-colors font-semibold"
+            >
+              VIEW POLICY →
+            </.link>
+          </div>
+
+          <p class="copy-measure text-sm leading-relaxed text-secondary-foreground mb-5">
+            Select one or more support levels. The same filter state applies to the explorer, orbit, and compare table below.
+          </p>
+
+          <div class="grid md:grid-cols-3 gap-3">
+            <%= for level <- @support_levels do %>
+              <button
+                id={"support-level-#{level.id}"}
+                type="button"
+                aria-pressed={to_string(support_level_selected?(@selected_support_levels, level.id))}
+                phx-click="toggle_support_level"
+                phx-value-support_level={level.id}
+                class={"rounded-md border p-4 text-left transition-colors #{support_level_card_class(@selected_support_levels, level.id)}"}
+              >
+                <div class="text-[11px] font-bold uppercase tracking-wide text-primary mb-2">{level.label}</div>
+                <p class="text-xs text-foreground leading-relaxed">{level.summary}</p>
+              </button>
+            <% end %>
+          </div>
+        </section>
+
+        <section class="mb-16">
+          <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between mb-6">
+            <div>
+              <span class="text-sm font-bold tracking-wider">PACKAGE EXPLORER</span>
+              <p class="copy-measure text-sm leading-relaxed text-secondary-foreground mt-2">
+                Filter by layer to narrow the public package set. These cards and the compare table stay in sync.
+              </p>
+            </div>
+
+            <%= if filters_active?(@selected_layer, @selected_support_levels) do %>
+              <button
+                type="button"
+                phx-click="clear_filters"
+                class="text-xs text-muted-foreground hover:text-primary transition-colors font-semibold"
+              >
+                RESET FILTERS
+              </button>
+            <% end %>
+          </div>
+
+          <div class="flex flex-wrap gap-2 mb-6">
+            <%= for layer <- layer_filter_order() do %>
+              <button
+                id={"layer-filter-#{layer}"}
+                type="button"
+                phx-click="filter_layer"
+                phx-value-layer={layer}
+                aria-pressed={to_string(@selected_layer == layer)}
+                class={"px-4 py-2 text-[11px] rounded transition-colors #{layer_filter_class(@selected_layer, layer)}"}
+              >
+                {layer_filter_label(layer)}
+              </button>
+            <% end %>
+          </div>
+
+          <%= if @explorer_packages == [] do %>
+            <article class="rounded-md border border-border bg-card/60 p-6">
+              <div class="text-sm font-bold text-foreground mb-2">No packages match the current filters.</div>
+              <p class="text-xs text-muted-foreground leading-relaxed">
+                Reset the active filters to return to the full public package set.
+              </p>
+            </article>
+          <% else %>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <%= for pkg <- @explorer_packages do %>
+                <.package_card
+                  name={pkg.name}
+                  desc={pkg.desc}
+                  layer={pkg.layer}
+                  path={pkg.path}
+                  links={pkg.links}
+                  support_level={pkg.support_level}
+                  dependency_labels={pkg.dependency_labels}
+                />
+              <% end %>
+            </div>
+          <% end %>
+        </section>
+
+        <section :if={@package_count > 0} class="mb-16 hidden lg:block">
           <div class="flex justify-between items-center mb-5">
             <span class="text-sm font-bold tracking-wider">ECOSYSTEM MAP</span>
-            <span class="text-[11px] text-muted-foreground">interactive architecture view</span>
+            <span class="text-[11px] text-muted-foreground">select a package to inspect relationships</span>
           </div>
 
           <div
             id="ecosystem-orbit"
+            phx-update="ignore"
             phx-hook="EcosystemOrbit"
             data-orbit-payload={@orbit_payload_json}
             class="ecosystem-orbit-root"
@@ -107,114 +252,117 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
           </div>
         </section>
 
-        <%!-- Mobile Layered Map Fallback --%>
-        <section class="mb-16 lg:hidden">
-          <div class="flex justify-between items-center mb-5">
-            <span class="text-sm font-bold tracking-wider">LAYERED ECOSYSTEM MAP</span>
-            <span class="text-[11px] text-muted-foreground">mobile architecture fallback</span>
-          </div>
-
-          <div class="space-y-4">
-            <%= for layer <- @layer_rows do %>
-              <article class="rounded-md border border-border bg-card/60 overflow-hidden">
-                <div class="px-4 py-3 border-b border-border flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                  <span class={"text-[11px] font-bold tracking-wider uppercase #{layer_title_class(layer.id)}"}>
-                    {layer.label}
-                  </span>
-                  <span class="text-[11px] text-muted-foreground">{layer.summary}</span>
-                </div>
-
-                <div class="p-4 space-y-3">
-                  <%= for row <- layer.rows do %>
-                    <div class={row_grid_class(length(row))}>
-                      <%= for pkg <- row do %>
-                        <.link
-                          navigate={pkg.path}
-                          class="block rounded-md border border-border bg-card p-3 cursor-pointer transition-all duration-150 hover:border-primary/50 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
-                        >
-                          <div class="text-xs font-bold text-foreground">{pkg.name}</div>
-                          <p class="text-[11px] text-muted-foreground leading-relaxed mt-1">{pkg.desc}</p>
-
-                          <div class="mt-2 flex flex-wrap gap-1.5 items-center">
-                            <span class="text-[9px] uppercase tracking-wider text-muted-foreground">depends on</span>
-                            <%= if pkg.dep_ids == [] do %>
-                              <span class="text-[10px] px-2 py-0.5 rounded border border-border/60 text-muted-foreground">none</span>
-                            <% else %>
-                              <%= for dep_id <- pkg.dep_ids do %>
-                                <span class="text-[10px] px-2 py-0.5 rounded border border-border bg-surface text-foreground">
-                                  {Map.get(@package_name_by_id, dep_id, dep_id)}
-                                </span>
-                              <% end %>
-                            <% end %>
-                          </div>
-                        </.link>
-                      <% end %>
-                    </div>
-                  <% end %>
-                </div>
-              </article>
-            <% end %>
-          </div>
-        </section>
-
-        <%!-- Filter Section --%>
-        <section class="mb-16">
-          <div class="flex justify-between items-center mb-6">
-            <span class="text-sm font-bold tracking-wider">ALL PACKAGES</span>
-            <div class="flex flex-wrap gap-2">
-              <button
-                phx-click="filter_layer"
-                phx-value-layer="all"
-                class={"px-4 py-2 text-[11px] rounded transition-colors #{if @selected_layer == :all, do: "bg-primary/10 border border-primary text-primary font-semibold", else: "border border-border text-muted-foreground hover:text-foreground"}"}
-              >
-                ALL
-              </button>
-              <button
-                phx-click="filter_layer"
-                phx-value-layer="foundation"
-                class={"px-4 py-2 text-[11px] rounded transition-colors #{if @selected_layer == :foundation, do: "bg-accent-cyan/10 border border-accent-cyan text-accent-cyan font-semibold", else: "border border-border text-muted-foreground hover:text-foreground"}"}
-              >
-                FOUNDATION
-              </button>
-              <button
-                phx-click="filter_layer"
-                phx-value-layer="core"
-                class={"px-4 py-2 text-[11px] rounded transition-colors #{if @selected_layer == :core, do: "bg-primary/10 border border-primary text-primary font-semibold", else: "border border-border text-muted-foreground hover:text-foreground"}"}
-              >
-                CORE
-              </button>
-              <button
-                phx-click="filter_layer"
-                phx-value-layer="ai"
-                class={"px-4 py-2 text-[11px] rounded transition-colors #{if @selected_layer == :ai, do: "bg-accent-yellow/10 border border-accent-yellow text-accent-yellow font-semibold", else: "border border-border text-muted-foreground hover:text-foreground"}"}
-              >
-                AI
-              </button>
-              <button
-                phx-click="filter_layer"
-                phx-value-layer="app"
-                class={"px-4 py-2 text-[11px] rounded transition-colors #{if @selected_layer == :app, do: "bg-accent-red/10 border border-accent-red text-accent-red font-semibold", else: "border border-border text-muted-foreground hover:text-foreground"}"}
-              >
-                APPLICATION
-              </button>
+        <section id="compare" class="mb-16 scroll-mt-24">
+          <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between mb-5">
+            <div>
+              <span class="text-sm font-bold tracking-wider">COMPARE PACKAGES</span>
+              <p class="copy-measure text-sm leading-relaxed text-secondary-foreground mt-2">
+                Compare layer, support level, direct dependencies, and outbound links across the filtered package set.
+              </p>
             </div>
+            <span class="text-[11px] text-muted-foreground">{@package_count} rows</span>
           </div>
 
-          <%!-- Package Grid --%>
-          <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <%= for pkg <- displayed_packages(@packages, @selected_layer) do %>
-              <.package_card
-                name={pkg.name}
-                desc={pkg.desc}
-                layer={pkg.layer}
-                path={pkg.path}
-                links={pkg.links}
-              />
-            <% end %>
-          </div>
+          <%= if @compare_rows == [] do %>
+            <article class="rounded-md border border-border bg-card/60 p-6">
+              <div class="text-sm font-bold text-foreground mb-2">No comparison rows are available.</div>
+              <p class="text-xs text-muted-foreground leading-relaxed">
+                Reset the current filters to compare the full public package set.
+              </p>
+            </article>
+          <% else %>
+            <section class="code-block overflow-hidden">
+              <div class="code-header">
+                <span class="text-[10px] text-muted-foreground">ecosystem_compare.csv</span>
+                <span class="text-[10px] text-muted-foreground">{@package_count} rows</span>
+              </div>
+
+              <div class="overflow-x-auto">
+                <table class="w-full min-w-[760px] text-xs table-fixed">
+                  <colgroup>
+                    <col class="w-[33%]" />
+                    <col class="w-[12%]" />
+                    <col class="w-[15%]" />
+                    <col class="w-[25%]" />
+                    <col class="w-[15%]" />
+                  </colgroup>
+                  <thead class="bg-elevated text-muted-foreground uppercase tracking-wider">
+                    <tr>
+                      <th class="text-left font-semibold px-3 py-3">Package</th>
+                      <th class="text-left font-semibold px-3 py-3">Layer</th>
+                      <th class="text-left font-semibold px-3 py-3">Support Level</th>
+                      <th class="text-left font-semibold px-3 py-3">Dependencies</th>
+                      <th class="text-left font-semibold px-3 py-3">Links</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <%= for row <- @compare_rows do %>
+                      <tr id={"compare-row-#{row.id}"} class="border-t border-border align-top">
+                        <td class="px-3 py-3">
+                          <.link navigate={row.path} class="font-semibold text-foreground hover:text-primary transition-colors">
+                            {row.title}
+                          </.link>
+                          <div class="text-muted-foreground mt-1 break-words">{row.tagline}</div>
+                        </td>
+                        <td class="px-3 py-3">
+                          <.layer_badge layer={row.layer} />
+                        </td>
+                        <td class="px-3 py-3">
+                          <.support_level_badge level={row.support_level} />
+                        </td>
+                        <td class="px-3 py-3">
+                          <%= if row.dependencies == [] do %>
+                            <span class="text-muted-foreground">none</span>
+                          <% else %>
+                            <div class="flex flex-wrap gap-1.5">
+                              <%= for dep <- row.dependencies do %>
+                                <.link
+                                  navigate={dep.path}
+                                  class="text-[10px] px-2 py-1 rounded bg-primary/10 text-primary hover:bg-primary/15 transition-colors"
+                                >
+                                  {dep.title}
+                                </.link>
+                              <% end %>
+                            </div>
+                          <% end %>
+                        </td>
+                        <td class="px-3 py-3">
+                          <%= if row.links == [] do %>
+                            <span class="text-muted-foreground">n/a</span>
+                          <% else %>
+                            <div class="flex flex-wrap gap-2">
+                              <%= for link <- row.links do %>
+                                <a
+                                  href={link.href}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  title={compare_link_title(link, row)}
+                                  aria-label={compare_link_aria_label(link, row)}
+                                  class={compare_link_class(link, row)}
+                                >
+                                  <%= if link.icon == :github do %>
+                                    <Nav.github_icon class="h-4 w-4" />
+                                    <span :if={row.github_stars} class="text-[10px] font-medium text-foreground">
+                                      {row.github_stars}
+                                    </span>
+                                  <% else %>
+                                    <.icon name={link.icon} class="h-4 w-4" />
+                                  <% end %>
+                                  <span class="sr-only">{link.label}</span>
+                                </a>
+                              <% end %>
+                            </div>
+                          <% end %>
+                        </td>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          <% end %>
         </section>
 
-        <%!-- CTA Section --%>
         <section class="mb-16">
           <div class="cta-glow rounded-lg p-12 text-center">
             <h2 class="text-2xl font-bold mb-3">Ready to build?</h2>
@@ -242,46 +390,127 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
     """
   end
 
-  defp displayed_packages(packages, :all), do: packages
-  defp displayed_packages(packages, layer), do: Enum.filter(packages, &(&1.layer == layer))
+  defp filter_packages_by_support_levels(packages, []), do: packages
+
+  defp filter_packages_by_support_levels(packages, support_levels) do
+    Enum.filter(packages, &(SupportLevel.normalize(&1.support_level) in support_levels))
+  end
+
+  defp filter_packages_by_layer(packages, :all), do: packages
+  defp filter_packages_by_layer(packages, layer), do: Enum.filter(packages, &(Layering.layer_for(&1) == layer))
 
   defp count_layers(packages) do
     packages
-    |> Enum.map(& &1.layer)
+    |> Enum.map(&Layering.layer_for/1)
     |> Enum.uniq()
     |> length()
   end
 
-  defp build_layer_rows(public_packages) do
-    package_map = Map.new(public_packages, &{&1.id, &1})
-
-    @layer_order
-    |> Enum.map(fn layer_id ->
-      rows =
-        @curated_layer_rows
-        |> Map.get(layer_id, [])
-        |> Enum.map(fn ids ->
-          ids
-          |> Enum.map(&to_layer_package(&1, package_map))
-          |> Enum.reject(&is_nil/1)
-        end)
-        |> Enum.reject(&(&1 == []))
-
+  defp build_explorer_packages(packages, title_by_id, stars_by_package) do
+    packages
+    |> Enum.sort_by(fn pkg -> {layer_rank(Layering.layer_for(pkg)), String.downcase(pkg.title)} end)
+    |> Enum.map(fn pkg ->
       %{
-        id: layer_id,
-        label: layer_label(layer_id),
-        summary: layer_summary(layer_id),
-        rows: rows
+        id: pkg.id,
+        name: pkg.name,
+        desc: normalize_text(pkg.tagline),
+        layer: Layering.layer_for(pkg),
+        path: "/ecosystem/#{pkg.id}",
+        links: build_package_links(pkg, stars_by_package),
+        support_level: normalize_support_level(pkg.support_level),
+        dependency_labels: dependency_labels(pkg, title_by_id, 3)
       }
     end)
-    |> Enum.reject(&(&1.rows == []))
+  end
+
+  defp build_compare_rows(packages, title_by_id, stars_by_package) do
+    packages
+    |> Enum.sort_by(fn pkg ->
+      {compare_row_order(pkg), layer_rank(Layering.layer_for(pkg)), String.downcase(pkg.title)}
+    end)
+    |> Enum.map(fn pkg ->
+      %{
+        id: pkg.id,
+        title: pkg.title,
+        tagline: normalize_text(pkg.tagline),
+        path: "/ecosystem/#{pkg.id}",
+        layer: Layering.layer_for(pkg),
+        support_level: normalize_support_level(pkg.support_level),
+        dependencies: dependency_links(pkg, title_by_id),
+        github_stars: github_stars_label(pkg, stars_by_package),
+        links: build_compare_links(pkg)
+      }
+    end)
+  end
+
+  defp build_package_links(pkg, stars_by_package) do
+    github_label =
+      case Map.get(stars_by_package, pkg.id) do
+        %{stars: count} when is_integer(count) and count >= 0 ->
+          "github ★#{GithubStarsTracker.format_stars(count)}"
+
+        _other ->
+          "github"
+      end
+
+    []
+    |> maybe_push_link("docs", pkg.hexdocs_url)
+    |> maybe_push_link("hex", pkg.hex_url)
+    |> maybe_push_link(github_label, pkg.github_url)
+  end
+
+  defp build_compare_links(pkg) do
+    []
+    |> maybe_push_compare_link("HexDocs", "hero-book-open", pkg.hexdocs_url)
+    |> maybe_push_compare_link("Hex.pm", "hero-cube", pkg.hex_url)
+    |> maybe_push_compare_link("GitHub", :github, pkg.github_url)
+  end
+
+  defp dependency_links(pkg, title_by_id) do
+    pkg.ecosystem_deps
+    |> List.wrap()
+    |> Enum.filter(&Map.has_key?(title_by_id, &1))
+    |> Enum.map(fn dep_id ->
+      %{
+        id: dep_id,
+        title: Map.fetch!(title_by_id, dep_id),
+        path: "/ecosystem/#{dep_id}"
+      }
+    end)
+  end
+
+  defp dependency_labels(pkg, title_by_id, max_count) do
+    pkg
+    |> dependency_links(title_by_id)
+    |> Enum.map(& &1.title)
+    |> Enum.take(max_count)
+  end
+
+  defp maybe_push_link(links, _label, nil), do: links
+  defp maybe_push_link(links, label, href), do: links ++ [{label, href}]
+
+  defp maybe_push_compare_link(links, _label, _icon, nil), do: links
+
+  defp maybe_push_compare_link(links, label, icon, href) do
+    links ++ [%{label: label, icon: icon, href: href}]
+  end
+
+  defp github_stars_label(pkg, stars_by_package) do
+    case Map.get(stars_by_package, pkg.id) do
+      %{stars: count} when is_integer(count) and count >= 0 ->
+        GithubStarsTracker.format_stars(count)
+
+      _other ->
+        nil
+    end
   end
 
   defp build_orbit_payload(public_packages) when is_list(public_packages) do
-    public_ids = MapSet.new(public_packages, & &1.id)
+    orbit_packages = packages_for_orbit(public_packages)
+    public_ids = MapSet.new(orbit_packages, & &1.id)
 
     packages =
-      public_packages
+      orbit_packages
       |> Enum.map(&to_orbit_package(&1, public_ids))
       |> Enum.filter(& &1.visible)
       |> Enum.sort_by(fn pkg ->
@@ -325,8 +554,9 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
       category: to_string_or_empty(pkg.category),
       domain: orbit_domain(pkg, layer),
       label: orbit_label(pkg),
-      maturity: to_string_or_empty(pkg.maturity),
+      maturity: to_string_or_empty(normalize_support_level(pkg.support_level)),
       deps: deps,
+      orbit_parent: Map.get(pkg, :orbit_parent),
       order: Map.get(pkg, :orbit_order),
       weight: Map.get(pkg, :orbit_weight),
       visible: Map.get(pkg, :orbit_visible, true)
@@ -365,6 +595,33 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
   defp normalize_orbit_order(order) when is_integer(order), do: order
   defp normalize_orbit_order(_order), do: 9_999
 
+  defp compare_row_order(pkg) do
+    case Map.get(pkg, :compare_order) do
+      order when is_integer(order) -> order
+      _other -> 9_999
+    end
+  end
+
+  defp compare_link_title(%{icon: :github}, %{github_stars: stars}) when is_binary(stars) do
+    "GitHub (#{stars} stars)"
+  end
+
+  defp compare_link_title(link, _row), do: link.label
+
+  defp compare_link_aria_label(%{icon: :github}, %{title: title, github_stars: stars}) when is_binary(stars) do
+    "Open GitHub for #{title} (#{stars} stars)"
+  end
+
+  defp compare_link_aria_label(link, row), do: "Open #{link.label} for #{row.title}"
+
+  defp compare_link_class(%{icon: :github}, %{github_stars: stars}) when is_binary(stars) do
+    "inline-flex h-8 items-center gap-1.5 rounded bg-elevated px-2 text-muted-foreground hover:text-primary transition-colors"
+  end
+
+  defp compare_link_class(_link, _row) do
+    "inline-flex h-8 w-8 items-center justify-center rounded bg-elevated text-muted-foreground hover:text-primary transition-colors"
+  end
+
   defp orbit_layer_rank("foundation"), do: 1
   defp orbit_layer_rank("core"), do: 2
   defp orbit_layer_rank("ai"), do: 3
@@ -377,62 +634,174 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
   defp to_string_or_empty(value) when is_float(value), do: :erlang.float_to_binary(value, decimals: 2)
   defp to_string_or_empty(_value), do: ""
 
-  defp to_layer_package(id, package_map) do
-    case Map.get(package_map, id) do
-      nil ->
-        nil
+  defp maybe_put_support_levels(params, []), do: params
 
-      pkg ->
-        %{
-          id: pkg.id,
-          name: pkg.name,
-          path: "/ecosystem/#{pkg.id}",
-          desc: pkg.tagline,
-          layer: Layering.layer_for(pkg),
-          dep_ids: pkg.ecosystem_deps || []
-        }
+  defp maybe_put_support_levels(params, support_levels) do
+    Map.put(params, "support_levels", Enum.map_join(support_levels, ",", &Atom.to_string/1))
+  end
+
+  defp maybe_put_layer(params, :all), do: params
+  defp maybe_put_layer(params, layer), do: Map.put(params, "layer", Atom.to_string(layer))
+
+  defp ecosystem_index_path(params) when map_size(params) == 0, do: "/ecosystem"
+  defp ecosystem_index_path(params), do: "/ecosystem?" <> URI.encode_query(params)
+
+  defp parse_support_levels(params) do
+    params
+    |> Map.get("support_levels", Map.get(params, "support_level", ""))
+    |> to_string()
+    |> String.split(",", trim: true)
+    |> Enum.map(&SupportLevel.normalize/1)
+    |> Enum.reject(&is_nil/1)
+    |> Enum.uniq()
+    |> Enum.sort_by(&support_level_rank/1)
+  end
+
+  defp parse_layer(params) do
+    case params |> Map.get("layer", "all") |> normalize_layer_param() do
+      nil -> :all
+      layer -> layer
     end
   end
 
-  defp row_grid_class(size) when size <= 1, do: "grid grid-cols-1 gap-3"
-  defp row_grid_class(2), do: "grid grid-cols-1 md:grid-cols-2 gap-3"
-  defp row_grid_class(_), do: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"
+  defp normalize_layer_param(layer) when layer in @layer_filter_order, do: layer
 
-  defp layer_label(:foundation), do: "FOUNDATION LAYER"
-  defp layer_label(:core), do: "CORE LAYER"
-  defp layer_label(:ai), do: "AI LAYER"
-  defp layer_label(:app), do: "APPLICATION LAYER"
-  defp layer_label(_), do: "LAYER"
+  defp normalize_layer_param(layer) when is_binary(layer) do
+    case String.to_existing_atom(layer) do
+      parsed when parsed in @layer_filter_order -> parsed
+      _other -> nil
+    end
+  rescue
+    ArgumentError -> nil
+  end
 
-  defp layer_summary(:foundation), do: "Shared primitives for actions, signals, and model access"
-  defp layer_summary(:core), do: "Agent lifecycle runtime and orchestration"
-  defp layer_summary(:ai), do: "Reasoning, memory, and strategy packages"
-  defp layer_summary(:app), do: "Integrations, delivery channels, and operator tooling"
-  defp layer_summary(_), do: ""
+  defp normalize_layer_param(_layer), do: nil
 
-  defp layer_title_class(:foundation), do: "text-accent-cyan"
-  defp layer_title_class(:core), do: "text-accent-green"
-  defp layer_title_class(:ai), do: "text-accent-yellow"
-  defp layer_title_class(:app), do: "text-accent-red"
-  defp layer_title_class(_), do: "text-primary"
+  defp toggle_support_level(selected_support_levels, level) do
+    case SupportLevel.normalize(level) do
+      nil ->
+        selected_support_levels
 
-  defp attach_star_labels(package_cards, stars_by_package) when is_list(package_cards) and is_map(stars_by_package) do
-    Enum.map(package_cards, fn card ->
-      with true <- is_map(card.links),
-           github_url when is_binary(github_url) <- Map.get(card.links, "github"),
-           %{stars: stars} when is_integer(stars) and stars >= 0 <- Map.get(stars_by_package, card.id) do
-        stars_label = GithubStarsTracker.format_stars(stars)
+      normalized ->
+        if normalized in selected_support_levels do
+          selected_support_levels
+          |> Enum.reject(&(&1 == normalized))
+          |> Enum.sort_by(&support_level_rank/1)
+        else
+          (selected_support_levels ++ [normalized])
+          |> Enum.uniq()
+          |> Enum.sort_by(&support_level_rank/1)
+        end
+    end
+  end
 
-        updated_links =
-          card.links
-          |> Map.delete("github")
-          |> Map.put("github ★#{stars_label}", github_url)
+  defp toggle_layer(selected_layer, layer) do
+    case normalize_layer_param(layer) do
+      nil ->
+        selected_layer
 
-        %{card | links: updated_links}
-      else
-        _other ->
-          card
-      end
-    end)
+      normalized when normalized == selected_layer and normalized != :all ->
+        :all
+
+      normalized ->
+        normalized
+    end
+  end
+
+  defp support_level_rank(level), do: Enum.find_index(@support_level_order, &(&1 == level)) || 99
+
+  defp packages_for_orbit(public_packages) do
+    case Enum.find(Ecosystem.public_packages(), &(&1.id == "jido")) do
+      nil ->
+        public_packages
+
+      anchor_package ->
+        [anchor_package | public_packages]
+        |> Enum.uniq_by(& &1.id)
+    end
+  end
+
+  defp layer_rank(:foundation), do: 1
+  defp layer_rank(:core), do: 2
+  defp layer_rank(:ai), do: 3
+  defp layer_rank(:app), do: 4
+
+  defp layer_filter_label(:all), do: "ALL"
+  defp layer_filter_label(:foundation), do: "FOUNDATION"
+  defp layer_filter_label(:core), do: "CORE"
+  defp layer_filter_label(:ai), do: "AI"
+  defp layer_filter_label(:app), do: "APPLICATION"
+
+  defp layer_filter_order, do: @layer_filter_order
+
+  defp layer_filter_class(selected_layer, layer) do
+    active? = selected_layer == layer
+
+    case layer do
+      :all ->
+        if active?,
+          do: "bg-primary/10 border border-primary text-primary font-semibold",
+          else: "border border-border text-muted-foreground hover:text-foreground"
+
+      :foundation ->
+        if active?,
+          do: "bg-accent-cyan/10 border border-accent-cyan text-accent-cyan font-semibold",
+          else: "border border-border text-muted-foreground hover:text-foreground"
+
+      :core ->
+        if active?,
+          do: "bg-primary/10 border border-primary text-primary font-semibold",
+          else: "border border-border text-muted-foreground hover:text-foreground"
+
+      :ai ->
+        if active?,
+          do: "bg-accent-yellow/10 border border-accent-yellow text-accent-yellow font-semibold",
+          else: "border border-border text-muted-foreground hover:text-foreground"
+
+      :app ->
+        if active?,
+          do: "bg-accent-red/10 border border-accent-red text-accent-red font-semibold",
+          else: "border border-border text-muted-foreground hover:text-foreground"
+    end
+  end
+
+  defp filters_active?(:all, []), do: false
+  defp filters_active?(_selected_layer, _selected_support_levels), do: true
+
+  defp support_level_selected?(selected_support_levels, level_id), do: level_id in selected_support_levels
+
+  defp support_level_card_class(selected_support_levels, level_id) do
+    if level_id in selected_support_levels do
+      "bg-primary/10 border-primary text-foreground shadow-[0_0_0_1px_rgba(78,238,180,0.25)]"
+    else
+      "bg-card border-border hover:border-primary/40"
+    end
+  end
+
+  defp normalize_support_level(level), do: SupportLevel.normalize(level) || :experimental
+
+  defp normalize_text(text) when is_binary(text), do: text |> String.trim() |> String.replace(~r/\s+/, " ")
+  defp normalize_text(_text), do: ""
+
+  defp ecosystem_item_list(packages) do
+    %{
+      "@context" => "https://schema.org",
+      "@type" => "ItemList",
+      "name" => "Jido Ecosystem Packages",
+      "url" => MarkdownLinks.absolute_url("/ecosystem"),
+      "numberOfItems" => length(packages),
+      "itemListElement" =>
+        packages
+        |> Enum.sort_by(fn pkg -> {layer_rank(Layering.layer_for(pkg)), String.downcase(pkg.title)} end)
+        |> Enum.with_index(1)
+        |> Enum.map(fn {pkg, index} ->
+          %{
+            "@type" => "ListItem",
+            "position" => index,
+            "name" => pkg.title,
+            "url" => MarkdownLinks.absolute_url("/ecosystem/#{pkg.id}")
+          }
+        end)
+    }
   end
 end
