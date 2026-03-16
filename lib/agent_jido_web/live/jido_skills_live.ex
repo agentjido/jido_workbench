@@ -54,54 +54,91 @@ defmodule AgentJidoWeb.JidoSkillsLive do
           </p>
         </section>
 
-        <section :if={@router_entries != []} class="mb-12">
+        <section class="mb-12">
           <div class="flex items-center justify-between mb-6">
             <span class="text-sm font-bold tracking-wider uppercase">Start Here</span>
-            <span class="text-[11px] text-muted-foreground">use the router when a task crosses package boundaries</span>
+            <span class="text-[11px] text-muted-foreground">start with the router, then use the basic skillset or a package card</span>
           </div>
 
-          <%= for entry <- @router_entries do %>
-            <article id={"router-skill-card-#{entry.id}"} class="feature-card border-primary/30 bg-primary/5">
+          <div class="grid md:grid-cols-2 gap-4">
+            <%= for entry <- @router_entries do %>
+              <article id={"router-skill-card-#{entry.id}"} class="feature-card border-primary/30 bg-primary/5 h-full">
+                <div class="flex flex-wrap items-center gap-3 mb-3">
+                  <span class="text-[10px] px-2 py-1 rounded bg-primary/10 border border-primary/30 text-primary font-semibold uppercase tracking-wider">
+                    Router Skill
+                  </span>
+                  <span class="text-[11px] font-mono text-muted-foreground">{entry.name}</span>
+                </div>
+                <h2 class="text-xl font-bold text-foreground mb-2">{entry.title}</h2>
+                <p class="text-sm text-secondary-foreground leading-relaxed mb-5">{entry.description}</p>
+                <div class="grid gap-3 sm:grid-cols-3 mb-5">
+                  <div class="rounded-md border border-border bg-card/70 p-4">
+                    <div class="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Source</div>
+                    <div class="text-[11px] text-foreground break-all">{entry.skill_source_path}</div>
+                  </div>
+                  <div class="rounded-md border border-border bg-card/70 p-4">
+                    <div class="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Agent Files</div>
+                    <div class="text-sm font-semibold text-foreground">{length(entry.agent_files)}</div>
+                  </div>
+                  <div class="rounded-md border border-border bg-card/70 p-4">
+                    <div class="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Reference Files</div>
+                    <div class="text-sm font-semibold text-foreground">{length(entry.reference_files)}</div>
+                  </div>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                  <a
+                    href={entry.upstream_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-xs font-semibold px-3 py-2 rounded border border-primary/30 bg-primary/10 text-primary hover:bg-primary/15 transition-colors"
+                  >
+                    Open Upstream Skill
+                  </a>
+                </div>
+              </article>
+            <% end %>
+
+            <article id="basic-skills-card" class="feature-card h-full">
               <div class="flex flex-wrap items-center gap-3 mb-3">
-                <span class="text-[10px] px-2 py-1 rounded bg-primary/10 border border-primary/30 text-primary font-semibold uppercase tracking-wider">
-                  Router Skill
+                <span class="text-[10px] px-2 py-1 rounded bg-accent-cyan/10 border border-accent-cyan/30 text-accent-cyan font-semibold uppercase tracking-wider">
+                  Basic Skillset
                 </span>
-                <span class="text-[11px] font-mono text-muted-foreground">{entry.name}</span>
+                <span class="text-[11px] font-mono text-muted-foreground">builder skills</span>
               </div>
-              <h2 class="text-xl font-bold text-foreground mb-2">{entry.title}</h2>
-              <p class="text-sm text-secondary-foreground leading-relaxed mb-5">{entry.description}</p>
-              <div class="grid gap-3 md:grid-cols-3 mb-5">
+              <h2 class="text-xl font-bold text-foreground mb-2">Workbench builder skills</h2>
+              <p class="text-sm text-secondary-foreground leading-relaxed mb-5">
+                Use the checked-in basic builder skillset when the task is not package-specific yet and you need the shared contributor workflows first, such as scaffolding, ecosystem-page authoring, or truthful example shaping.
+              </p>
+              <div class="grid gap-3 sm:grid-cols-3 mb-5">
                 <div class="rounded-md border border-border bg-card/70 p-4">
-                  <div class="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Source</div>
-                  <div class="text-[11px] text-foreground break-all">{entry.skill_source_path}</div>
+                  <div class="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Surface</div>
+                  <div class="text-sm font-semibold text-foreground">Builder catalog demo</div>
                 </div>
                 <div class="rounded-md border border-border bg-card/70 p-4">
-                  <div class="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Agent Files</div>
-                  <div class="text-sm font-semibold text-foreground">{length(entry.agent_files)}</div>
+                  <div class="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Focus</div>
+                  <div class="text-sm font-semibold text-foreground">Shared workflows</div>
                 </div>
                 <div class="rounded-md border border-border bg-card/70 p-4">
-                  <div class="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Reference Files</div>
-                  <div class="text-sm font-semibold text-foreground">{length(entry.reference_files)}</div>
+                  <div class="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">When To Use</div>
+                  <div class="text-sm font-semibold text-foreground">Before package-specific work</div>
                 </div>
               </div>
               <div class="flex flex-wrap gap-3">
-                <a
-                  href={entry.upstream_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="text-xs font-semibold px-3 py-2 rounded border border-primary/30 bg-primary/10 text-primary hover:bg-primary/15 transition-colors"
-                >
-                  Open Upstream Skill
-                </a>
                 <.link
                   navigate="/examples/jido-ai-skills-runtime-foundations?tab=demo"
-                  class="text-xs font-semibold px-3 py-2 rounded border border-border text-muted-foreground hover:text-foreground hover:border-foreground/40 transition-colors"
+                  class="text-xs font-semibold px-3 py-2 rounded border border-accent-cyan/30 bg-accent-cyan/10 text-accent-cyan hover:bg-accent-cyan/15 transition-colors"
                 >
                   Open Builder Skills Demo
                 </.link>
+                <.link
+                  navigate="/examples/jido-ai-skills-runtime-foundations?tab=source"
+                  class="text-xs font-semibold px-3 py-2 rounded border border-border text-muted-foreground hover:text-foreground hover:border-foreground/40 transition-colors"
+                >
+                  View Source Files
+                </.link>
               </div>
             </article>
-          <% end %>
+          </div>
         </section>
 
         <section>
