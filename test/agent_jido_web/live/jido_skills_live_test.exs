@@ -3,15 +3,12 @@ defmodule AgentJidoWeb.JidoSkillsLiveTest do
 
   import Phoenix.LiveViewTest
 
-  alias AgentJido.UpstreamSkillCatalog
-
   test "renders the vendored upstream skills catalog page", %{conn: conn} do
     {:ok, _view, html} = live(conn, "/skills")
 
-    assert html =~ "JIDO SKILLS CATALOG"
-    assert html =~ "Vendored package skills for the Jido ecosystem"
-    assert html =~ UpstreamSkillCatalog.skills_root_source_path()
-    assert html =~ UpstreamSkillCatalog.readme_source_path()
+    assert html =~ "Package skills for contributors and adopters"
+    assert html =~ "one card per external package skill"
+    assert html =~ "Router Skill"
     assert html =~ "jido-skill-router"
     assert html =~ "jido-action"
     assert html =~ "req-llm"
