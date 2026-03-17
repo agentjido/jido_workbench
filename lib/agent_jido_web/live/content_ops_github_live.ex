@@ -26,6 +26,7 @@ defmodule AgentJidoWeb.ContentOpsGithubLive do
   use AgentJidoWeb, :live_view
 
   alias AgentJido.ContentOps.OrchestratorAgent
+  alias AgentJido.Github.Optional, as: GithubOptional
 
   @cache_table :contentops_github_cache
   @pubsub_topic "contentops:github"
@@ -295,8 +296,9 @@ defmodule AgentJidoWeb.ContentOpsGithubLive do
 
       task =
         Task.async(fn ->
-          client = Tentacat.Client.new(%{access_token: token})
-          Tentacat.Pulls.merge(client, owner, repo, number, %{})
+          with {:ok, client} <- GithubOptional.build_client(token) do
+            GithubOptional.pulls_merge(client, owner, repo, number, %{})
+          end
         end)
 
       socket =
@@ -484,14 +486,22 @@ defmodule AgentJidoWeb.ContentOpsGithubLive do
 
     issues_task =
       Task.async(fn ->
-        client = Tentacat.Client.new(%{access_token: token})
-        {:issues, Tentacat.Issues.filter(client, owner, repo, %{state: "open"})}
+        result =
+          with {:ok, client} <- GithubOptional.build_client(token) do
+            GithubOptional.issues_filter(client, owner, repo, %{state: "open"})
+          end
+
+        {:issues, result}
       end)
 
     prs_task =
       Task.async(fn ->
-        client = Tentacat.Client.new(%{access_token: token})
-        {:prs, Tentacat.Pulls.filter(client, owner, repo, %{state: "open"})}
+        result =
+          with {:ok, client} <- GithubOptional.build_client(token) do
+            GithubOptional.pulls_filter(client, owner, repo, %{state: "open"})
+          end
+
+        {:prs, result}
       end)
 
     socket

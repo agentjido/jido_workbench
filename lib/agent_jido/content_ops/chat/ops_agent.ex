@@ -33,6 +33,8 @@ defmodule AgentJido.ContentOps.Chat.OpsAgent do
 
   @default_timeout 30_000
 
+  alias AgentJido.Github.Optional, as: GithubOptional
+
   @doc "Runs a synchronous turn against the room-scoped Ops agent."
   @spec chat(pid(), String.t(), keyword()) :: {:ok, String.t()} | {:error, term()}
   def chat(pid, prompt, opts \\ []) do
@@ -60,7 +62,10 @@ defmodule AgentJido.ContentOps.Chat.OpsAgent do
     else
       case System.get_env("GITHUB_TOKEN") do
         token when is_binary(token) and token != "" ->
-          Map.put(tool_context, :github_client, Tentacat.Client.new(%{access_token: token}))
+          case GithubOptional.build_client(token) do
+            {:ok, client} -> Map.put(tool_context, :github_client, client)
+            {:error, _reason} -> tool_context
+          end
 
         _other ->
           tool_context

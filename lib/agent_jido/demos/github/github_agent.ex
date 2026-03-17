@@ -112,6 +112,7 @@ defmodule AgentJido.Demos.GithubAgent do
     max_iterations: 15
 
   alias Jido.AI.Request
+  alias AgentJido.Github.Optional, as: GithubOptional
 
   @default_timeout 60_000
 
@@ -132,23 +133,37 @@ defmodule AgentJido.Demos.GithubAgent do
         {:ok, agent, {:react_start, params}}
 
       token when is_binary(token) and byte_size(token) > 0 ->
-        client = Tentacat.Client.new(%{access_token: token})
+        case GithubOptional.build_client(token) do
+          {:ok, client} ->
+            existing_context = Map.get(params, :tool_context, %{})
+            new_context = Map.put(existing_context, :client, client)
+            updated_params = Map.put(params, :tool_context, new_context)
 
-        existing_context = Map.get(params, :tool_context, %{})
-        new_context = Map.put(existing_context, :client, client)
-        updated_params = Map.put(params, :tool_context, new_context)
+            agent = %{
+              agent
+              | state:
+                  agent.state
+                  |> Map.put(:last_query, query)
+                  |> Map.put(:completed, false)
+                  |> Map.put(:last_answer, "")
+                  |> Map.put(:github_token_present, true)
+            }
 
-        agent = %{
-          agent
-          | state:
-              agent.state
-              |> Map.put(:last_query, query)
-              |> Map.put(:completed, false)
-              |> Map.put(:last_answer, "")
-              |> Map.put(:github_token_present, true)
-        }
+            {:ok, agent, {:react_start, updated_params}}
 
-        {:ok, agent, {:react_start, updated_params}}
+          {:error, reason} ->
+            agent = %{
+              agent
+              | state:
+                  agent.state
+                  |> Map.put(:last_query, query)
+                  |> Map.put(:completed, false)
+                  |> Map.put(:last_answer, github_client_error(reason))
+                  |> Map.put(:github_token_present, false)
+            }
+
+            {:ok, agent, {:react_start, params}}
+        end
     end
   end
 
@@ -306,18 +321,9 @@ defmodule AgentJido.Demos.GithubAgent do
         {:error, "GITHUB_TOKEN environment variable is not set"}
 
       token ->
-        client = Tentacat.Client.new(%{access_token: token})
-
-        Jido.Tools.Github.Webhooks.Create.run(
-          %{
-            owner: owner,
-            repo: repo,
-            url: url,
-            events: events,
-            secret: secret
-          },
-          %{client: client}
-        )
+        with {:ok, client} <- GithubOptional.build_client(token) do
+          GithubOptional.webhooks_create(owner, repo, url, events, secret, client)
+        end
     end
   end
 
@@ -334,12 +340,17 @@ defmodule AgentJido.Demos.GithubAgent do
         {:error, "GITHUB_TOKEN environment variable is not set"}
 
       token ->
-        client = Tentacat.Client.new(%{access_token: token})
-
-        Jido.Tools.Github.Webhooks.List.run(
-          %{owner: owner, repo: repo},
-          %{client: client}
-        )
+        with {:ok, client} <- GithubOptional.build_client(token) do
+          GithubOptional.webhooks_list(owner, repo, client)
+        end
     end
+  end
+
+  defp github_client_error(:missing_github_token) do
+    "Error: GITHUB_TOKEN environment variable is not set."
+  end
+
+  defp github_client_error({:module_unavailable, module, function, arity}) do
+    "Error: optional GitHub dependency is unavailable (#{inspect(module)}.#{function}/#{arity})."
   end
 end

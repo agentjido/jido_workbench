@@ -4,6 +4,7 @@ defmodule AgentJido.ContentOps.Chat.GithubClient do
   """
 
   alias AgentJido.ContentOps.Chat.Config
+  alias AgentJido.Github.Optional, as: GithubOptional
 
   @type issue_request :: %{
           required(:title) => String.t(),
@@ -82,7 +83,7 @@ defmodule AgentJido.ContentOps.Chat.GithubClient do
         token = System.get_env("GITHUB_TOKEN")
 
         if is_binary(token) and token != "" do
-          {:ok, Tentacat.Client.new(%{access_token: token})}
+          GithubOptional.build_client(token)
         else
           {:error, :missing_github_token}
         end
@@ -151,15 +152,14 @@ defmodule AgentJido.ContentOps.Chat.GithubClient do
   defmodule DefaultAPI do
     @moduledoc false
 
-    alias Tentacat.Issues
-    alias Tentacat.Issues.Comments
+    alias AgentJido.Github.Optional, as: GithubOptional
 
     def issues_create(client, owner, repo, payload) do
-      Issues.create(client, owner, repo, payload)
+      GithubOptional.issues_create(client, owner, repo, payload)
     end
 
     def issue_comments_create(client, owner, repo, number, payload) do
-      Comments.create(client, owner, repo, number, payload)
+      GithubOptional.issue_comments_create(client, owner, repo, number, payload)
     end
   end
 end

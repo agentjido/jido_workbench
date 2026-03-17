@@ -183,7 +183,8 @@ defmodule Mix.Tasks.Content.Plan.Generate do
 
   defp print_summary(report) do
     stats = report.stats || %{}
-    Enum.each(summary_lines(report, stats), &Mix.shell().info/1)
+    shell = Mix.shell()
+    Enum.each(summary_lines(report, stats), fn line -> shell.info(line) end)
 
     if Map.get(report.options || %{}, :verify, false) do
       print_verify_summary(report)

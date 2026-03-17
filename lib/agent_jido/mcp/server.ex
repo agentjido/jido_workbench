@@ -77,7 +77,7 @@ defmodule AgentJido.MCP.Server do
 
   defp dispatch(%{method: "initialize", id: nil}, state, _opts), do: {:noreply, %{state | initialized?: true}}
 
-  defp dispatch(%{method: "initialize", id: id, params: params}, state, opts) do
+  defp dispatch(%{method: "initialize", id: id, params: params}, %State{} = state, opts) do
     protocol_version = Keyword.get(opts, :protocol_version, MCP.protocol_version())
 
     next_state = %State{
