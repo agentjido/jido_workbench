@@ -15,16 +15,18 @@
   order: 10,
   prerequisites: ["docs/contributors/_hub"],
   purpose: "Canonical contributor-facing checklist for Jido ecosystem package quality, CI, documentation coverage, and GitOps-style release readiness",
-  related: ["docs/reference/configuration", "docs/guides/testing-agents-and-actions", "ecosystem/overview"],
+  related: ["docs/contributors/ecosystem-atlas", "docs/contributors/package-support-levels",
+   "docs/reference/configuration", "docs/guides/testing-agents-and-actions", "ecosystem/overview"],
   source_files: ["GENERIC_PACKAGE_QA.md"],
   prompt_overrides: %{
     document_intent: "Create the canonical package standards page contributors and agents should use to verify Jido ecosystem package quality requirements.",
-    required_sections: ["Scope", "Package Structure", "Shared Building Blocks", "Quality Gates", "Release Workflow", "Contributor Checklists"],
-    must_include: ["Explicit `mix quality` policy",
-     "GitOps-style release workflow expectations",
+    required_sections: ["Fast Path Checklist", "How to use this page", "Package Structure", "Shared Building Blocks", "Quality Gates", "Release Workflow", "Contributor Checklists"],
+    must_include: ["Short explanation that quality standards are distinct from support levels",
+     "Explicit `mix quality` policy", "GitOps-style release workflow expectations",
      "Contributor checklists for new packages, first release, and ongoing maintenance"],
     must_avoid: ["Package-specific implementation details that belong in per-repo docs"],
-    required_links: ["/docs/contributors", "/docs/reference", "/ecosystem"],
+    required_links: ["/docs/contributors", "/docs/contributors/ecosystem-atlas",
+     "/docs/contributors/package-support-levels", "/docs/reference", "/ecosystem"],
     min_words: 900,
     max_words: 2200,
     minimum_code_blocks: 3,
@@ -40,6 +42,8 @@ Canonical checklist and standards page for public Jido ecosystem packages. This 
 
 ### Validation Criteria
 
+- Includes a fast review path near the top
+- Distinguishes quality standards from support level and package roster pages
 - Covers repo structure, quality gates, docs coverage, CI, and release workflow
 - States the canonical package policies clearly enough to link from PRs
 - Includes actionable checklists, not just prose

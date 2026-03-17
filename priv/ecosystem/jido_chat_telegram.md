@@ -15,6 +15,7 @@
   github_url: "https://github.com/agentjido/jido_chat_telegram",
   github_org: "agentjido",
   github_repo: "jido_chat_telegram",
+  tech_lead: "@mikehostetler",
   elixir: "~> 1.17",
   maturity: :beta,
   support_level: :beta,

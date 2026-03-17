@@ -14,6 +14,7 @@
   github_url: "https://github.com/agentjido/jido_behaviortree",
   github_org: "agentjido",
   github_repo: "jido_behaviortree",
+  tech_lead: "@mikehostetler",
   maturity: :stable,
   support_level: :stable,
   hex_status: "unreleased",

@@ -12,6 +12,7 @@
   github_url: "https://github.com/agentjido/jido_vfs",
   github_org: "agentjido",
   github_repo: "jido_vfs",
+  tech_lead: "@mikehostetler",
   elixir: "~> 1.11",
   maturity: :stable,
   support_level: :stable,

@@ -11,9 +11,24 @@
 
 This page defines the shared quality baseline for all public OSS packages in the Jido ecosystem. These patterns are derived from `req_llm`, `llm_db`, `jido_action`, and `jido_signal`.
 
-Link contributors and automated reviewers here when a package PR needs a canonical checklist for repository structure, `mix quality`, docs coverage, and release readiness.
+Link contributors and automated reviewers here when a package PR needs the canonical checklist for repository structure, `mix quality`, docs coverage, and release readiness.
 
 > Agent handoff: you can point an implementation or review agent at this page and instruct it to apply or verify these package quality standards as the canonical Jido ecosystem baseline.
+
+This page defines the package bar. It is separate from [Package Support Levels](/docs/contributors/package-support-levels), which define maintenance commitment, and separate from the [Ecosystem Atlas](/docs/contributors/ecosystem-atlas), which lists the current public package roster and owners.
+
+> **Note:** The ecosystem is still finishing the move from Elixir `~> 1.17` packages to an Elixir `~> 1.18` contributor baseline. Treat `~> 1.18` as the target bar for new packages and when touching CI or release surfaces on older packages.
+
+## Fast Path Checklist
+
+- [ ] Package metadata, README, and docs clearly explain what the package is and where it fits in Jido
+- [ ] `mix quality` or the equivalent CI quality gate passes
+- [ ] CI and release automation exist and are wired correctly
+- [ ] Public API, validation, error, and telemetry patterns follow ecosystem conventions
+- [ ] Contributor-facing files exist: `CONTRIBUTING.md`, `CHANGELOG.md`, `AGENTS.md`, and license
+- [ ] Examples live outside shipped library code when they need extra app wiring
+- [ ] Hex/release metadata is ready if the package is being published
+- [ ] Any exception to this page is explicit and documented
 
 ## How to use this page
 
@@ -21,10 +36,12 @@ Link contributors and automated reviewers here when a package PR needs a canonic
 - Use it as the review baseline for pull requests that change package structure, CI, or release automation.
 - Use it as the canonical policy page when agents need a stable source of truth for ecosystem package standards.
 
-All packages MUST:
+- New packages MUST:
 
-- Support **Elixir `~> 1.18`** as the baseline.
+- Target **Elixir `~> 1.18`** as the baseline.
 - Follow the conventions in this document unless there is a strong, documented reason not to.
+
+Existing packages should move to that baseline as they are actively maintained. Do not add new package work below the `~> 1.18` bar.
 
 ---
 
@@ -756,5 +773,5 @@ git push && git push --tags
 ## Next Steps
 
 - [Contributors](/docs/contributors) - return to the contributor handbook
-- [Reference](/docs/reference) - exact configuration and architecture details
-- [Ecosystem](/ecosystem) - package overviews and package-specific docs links
+- [Package Support Levels](/docs/contributors/package-support-levels) - pair quality gates with the right support commitment
+- [Ecosystem Atlas](/docs/contributors/ecosystem-atlas) - see package ownership and current release state

@@ -41,4 +41,10 @@ defmodule AgentJido.EcosystemSupportLevelTest do
     assert stable_packages != []
     assert Enum.all?(stable_packages, &(&1.support_level == :stable))
   end
+
+  test "exposes tech lead ownership metadata for public packages" do
+    assert Ecosystem.get_package!("jido").tech_lead == "@mikehostetler"
+    assert Ecosystem.get_package!("jido_memory_os").tech_lead == "@pcharbon70"
+    assert Enum.all?(Ecosystem.public_packages(), &is_binary(&1.tech_lead))
+  end
 end

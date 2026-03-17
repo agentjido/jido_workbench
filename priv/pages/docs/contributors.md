@@ -8,25 +8,27 @@
 }
 ---
 
-This section is the ecosystem-level handbook for contributors and maintainers working across Jido packages. Use it when you need the canonical answer for shared quality gates, release workflow expectations, contributor-facing repo scaffolding, and the policies automated reviewers should enforce.
+Use this section as the public contributor handbook for Jido. It is the place to link when someone needs the canonical answer for package ownership, support commitments, quality bars, roadmap direction, or how contribution works across the ecosystem.
 
-It is meant to be linkable in issues and pull requests, and explicit enough that agents can use it as a source of truth when verifying whether a package follows Jido standards.
+`/community` is the social entry point: Discord, public collaboration, and general ways to join in. `/docs/contributors` is the policy and ownership surface: the handbook contributors, maintainers, and reviewers can cite in issues, pull requests, and onboarding conversations.
 
-## Start here
+## Section Contents
 
-- [Package support levels](/docs/contributors/package-support-levels) - the canonical definition of `Stable`, `Beta`, and `Experimental` across the public ecosystem
-- [Package quality standards](/docs/contributors/package-quality-standards) - the canonical checklist for repository structure, `mix quality`, CI, GitOps-style release automation, documentation coverage, and contributor expectations
+- [Ecosystem Atlas](/docs/contributors/ecosystem-atlas) - public package roster by category with current support level, owner, release status, and purpose
+- [Package Support Levels](/docs/contributors/package-support-levels) - canonical meaning of `Stable`, `Beta`, and `Experimental`
+- [Package Quality Standards](/docs/contributors/package-quality-standards) - package bar for repository structure, CI, docs, release hygiene, and review gates
+- [Roadmap](/docs/contributors/roadmap) - current milestone, next milestone, and active epics shaping the ecosystem
+- [Contributing](/docs/contributors/contributing) - who can contribute, where to start, and how lightweight contribution flow works
+- [Governance and Team Structure](/docs/contributors/governance-and-team) - BDFL model, repository ownership, cross-cutting teams, and stewardship expectations
 
-## What belongs in Contributors
+## Common Entry Points
 
-- Shared contribution policy that applies across Jido ecosystem packages
-- Release and maintenance standards that should not be reinvented repo by repo
-- Public support taxonomy used on ecosystem pages and package metadata
-- Checklists contributors can use before opening or merging a package PR
+- Package lookup or owner lookup: start with [Ecosystem Atlas](/docs/contributors/ecosystem-atlas)
+- Release expectations or package review bar: use [Package Support Levels](/docs/contributors/package-support-levels) and [Package Quality Standards](/docs/contributors/package-quality-standards)
+- Where the project is heading and where help is useful now: use [Roadmap](/docs/contributors/roadmap) and [Contributing](/docs/contributors/contributing)
 
 ## Next steps
 
-- [Package support levels](/docs/contributors/package-support-levels) - understand what each public support commitment means operationally
-- [Package quality standards](/docs/contributors/package-quality-standards) - validate a package against the baseline ecosystem standard
-- [Guides](/docs/guides) - implementation patterns for building with Jido
-- [Reference](/docs/reference) - exact API, architecture, and configuration details
+- [Ecosystem Atlas](/docs/contributors/ecosystem-atlas) - see the current public package roster and ownership map
+- [Contributing](/docs/contributors/contributing) - find the right contribution lane and first step
+- [Community](/community) - join Discord and collaborate in public

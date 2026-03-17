@@ -14,6 +14,7 @@
   github_url: "https://github.com/agentjido/jido_runic",
   github_org: "agentjido",
   github_repo: "jido_runic",
+  tech_lead: "@mikehostetler",
   maturity: :stable,
   support_level: :stable,
   hex_status: "unreleased",

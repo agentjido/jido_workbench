@@ -12,6 +12,7 @@
   github_url: "https://github.com/agentjido/jido_gemini",
   github_org: "agentjido",
   github_repo: "jido_gemini",
+  tech_lead: "@mikehostetler",
   elixir: "~> 1.18",
   maturity: :beta,
   support_level: :beta,

@@ -212,6 +212,49 @@ defmodule AgentJidoWeb.PageLiveTest do
       assert html =~ "Every public ecosystem package should carry one public"
     end
 
+    test "renders the new contributor handbook pages", %{conn: conn} do
+      for {path, title} <- [
+            {"/docs/contributors/ecosystem-atlas", "Ecosystem Atlas"},
+            {"/docs/contributors/roadmap", "Roadmap"},
+            {"/docs/contributors/contributing", "Contributing"},
+            {"/docs/contributors/governance-and-team", "Governance and Team Structure"}
+          ] do
+        page = Pages.get_page_by_path(path)
+        assert page != nil
+
+        {:ok, _view, html} = live(conn, path)
+
+        assert html =~ title
+      end
+    end
+
+    test "contributors sidebar lists handbook pages in atlas-first order" do
+      [%{title: title, items: items}] = AgentJidoWeb.PageLive.sidebar_nav("/docs/contributors")
+
+      assert title == "Contributors"
+
+      assert Enum.map(items, & &1.href) == [
+               "/docs/contributors",
+               "/docs/contributors/ecosystem-atlas",
+               "/docs/contributors/package-support-levels",
+               "/docs/contributors/package-quality-standards",
+               "/docs/contributors/roadmap",
+               "/docs/contributors/contributing",
+               "/docs/contributors/governance-and-team"
+             ]
+    end
+
+    test "ecosystem atlas renders public package links, owner handles, and excludes private packages", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/docs/contributors/ecosystem-atlas")
+
+      assert html =~ ~s(href="/ecosystem/jido")
+      assert html =~ ~s(href="/ecosystem/jido_memory_os")
+      assert html =~ "@mikehostetler"
+      assert html =~ "@pcharbon70"
+      refute html =~ ~s(href="/ecosystem/agent_jido")
+      refute html =~ ~s(href="/ecosystem/jido_code")
+    end
+
     test "docs right rail includes Livebook run link for livebook-backed docs pages", %{conn: conn} do
       page = Pages.get_page_by_path("/docs/concepts/agents")
       assert page != nil

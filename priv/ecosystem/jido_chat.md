@@ -12,6 +12,7 @@
   github_url: "https://github.com/agentjido/jido_chat",
   github_org: "agentjido",
   github_repo: "jido_chat",
+  tech_lead: "@mikehostetler",
   elixir: "~> 1.17",
   maturity: :beta,
   support_level: :beta,

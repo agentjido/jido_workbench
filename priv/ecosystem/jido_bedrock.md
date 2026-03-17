@@ -12,6 +12,7 @@
   github_url: "https://github.com/agentjido/jido_bedrock",
   github_org: "agentjido",
   github_repo: "jido_bedrock",
+  tech_lead: "@mikehostetler",
   elixir: "~> 1.18",
   maturity: :experimental,
   support_level: :experimental,

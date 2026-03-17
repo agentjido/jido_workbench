@@ -12,6 +12,7 @@
   github_url: "https://github.com/agentjido/jido_memory_os",
   github_org: "agentjido",
   github_repo: "jido_memory_os",
+  tech_lead: "@pcharbon70",
   elixir: "~> 1.19",
   maturity: :stable,
   support_level: :stable,

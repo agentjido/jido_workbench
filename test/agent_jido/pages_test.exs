@@ -88,6 +88,20 @@ defmodule AgentJido.PagesTest do
       assert contributors_index < reference_index
     end
 
+    test "orders contributor handbook pages for the section sidebar" do
+      routes = Pages.docs_section_pages("contributors") |> Enum.map(&Pages.route_for/1)
+
+      assert routes == [
+               "/docs/contributors",
+               "/docs/contributors/ecosystem-atlas",
+               "/docs/contributors/package-support-levels",
+               "/docs/contributors/package-quality-standards",
+               "/docs/contributors/roadmap",
+               "/docs/contributors/contributing",
+               "/docs/contributors/governance-and-team"
+             ]
+    end
+
     test "extracts section slug from docs path" do
       assert Pages.docs_section_for_path("/docs") == nil
       assert Pages.docs_section_for_path("/docs/getting-started") == "getting-started"

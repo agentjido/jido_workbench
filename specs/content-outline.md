@@ -102,6 +102,13 @@ User outcomes:
 
 - `/docs`
 - `/docs/getting-started`
+- `/docs/contributors`
+- `/docs/contributors/ecosystem-atlas`
+- `/docs/contributors/package-support-levels`
+- `/docs/contributors/package-quality-standards`
+- `/docs/contributors/roadmap`
+- `/docs/contributors/contributing`
+- `/docs/contributors/governance-and-team`
 - `/docs/core-concepts`
 - `/docs/guides`
 - `/docs/reference`

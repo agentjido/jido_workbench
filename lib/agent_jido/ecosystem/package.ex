@@ -114,6 +114,9 @@ defmodule AgentJido.Ecosystem.Package do
               github_url: Zoi.string(description: "GitHub repository URL") |> Zoi.optional(),
               github_org: Zoi.string(description: "GitHub organization") |> Zoi.default("agentjido"),
               github_repo: Zoi.string(description: "GitHub repository name") |> Zoi.optional(),
+              tech_lead:
+                Zoi.string(description: "Canonical GitHub-handle-first owner or tech lead for the package")
+                |> Zoi.optional(),
               elixir: Zoi.string(description: "Required Elixir version") |> Zoi.optional(),
               ecosystem_deps:
                 Zoi.any(description: "List of ecosystem package id strings this depends on")

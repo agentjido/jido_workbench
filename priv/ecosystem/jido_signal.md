@@ -14,6 +14,7 @@
   github_url: "https://github.com/agentjido/jido_signal",
   github_org: "agentjido",
   github_repo: "jido_signal",
+  tech_lead: "@mikehostetler",
   elixir: "~> 1.17",
   maturity: :stable,
   support_level: :stable,

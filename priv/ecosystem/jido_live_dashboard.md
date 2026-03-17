@@ -13,6 +13,7 @@
   github_url: "https://github.com/agentjido/jido_live_dashboard",
   github_org: "agentjido",
   github_repo: "jido_live_dashboard",
+  tech_lead: "@mikehostetler",
   elixir: "~> 1.17",
   maturity: :beta,
   support_level: :beta,

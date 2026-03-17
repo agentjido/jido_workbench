@@ -12,6 +12,7 @@
   github_url: "https://github.com/agentjido/jido_cluster",
   github_org: "agentjido",
   github_repo: "jido_cluster",
+  tech_lead: "@mikehostetler",
   elixir: "~> 1.18",
   maturity: :experimental,
   support_level: :experimental,

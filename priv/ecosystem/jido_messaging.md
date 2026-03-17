@@ -12,6 +12,7 @@
   github_url: "https://github.com/agentjido/jido_messaging",
   github_org: "agentjido",
   github_repo: "jido_messaging",
+  tech_lead: "@mikehostetler",
   maturity: :beta,
   support_level: :beta,
   hex_status: "unreleased",

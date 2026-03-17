@@ -12,6 +12,7 @@
   github_url: "https://github.com/agentjido/ash_jido",
   github_org: "agentjido",
   github_repo: "ash_jido",
+  tech_lead: "@mikehostetler",
   maturity: :stable,
   support_level: :stable,
   hex_status: "unreleased",

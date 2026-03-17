@@ -12,6 +12,7 @@
   github_url: "https://github.com/agentjido/jido_memory",
   github_org: "agentjido",
   github_repo: "jido_memory",
+  tech_lead: "@mikehostetler",
   elixir: "~> 1.18",
   maturity: :stable,
   support_level: :stable,

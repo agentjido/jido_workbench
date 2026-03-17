@@ -12,6 +12,7 @@
   github_url: "https://github.com/agentjido/jido_shell",
   github_org: "agentjido",
   github_repo: "jido_shell",
+  tech_lead: "@mikehostetler",
   elixir: "~> 1.18",
   maturity: :stable,
   support_level: :stable,

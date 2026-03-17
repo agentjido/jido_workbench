@@ -14,6 +14,7 @@
   github_url: "https://github.com/agentjido/llm_db",
   github_org: "agentjido",
   github_repo: "llm_db",
+  tech_lead: "@mikehostetler",
   elixir: "~> 1.17",
   maturity: :stable,
   support_level: :stable,

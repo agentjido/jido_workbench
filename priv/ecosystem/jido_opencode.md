@@ -12,6 +12,7 @@
   github_url: "https://github.com/agentjido/jido_opencode",
   github_org: "agentjido",
   github_repo: "jido_opencode",
+  tech_lead: "@mikehostetler",
   elixir: "~> 1.18",
   maturity: :beta,
   support_level: :beta,
