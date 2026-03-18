@@ -48,6 +48,19 @@ defmodule AgentJidoWeb.LLMResponsePlugTest do
     assert body =~ "title: \"Documentation\""
   end
 
+  test "leaf docs .md routes return the underlying source markdown", %{conn: conn} do
+    conn = get(conn, "/docs/concepts/agents.md")
+
+    body = response(conn, 200)
+    link = get_resp_header(conn, "link") |> List.first()
+
+    assert get_resp_header(conn, "content-type") |> List.first() =~ "text/markdown"
+    assert link =~ "<#{AgentJidoWeb.Endpoint.url()}/docs/concepts/agents.md>; rel=\"alternate\"; type=\"text/markdown\""
+    assert link =~ "<#{AgentJidoWeb.Endpoint.url()}/docs/concepts/agents>; rel=\"canonical\""
+    assert body =~ ~s(title: "Agents")
+    assert body =~ "## Agents are pure data"
+  end
+
   test "legacy docs redirects remain unchanged even with markdown accept header", %{conn: conn} do
     conn =
       conn

@@ -79,6 +79,7 @@ defmodule AgentJidoWeb.PageLive do
        layout_type: :docs_shell,
        category: :docs,
        documents: documents,
+       markdown_copy_url: nil,
        selected_document: nil,
        docs_secondary_tabs: secondary_tabs,
        docs_sidebar_nav: sidebar,
@@ -99,6 +100,7 @@ defmodule AgentJidoWeb.PageLive do
        meta_description: "Hands-on learning modules for building and operating reliable multi-agent workflows with Jido.",
        layout_type: :training_index,
        category: :training,
+       markdown_copy_url: nil,
        modules: modules,
        track_groups: track_groups,
        page: nil,
@@ -118,6 +120,7 @@ defmodule AgentJidoWeb.PageLive do
        meta_description: description,
        layout_type: :marketing_shell,
        category: category,
+       markdown_copy_url: nil,
        pages: pages,
        page: nil,
        markdown_action: nil,
@@ -147,6 +150,7 @@ defmodule AgentJidoWeb.PageLive do
         page_seo = page_seo(page)
         noindex? = seo_value(page_seo, :noindex) == true
         markdown_action = MarkdownLinks.markdown_action(page, socket.assigns.request_url)
+        markdown_copy_url = if page.category == :docs, do: MarkdownLinks.markdown_path(page.path), else: nil
 
         assigns = [
           page_title: page.title,
@@ -159,6 +163,7 @@ defmodule AgentJidoWeb.PageLive do
           category: page.category,
           page: page,
           markdown_action: markdown_action,
+          markdown_copy_url: markdown_copy_url,
           selected_document: page,
           toc: toc,
           document_content: %{html: page.body, toc: toc}

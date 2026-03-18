@@ -170,6 +170,7 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
   # Right Sidebar Component
   attr(:toc, :list, default: nil)
   attr(:selected_document, :map, default: nil)
+  attr(:markdown_copy_url, :string, default: nil)
   attr(:docs_feedback, :map, default: nil)
 
   def docs_right_sidebar(assigns) do
@@ -236,9 +237,28 @@ defmodule AgentJidoWeb.Jido.DocsComponents do
           <% end %>
         </div>
       <% end %>
+
+      <%= if @markdown_copy_url do %>
+        <div class="mt-4 shrink-0">
+          <button
+            type="button"
+            data-copy-button
+            data-copy-source-url={@markdown_copy_url}
+            data-copy-success-label="Copied"
+            data-analytics-source="docs"
+            data-analytics-channel="copy_markdown"
+            class="flex w-full items-center justify-center rounded-md border border-border bg-card/70 px-3 py-2 text-[12px] font-semibold text-foreground transition-colors hover:border-primary hover:text-primary"
+          >
+            <span class="inline-flex items-center justify-center gap-2 text-center">
+              <.icon name="hero-document-text" class="h-4 w-4 shrink-0" />
+              <span class="leading-none">Copy Markdown</span>
+            </span>
+          </button>
+        </div>
+      <% end %>
       
     <!-- Quick Links -->
-      <div class="shrink-0 rounded-md border border-border/80 bg-card/75 p-4 shadow-[0_10px_24px_hsl(var(--background)/0.2)]">
+      <div class="mt-4 shrink-0 rounded-md border border-border/80 bg-card/75 p-4 shadow-[0_10px_24px_hsl(var(--background)/0.2)]">
         <div class="mb-2 text-[10px] font-semibold tracking-[0.08em] text-muted-foreground">
           QUICK LINKS
         </div>

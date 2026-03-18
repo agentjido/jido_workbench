@@ -298,28 +298,73 @@ document.addEventListener("click", (event) => {
   const copyButton = event.target.closest("[data-copy-button]");
 
   if (copyButton) {
-    const content = copyButton.getAttribute("data-content");
+    event.preventDefault();
 
-    navigator.clipboard.writeText(content).then(() => {
-      const originalIcon = copyButton.innerHTML;
+    const readCopyContent = async () => {
+      const sourceUrl = copyButton.dataset.copySourceUrl;
 
-      copyButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+      if (sourceUrl) {
+        const response = await fetch(sourceUrl, {
+          headers: {
+            Accept: "text/markdown, text/plain;q=0.9, */*;q=0.1",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Copy source fetch failed with status ${response.status}`);
+        }
+
+        return await response.text();
+      }
+
+      return copyButton.getAttribute("data-content") || "";
+    };
+
+    const successLabel = copyButton.dataset.copySuccessLabel;
+    const originalContent = copyButton.innerHTML;
+
+    const successMarkup = successLabel
+      ? `<span class="inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4"><path fill-rule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clip-rule="evenodd" /></svg><span>${successLabel}</span></span>`
+      : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
         <path fill-rule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clip-rule="evenodd" />
       </svg>`;
 
-      setTimeout(() => {
-        copyButton.innerHTML = originalIcon;
-      }, 2000);
+    readCopyContent()
+      .then((content) => {
+        return navigator.clipboard.writeText(content).then(() => content);
+      })
+      .then((content) => {
+        copyButton.innerHTML = successMarkup;
 
-      trackAnalyticsEvent("code_copied", {
-        source: "docs",
-        channel: "copy_button",
-        path: window.location.pathname,
-        metadata: {
-          surface: "docs_page",
-          content_length: content ? content.length : 0,
-        },
+        setTimeout(() => {
+          copyButton.innerHTML = originalContent;
+        }, 2000);
+
+        trackAnalyticsEvent("code_copied", {
+          source: copyButton.dataset.analyticsSource || "docs",
+          channel: copyButton.dataset.analyticsChannel || "copy_button",
+          path: window.location.pathname,
+          metadata: {
+            surface: copyButton.dataset.analyticsSurface || "docs_page",
+            content_length: content ? content.length : 0,
+            copy_mode: copyButton.dataset.copySourceUrl ? "remote" : "inline",
+            source_url: copyButton.dataset.copySourceUrl || null,
+          },
+        });
+      })
+      .catch((error) => {
+        console.error("Failed to copy content", error);
+
+        trackAnalyticsEvent("copy_failed", {
+          source: copyButton.dataset.analyticsSource || "docs",
+          channel: copyButton.dataset.analyticsChannel || "copy_button",
+          path: window.location.pathname,
+          metadata: {
+            surface: copyButton.dataset.analyticsSurface || "docs_page",
+            copy_mode: copyButton.dataset.copySourceUrl ? "remote" : "inline",
+            source_url: copyButton.dataset.copySourceUrl || null,
+          },
+        });
       });
-    });
   }
 });
