@@ -10,6 +10,7 @@
 
 ## Reference pages
 
+- [Behavior-first architecture](/docs/reference/behavior-first-architecture) - design rationale for Jido's core contracts and why the runtime is organized around behaviors instead of implementation style
 - [Configuration](/docs/reference/configuration) - all config keys with defaults and examples for `jido` and `jido_ai`
 - [Telemetry and observability](/docs/reference/telemetry-and-observability) - every telemetry event, metric definition, and log level control
 - [ReqLLM and LLMDB](/docs/reference/req-llm-and-llmdb) - provider-agnostic LLM client and model metadata database
