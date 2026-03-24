@@ -284,9 +284,7 @@ defmodule AgentJido.PagesTest do
 
     test "reasoning strategies guide uses public strategy agents and runnable metadata" do
       source =
-        File.read!(
-          Path.expand("priv/pages/docs/learn/reasoning-strategies-compared.livemd", File.cwd!())
-        )
+        File.read!(Path.expand("priv/pages/docs/learn/reasoning-strategies-compared.livemd", File.cwd!()))
 
       assert source =~ "livebook: %{"
       assert source =~ "runnable: true"
