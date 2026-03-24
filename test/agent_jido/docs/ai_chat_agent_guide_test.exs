@@ -71,8 +71,7 @@ defmodule AgentJido.Docs.AIChatAgentGuideTest do
     defp build_prompt(history, message) when is_list(history) and is_binary(message) do
       history_block =
         history
-        |> Enum.map(fn %{role: role, content: content} -> "#{role}: #{content}" end)
-        |> Enum.join("\n")
+        |> Enum.map_join("\n", fn %{role: role, content: content} -> "#{role}: #{content}" end)
 
       """
       Conversation so far:
