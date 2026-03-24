@@ -4,7 +4,13 @@
   category: :docs,
   tags: [:docs, :guides, :livebook],
   order: 172,
-  draft: false
+  draft: false,
+  livebook: %{
+    runnable: true,
+    required_env_vars: [],
+    requires_network: false,
+    setup_instructions: "No API keys required. Run the setup cell, then execute the examples in order."
+  }
 }
 ---
 
@@ -15,10 +21,15 @@ Mix.install([
   {{mix_dep:jido}}
 ])
 
-Jido.start_link(name: MyApp.Jido)
+Logger.configure(level: :warning)
+
+Jido.start()
+runtime = Jido.default_instance()
 ```
 
 Define a failing action and a simple agent to use throughout this guide.
+
+This guide runs entirely locally. No provider keys or network calls are required.
 
 ```elixir
 defmodule MyApp.FailingAction do
@@ -94,7 +105,7 @@ Logs the error and continues processing. The agent stays alive with its state un
 ```elixir
 {:ok, pid} =
   Jido.AgentServer.start_link(
-    jido: MyApp.Jido,
+    jido: runtime,
     agent: MyApp.CounterAgent,
     error_policy: :log_only
   )
@@ -109,7 +120,7 @@ Logs the error and stops the agent process. Use this when any failure is unaccep
 ```elixir
 {:ok, pid} =
   Jido.AgentServer.start_link(
-    jido: MyApp.Jido,
+    jido: runtime,
     agent: MyApp.CounterAgent,
     error_policy: :stop_on_error
   )
@@ -124,7 +135,7 @@ Counts errors and stops the agent after `n` accumulated failures. Errors below t
 ```elixir
 {:ok, pid} =
   Jido.AgentServer.start_link(
-    jido: MyApp.Jido,
+    jido: runtime,
     agent: MyApp.CounterAgent,
     error_policy: {:max_errors, 5}
   )
@@ -139,7 +150,7 @@ Emits a `jido.agent.error` signal via `Jido.Signal.Dispatch` and continues proce
 ```elixir
 {:ok, pid} =
   Jido.AgentServer.start_link(
-    jido: MyApp.Jido,
+    jido: runtime,
     agent: MyApp.CounterAgent,
     error_policy: {:emit_signal, {:pubsub, topic: "agent_errors"}}
   )
@@ -148,15 +159,15 @@ Emits a `jido.agent.error` signal via `Jido.Signal.Dispatch` and continues proce
 The dispatched signal looks like this:
 
 ```elixir
-%Jido.Signal{
-  type: "jido.agent.error",
-  source: "/agent/<id>",
-  data: %{
+Jido.Signal.new!(
+  "jido.agent.error",
+  %{
     error: "something went wrong",
     context: :instruction,
     agent_id: "<id>"
-  }
-}
+  },
+  source: "/agent/<id>"
+)
 ```
 
 The dispatch runs in a supervised task so it does not block the agent.
@@ -173,7 +184,7 @@ end
 
 {:ok, pid} =
   Jido.AgentServer.start_link(
-    jido: MyApp.Jido,
+    jido: runtime,
     agent: MyApp.CounterAgent,
     error_policy: custom_handler
   )

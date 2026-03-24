@@ -1,16 +1,27 @@
 <!-- %{
   title: "Reasoning strategies compared",
-  description: "Solve the same problem with Chain-of-Thought, Tree-of-Thoughts, and Adaptive strategies.",
+  description: "Run the same decision prompt through Chain-of-Thought, Tree-of-Thoughts, and Adaptive agents.",
   category: :docs,
   order: 31,
   tags: [:docs, :learn, :ai, :strategies, :cot, :tot, :adaptive, :livebook],
   draft: false,
-  prerequisites: ["/docs/learn/ai-agent-with-tools"]
+  learning_outcomes: [
+    "Run three reasoning strategies against the same prompt",
+    "See when linear reasoning vs branching exploration changes the output shape",
+    "Inspect which strategy an Adaptive agent selected at runtime"
+  ],
+  prerequisites: ["/docs/getting-started/first-llm-agent"],
+  livebook: %{
+    runnable: true,
+    required_env_vars: ["OPENAI_API_KEY"],
+    requires_network: true,
+    setup_instructions: "Set OPENAI_API_KEY or LB_OPENAI_API_KEY before running the strategy comparison cells."
+  }
 } -->
 
 ## Prerequisites
 
-Complete [Your first LLM agent](/docs/getting-started/first-llm-agent) and [AI agent with tools](/docs/learn/ai-agent-with-tools) before starting. You need an OpenAI API key configured.
+Complete [Your first LLM agent](/docs/getting-started/first-llm-agent) before starting. This notebook is advanced, but it is still meant to run end to end in Livebook.
 
 ## Setup
 
@@ -20,6 +31,8 @@ Mix.install([
   {{mix_dep:jido_ai}},
   {{mix_dep:req_llm}}
 ])
+
+Logger.configure(level: :warning)
 ```
 
 ## Configure credentials
@@ -29,205 +42,287 @@ Set your OpenAI API key. In Livebook, add `OPENAI_API_KEY` as a [Livebook Secret
 ```elixir
 openai_key = System.get_env("LB_OPENAI_API_KEY") || System.get_env("OPENAI_API_KEY")
 
-if openai_key do
-  ReqLLM.put_key(:openai_api_key, openai_key)
-  :configured
-else
-  raise "Set OPENAI_API_KEY as a Livebook Secret or environment variable."
+configured? =
+  if is_binary(openai_key) do
+    ReqLLM.put_key(:openai_api_key, openai_key)
+    true
+  else
+    IO.puts("Set OPENAI_API_KEY as a Livebook Secret or environment variable to run this notebook.")
+    false
+  end
+```
+
+## Start the runtime
+
+```elixir
+case Jido.start() do
+  {:ok, _} -> :ok
+  {:error, {:already_started, _}} -> :ok
+end
+
+runtime = Jido.default_instance()
+
+comparison_prompt = """
+You are advising a four-person developer-tools team.
+
+Question:
+Should the team ship its new command palette this Friday, or delay two weeks?
+
+Known facts:
+- The feature is implemented and internally usable.
+- Keyboard navigation has one known bug with nested menus.
+- Docs are 70% complete.
+- Three design partners want early access this month.
+- The team can afford one patch release next week.
+
+Return:
+1. key tradeoffs
+2. your recommendation
+3. concrete next steps
+"""
+
+tot_prompt = """
+Generate three materially different rollout strategies for the new command palette.
+
+Context:
+- The team can ship this Friday or delay two weeks.
+- Keyboard navigation has one known bug with nested menus.
+- Docs are 70% complete.
+- Three design partners want early access this month.
+
+Return options that compare speed, product quality, and partner expectations.
+"""
+```
+
+## Define the strategy agents
+
+Each agent uses the same model and prompt domain. Only the reasoning strategy changes.
+
+```elixir
+defmodule MyApp.ReleaseDecisionCoTAgent do
+  use Jido.AI.CoTAgent,
+    name: "release_decision_cot_agent",
+    description: "Explains a release decision step by step",
+    model: "openai:gpt-4o-mini",
+    system_prompt: """
+    You are a release advisor.
+    Reason step by step.
+    Separate known facts, assumptions, and recommendations.
+    """
+end
+
+defmodule MyApp.ReleaseDecisionToTAgent do
+  use Jido.AI.ToTAgent,
+    name: "release_decision_tot_agent",
+    description: "Explores multiple release options before choosing",
+    model: "openai:gpt-4o-mini",
+    branching_factor: 3,
+    max_depth: 3,
+    top_k: 3,
+    min_depth: 2,
+    max_nodes: 30,
+    max_duration_ms: 20_000,
+    max_parse_retries: 2,
+    generation_prompt: """
+    You generate multiple distinct rollout strategies.
+
+    Return strict JSON only with this exact shape:
+    {"thoughts":[{"id":"t1","content":"..."},{"id":"t2","content":"..."},{"id":"t3","content":"..."}]}
+
+    Rules:
+    - do not echo the user prompt
+    - do not include markdown
+    - each thought must be a distinct rollout strategy
+    - keep each thought concise and decision-oriented
+    """,
+    evaluation_prompt: """
+    You evaluate rollout strategies.
+
+    Return strict JSON only with this exact shape:
+    {"scores":{"t1":0.82,"t2":0.61,"t3":0.74}}
+
+    Rules:
+    - do not include markdown
+    - keys must match the provided thought IDs
+    - higher scores should favor clearer tradeoffs and stronger recommendations
+    """
+
+  def format_candidates(result, limit \\ 3) do
+    result
+    |> Jido.AI.Reasoning.TreeOfThoughts.Result.top_candidates(limit)
+    |> Enum.with_index(1)
+    |> Enum.map_join("\n\n", fn {candidate, idx} ->
+      score = Map.get(candidate, :score)
+      content = Map.get(candidate, :content, "(no content)")
+
+      """
+      Option #{idx} (score: #{score})
+      #{content}
+      """
+    end)
+  end
+end
+
+defmodule MyApp.ReleaseDecisionAdaptiveAgent do
+  use Jido.AI.AdaptiveAgent,
+    name: "release_decision_adaptive_agent",
+    description: "Selects the best reasoning strategy for a product decision",
+    model: "openai:gpt-4o-mini",
+    default_strategy: :cot,
+    available_strategies: [:cot, :tot, :trm]
 end
 ```
 
-## One problem, many strategies
+## Start one agent per strategy
 
-Consider a question an agent might answer: "Should I bike or drive to work today given the weather forecast?" A basic Agent generates a single answer. Jido ships eight Reasoning Strategies that structure how the LLM thinks before answering.
+```elixir
+agent_suffix = System.unique_integer([:positive])
 
-| Strategy | Module suffix | Approach |
-|---|---|---|
-| ReAct | `Agent` | Reason-Act loop with tool calls |
-| Chain-of-Thought (CoT) | `CoTAgent` | Linear step-by-step reasoning |
-| Chain-of-Draft (CoD) | `CoDAgent` | Minimal drafts refined iteratively |
-| Algorithm-of-Thoughts (AoT) | `AoTAgent` | Algorithmic decomposition |
-| Tree-of-Thoughts (ToT) | `ToTAgent` | Branching exploration with scoring |
-| Graph-of-Thoughts (GoT) | `GoTAgent` | DAG of interdependent thoughts |
-| Thinking with Reflection (TRM) | `TRMAgent` | Self-critique and revision |
-| Adaptive | `AdaptiveAgent` | Automatic strategy selection |
+{cot_pid, tot_pid, adaptive_pid} =
+  if configured? do
+    {:ok, cot_pid} =
+      Jido.start_agent(
+        runtime,
+        MyApp.ReleaseDecisionCoTAgent,
+        id: "release-cot-#{agent_suffix}"
+      )
 
-This tutorial focuses on CoT, ToT, and Adaptive. Each solves the same weather question differently.
+    {:ok, tot_pid} =
+      Jido.start_agent(
+        runtime,
+        MyApp.ReleaseDecisionToTAgent,
+        id: "release-tot-#{agent_suffix}"
+      )
+
+    {:ok, adaptive_pid} =
+      Jido.start_agent(
+        runtime,
+        MyApp.ReleaseDecisionAdaptiveAgent,
+        id: "release-adaptive-#{agent_suffix}"
+      )
+
+    {cot_pid, tot_pid, adaptive_pid}
+  else
+    {nil, nil, nil}
+  end
+```
 
 ## Chain-of-Thought
 
-CoT forces the LLM to show its work in ordered steps before reaching a conclusion. Define the Agent with `use Jido.AI.CoTAgent` and a system prompt that separates facts from assumptions.
+CoT is the linear baseline. It works best when you want one explicit chain of reasoning.
 
 ```elixir
-defmodule MyApp.WeatherCoTAgent do
-  use Jido.AI.CoTAgent,
-    name: "weather_cot_agent",
-    description: "Step-by-step weather decision advisor",
-    system_prompt: """
-    You are a weather decision coach.
-    Think step-by-step and clearly separate:
-    1) known facts
-    2) assumptions
-    3) recommendation
-    """
+cot_result =
+  if configured? do
+    {:ok, result} =
+      MyApp.ReleaseDecisionCoTAgent.think_sync(
+        cot_pid,
+        comparison_prompt,
+        timeout: 60_000
+      )
 
-  def weather_decision_sync(pid, question, opts \\ []) do
-    prompt = """
-    Analyze this weather decision with explicit reasoning:
-    #{question}
-    Return: Key factors, Decision logic, Final recommendation
-    """
-
-    think_sync(pid, prompt, opts)
+    result
+  else
+    "Configure OPENAI_API_KEY to run the comparison cells."
   end
-end
-```
-
-The `think_sync/3` function is the CoT equivalent of `ask_sync/3`. It returns the full chain of reasoning steps along with the final answer.
-
-Start the Agent and ask the question:
-
-```elixir
-{:ok, cot_pid} = Jido.AgentServer.start_link(agent: MyApp.WeatherCoTAgent)
-
-{:ok, cot_result} = MyApp.WeatherCoTAgent.weather_decision_sync(
-  cot_pid,
-  "Should I bike or drive to work? It's 45°F with 30% chance of rain.",
-  timeout: 60_000
-)
 
 IO.puts(cot_result)
 ```
 
-The output walks through each reasoning step sequentially. You get a single chain of logic ending in one recommendation. CoT works well for decisions with a clear linear path from evidence to conclusion.
-
 ## Tree-of-Thoughts
 
-ToT explores multiple branches in parallel, scores them, and surfaces the best options. Configure `branching_factor` (how many branches per node), `max_depth`, and `top_k` (how many top results to keep).
+ToT explores multiple branches, scores them, and returns ranked candidates instead of one linear answer.
+Because it relies on strict structured intermediate output, this section surfaces parse diagnostics instead of crashing if the model fails the JSON contract.
 
 ```elixir
-defmodule MyApp.WeatherToTAgent do
-  use Jido.AI.ToTAgent,
-    name: "weather_tot_agent",
-    description: "Weather scenario planner using Tree-of-Thoughts",
-    branching_factor: 3,
-    max_depth: 4,
-    top_k: 3,
-    min_depth: 2,
-    max_nodes: 90,
-    max_duration_ms: 25_000
-
-  def weekend_options_sync(pid, location, opts \\ []) do
-    explore_sync(
-      pid,
-      "Create three weather-resilient weekend plans for #{location}.",
-      opts
+tot_result =
+  if configured? do
+    MyApp.ReleaseDecisionToTAgent.explore_sync(
+      tot_pid,
+      tot_prompt,
+      timeout: 60_000
     )
+  else
+    :not_configured
   end
+```
 
-  def format_top_options(result, limit \\ 3) do
-    result
-    |> Jido.AI.Reasoning.TreeOfThoughts.Result.top_candidates(limit)
-    |> Enum.with_index(1)
-    |> Enum.map_join("\n", fn {candidate, idx} ->
-      "#{idx}. #{candidate[:content]} (score: #{candidate[:score]})"
-    end)
+```elixir
+if configured? do
+  case tot_result do
+    {:ok, result} ->
+      IO.puts("Best answer:\n")
+      IO.puts(Jido.AI.Reasoning.TreeOfThoughts.Result.best_answer(result))
+      IO.puts("\nTop candidates:\n")
+      IO.puts(MyApp.ReleaseDecisionToTAgent.format_candidates(result))
+
+    {:error, reason} ->
+      IO.puts("Tree-of-Thoughts returned an error instead of ranked candidates.")
+      IO.inspect(reason, label: "ToT diagnostic")
   end
+else
+  :ok
 end
 ```
-
-The `explore_sync/3` function builds a tree of possibilities, evaluates each branch, and returns scored candidates. `format_top_options/2` extracts the top-ranked plans.
-
-```elixir
-{:ok, tot_pid} = Jido.AgentServer.start_link(agent: MyApp.WeatherToTAgent)
-
-{:ok, tot_result} = MyApp.WeatherToTAgent.weekend_options_sync(
-  tot_pid,
-  "Portland, OR",
-  timeout: 60_000
-)
-
-IO.puts(MyApp.WeatherToTAgent.format_top_options(tot_result))
-```
-
-Unlike CoT, the output contains multiple scored alternatives. ToT is the right choice when you want the agent to generate and compare several plans rather than commit to one immediately.
 
 ## Adaptive
 
-The Adaptive Strategy selects the best reasoning approach automatically based on the query. Configure it with `default_strategy` and the list of `available_strategies`.
+Adaptive chooses the reasoning strategy at runtime. Use it when callers should not have to pick CoT versus ToT themselves.
 
 ```elixir
-defmodule MyApp.WeatherAdaptiveAgent do
-  use Jido.AI.AdaptiveAgent,
-    name: "weather_adaptive_agent",
-    description: "Adaptive weather assistant across all reasoning modes",
-    tools: [
-      Jido.Tools.Weather.Geocode,
-      Jido.Tools.Weather.Forecast,
-      Jido.Tools.Weather.CurrentConditions,
-      Jido.Tools.Weather.LocationToGrid
-    ],
-    default_strategy: :cot,
-    available_strategies: [:cot, :tot, :got, :trm]
+adaptive_result =
+  if configured? do
+    {:ok, result} =
+      MyApp.ReleaseDecisionAdaptiveAgent.ask_sync(
+        adaptive_pid,
+        comparison_prompt,
+        timeout: 60_000
+      )
 
-  def coach_sync(pid, request, opts \\ []) do
-    ask_sync(pid, "Handle this weather planning request: #{request}", opts)
+    result
+  else
+    "Configure OPENAI_API_KEY to run the comparison cells."
   end
-end
-```
-
-The Adaptive Agent analyzes the incoming request and picks the strategy most likely to produce a good result. A simple factual question might use CoT. A planning question with multiple options might trigger ToT.
-
-```elixir
-{:ok, adaptive_pid} = Jido.AgentServer.start_link(agent: MyApp.WeatherAdaptiveAgent)
-
-{:ok, adaptive_result} = MyApp.WeatherAdaptiveAgent.coach_sync(
-  adaptive_pid,
-  "Should I bike or drive to work? It's 45°F with 30% chance of rain.",
-  timeout: 60_000
-)
 
 IO.puts(adaptive_result)
 ```
 
-The Adaptive Agent uses `ask_sync/3` rather than a strategy-specific function. It delegates to the selected strategy internally. This is useful when you want a single Agent to handle diverse query types without the caller choosing a strategy.
+Inspect which strategy the adaptive agent selected:
+
+```elixir
+selected_strategy =
+  if configured? do
+    {:ok, server_state} = Jido.AgentServer.state(adaptive_pid)
+    server_state.agent.state.selected_strategy
+  else
+    nil
+  end
+
+selected_strategy
+```
 
 ## Choosing the right strategy
 
 | Strategy | Best for | Tradeoff |
 |---|---|---|
-| CoT | Linear decisions, explanations, debugging | Single path, may miss alternatives |
-| ToT | Planning, creative options, scenario analysis | Higher latency and token cost |
-| GoT | Complex problems with interdependent factors | Most expensive, highest complexity |
-| TRM | High-stakes decisions needing self-review | Extra LLM round-trip for reflection |
-| Adaptive | Mixed workloads, user-facing agents | Adds a classification step |
-| ReAct | Tool-heavy tasks, data retrieval | Requires well-defined Actions |
-| CoD | Fast iteration on drafts | Less thorough than CoT |
-| AoT | Algorithmic or mathematical reasoning | Narrow use case |
+| CoT | Linear decisions, explanation-heavy prompts, debugging | One path only |
+| ToT | Comparing plans, option generation, scenario analysis | Slower and more expensive |
+| Adaptive | Mixed workloads where prompt shape changes often | Adds strategy selection overhead |
 
-Start with CoT for most applications. Move to ToT when you need the agent to compare alternatives. Use Adaptive when the query type varies and you do not want callers to choose.
+Use CoT when you want a direct reasoning trace. Use ToT when you want alternatives compared. Use Adaptive when you want one public interface and do not want callers choosing strategy modules themselves.
 
-## Running from the CLI
+## Outside Livebook: CLI usage
 
-Each strategy Agent exposes a `cli_adapter/0` callback that returns the matching CLI adapter module. This lets you run any Agent from the command line with `mix jido_ai`.
-
-```elixir
-# In each agent module:
-def cli_adapter, do: Jido.AI.Reasoning.ChainOfThought.CLIAdapter
-def cli_adapter, do: Jido.AI.Reasoning.TreeOfThoughts.CLIAdapter
-def cli_adapter, do: Jido.AI.Reasoning.Adaptive.CLIAdapter
-```
-
-Run an Agent from the terminal:
+Run any strategy agent from the terminal with `mix jido_ai`:
 
 ```sh
-mix jido_ai --agent MyApp.WeatherCoTAgent "Should I bike or drive?"
+mix jido_ai --agent MyApp.ReleaseDecisionCoTAgent "Should we ship this Friday?"
+mix jido_ai --agent MyApp.ReleaseDecisionToTAgent "Compare three rollout options for this feature."
+mix jido_ai --agent MyApp.ReleaseDecisionAdaptiveAgent "Should we ship or delay?"
 ```
-
-The CLI adapter formats the strategy-specific output for terminal display. CoT prints numbered steps. ToT prints scored branches. Adaptive prints the selected strategy and its output.
 
 ## Next steps
 
-- Compose agents into workflows in [Build your first workflow](/docs/learn/first-workflow).
-- Dive deeper into the strategy concept in the [Reasoning Strategies reference](/docs/reference/concepts/reasoning-strategies).
-- Add multi-turn conversation context in [Build an AI chat agent](/docs/learn/ai-chat-agent).
+- Compare these strategy wrappers with the general-purpose [AI agent with tools](/docs/learn/ai-agent-with-tools) guide
+- Build longer-lived conversations in [Build an AI chat agent](/docs/learn/ai-chat-agent)
+- Read the [Reasoning Strategies reference](/docs/reference/concepts/reasoning-strategies) for the full strategy matrix

@@ -4,7 +4,7 @@
   category: :docs,
   order: 110,
   doc_type: :cookbook,
-  audience: :intermediate,
+  audience: :beginner,
   tags: [:docs, :guides, :cookbook, :chat, :ai, :livebook],
   draft: false,
   legacy_paths: ["/docs/chat-response", "/docs/cookbook/chat-response"],
@@ -98,4 +98,7 @@ chat_text =
 IO.puts(chat_text)
 ```
 
-This is the smallest useful chat recipe: one prompt in, one extracted text response out. When you need tools or multi-turn state, move on to [Tool Response](/docs/guides/cookbook/tool-response) or the full [AI Chat Agent guide](/docs/learn/ai-chat-agent).
+## Next steps
+
+- Continue to [Your first LLM agent](/docs/getting-started/first-llm-agent) for the smallest agent wrapper around chat requests.
+- Continue to [Build an AI Chat Agent](/docs/learn/ai-chat-agent) when you need multi-turn state on the same process.

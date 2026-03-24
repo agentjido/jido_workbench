@@ -1,32 +1,46 @@
 <!-- %{
   title: "Multi-agent orchestration",
-  description: "Coordinate specialized AI sub-agents with the Skills system and Planning plugin.",
+  description: "Coordinate specialized sub-agents with signals and skills, then see where AI planning fits.",
   category: :docs,
   order: 34,
   tags: [:docs, :learn, :ai, :"multi-agent", :skills, :planning, :livebook],
   draft: false,
-  prerequisites: ["/docs/learn/memory-and-retrieval-augmented-agents"]
+  learning_outcomes: [
+    "Spawn specialized child agents from a coordinator",
+    "Route work down the hierarchy and results back up",
+    "Use the Skill registry to describe what each specialist can do"
+  ],
+  prerequisites: ["/docs/learn/parent-child-agent-hierarchies"],
+  livebook: %{
+    runnable: true,
+    required_env_vars: [],
+    requires_network: false,
+    setup_instructions: "No API keys required. Run the setup cell, then execute the orchestration cells in order."
+  }
 } -->
 
 ## Prerequisites
 
-Complete [Memory and retrieval-augmented agents](/docs/learn/memory-and-retrieval-augmented-agents) before starting. You should be comfortable with `Jido.AI.Agent`, reasoning Strategies, tool-calling Actions, Signal routing, hierarchical agent spawning, and the Plugin system.
+Complete [Parent-child agent hierarchies](/docs/learn/parent-child-agent-hierarchies) before starting. This notebook focuses on the orchestration layer itself, so the first successful run stays local and deterministic.
 
 ## Setup
 
 ```elixir
 Mix.install([
   {{mix_dep:jido}},
-  {{mix_dep:jido_ai}},
-  {{mix_dep:req_llm}}
+  {{mix_dep:jido_ai}}
 ])
+
+Logger.configure(level: :warning)
 ```
 
-A polling helper waits for asynchronous results across the agent hierarchy.
+This tutorial runs entirely locally. Later sections show where AI planning and file-based skills fit, but the main orchestration path does not require provider keys.
+
+## Polling helper
 
 ```elixir
-defmodule Helpers do
-  def wait_for(fun, timeout \\ 30_000, interval \\ 500) do
+defmodule MyApp.OrchestrationHelpers do
+  def wait_for(fun, timeout \\ 30_000, interval \\ 200) do
     deadline = System.monotonic_time(:millisecond) + timeout
     do_wait(fun, deadline, interval)
   end
@@ -37,140 +51,83 @@ defmodule Helpers do
     end
 
     case fun.() do
-      {:ok, result} -> result
-      :retry -> Process.sleep(interval); do_wait(fun, deadline, interval)
+      {:ok, result} ->
+        result
+
+      :retry ->
+        Process.sleep(interval)
+        do_wait(fun, deadline, interval)
     end
   end
 end
 ```
 
-## Configure credentials
-
-Set your OpenAI API key. In Livebook, add `OPENAI_API_KEY` as a [Livebook Secret](https://livebook.dev/blog/secrets-in-livebook/) prefixed with `LB_`.
+## Start the runtime
 
 ```elixir
-openai_key = System.get_env("LB_OPENAI_API_KEY") || System.get_env("OPENAI_API_KEY")
-
-if openai_key do
-  ReqLLM.put_key(:openai_api_key, openai_key)
-  :configured
-else
-  raise "Set OPENAI_API_KEY as a Livebook Secret or environment variable."
+case Jido.start() do
+  {:ok, _} -> :ok
+  {:error, {:already_started, _}} -> :ok
 end
+
+runtime = Jido.default_instance()
 ```
 
-## When one agent isn't enough
+## Register specialist skills
 
-A single agent with one Strategy can answer questions, call tools, and maintain conversation state. But complex goals like "Research and write a technical comparison of Elixir vs Go for distributed systems" require different capabilities applied in sequence: structured decomposition, data gathering, and synthesis. Instead of one oversized agent, compose three specialists that each do one thing well under a coordinator.
+`Jido.AI.Skill.Spec` lets you describe what a specialist can do without hard-coding that description into every prompt or module. In this notebook, the registry is local metadata that the coordinator and specialists can inspect at runtime.
 
-By the end of this tutorial, you will have a coordinator agent that:
+```elixir
+alias Jido.AI.Skill.{Registry, Spec}
 
-1. Decomposes a complex goal into ordered sub-tasks using the Planning Plugin
-2. Routes each sub-task to the right specialist via Signals
-3. Aggregates specialist outputs into a final result
+:ok = Registry.clear()
 
-The architecture looks like this:
+planner_skill = %Spec{
+  name: "release-planner",
+  description: "Breaks a goal into concrete milestones and sequencing notes.",
+  tags: ["planning", "coordination"],
+  vsn: "1.0.0"
+}
+
+research_skill = %Spec{
+  name: "release-researcher",
+  description: "Collects supporting facts, risks, and open questions for a milestone.",
+  tags: ["research", "analysis"],
+  vsn: "1.0.0"
+}
+
+writer_skill = %Spec{
+  name: "release-writer",
+  description: "Turns specialist input into a concise stakeholder-ready summary.",
+  tags: ["writing", "synthesis"],
+  vsn: "1.0.0"
+}
+
+Enum.each([planner_skill, research_skill, writer_skill], &Registry.register/1)
+
+Registry.list()
+```
+
+## Architecture
+
+The coordinator owns the overall goal, spawns three specialists, assigns work, and aggregates their outputs.
 
 ```
 Coordinator
     |
-    |-- planning.decompose --> sub-tasks
+    |-- spawns --> PlannerAgent
+    |-- spawns --> ResearcherAgent
+    |-- spawns --> WriterAgent
     |
-    |-- spawns --> PlannerAgent  (CoT Strategy)
-    |-- spawns --> ResearcherAgent (ReAct Strategy)
-    |-- spawns --> WriterAgent (synthesis)
+    |-- emits --> specialist.work
+    |<-- receives -- specialist.result
     |
-    |<-- specialist.result -- each specialist
-    |
-    |--> assembled final output
+    |--> assembled final result
 ```
 
-## The Skills system
+## Define the specialist action
 
-`Jido.AI.Skill.Spec` is a declarative description of what an agent can do. It bundles metadata with the Actions and Plugins that implement a capability.
-
-```elixir
-alias Jido.AI.Skill.Spec
-
-research_skill = %Spec{
-  name: "technical-research",
-  description: "Gather and analyze technical information",
-  actions: [MyApp.SearchAction, MyApp.SummarizeAction],
-  plugins: [Jido.AI.Plugins.Chat],
-  tags: ["research", "analysis"],
-  vsn: "1.0.0"
-}
-```
-
-Key fields on `Spec`:
-
-- `name` and `description` identify the Skill for discovery and prompt injection
-- `actions` lists the `Jido.Action` modules the Skill provides
-- `plugins` lists Plugins the Skill requires on its host Agent
-- `allowed_tools` constrains which tools the Skill can invoke
-- `body_ref` points to a SKILL.md file with extended instructions
-
-At runtime, `Jido.AI.Skill.Loader` parses SKILL.md files (YAML frontmatter plus body instructions) into `Spec` structs. `Jido.AI.Skill.Registry` is an ETS-backed GenServer for fast lookup by name.
-
-```elixir
-alias Jido.AI.Skill.{Loader, Registry}
-
-# Load a file-based Skill
-{:ok, spec} = Loader.load("priv/skills/research/SKILL.md")
-
-# Register and discover at runtime
-Registry.start_link()
-Registry.register(spec)
-{:ok, found} = Registry.lookup("technical-research")
-```
-
-Skills compose into agent configurations. You reference module-based Skills directly and file-based Skills by name after registration.
-
-## Planning plugin
-
-The Planning Plugin provides three LLM-powered Actions for breaking down complex goals. Add it to an Agent to gain access to structured decomposition through Signal routing.
-
-```elixir
-# Plugin signal routes:
-# "planning.plan"       -> Jido.AI.Actions.Planning.Plan
-# "planning.decompose"  -> Jido.AI.Actions.Planning.Decompose
-# "planning.prioritize" -> Jido.AI.Actions.Planning.Prioritize
-```
-
-The `Decompose` Action is the one this tutorial relies on most. It takes a goal string and returns a hierarchical breakdown with sub-goals, dependencies, and success criteria.
-
-```elixir
-{:ok, result} = Jido.Exec.run(
-  Jido.AI.Actions.Planning.Decompose,
-  %{goal: "Compare Elixir and Go for distributed systems", max_depth: 2}
-)
-
-IO.puts(result.decomposition)
-IO.inspect(result.sub_goals, label: "Sub-goals")
-```
-
-The result contains `decomposition` (full text), `sub_goals` (extracted list), `goal`, `depth`, and `model`. Each sub-goal becomes a work item for a specialist agent.
-
-`Prioritize` orders those sub-goals so the coordinator dispatches them in dependency order:
-
-```elixir
-{:ok, priority} = Jido.Exec.run(
-  Jido.AI.Actions.Planning.Prioritize,
-  %{
-    tasks: result.sub_goals,
-    criteria: "Dependencies and logical sequencing",
-    context: "Technical comparison article"
-  }
-)
-
-IO.inspect(priority.ordered_tasks, label: "Execution order")
-```
-
-## Define specialist agents
-
-Each specialist uses `Jido.AI.Agent` with a different Strategy and system prompt. The specialists handle a `specialist.work` Signal, perform their task with the LLM, and emit a `specialist.result` Signal back to the coordinator.
-
-**Planner agent.** Uses Chain of Thought for structured, step-by-step decomposition.
+Each specialist handles the same `specialist.work` signal. The skill registry tells the action what capability that specialist represents.
 
 ```elixir
 defmodule MyApp.HandleWorkAction do
@@ -179,93 +136,99 @@ defmodule MyApp.HandleWorkAction do
     schema: [
       task: [type: :string, required: true],
       task_id: [type: :string, required: true],
-      role: [type: :string, required: true]
+      role: [type: :string, required: true],
+      skill_name: [type: :string, required: true]
     ]
 
   alias Jido.Agent.Directive
+  alias Jido.AI.Skill.Registry
 
   def run(params, context) do
+    {:ok, skill} = Registry.lookup(params.skill_name)
+
+    output = """
+    #{String.capitalize(params.role)} output
+    Skill: #{skill.name}
+    Capability: #{skill.description}
+    Completed task: #{params.task}
+    """
+
     result_signal =
       Jido.Signal.new!(
         "specialist.result",
-        %{task_id: params.task_id, role: params.role, output: "processed"},
+        %{
+          task_id: params.task_id,
+          role: params.role,
+          skill_name: skill.name,
+          output: output
+        },
         source: "/specialist/#{params.role}"
       )
 
     agent_like = %{state: context.state}
     emit = Directive.emit_to_parent(agent_like, result_signal)
-    {:ok, %{last_task: params.task_id}, List.wrap(emit)}
+
+    {:ok,
+     %{last_task: params.task_id, last_skill: skill.name, last_output: output},
+     List.wrap(emit)}
   end
 end
 ```
 
-This Action is shared by all three specialists. In a production system, each specialist would call `ask_sync/3` with a role-specific prompt and return the LLM output. The shared Action keeps this tutorial focused on the orchestration pattern.
+## Define the specialist agents
+
+These are plain `Jido.Agent` modules because the tutorial is about orchestration. Replacing `HandleWorkAction` with LLM-backed work is an extension, not the first step.
 
 ```elixir
 defmodule MyApp.PlannerAgent do
-  use Jido.AI.Agent,
+  use Jido.Agent,
     name: "planner_agent",
-    description: "Structured decomposition specialist",
-    model: "openai:gpt-4o-mini",
-    max_iterations: 3,
-    system_prompt: """
-    You are a planning specialist. Break goals into
-    concrete, ordered steps with clear dependencies.
-    """
+    description: "Planning specialist",
+    schema: [
+      last_task: [type: :string, default: nil],
+      last_skill: [type: :string, default: nil],
+      last_output: [type: :string, default: nil]
+    ]
 
   def signal_routes(_ctx) do
     [{"specialist.work", MyApp.HandleWorkAction}]
   end
 end
-```
 
-**Researcher agent.** Uses ReAct for iterative reasoning with tool calls.
-
-```elixir
 defmodule MyApp.ResearcherAgent do
-  use Jido.AI.Agent,
+  use Jido.Agent,
     name: "researcher_agent",
-    description: "Data gathering and analysis specialist",
-    model: "openai:gpt-4o-mini",
-    max_iterations: 6,
-    system_prompt: """
-    You are a research specialist. Gather relevant data,
-    compare sources, and produce factual summaries.
-    """
+    description: "Research specialist",
+    schema: [
+      last_task: [type: :string, default: nil],
+      last_skill: [type: :string, default: nil],
+      last_output: [type: :string, default: nil]
+    ]
 
   def signal_routes(_ctx) do
     [{"specialist.work", MyApp.HandleWorkAction}]
   end
 end
-```
 
-**Writer agent.** Synthesizes inputs into polished output.
-
-```elixir
 defmodule MyApp.WriterAgent do
-  use Jido.AI.Agent,
+  use Jido.Agent,
     name: "writer_agent",
-    description: "Content synthesis specialist",
-    model: "openai:gpt-4o-mini",
-    max_iterations: 3,
-    system_prompt: """
-    You are a writing specialist. Synthesize research
-    into clear, well-structured technical content.
-    """
+    description: "Writing specialist",
+    schema: [
+      last_task: [type: :string, default: nil],
+      last_skill: [type: :string, default: nil],
+      last_output: [type: :string, default: nil]
+    ]
 
   def signal_routes(_ctx) do
     [{"specialist.work", MyApp.HandleWorkAction}]
   end
 end
 ```
-
-Each specialist routes `specialist.work` to the shared Action. The `role` field in the Signal payload identifies which specialist processed the task, so the coordinator can track provenance.
 
 ## Build the coordinator
 
-The coordinator combines the Planning Plugin with hierarchical agent spawning. It receives a goal, decomposes it, spawns specialists, and routes sub-tasks as Signals.
-
-**Decompose the goal and spawn specialists.**
+The coordinator turns one goal into three specialist tasks, spawns children, dispatches work when those children come online, and aggregates the final outputs.
 
 ```elixir
 defmodule MyApp.DecomposeGoalAction do
@@ -279,30 +242,36 @@ defmodule MyApp.DecomposeGoalAction do
 
   def run(%{goal: goal}, _context) do
     tasks = [
-      %{id: "plan", role: "planner", task: "Create structure for: #{goal}"},
-      %{id: "research", role: "researcher", task: "Gather data for: #{goal}"},
-      %{id: "write", role: "writer", task: "Draft content for: #{goal}"}
+      %{
+        id: "plan",
+        role: "planner",
+        skill_name: "release-planner",
+        task: "Outline the release milestones for: #{goal}"
+      },
+      %{
+        id: "research",
+        role: "researcher",
+        skill_name: "release-researcher",
+        task: "List supporting facts and risks for: #{goal}"
+      },
+      %{
+        id: "write",
+        role: "writer",
+        skill_name: "release-writer",
+        task: "Draft the stakeholder-ready summary for: #{goal}"
+      }
     ]
 
     spawns = [
-      Directive.spawn_agent(MyApp.PlannerAgent, :planner,
-        meta: %{task_id: "plan", role: "planner", task: Enum.at(tasks, 0).task}),
-      Directive.spawn_agent(MyApp.ResearcherAgent, :researcher,
-        meta: %{task_id: "research", role: "researcher", task: Enum.at(tasks, 1).task}),
-      Directive.spawn_agent(MyApp.WriterAgent, :writer,
-        meta: %{task_id: "write", role: "writer", task: Enum.at(tasks, 2).task})
+      Directive.spawn_agent(MyApp.PlannerAgent, :planner, meta: Enum.at(tasks, 0)),
+      Directive.spawn_agent(MyApp.ResearcherAgent, :researcher, meta: Enum.at(tasks, 1)),
+      Directive.spawn_agent(MyApp.WriterAgent, :writer, meta: Enum.at(tasks, 2))
     ]
 
-    {:ok, %{goal: goal, pending: 3, results: %{}}, spawns}
+    {:ok, %{goal: goal, plan: tasks, pending: length(tasks), results: %{}, status: :running}, spawns}
   end
 end
-```
 
-In a production coordinator, you would send a `planning.decompose` Signal to yourself (handled by the Planning Plugin) and use the LLM-generated sub-goals to decide which specialists to spawn. This simplified version hard-codes three tasks to keep the focus on signal flow.
-
-**Dispatch work when children start.**
-
-```elixir
 defmodule MyApp.CoordinatorChildStartedAction do
   use Jido.Action,
     name: "coordinator_child_started",
@@ -321,59 +290,46 @@ defmodule MyApp.CoordinatorChildStartedAction do
     work_signal =
       Jido.Signal.new!(
         "specialist.work",
-        %{task_id: meta.task_id, role: meta.role, task: meta.task},
+        %{
+          task_id: Map.get(meta, :task_id) || Map.get(meta, :id),
+          role: Map.get(meta, :role),
+          task: Map.get(meta, :task),
+          skill_name: Map.get(meta, :skill_name)
+        },
         source: "/coordinator"
       )
 
     {:ok, %{}, [Directive.emit_to_pid(work_signal, pid)]}
   end
 end
-```
 
-This follows the same pattern from the [Parent-child agent hierarchies](/docs/learn/parent-child-agent-hierarchies) tutorial. The `meta` map on `SpawnAgent` carries task details, and the `jido.agent.child.started` Signal delivers them back with the child's PID.
-
-**Aggregate specialist results.**
-
-```elixir
 defmodule MyApp.HandleSpecialistResultAction do
   use Jido.Action,
     name: "handle_specialist_result",
     schema: [
       task_id: [type: :string, required: true],
       role: [type: :string, required: true],
-      output: [type: :any, required: true]
+      skill_name: [type: :string, required: true],
+      output: [type: :string, required: true]
     ]
 
   def run(params, context) do
     results = Map.get(context.state, :results, %{})
-    updated_results = Map.put(results, params.role, params.output)
-    pending = Map.get(context.state, :pending, 3) - 1
+    updated_results = Map.put(results, params.role, Map.take(params, [:task_id, :skill_name, :output]))
+    pending = max(Map.get(context.state, :pending, 1) - 1, 0)
+    status = if pending == 0, do: :complete, else: :running
 
-    state = %{results: updated_results, pending: pending}
-
-    state =
-      if pending <= 0 do
-        Map.put(state, :status, :complete)
-      else
-        state
-      end
-
-    {:ok, state}
+    {:ok, %{results: updated_results, pending: pending, status: status}}
   end
 end
-```
 
-When `pending` reaches zero, the coordinator marks itself `:complete`. All specialist outputs are collected in the `results` map keyed by role.
-
-**Wire the coordinator Agent.**
-
-```elixir
 defmodule MyApp.CoordinatorAgent do
   use Jido.Agent,
     name: "coordinator_agent",
-    plugins: [{Jido.AI.Plugins.Planning, []}],
+    description: "Coordinates specialized child agents for one goal",
     schema: [
       goal: [type: :string, default: nil],
+      plan: [type: {:list, :map}, default: []],
       pending: [type: :integer, default: 0],
       results: [type: :map, default: %{}],
       status: [type: :atom, default: :idle]
@@ -389,87 +345,104 @@ defmodule MyApp.CoordinatorAgent do
 end
 ```
 
-The coordinator is a plain `Jido.Agent` (not `Jido.AI.Agent`) with the Planning Plugin attached. This gives it access to `planning.decompose`, `planning.plan`, and `planning.prioritize` Signal routes from the Plugin alongside its own routes.
+## Run the orchestration
 
-## Signal flow across AI agents
-
-The full signal flow for a single orchestration run:
-
-```
-1. External code sends "orchestrate" signal to coordinator
-2. DecomposeGoalAction emits SpawnAgent directives (3 children)
-3. Runtime starts PlannerAgent, ResearcherAgent, WriterAgent
-4. Each child triggers "jido.agent.child.started" on coordinator
-5. CoordinatorChildStartedAction emits "specialist.work" to child PID
-6. Child routes "specialist.work" to HandleWorkAction
-7. HandleWorkAction emits "specialist.result" to parent (coordinator)
-8. HandleSpecialistResultAction aggregates, decrements pending
-9. When pending hits 0, status becomes :complete
-```
-
-Signals flow downward as work assignments and upward as results. Each layer only communicates with its direct parent or children. The coordinator never reaches into a specialist's internals, and specialists never coordinate with each other directly.
-
-## End-to-end orchestration
-
-Start the Jido runtime and launch the coordinator.
+Start the coordinator, submit one goal, and wait until all specialists have reported back.
 
 ```elixir
-{:ok, jido} = Jido.start_link(name: :learn_orchestration)
+coordinator_id = "coordinator-#{System.unique_integer([:positive])}"
 
 {:ok, coordinator_pid} =
-  Jido.start_agent(jido, MyApp.CoordinatorAgent, id: "coordinator-1")
+  Jido.start_agent(
+    runtime,
+    MyApp.CoordinatorAgent,
+    id: coordinator_id
+  )
 ```
-
-Send the orchestration Signal with a complex goal.
 
 ```elixir
 signal =
   Jido.Signal.new!(
     "orchestrate",
-    %{goal: "Compare Elixir and Go for building distributed systems"},
+    %{goal: "Prepare a release readiness brief for the new command palette"},
     source: "/livebook"
   )
 
 {:ok, _agent} = Jido.AgentServer.call(coordinator_pid, signal)
 ```
 
-The call returns after the coordinator processes the `orchestrate` Signal and emits the three `SpawnAgent` Directives. The specialists start and execute asynchronously. Poll for the completed result.
-
 ```elixir
 result =
-  Helpers.wait_for(fn ->
+  MyApp.OrchestrationHelpers.wait_for(fn ->
     case Jido.AgentServer.state(coordinator_pid) do
-      {:ok, %{agent: %{state: %{status: :complete} = state}}} ->
-        {:ok, state}
-      _ ->
-        :retry
+      {:ok, %{agent: %{state: %{status: :complete} = state}}} -> {:ok, state}
+      _ -> :retry
     end
   end)
-
-IO.inspect(result.goal, label: "Goal")
-IO.inspect(Map.keys(result.results), label: "Specialists completed")
-IO.inspect(result.pending, label: "Pending")
 ```
 
-You should see output showing the goal, three completed specialists (`["planner", "researcher", "writer"]`), and a pending count of `0`.
+```elixir
+IO.inspect(result.goal, label: "Goal")
+IO.inspect(Enum.map(result.plan, &{&1.role, &1.skill_name}), label: "Plan")
+IO.inspect(Map.keys(result.results), label: "Completed roles")
+IO.inspect(result.pending, label: "Pending")
 
-Inspect the hierarchy to confirm the coordinator's children.
+Enum.each(result.results, fn {role, payload} ->
+  IO.puts("\n#{role}")
+  IO.puts(payload.output)
+end)
+```
+
+You should see three completed roles, one per specialist, and a pending count of `0`.
+
+## Inspect the hierarchy
 
 ```elixir
-{:ok, coord_state} = Jido.AgentServer.state(coordinator_pid)
+{:ok, coordinator_state} = Jido.AgentServer.state(coordinator_pid)
 
 IO.inspect(
-  Map.keys(coord_state.children),
+  Map.keys(coordinator_state.children),
   label: "Coordinator children"
 )
 ```
 
-Each specialist appears as a child process managed by the runtime. The coordinator tracks them through the standard `children` map, the same mechanism used in non-AI hierarchies.
+Each child is tracked by tag in the standard `children` map:
+
+```elixir
+Enum.map(coordinator_state.children, fn {tag, child} ->
+  {tag, child.module, child.meta.skill_name}
+end)
+```
+
+## Where AI planning fits
+
+The runnable path above keeps task decomposition deterministic so the notebook works locally. In a production AI orchestrator, the natural next step is to replace `DecomposeGoalAction`'s fixed task list with Planning actions or a mounted Planning plugin.
+
+Use the Planning action directly:
+
+```
+{:ok, result} =
+  Jido.Exec.run(Jido.AI.Actions.Planning.Decompose, %{
+    goal: "Prepare a release readiness brief for the new command palette",
+    max_depth: 2,
+    model: "openai:gpt-4o-mini"
+  })
+```
+
+Or mount the plugin on the coordinator so the same functionality is available through signals:
+
+```
+defmodule MyApp.AIEnabledCoordinator do
+  use Jido.Agent,
+    name: "ai_enabled_coordinator",
+    plugins: [{Jido.AI.Plugins.Planning, []}]
+end
+```
+
+You can also swap the inline `Spec` structs for file-backed skills with `Jido.AI.Skill.Loader.load/1` once you are ready to maintain reusable `SKILL.md` assets.
 
 ## Next steps
 
-This tutorial demonstrated the orchestration pattern: decompose, delegate, and aggregate across specialized AI agents. The simplified specialists show the wiring; production implementations would add full LLM calls, error recovery, and richer skill configurations.
-
-- [Guides](/docs/guides) covers task-focused recipes for production patterns
-- [Concepts](/docs/concepts) provides deep reference for all Jido primitives including Strategies, Plugins, and the runtime
-- [Ecosystem](/docs/ecosystem) documents `jido_ai`, `jido_ai_cli`, and additional packages
+- Extend the hierarchy with real worker trees in [Parent-child agent hierarchies](/docs/learn/parent-child-agent-hierarchies)
+- Add planning prompts and LLM-backed specialists in [Reasoning strategies compared](/docs/learn/reasoning-strategies-compared)
+- Reuse this signal pattern inside larger systems with [Build your first workflow](/docs/learn/first-workflow)

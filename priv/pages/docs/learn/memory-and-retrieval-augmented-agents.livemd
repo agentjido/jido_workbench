@@ -5,12 +5,18 @@
   order: 33,
   tags: [:docs, :learn, :ai, :memory, :retrieval, :rag, :livebook],
   draft: false,
-  prerequisites: ["/docs/learn/task-planning-and-execution"]
+  prerequisites: ["/docs/learn/task-planning-and-execution"],
+  livebook: %{
+    runnable: true,
+    required_env_vars: [],
+    requires_network: false,
+    setup_instructions: "No API keys required. Run the setup cell, then execute the examples in order."
+  }
 } -->
 
 ## Prerequisites
 
-Complete [Task planning and execution](/docs/learn/task-planning-and-execution) before starting. You need a working understanding of Agent lifecycle hooks and `cmd/2`.
+Complete [Task planning and execution](/docs/learn/task-planning-and-execution) before starting. You need a working understanding of stateful agents, Memory spaces, and `cmd/2`.
 
 ## Setup
 
@@ -20,7 +26,11 @@ Mix.install([
   {{mix_dep:jido_ai}},
   {{mix_dep:req_llm}}
 ])
+
+Logger.configure(level: :warning)
 ```
+
+This tutorial runs entirely locally. No provider keys or network calls are required.
 
 ## Why memory matters
 
@@ -177,7 +187,7 @@ The scoring uses Jaccard similarity over tokenized terms. This works well for ke
 
 Combine all three layers into a single Agent that retrieves relevant documents before each LLM call. This is the retrieval-augmented generation (RAG) pattern.
 
-```elixir
+```
 defmodule MyApp.KnowledgeAgent do
   use Jido.AI.Agent,
     name: "knowledge_agent",

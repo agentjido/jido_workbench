@@ -3,14 +3,20 @@
   description: "Compose multiple actions into a single command with sequential execution and shared state.",
   category: :docs,
   order: 13,
-  tags: [:docs, :learn, :tutorial, :workflows],
+  tags: [:docs, :learn, :tutorial, :workflows, :livebook],
   draft: false,
   learning_outcomes: [
     "Compose multiple actions into a single command",
     "Understand how action outputs flow through a chain",
     "Handle directives from multi-step workflows"
   ],
-  prerequisites: ["/docs/getting-started/first-agent"]
+  prerequisites: ["/docs/getting-started/first-agent"],
+  livebook: %{
+    runnable: true,
+    required_env_vars: [],
+    requires_network: false,
+    setup_instructions: "No API keys required. Run the setup cell, then execute the examples in order."
+  }
 } -->
 
 ## Prerequisites
@@ -23,7 +29,11 @@ Complete [Your first agent](/docs/getting-started/first-agent) before starting t
 Mix.install([
   {{mix_dep:jido}}
 ])
+
+Logger.configure(level: :warning)
 ```
+
+This tutorial runs entirely locally. No provider keys or network calls are required.
 
 ## Why compose actions?
 

@@ -5,7 +5,13 @@
   order: 15,
   tags: [:docs, :learn, :fsm, :strategy, :livebook],
   draft: false,
-  prerequisites: ["/docs/learn/plugins-and-composable-agents"]
+  prerequisites: ["/docs/learn/plugins-and-composable-agents"],
+  livebook: %{
+    runnable: true,
+    required_env_vars: [],
+    requires_network: false,
+    setup_instructions: "No API keys required. Run the setup cell, then execute the examples in order."
+  }
 } -->
 
 ## Prerequisites
@@ -18,9 +24,13 @@ Complete [Plugins and composable agents](/docs/learn/plugins-and-composable-agen
 Mix.install([
   {{mix_dep:jido}}
 ])
+
+Logger.configure(level: :warning)
 ```
 
 The FSM Strategy uses `RunInstruction` directives internally, which are normally processed by `AgentServer`. In Livebook, define a helper that runs the same loop without a server.
+
+This tutorial runs entirely locally. No provider keys or network calls are required.
 
 ```elixir
 defmodule FSMHelper do

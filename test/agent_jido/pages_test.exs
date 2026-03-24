@@ -96,6 +96,7 @@ defmodule AgentJido.PagesTest do
                "/docs/contributors/ecosystem-atlas",
                "/docs/contributors/package-support-levels",
                "/docs/contributors/package-quality-standards",
+               "/docs/contributors/livebook-authoring-standards",
                "/docs/contributors/roadmap",
                "/docs/contributors/contributing",
                "/docs/contributors/governance-and-team"
@@ -179,19 +180,55 @@ defmodule AgentJido.PagesTest do
       assert Pages.get_page_by_path("/nonexistent/path") == nil
     end
 
-    test "AI chat agent guide uses supported Jido.AI.Agent lifecycle hooks" do
+    test "first agent guide is marked as a runnable Livebook" do
+      page = Pages.get_page_by_path("/docs/getting-started/first-agent")
+
+      assert page != nil
+      assert page.is_livebook
+      assert page.livebook.runnable
+      assert page.livebook.required_env_vars == []
+      refute page.livebook.requires_network
+    end
+
+    test "first LLM agent guide uses the default Livebook runtime pattern" do
+      source =
+        File.read!(Path.expand("priv/pages/docs/getting-started/first-llm-agent.livemd", File.cwd!()))
+
+      assert source =~ "livebook: %{"
+      assert source =~ "{:ok, _} = Jido.start()"
+      assert source =~ "runtime = Jido.default_instance()"
+      assert source =~ "Jido.start_agent(runtime, MyAgentApp.Greeter"
+      assert source =~ "Jido.AgentServer.status(pid)"
+      refute source =~ "MyAgentApp.Jido.start_link(name: Jido)"
+      refute source =~ "Jido.AgentServer.start_link(agent: MyAgentApp.Greeter)"
+    end
+
+    test "AI chat agent guide uses the simple one-pid chat flow" do
       source =
         File.read!(Path.expand("priv/pages/docs/learn/ai-chat-agent.livemd", File.cwd!()))
 
-      refute source =~ "def init(_opts)"
-      assert source =~ "{:ai_react_start, params}"
-      assert source =~ "super(%{agent | state: updated_state}, {:ai_react_start, updated_params})"
+      assert source =~ "livebook: %{"
+      assert source =~ "{:ok, _} = Jido.start()"
+      assert source =~ "Jido.start_agent(runtime, MyApp.ChatAgent"
+      assert source =~ "Jido.AgentServer.status(pid)"
+      assert source =~ "details[:conversation]"
+      assert source =~ "details.streaming_text"
+      assert source =~ "Jido.AI.set_system_prompt"
+      assert source =~ "Jido.AI.Plugins.Chat"
+      refute source =~ "{:ai_react_start, params}"
+      refute source =~ "on_before_cmd"
+      refute source =~ "on_after_cmd"
+      refute source =~ "strategy_snapshot(pid)"
     end
 
     test "AI agent with tools guide uses the LocationToGrid weather flow" do
       source =
         File.read!(Path.expand("priv/pages/docs/learn/ai-agent-with-tools.livemd", File.cwd!()))
 
+      assert source =~ "livebook: %{"
+      assert source =~ "{:ok, _} = Jido.start()"
+      assert source =~ "Jido.start_agent(runtime, MyApp.WeatherAgent"
+      assert source =~ "details[:tool_calls]"
       assert source =~ "Jido.Tools.Weather.LocationToGrid.run"
       assert source =~ "%{forecast_url: grid_info.urls.forecast}"
       assert source =~ "%{observation_stations_url: grid_info.urls.observation_stations}"
@@ -203,6 +240,65 @@ defmodule AgentJido.PagesTest do
                %{}
              )
              """
+    end
+
+    test "local-only guide notebooks declare quiet setup and explicit local-only metadata" do
+      source_paths = [
+        "priv/pages/docs/guides/debugging-and-troubleshooting.livemd",
+        "priv/pages/docs/guides/error-handling-and-recovery.livemd",
+        "priv/pages/docs/guides/persistence-and-checkpoints.livemd",
+        "priv/pages/docs/guides/testing-agents-and-actions.livemd"
+      ]
+
+      Enum.each(source_paths, fn source_path ->
+        source = File.read!(Path.expand(source_path, File.cwd!()))
+
+        assert source =~ "livebook: %{"
+        assert source =~ "required_env_vars: []"
+        assert source =~ "requires_network: false"
+        assert source =~ "Logger.configure(level: :warning)"
+      end)
+    end
+
+    test "advanced local-only learn notebooks declare quiet setup and explicit local-only metadata" do
+      source_paths = [
+        "priv/pages/docs/learn/first-workflow.livemd",
+        "priv/pages/docs/learn/sensors-and-real-time-events.livemd",
+        "priv/pages/docs/learn/parent-child-agent-hierarchies.livemd",
+        "priv/pages/docs/learn/plugins-and-composable-agents.livemd",
+        "priv/pages/docs/learn/memory-and-retrieval-augmented-agents.livemd",
+        "priv/pages/docs/learn/multi-agent-orchestration.livemd",
+        "priv/pages/docs/learn/state-machines-with-fsm.livemd",
+        "priv/pages/docs/learn/task-planning-and-execution.livemd"
+      ]
+
+      Enum.each(source_paths, fn source_path ->
+        source = File.read!(Path.expand(source_path, File.cwd!()))
+
+        assert source =~ "livebook: %{"
+        assert source =~ "required_env_vars: []"
+        assert source =~ "requires_network: false"
+        assert source =~ "Logger.configure(level: :warning)"
+      end)
+    end
+
+    test "reasoning strategies guide uses public strategy agents and runnable metadata" do
+      source =
+        File.read!(
+          Path.expand("priv/pages/docs/learn/reasoning-strategies-compared.livemd", File.cwd!())
+        )
+
+      assert source =~ "livebook: %{"
+      assert source =~ "runnable: true"
+      assert source =~ ~s(required_env_vars: ["OPENAI_API_KEY"])
+      assert source =~ "Logger.configure(level: :warning)"
+      assert source =~ "Jido.start_agent("
+      assert source =~ "MyApp.ReleaseDecisionCoTAgent.think_sync"
+      assert source =~ "MyApp.ReleaseDecisionToTAgent.explore_sync"
+      assert source =~ "MyApp.ReleaseDecisionAdaptiveAgent.ask_sync"
+      assert source =~ "selected_strategy"
+      refute source =~ "Jido.AgentServer.start_link(agent:"
+      refute source =~ "Jido.Tools.Weather."
     end
   end
 

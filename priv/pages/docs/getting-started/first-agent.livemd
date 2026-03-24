@@ -1,9 +1,9 @@
-<!-- %{
+%{
   title: "Your first agent",
   description: "Define typed state, implement a validated action, and run your first command.",
   category: :docs,
   order: 30,
-  tags: [:docs, :getting_started, :tutorial, :agents],
+  tags: [:docs, :getting_started, :tutorial, :agents, :livebook],
   draft: false,
   legacy_paths: ["/docs/learn/first-agent"],
   learning_outcomes: [
@@ -11,14 +11,15 @@
     "Implement an action and execute it via cmd/2",
     "Interpret updated state and returned directives"
   ],
-  prerequisites: ["/docs/getting-started/installation"]
-} -->
-
-## Prerequisites
-
-Complete [Installation and setup](/docs/getting-started/installation) before starting this tutorial. Run this notebook top to bottom. You do not need a Mix project.
-
+  prerequisites: ["/docs/getting-started/installation"],
+  livebook: %{
+    runnable: true
+  }
+}
+---
 ## Setup
+
+This notebook is self-contained. Install the dependency below and run the cells top to bottom. If you want the Mix-project setup afterward, the [Installation and setup](/docs/getting-started/installation) guide covers that path.
 
 ```elixir
 Mix.install([
@@ -41,11 +42,11 @@ defmodule CounterAgent do
 end
 ```
 
-This module provides `new/1`, `set/2`, `validate/2`, and `cmd/2`. The agent is data, not a process. When you need supervision or long-lived runtime state, wrap it in a `Jido.AgentServer`.
+This module provides `new/1`, `set/2`, `validate/2`, and `cmd/2`. The agent is data, not a process. You do not need to start a runtime for this first example because `cmd/2` runs directly against the agent struct.
 
 ## Define an action
 
-Actions are the only way to change agent state. Each action defines a schema for its inputs and implements `run/2`. The first argument is validated params. The second is the execution context, which includes `context.state` - the current agent state.
+Actions are the only way to change agent state. Each action defines a schema for its inputs and implements `run/2`. The first argument is validated params. The second is the execution context, which includes `context.state`, the current agent state.
 
 ```elixir
 defmodule IncrementAction do
@@ -81,7 +82,7 @@ agent = CounterAgent.new()
 
 ## Inspect the results
 
-The updated agent reflects the new state. Directives are outbound instructions that describe side effects for the runtime to handle later.
+Show the success path first, then inspect the returned data.
 
 ```elixir
 updated_agent.state
@@ -110,7 +111,7 @@ error_agent.state
 error_directives
 ```
 
-The agent state remains `%{count: 0}` - the same as before the failed command. The error directive wraps a `Jido.Error` with context about what went wrong.
+The agent state remains `%{count: 0}`, the same as before the failed command. The error directive wraps a `Jido.Error` with context about what went wrong.
 
 ## Using this in a Mix project
 
@@ -160,6 +161,6 @@ updated_agent.state
 
 ## Next steps
 
-- [Agents](/docs/concepts/agents) for the full conceptual model
-- [Actions](/docs/concepts/actions) for deeper action design patterns
-- [Your first LLM agent](/docs/getting-started/first-llm-agent) to add language model capabilities
+- Continue to [Your first LLM agent](/docs/getting-started/first-llm-agent) to add a runtime and model-backed reasoning.
+- Review [Agents](/docs/concepts/agents) for the full conceptual model.
+- Review [Actions](/docs/concepts/actions) for deeper action design patterns.

@@ -1,26 +1,28 @@
-<!-- %{
+%{
   title: "Your first LLM agent",
   description: "Add LLM reasoning to a Jido agent with jido_ai, configure a provider, and run your first AI-enhanced command.",
   category: :docs,
   order: 40,
-  tags: [:docs, :getting_started, :tutorial, :ai],
+  tags: [:docs, :getting_started, :tutorial, :ai, :livebook],
   draft: false,
   legacy_paths: ["/docs/learn/first-llm-agent"],
   learning_outcomes: [
-    "Add jido_ai and req_llm dependencies",
-    "Configure an LLM provider with runtime secrets",
-    "Run an AI-enhanced agent command"
+    "Install jido_ai and req_llm in a self-contained Livebook",
+    "Configure a provider key for notebook execution",
+    "Start the default Jido runtime and run your first AI-enhanced command"
   ],
-  prerequisites: ["/docs/getting-started/first-agent"]
-} -->
+  prerequisites: ["/docs/getting-started/first-agent"],
+  livebook: %{
+    runnable: true,
+    required_env_vars: ["OPENAI_API_KEY"],
+    requires_network: true,
+    setup_instructions: "Set OPENAI_API_KEY or LB_OPENAI_API_KEY before running the request cell."
+  }
+}
+---
+## Setup
 
-## Prerequisites
-
-Complete [Your first agent](/docs/getting-started/first-agent) before starting. You need an API key for OpenAI or another supported provider.
-
-## Install dependencies
-
-`jido_ai` adds LLM reasoning on top of the core Jido runtime. `req_llm` is the provider-agnostic transport layer that `jido_ai` uses underneath.
+This notebook is self-contained: install the dependencies, configure a provider key, start the default Jido runtime, and send one prompt through an AI agent. If you already completed [Your first agent](/docs/getting-started/first-agent), still run this notebook top to bottom because it defines its own module.
 
 ```elixir
 Mix.install([
@@ -29,33 +31,29 @@ Mix.install([
   {{mix_dep:req_llm}}
 ])
 
-# Suppress verbose runtime logs so we only see warnings and errors
 Logger.configure(level: :warning)
 ```
 
 ## Configure credentials
 
-Set your OpenAI API key. In Livebook, add `OPENAI_API_KEY` as a
-[Livebook Secret](https://livebook.dev/blog/secrets-in-livebook/) prefixed with `LB_`.
-The cell below checks both the Livebook secret and a plain environment variable.
+In Livebook, store `OPENAI_API_KEY` as a secret. Livebook exposes that secret as `LB_OPENAI_API_KEY` inside the notebook, so this cell checks both names.
 
 ```elixir
 openai_key = System.get_env("LB_OPENAI_API_KEY") || System.get_env("OPENAI_API_KEY")
 
-if openai_key do
-  ReqLLM.put_key(:openai_api_key, openai_key)
-  :configured
-else
-  IO.puts("Set OPENAI_API_KEY as a Livebook Secret or environment variable to run the LLM cells.")
-  :no_key
-end
+configured? =
+  if is_binary(openai_key) do
+    ReqLLM.put_key(:openai_api_key, openai_key)
+    true
+  else
+    IO.puts("Set OPENAI_API_KEY or LB_OPENAI_API_KEY before running the request cell.")
+    false
+  end
 ```
 
-## Define an AI agent
+## Define the agent
 
-In the previous tutorial you built a deterministic agent with typed state and actions. This tutorial adds LLM reasoning to a Jido agent.
-
-The `Jido.AI.Agent` macro gives your agent a system prompt, a model, and the full Jido lifecycle. The module below defines a greeter that generates a short welcome message.
+`use Jido.AI.Agent` keeps the module declarative: describe the agent, choose a model, and provide a system prompt. This first example does not use tools, so the only new capability is the LLM call.
 
 ```elixir
 defmodule MyAgentApp.Greeter do
@@ -63,7 +61,7 @@ defmodule MyAgentApp.Greeter do
     name: "greeter",
     description: "Generates a friendly greeting",
     tools: [],
-    model: "openai:gpt-4o-mini",
+    model: :fast,
     system_prompt: """
     You are a friendly greeter.
     Generate a short, warm welcome message.
@@ -72,78 +70,85 @@ defmodule MyAgentApp.Greeter do
 end
 ```
 
-`model: "openai:gpt-4o-mini"` selects a fast, inexpensive model. You can swap in any model string supported by `req_llm` (for example `"anthropic:claude-haiku-4-5"`). `tools: []` means no external tool calls for now.
+`model: :fast` uses the default fast model alias from `jido_ai`. You can swap in a provider-specific string later, but the alias keeps the tutorial portable.
 
-## Start the Jido runtime
+## Start the runtime and agent
 
-The agent server needs the Jido runtime (a registry, a dynamic supervisor, and a task supervisor). Define a Jido module and start it:
+`Jido.start/0` is the notebook-friendly runtime helper. It is safe to call more than once, so rerunning this cell does not force you to restart the notebook. `Jido.start_agent/3` then starts your agent inside that runtime.
 
 ```elixir
-defmodule MyAgentApp.Jido do
-  use Jido, otp_app: :my_agent_app
+{:ok, _} = Jido.start()
+runtime = Jido.default_instance()
+agent_id = "greeter-demo-#{System.unique_integer([:positive])}"
+
+{:ok, pid} = Jido.start_agent(runtime, MyAgentApp.Greeter, id: agent_id)
+```
+
+## Ask the agent
+
+Send one prompt with `ask_sync/3`. The return value is `{:ok, text}` on success or `{:error, reason}` if the provider call fails.
+
+```elixir
+greeting =
+  if configured? do
+    MyAgentApp.Greeter.ask_sync(
+      pid,
+      "Say hello to someone just getting started with Jido.",
+      timeout: 30_000
+    )
+  else
+    {:skip, :no_openai_key}
+  end
+
+IO.inspect(greeting, label: "Greeting")
+```
+
+```elixir
+case greeting do
+  {:ok, text} ->
+    IO.puts(text)
+
+  {:error, reason} ->
+    IO.puts("Greeting failed: #{inspect(reason)}")
+
+  {:skip, :no_openai_key} ->
+    IO.puts("Skipped request. Set OPENAI_API_KEY or LB_OPENAI_API_KEY to run it.")
 end
-
-{:ok, _} = MyAgentApp.Jido.start_link(name: Jido)
 ```
 
-## Run the agent
+## Inspect the last request
 
-Start the agent through `Jido.AgentServer` and send it a prompt:
+Show the success path first, then inspect the runtime state. `Jido.AgentServer.status/1` gives you the current snapshot for the running agent process.
 
 ```elixir
-{:ok, pid} = Jido.AgentServer.start_link(agent: MyAgentApp.Greeter)
-MyAgentApp.Greeter.ask_sync(pid, "Say hello to someone just getting started with Jido.")
-```
+snapshot =
+  case Jido.AgentServer.status(pid) do
+    {:ok, status} ->
+      %{
+        done?: status.snapshot.done?,
+        result: status.snapshot.result,
+        model: status.snapshot.details[:model]
+      }
 
-If you see a greeting string, your AI integration is working. If you get a provider error, verify that your API key is set correctly.
+    other ->
+      other
+  end
+
+IO.inspect(snapshot, label: "Snapshot")
+```
 
 ## What happened
 
-Here is the flow you just ran:
+1. `Jido.start/0` started the default runtime used for scripts and Livebook.
+2. `Jido.start_agent/3` started `MyAgentApp.Greeter` as a supervised agent process.
+3. `ask_sync/3` combined the system prompt and your message, then sent the request through `req_llm`.
+4. `Jido.AgentServer.status/1` exposed the resulting snapshot so you could inspect the completed request.
 
-1. `MyAgentApp.Jido.start_link/1` started the Jido runtime (registry, agent supervisor, and task supervisor).
-2. `Jido.AgentServer.start_link/1` spawned a process for your agent and registered it in the runtime.
-3. `ask_sync/2` sent the prompt to the agent process.
-3. The agent's system prompt and your message were combined and sent to the configured LLM provider via `req_llm`.
-4. The provider response was returned through the agent lifecycle.
+The agent module stays free of provider-specific HTTP code. The runtime handles request execution, while your module stays focused on behavior.
 
-Your agent module contains no HTTP calls, no API client code, and no mutable state. The LLM interaction is handled by the runtime. Your agent definition stays declarative and testable.
+## Moving this into a Mix project
 
-## Using this in a Mix project
-
-When you move from Livebook to a Mix project, add the dependencies to `mix.exs` and configure the provider key in `config/runtime.exs`.
-
-**mix.exs**
-
-```elixir
-defp deps do
-  [
-    {{mix_dep:jido}},
-    {{mix_dep:jido_ai}},
-    {{mix_dep:req_llm}}
-  ]
-end
-```
-
-**config/runtime.exs**
-
-```elixir
-import Config
-
-config :req_llm, openai_api_key: System.get_env("OPENAI_API_KEY")
-
-config :logger, level: :warning
-```
-
-Export the key in the shell session where you run your app:
-
-```shell
-export OPENAI_API_KEY="your-api-key-here"
-```
-
-Then add your Jido app to your application's supervision tree:
-
-**lib/my_agent_app/jido.ex**
+Keep the agent module the same, add the dependencies to `mix.exs`, configure the provider key in `config/runtime.exs`, and supervise a `use Jido` module in your application:
 
 ```elixir
 defmodule MyAgentApp.Jido do
@@ -151,40 +156,21 @@ defmodule MyAgentApp.Jido do
 end
 ```
 
-**lib/my_agent_app/application.ex**
-
 ```elixir
-defmodule MyAgentApp.Application do
-
-  use Application
-
-    @impl true
-    def start(_type, _args) do
-      children =
-        [
-          ...
-          {MyAgentApp.Jido, name: Jido}
-        ]
-
-      opts = [strategy: :one_for_one, name: MyAgentApp.Supervisor]
-      Supervisor.start_link(children, opts)
-    end
-end
+children = [
+  {MyAgentApp.Jido, name: MyAgentApp.Jido}
+]
 ```
 
-Then start an IEx session and run the agent:
+Then start agents against that named runtime:
 
-```shell
-iex -S mix
 ```
-
-```elixir
-{:ok, pid} = Jido.AgentServer.start_link(agent: MyAgentApp.Greeter)
-MyAgentApp.Greeter.ask_sync(pid, "Say hello to someone just getting started with Jido.")
+{:ok, pid} = Jido.start_agent(MyAgentApp.Jido, MyAgentApp.Greeter, id: "greeter-1")
+MyAgentApp.Greeter.ask_sync(pid, "Say hello to the production app.", timeout: 30_000)
 ```
 
 ## Next steps
 
-- Build a multi-step orchestration in [Build your first workflow](/docs/learn/first-workflow).
-- Add multi-turn conversation in [Build an AI chat agent](/docs/learn/ai-chat-agent).
-- Explore the full `jido_ai` surface at [jido_ai](/ecosystem/jido-ai).
+- Continue to [Build an AI Chat Agent](/docs/learn/ai-chat-agent) for multi-turn conversation on the same agent process.
+- Continue to [AI Agent with Tools](/docs/learn/ai-agent-with-tools) when you want the model to call actions.
+- Review the [Chat Response recipe](/docs/guides/cookbook/chat-response) for the smallest request-response API.

@@ -5,7 +5,13 @@
   order: 17,
   tags: [:docs, :learn, :sensors, :signals, :livebook],
   draft: false,
-  prerequisites: ["/docs/learn/parent-child-agent-hierarchies"]
+  prerequisites: ["/docs/learn/parent-child-agent-hierarchies"],
+  livebook: %{
+    runnable: true,
+    required_env_vars: [],
+    requires_network: false,
+    setup_instructions: "No API keys required. Run the setup cell, then execute the examples in order."
+  }
 } -->
 
 ## Prerequisites
@@ -18,7 +24,11 @@ Complete [Parent-child agent hierarchies](/docs/learn/parent-child-agent-hierarc
 Mix.install([
   {{mix_dep:jido}}
 ])
+
+Logger.configure(level: :warning)
 ```
+
+This tutorial runs entirely locally. No provider keys or network calls are required.
 
 ## Why sensors
 
@@ -175,16 +185,17 @@ end
 Start the Jido runtime, spawn the Agent, then start the Sensor pointing at the Agent. The Sensor will emit 5 quotes at 100ms intervals.
 
 ```elixir
-{:ok, jido} = Jido.start_link(name: :learn_sensors)
+runtime_name = :learn_sensors
+{:ok, _runtime_pid} = Jido.start_link(name: runtime_name)
 
 {:ok, agent_pid} =
-  Jido.start_agent(jido, MyApp.EventCollectorAgent, id: "collector-1")
+  Jido.start_agent(runtime_name, MyApp.EventCollectorAgent, id: "collector-1")
 ```
 
 ```elixir
 {:ok, sensor_pid} =
   MyApp.QuoteSensor.start_link(
-    target: {:via, Registry, {Jido.AgentRegistry, "collector-1"}},
+    target: agent_pid,
     interval_ms: 100,
     max_emits: 5
   )
@@ -195,10 +206,8 @@ The Sensor runs asynchronously. Wait for it to finish emitting, then query the A
 ```elixir
 Process.sleep(1000)
 
-{:ok, state} =
-  Jido.AgentServer.get_state(
-    {:via, Registry, {Jido.AgentRegistry, "collector-1"}}
-  )
+{:ok, server_state} = Jido.AgentServer.state(agent_pid)
+state = server_state.agent.state
 
 IO.inspect(length(state.quotes), label: "Quotes received")
 IO.inspect(Enum.map(state.quotes, & &1.quote), label: "Quote texts")
@@ -222,7 +231,7 @@ webhook_signal =
   }, source: "/webhooks/github")
 
 Jido.AgentServer.cast(
-  {:via, Registry, {Jido.AgentRegistry, "collector-1"}},
+  agent_pid,
   webhook_signal
 )
 ```
@@ -230,10 +239,8 @@ Jido.AgentServer.cast(
 ```elixir
 Process.sleep(200)
 
-{:ok, state} =
-  Jido.AgentServer.get_state(
-    {:via, Registry, {Jido.AgentRegistry, "collector-1"}}
-  )
+{:ok, server_state} = Jido.AgentServer.state(agent_pid)
+state = server_state.agent.state
 
 IO.inspect(state.events, label: "Webhook events")
 ```
@@ -314,9 +321,9 @@ The routing decision happens on every incoming Signal. The runtime calls `signal
 
 ```elixir
 {:ok, gated_pid} =
-  Jido.start_agent(jido, MyApp.GatedAgent, id: "gated-1")
+  Jido.start_agent(runtime_name, MyApp.GatedAgent, id: "gated-1")
 
-agent_ref = {:via, Registry, {Jido.AgentRegistry, "gated-1"}}
+agent_ref = gated_pid
 ```
 
 Send a `"process"` Signal in normal mode.
@@ -328,7 +335,8 @@ process_signal =
 Jido.AgentServer.cast(agent_ref, process_signal)
 Process.sleep(200)
 
-{:ok, state} = Jido.AgentServer.get_state(agent_ref)
+{:ok, server_state} = Jido.AgentServer.state(agent_ref)
+state = server_state.agent.state
 IO.inspect(state.counter, label: "Counter")
 IO.inspect(state.message, label: "Message")
 ```
@@ -349,7 +357,8 @@ Process.sleep(200)
 Jido.AgentServer.cast(agent_ref, process_signal)
 Process.sleep(200)
 
-{:ok, state} = Jido.AgentServer.get_state(agent_ref)
+{:ok, server_state} = Jido.AgentServer.state(agent_ref)
+state = server_state.agent.state
 IO.inspect(state.counter, label: "Counter after maintenance")
 IO.inspect(state.message, label: "Message after maintenance")
 ```

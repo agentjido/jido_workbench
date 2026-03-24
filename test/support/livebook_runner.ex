@@ -65,8 +65,15 @@ defmodule AgentJido.TestSupport.LivebookRunner do
   end
 
   defp maybe_drop_mix_install(cells, true) do
-    Enum.reject(cells, &String.contains?(&1, "Mix.install"))
+    cells
+    |> Enum.map(&strip_mix_install/1)
+    |> Enum.reject(&(&1 == ""))
   end
 
   defp maybe_drop_mix_install(cells, false), do: cells
+
+  defp strip_mix_install(cell) do
+    Regex.replace(~r/\bMix\.install\(\[(?:.|\n)*?\]\)\s*/s, cell, "")
+    |> String.trim()
+  end
 end

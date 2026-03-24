@@ -1,4 +1,4 @@
-<!-- %{
+%{
   title: "AI agent with tools",
   description: "Build a ReAct agent that reasons iteratively and calls tools to answer questions.",
   category: :docs,
@@ -6,14 +6,23 @@
   legacy_paths: ["/docs/learn/tool-use"],
   tags: [:docs, :learn, :ai, :tools, :react, :livebook],
   draft: false,
-  prerequisites: ["/docs/getting-started/first-llm-agent"]
-} -->
-
-## Prerequisites
-
-Complete [Your first LLM agent](/docs/getting-started/first-llm-agent) before starting. You need an OpenAI API key configured.
-
+  prerequisites: ["/docs/getting-started/first-llm-agent"],
+  learning_outcomes: [
+    "Define tool Actions that an AI agent can call",
+    "Start a tool-using agent in the default Livebook runtime",
+    "Inspect tool activity after a successful answer"
+  ],
+  livebook: %{
+    runnable: false,
+    required_env_vars: ["OPENAI_API_KEY"],
+    requires_network: true,
+    setup_instructions: "Set OPENAI_API_KEY or LB_OPENAI_API_KEY before running the request cells."
+  }
+}
+---
 ## Setup
+
+This notebook is self-contained. Install the dependencies, configure the provider key, start one agent in the default Jido runtime, then let that agent call tools as needed. If you want the smaller model-only introduction first, review [Your first LLM agent](/docs/getting-started/first-llm-agent).
 
 ```elixir
 Mix.install([
@@ -21,21 +30,25 @@ Mix.install([
   {{mix_dep:jido_ai}},
   {{mix_dep:req_llm}}
 ])
+
+Logger.configure(level: :warning)
 ```
 
 ## Configure credentials
 
-Set your OpenAI API key. In Livebook, add `OPENAI_API_KEY` as a [Livebook Secret](https://livebook.dev/blog/secrets-in-livebook/) prefixed with `LB_`.
+Set your OpenAI API key as a Livebook secret named `OPENAI_API_KEY`. Livebook exposes that secret as `LB_OPENAI_API_KEY`, so this cell checks both names.
 
 ```elixir
 openai_key = System.get_env("LB_OPENAI_API_KEY") || System.get_env("OPENAI_API_KEY")
 
-if openai_key do
-  ReqLLM.put_key(:openai_api_key, openai_key)
-  :configured
-else
-  raise "Set OPENAI_API_KEY as a Livebook Secret or environment variable."
-end
+configured? =
+  if is_binary(openai_key) do
+    ReqLLM.put_key(:openai_api_key, openai_key)
+    true
+  else
+    IO.puts("Set OPENAI_API_KEY or LB_OPENAI_API_KEY before running the request cells.")
+    false
+  end
 ```
 
 ## Beyond simple chat
@@ -44,14 +57,17 @@ In the first LLM tutorial, your agent generated text from a prompt. That works f
 
 By the end of this tutorial, you will have an agent that answers weather questions like this:
 
-```elixir
-{:ok, pid} = Jido.AgentServer.start_link(agent: MyApp.WeatherAgent)
+```
+{:ok, _} = Jido.start()
+runtime = Jido.default_instance()
+{:ok, pid} = Jido.start_agent(runtime, MyApp.WeatherAgent, id: "weather-demo")
 
-{:ok, answer} = MyApp.WeatherAgent.ask_sync(
-  pid,
-  "What's the weather in Denver? Should I bring a jacket?",
-  timeout: 60_000
-)
+{:ok, answer} =
+  MyApp.WeatherAgent.ask_sync(
+    pid,
+    "What's the weather in Denver? Should I bring a jacket?",
+    timeout: 60_000
+  )
 
 IO.puts(answer)
 ```
@@ -82,9 +98,9 @@ This returns `{:ok, %{lat: "39.7...", lng: "-104.9..."}}`. The geocode tool uses
 ```elixir
 {:ok, grid_info} =
   Jido.Tools.Weather.LocationToGrid.run(
-  %{location: "39.7392,-104.9903"},
-  %{}
-)
+    %{location: "39.7392,-104.9903"},
+    %{}
+  )
 ```
 
 Then `Jido.Tools.Weather.Forecast` uses the forecast URL returned by `LocationToGrid`:
@@ -146,7 +162,7 @@ The `schema` with `doc` strings is what the LLM reads to understand each paramet
 
 ## Build the AI Agent
 
-Define the Agent with `use Jido.AI.Agent`, listing the tools it can call and the system prompt that guides its reasoning.
+Define the agent with `use Jido.AI.Agent`, listing the tools it can call and the system prompt that guides its reasoning.
 
 ```elixir
 defmodule MyApp.WeatherAgent do
@@ -160,7 +176,7 @@ defmodule MyApp.WeatherAgent do
       Jido.Tools.Weather.CurrentConditions,
       MyApp.TemperatureConverter
     ],
-    model: "openai:gpt-4o-mini",
+    model: :fast,
     max_iterations: 6,
     system_prompt: """
     You are a helpful weather assistant.
@@ -175,7 +191,7 @@ end
 Key configuration options:
 
 - **tools** lists the `Jido.Action` modules available to the LLM. The runtime converts each Action's schema to JSON Schema for the provider's tool-calling protocol.
-- **model** selects the LLM. `"openai:gpt-4o-mini"` is fast and inexpensive. Any model string supported by `req_llm` works.
+- **model** selects the LLM. `:fast` keeps the notebook portable across provider backends.
 - **max_iterations** caps the number of ReAct reasoning loops. Set this high enough for multi-step tool chains but low enough to prevent runaway costs.
 - **system_prompt** tells the LLM how to use the tools. Include constraints like coordinate format requirements here.
 
@@ -193,20 +209,33 @@ For a question like "What's the weather in Denver?", the loop typically runs thr
 
 The `max_iterations` bound prevents infinite loops. If the agent exhausts its iterations without a final answer, `ask_sync/3` returns `{:error, reason}`.
 
-## Run the Agent
-
-Start the Agent through `Jido.AgentServer` and send a query with `ask_sync/3`:
+## Start the runtime and agent
 
 ```elixir
-{:ok, pid} = Jido.AgentServer.start_link(agent: MyApp.WeatherAgent)
+{:ok, _} = Jido.start()
+runtime = Jido.default_instance()
+agent_id = "weather-demo-#{System.unique_integer([:positive])}"
 
-{:ok, answer} = MyApp.WeatherAgent.ask_sync(
-  pid,
-  "What's the weather in Chicago? Do I need an umbrella?",
-  timeout: 60_000
-)
+{:ok, pid} = Jido.start_agent(runtime, MyApp.WeatherAgent, id: agent_id)
+```
 
-IO.puts(answer)
+## Ask the agent
+
+Show the success path first: start with one weather question, then follow up on the same `pid`.
+
+```elixir
+forecast_answer =
+  if configured? do
+    MyApp.WeatherAgent.ask_sync(
+      pid,
+      "What's the weather in Chicago? Do I need an umbrella?",
+      timeout: 60_000
+    )
+  else
+    {:skip, :no_openai_key}
+  end
+
+IO.inspect(forecast_answer, label: "Forecast answer")
 ```
 
 The timeout should be generous because the agent makes multiple LLM calls and external API requests in sequence. 60 seconds is reasonable for a three-step weather lookup chain.
@@ -214,14 +243,42 @@ The timeout should be generous because the agent makes multiple LLM calls and ex
 Try a follow-up query on the same agent process:
 
 ```elixir
-{:ok, answer} = MyApp.WeatherAgent.ask_sync(
-  pid,
-  "What about Seattle?",
-  timeout: 60_000
-)
+follow_up_answer =
+  if configured? do
+    MyApp.WeatherAgent.ask_sync(
+      pid,
+      "What about Seattle?",
+      timeout: 60_000
+    )
+  else
+    {:skip, :no_openai_key}
+  end
 
-IO.puts(answer)
+IO.inspect(follow_up_answer, label: "Follow-up answer")
 ```
+
+## Inspect tool activity
+
+Once the happy path works, inspect the runtime snapshot to see which tool calls the agent made.
+
+```elixir
+tool_activity =
+  case Jido.AgentServer.status(pid) do
+    {:ok, status} ->
+      %{
+        result: status.snapshot.result,
+        tool_calls: status.snapshot.details[:tool_calls] || [],
+        model: status.snapshot.details[:model]
+      }
+
+    other ->
+      other
+  end
+
+IO.inspect(tool_activity, label: "Tool activity")
+```
+
+The `tool_calls` list should show actions like `weather_geocode` and `weather_location_to_grid` when the model needs them.
 
 ## Helper methods
 
@@ -239,7 +296,7 @@ defmodule MyApp.WeatherAgent do
       Jido.Tools.Weather.CurrentConditions,
       MyApp.TemperatureConverter
     ],
-    model: "openai:gpt-4o-mini",
+    model: :fast,
     max_iterations: 6,
     system_prompt: """
     You are a helpful weather assistant.
@@ -252,8 +309,10 @@ defmodule MyApp.WeatherAgent do
   @spec get_forecast(pid(), String.t(), keyword()) ::
           {:ok, String.t()} | {:error, term()}
   def get_forecast(pid, location, opts \\ []) do
-    query = "Get the weather forecast for #{location}. " <>
-      "Include temperature, precipitation, and recommendations."
+    query =
+      "Get the weather forecast for #{location}. " <>
+        "Include temperature, precipitation, and recommendations."
+
     ask_sync(pid, query, Keyword.put_new(opts, :timeout, 60_000))
   end
 
@@ -272,7 +331,9 @@ end
 These functions delegate to `ask_sync/3` internally and return the same `{:ok, answer}` or `{:error, reason}` tuples. Callers never construct prompt strings directly:
 
 ```elixir
-{:ok, pid} = Jido.AgentServer.start_link(agent: MyApp.WeatherAgent)
+{:ok, _} = Jido.start()
+runtime = Jido.default_instance()
+{:ok, pid} = Jido.start_agent(runtime, MyApp.WeatherAgent, id: "weather-helper-demo")
 {:ok, forecast} = MyApp.WeatherAgent.get_forecast(pid, "Portland, OR")
 IO.puts(forecast)
 ```
@@ -284,10 +345,11 @@ IO.puts(forecast)
 **Tool execution:**
 
 ```elixir
-use Jido.AI.Agent,
+tool_execution_options = [
   tool_timeout_ms: 15_000,
   tool_max_retries: 1,
   tool_retry_backoff_ms: 200
+]
 ```
 
 - `tool_timeout_ms` sets the maximum time for a single tool call. Default is sufficient for most APIs, but increase it for slow external services.
@@ -297,13 +359,12 @@ use Jido.AI.Agent,
 **Observability:**
 
 ```elixir
-use Jido.AI.Agent,
-  observability: %{
-    emit_telemetry?: true,
-    emit_lifecycle_signals?: true,
-    redact_tool_args?: true,
-    emit_llm_deltas?: true
-  }
+observability_options = %{
+  emit_telemetry?: true,
+  emit_lifecycle_signals?: true,
+  redact_tool_args?: true,
+  emit_llm_deltas?: true
+}
 ```
 
 These flags enable telemetry events for each iteration, tool call, and LLM response. Set `redact_tool_args?` to `true` when tool arguments may contain sensitive data.
@@ -311,8 +372,7 @@ These flags enable telemetry events for each iteration, tool call, and LLM respo
 **Request policy:**
 
 ```elixir
-use Jido.AI.Agent,
-  request_policy: :reject
+request_policy = :reject
 ```
 
 The `request_policy` controls what happens when a new request arrives while one is already running. `:reject` returns an error immediately. This prevents concurrent LLM calls on the same agent process.

@@ -4,7 +4,13 @@
   category: :docs,
   tags: [:docs, :guides, :livebook],
   order: 171,
-  draft: false
+  draft: false,
+  livebook: %{
+    runnable: true,
+    required_env_vars: [],
+    requires_network: false,
+    setup_instructions: "No API keys required. Run the setup cell, then execute the examples in order."
+  }
 }
 ---
 
@@ -15,10 +21,15 @@ Mix.install([
   {{mix_dep:jido}}
 ])
 
-{:ok, _} = Jido.start()
+Logger.configure(level: :warning)
+
+Jido.start()
+runtime = Jido.default_instance()
 ```
 
 Define a minimal agent for the examples in this guide.
+
+This guide runs entirely locally. No provider keys or network calls are required.
 
 ```elixir
 defmodule MyApp.CounterAgent do
@@ -76,8 +87,9 @@ Instance-level debug controls verbosity globally. Per-agent debug enables a ring
 Pass `debug: true` when starting the agent server.
 
 ```elixir
-{:ok, pid} = Jido.AgentServer.start_link(
-  agent: MyApp.CounterAgent,
+{:ok, pid} = Jido.start_agent(
+  runtime,
+  MyApp.CounterAgent,
   debug: true
 )
 ```
@@ -137,7 +149,7 @@ If debug mode is off, `recent_events/2` returns `{:error, :debug_not_enabled}`.
 Inspect the full debug configuration for an instance with `Jido.Debug.status/1`.
 
 ```elixir
-Jido.Debug.status(Jido.Default)
+Jido.Debug.status(runtime)
 ```
 
 This returns a map with the current level and all active overrides.
@@ -223,13 +235,13 @@ agent_status.snapshot.status
 Enable debug mode through application config so it activates automatically when the instance starts. This is useful for development environments where you always want verbose output.
 
 ```elixir
-config :my_app, MyApp.Jido, debug: true
+Application.put_env(:my_app, MyApp.Jido, debug: true)
 ```
 
 Set `:verbose` for maximum detail.
 
 ```elixir
-config :my_app, MyApp.Jido, debug: :verbose
+Application.put_env(:my_app, MyApp.Jido, debug: :verbose)
 ```
 
 Jido calls `Jido.Debug.maybe_enable_from_config/2` during instance initialization. The config value maps directly: `true` enables `:on` level, `:verbose` enables `:verbose` level, and any other value (or absence) keeps debug off.

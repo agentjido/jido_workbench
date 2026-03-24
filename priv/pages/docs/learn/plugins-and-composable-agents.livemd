@@ -5,7 +5,13 @@
   order: 14,
   tags: [:docs, :learn, :plugins, :livebook],
   draft: false,
-  prerequisites: ["/docs/learn/first-workflow"]
+  prerequisites: ["/docs/learn/first-workflow"],
+  livebook: %{
+    runnable: true,
+    required_env_vars: [],
+    requires_network: false,
+    setup_instructions: "No API keys required. Run the setup cell, then execute the examples in order."
+  }
 } -->
 
 ## Prerequisites
@@ -18,7 +24,11 @@ Complete [Build your first workflow](/docs/learn/first-workflow) before starting
 Mix.install([
   {{mix_dep:jido}}
 ])
+
+Logger.configure(level: :warning)
 ```
+
+This tutorial runs entirely locally. No provider keys or network calls are required.
 
 ## Why plugins
 
@@ -26,7 +36,7 @@ Agents that share capabilities end up duplicating action lists, state fields, an
 
 Here is the end result. Two Agents with different configurations, both gaining note-taking through one Plugin:
 
-```elixir
+```
 # Preview — you will build these modules step by step below
 defmodule MyApp.NotesAgent do
   use Jido.Agent,

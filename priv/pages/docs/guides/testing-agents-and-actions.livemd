@@ -4,7 +4,13 @@
   category: :docs,
   tags: [:docs, :guides, :livebook],
   order: 170,
-  draft: false
+  draft: false,
+  livebook: %{
+    runnable: true,
+    required_env_vars: [],
+    requires_network: false,
+    setup_instructions: "No API keys required. Run the setup cell, then execute the examples in order."
+  }
 }
 ---
 
@@ -16,10 +22,17 @@ Mix.install([
   {{mix_dep:jido_ai}}
 ])
 
+Logger.configure(level: :warning)
+
+import ExUnit.Assertions
+
 Jido.start()
+runtime = Jido.default_instance()
 ```
 
 Agents are immutable structs. Most tests need no processes, no mocks, and no async coordination. Call `cmd/2`, pattern match the result, and assert.
+
+This guide runs entirely locally. No provider keys or network calls are required.
 
 ## Testing actions in isolation
 
@@ -197,7 +210,8 @@ agent = MyApp.CounterAgent.new()
 {_agent, directives} = MyApp.CounterAgent.cmd(agent, MyApp.BadAction)
 
 assert [%Directive.Error{error: error}] = directives
-assert error.type == :action_error
+assert error.class == :execution
+assert error.phase == :execution
 ```
 
 ### Empty directives
@@ -219,10 +233,8 @@ When you need to test signal routing, process lifecycle, or async behavior, star
 ### Start an agent server
 
 ```elixir
-{:ok, _} = Jido.start()
-
 {:ok, pid} =
-  Jido.start_agent(Jido.default_instance(), MyApp.CounterAgent)
+  Jido.start_agent(runtime, MyApp.CounterAgent)
 ```
 
 ### Query state
@@ -255,10 +267,8 @@ end
 ```
 
 ```elixir
-{:ok, _} = Jido.start()
-
 {:ok, pid} =
-  Jido.start_agent(Jido.default_instance(), MyApp.SignalCounterAgent)
+  Jido.start_agent(runtime, MyApp.SignalCounterAgent)
 
 signal = Jido.Signal.new!("counter.increment", %{by: 10}, source: "/test")
 {:ok, agent} = Jido.AgentServer.call(pid, signal)
@@ -287,8 +297,9 @@ Debug mode records internal events in a ring buffer. Use it to verify that signa
 ### Enable at startup
 
 ```elixir
-{:ok, pid} = Jido.AgentServer.start_link(
-  agent: MyApp.SignalCounterAgent,
+{:ok, pid} = Jido.start_agent(
+  runtime,
+  MyApp.SignalCounterAgent,
   debug: true
 )
 ```
@@ -318,8 +329,9 @@ assert :signal_received in types
 `recent_events/2` returns an error when debug mode is off. Use this to confirm your test setup.
 
 ```elixir
-{:ok, pid} = Jido.AgentServer.start_link(
-  agent: MyApp.CounterAgent
+{:ok, pid} = Jido.start_agent(
+  runtime,
+  MyApp.CounterAgent
 )
 
 assert {:error, :debug_not_enabled} =
@@ -332,7 +344,7 @@ These patterns translate directly into ExUnit test files in a Mix project.
 
 ### Test module skeleton
 
-```elixir
+```
 defmodule MyApp.CounterAgentTest do
   use ExUnit.Case, async: true
 
@@ -352,7 +364,7 @@ end
 
 Verify that your agent maps signal types to the correct actions.
 
-```elixir
+```
 defmodule MyApp.SignalCounterAgentTest do
   use ExUnit.Case, async: true
 
@@ -369,7 +381,7 @@ end
 
 For tests that need a running agent server, start the instance in a setup block.
 
-```elixir
+```
 defmodule MyApp.CounterServerTest do
   use ExUnit.Case, async: false
 

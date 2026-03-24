@@ -4,9 +4,14 @@
   category: :docs,
   order: 50,
   tags: [:docs, :reference, :architecture, :livebook],
-  draft: false
+  draft: false,
+  livebook: %{
+    runnable: false
+  }
 }
 ---
+This page is intentionally explanatory rather than runnable. Use it as reference material, not as a step-by-step notebook tutorial.
+
 GenServer is the natural starting point for stateful processes in Elixir. It gives you a process, a mailbox, and state management - which is enough for many problems. Jido builds on top of OTP by separating what an agent decides from how the runtime executes it.
 
 ## What GenServer gives you

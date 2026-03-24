@@ -5,7 +5,13 @@
   order: 16,
   tags: [:docs, :learn, :hierarchies, :runtime, :livebook],
   draft: false,
-  prerequisites: ["/docs/learn/state-machines-with-fsm"]
+  prerequisites: ["/docs/learn/state-machines-with-fsm"],
+  livebook: %{
+    runnable: true,
+    required_env_vars: [],
+    requires_network: false,
+    setup_instructions: "No API keys required. Run the setup cell, then execute the examples in order."
+  }
 } -->
 
 ## Prerequisites
@@ -18,9 +24,13 @@ Complete [State machines with FSM](/docs/learn/state-machines-with-fsm) before s
 Mix.install([
   {{mix_dep:jido}}
 ])
+
+Logger.configure(level: :warning)
 ```
 
 A polling helper replaces the test-only `eventually` macro. You will use it later to wait for asynchronous results.
+
+This tutorial runs entirely locally. No provider keys or network calls are required.
 
 ```elixir
 defmodule Helpers do
@@ -462,11 +472,12 @@ Each layer handles exactly the Signals it needs. Workers never see `job.assign`.
 Start the Jido runtime and launch the Orchestrator. Then submit a job with multiple tasks.
 
 ```elixir
-{:ok, jido} = Jido.start_link(name: :learn_hierarchy)
+runtime_name = :learn_hierarchy
+{:ok, _runtime_pid} = Jido.start_link(name: runtime_name)
 
 {:ok, orchestrator_pid} =
   Jido.start_agent(
-    jido,
+    runtime_name,
     MyApp.OrchestratorAgent,
     id: "orchestrator-1"
   )

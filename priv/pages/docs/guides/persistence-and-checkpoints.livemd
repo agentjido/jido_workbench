@@ -4,7 +4,13 @@
   category: :docs,
   tags: [:docs, :guides, :livebook],
   order: 173,
-  draft: false
+  draft: false,
+  livebook: %{
+    runnable: true,
+    required_env_vars: [],
+    requires_network: false,
+    setup_instructions: "No API keys required. Run the setup cell, then execute the examples in order."
+  }
 }
 ---
 
@@ -14,9 +20,13 @@
 Mix.install([
   {{mix_dep:jido}}
 ])
+
+Logger.configure(level: :warning)
 ```
 
 Define an agent to use throughout this guide.
+
+This guide runs entirely locally. ETS examples stay in memory, and file adapter examples write to a local path you control.
 
 ```elixir
 defmodule MyApp.CounterAgent do
@@ -54,13 +64,14 @@ Tables are created lazily on first access. All data is lost when the BEAM stops,
 `Jido.Storage.File` persists data to disk using a directory-based layout. State survives BEAM restarts.
 
 ```elixir
-storage = {Jido.Storage.File, path: "priv/jido/storage"}
+storage_path = Path.join(System.tmp_dir!(), "jido_guide_storage")
+storage = {Jido.Storage.File, path: storage_path}
 ```
 
-The adapter organizes files under the base path:
+The adapter organizes files under the base path you choose:
 
 ```
-priv/jido/storage/
+<tmp>/jido_guide_storage/
 ├── checkpoints/
 │   └── {key_hash}.term
 └── threads/
@@ -121,7 +132,7 @@ When you define a named Jido instance, `hibernate/1` and `thaw/2` are available 
 defmodule MyApp.Jido do
   use Jido,
     otp_app: :my_app,
-    storage: {Jido.Storage.File, path: "/tmp/jido_guide_storage"}
+    storage: {Jido.Storage.File, path: Path.join(System.tmp_dir!(), "jido_guide_storage")}
 end
 ```
 
