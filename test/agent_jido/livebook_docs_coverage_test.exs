@@ -14,6 +14,7 @@ defmodule AgentJido.LivebookDocsCoverageTest do
     "priv/pages/docs/guides/testing-agents-and-actions.livemd",
     "priv/pages/docs/learn/ai-chat-agent.livemd",
     "priv/pages/docs/learn/first-workflow.livemd",
+    "priv/pages/docs/learn/hybrid-chat-agent.livemd",
     "priv/pages/docs/learn/memory-and-retrieval-augmented-agents.livemd",
     "priv/pages/docs/learn/multi-agent-orchestration.livemd",
     "priv/pages/docs/learn/parent-child-agent-hierarchies.livemd",

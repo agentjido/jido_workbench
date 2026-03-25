@@ -217,6 +217,7 @@ Start with `Jido.AI.Plugins.Chat` when you only need a chat capability on an exi
 
 ## What to try next
 
+- Continue to [Build a Hybrid Chat Agent](/docs/learn/hybrid-chat-agent) when some turns should stay short while others need deeper reasoning.
 - Continue to [AI Agent with Tools](/docs/learn/ai-agent-with-tools) when the agent needs actions or external data.
 - Keep the [Chat Response recipe](/docs/guides/cookbook/chat-response) handy for the smallest possible request-response example.
 - Revisit [Your first LLM agent](/docs/getting-started/first-llm-agent) if you need to adjust provider setup or the runtime pattern.

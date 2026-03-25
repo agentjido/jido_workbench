@@ -229,6 +229,28 @@ defmodule AgentJido.PagesTest do
       refute source =~ "strategy_snapshot(pid)"
     end
 
+    test "hybrid chat agent guide uses per-request escalation on one pid" do
+      source =
+        File.read!(Path.expand("priv/pages/docs/learn/hybrid-chat-agent.livemd", File.cwd!()))
+
+      assert String.starts_with?(String.trim_leading(source), "<!-- %{")
+      assert source =~ "livebook: %{"
+      assert source =~ ~s({:jido, "~> 2.1"})
+      assert source =~ ~s({:jido_ai, "~> 2.0"})
+      assert source =~ ~s({:req_llm, "~> 1.7"})
+      assert source =~ "Code.put_compiler_option(:docs, false)"
+      assert source =~ "Jido.start_agent(runtime, MyApp.HybridSupportAgent"
+      assert source =~ ~s(model: "openai:o4-mini")
+      assert source =~ "MyApp.HybridSupportChat.quick_reply"
+      assert source =~ "MyApp.HybridSupportChat.deep_reply"
+      assert source =~ "llm_opts: [reasoning_effort: :high]"
+      assert source =~ "status.raw_state[:last_request_id]"
+      assert source =~ "status.snapshot.details[:conversation]"
+      refute source =~ "request_transformer:"
+      refute source =~ "on_before_cmd"
+      refute source =~ "on_after_cmd"
+    end
+
     test "docs Livebooks disable compiler docs for Livebook imports" do
       source_paths =
         Path.wildcard(Path.expand("priv/pages/docs/**/*.livemd", File.cwd!()))

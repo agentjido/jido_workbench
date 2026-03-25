@@ -24,6 +24,8 @@ Build increasingly powerful agents using Jido's core primitives.
 
 Add LLM reasoning, tools, and multi-agent coordination.
 
+- [Build an AI Chat Agent](/docs/learn/ai-chat-agent) - keep a multi-turn conversation on one agent process
+- [Build a Hybrid Chat Agent](/docs/learn/hybrid-chat-agent) - mix quick replies and deeper reasoning turns in one chat thread
 - [AI agent with tools](/docs/learn/ai-agent-with-tools) - build a ReAct agent that calls tools iteratively
 - [Reasoning strategies compared](/docs/learn/reasoning-strategies-compared) - CoT, ToT, and Adaptive side-by-side
 - [Task planning and execution](/docs/learn/task-planning-and-execution) - decompose goals into tasks and execute them

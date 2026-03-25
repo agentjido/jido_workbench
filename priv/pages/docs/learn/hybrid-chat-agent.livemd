@@ -1,0 +1,248 @@
+<!-- %{
+  title: "Build a Hybrid Chat Agent",
+  description: "Mix quick chat turns and deeper reasoning turns in one Jido chat agent by changing per-request LLM options.",
+  category: :docs,
+  order: 51,
+  tags: [:docs, :learn, :build, :ai, :chat, :reasoning, :livebook],
+  prerequisites: ["/docs/learn/ai-chat-agent"],
+  learning_outcomes: [
+    "Reuse one chat agent process for both fast and deep turns",
+    "Escalate a single turn with per-request LLM options instead of rebuilding the agent",
+    "Inspect conversation state and optional deep-turn metadata after a reasoning-heavy reply"
+  ],
+  livebook: %{
+    runnable: true,
+    required_env_vars: ["OPENAI_API_KEY"],
+    requires_network: true,
+    setup_instructions: "Set OPENAI_API_KEY or LB_OPENAI_API_KEY before running the quick and deep chat turns."
+  },
+  draft: false
+} -->
+
+## Setup
+
+This notebook builds on [Build an AI Chat Agent](/docs/learn/ai-chat-agent). The key difference is that not every turn needs the same level of reasoning. Some turns should stay short and cheap. Others should slow down and think harder.
+
+```elixir
+Mix.install([
+  {:jido, "~> 2.1"},
+  {:jido_ai, "~> 2.0"},
+  {:req_llm, "~> 1.7"}
+])
+
+Logger.configure(level: :warning)
+
+# Livebook imports can execute generated docs as doctests.
+# Disable compiler docs until the current Jido Hex release drops the invalid signal_types/0 example.
+Code.put_compiler_option(:docs, false)
+```
+
+## Configure credentials
+
+This notebook uses one OpenAI reasoning-capable model for both quick and deep turns. In Livebook, store `OPENAI_API_KEY` as a secret. Livebook exposes it as `LB_OPENAI_API_KEY`, so the cell below checks both names.
+
+```elixir
+openai_key = System.get_env("LB_OPENAI_API_KEY") || System.get_env("OPENAI_API_KEY")
+
+configured? =
+  if is_binary(openai_key) do
+    ReqLLM.put_key(:openai_api_key, openai_key)
+    true
+  else
+    IO.puts("Set OPENAI_API_KEY or LB_OPENAI_API_KEY before running the chat cells.")
+    false
+  end
+```
+
+## Define the hybrid chat agent
+
+The agent stays simple. The hybrid behavior comes from how each request is sent, not from extra lifecycle hooks.
+
+```elixir
+defmodule MyApp.HybridSupportAgent do
+  use Jido.AI.Agent,
+    name: "hybrid_support_agent",
+    description: "Support chat agent that can escalate selected turns",
+    tools: [],
+    model: "openai:o4-mini",
+    system_prompt: """
+    You are a support engineer helping a developer-tools team triage user reports.
+    Keep normal replies short and concrete.
+    When the user asks for diagnosis or planning, reason carefully before answering.
+    """
+end
+
+defmodule MyApp.HybridSupportChat do
+  def quick_reply(pid, prompt) do
+    MyApp.HybridSupportAgent.ask_sync(pid, prompt, timeout: 30_000)
+  end
+
+  def deep_reply(pid, prompt) do
+    MyApp.HybridSupportAgent.ask_sync(
+      pid,
+      prompt,
+      timeout: 60_000,
+      llm_opts: [reasoning_effort: :high]
+    )
+  end
+end
+```
+
+`quick_reply/2` and `deep_reply/2` both talk to the same agent process. The only difference is that the deep turn raises the request's reasoning effort.
+
+If your account uses a different OpenAI reasoning-capable model, swap the model string for another supported option such as `openai:o3-mini` or `openai:gpt-5-mini`.
+
+## Start the runtime and agent
+
+```elixir
+case Jido.start() do
+  {:ok, _} -> :ok
+  {:error, {:already_started, _}} -> :ok
+end
+
+runtime = Jido.default_instance()
+agent_id = "hybrid-chat-demo-#{System.unique_integer([:positive])}"
+
+{:ok, pid} = Jido.start_agent(runtime, MyApp.HybridSupportAgent, id: agent_id)
+```
+
+## Quick turn: summarize the report
+
+Start with a lightweight turn. This should come back quickly and keep the answer short.
+
+```elixir
+quick_turn =
+  if configured? do
+    MyApp.HybridSupportChat.quick_reply(
+      pid,
+      """
+      A design partner says the command palette opens with Cmd+K, but arrow keys stop
+      working after they enter a nested menu. Summarize the issue in one sentence and
+      name the most likely affected area.
+      """
+    )
+  else
+    {:skip, :no_openai_key}
+  end
+
+IO.inspect(quick_turn, label: "Quick turn")
+```
+
+## Deep turn: reason through causes and next steps
+
+Reuse the same `pid`, but escalate this turn with `reasoning_effort: :high`. That keeps the conversation intact while asking the model to spend more effort on diagnosis.
+
+```elixir
+deep_turn =
+  if configured? do
+    MyApp.HybridSupportChat.deep_reply(
+      pid,
+      """
+      Based on everything in this conversation, reason through:
+      1. the two most likely root causes
+      2. the highest-signal debugging steps
+      3. whether this should block Friday's design-partner beta
+
+      Keep the answer structured and concrete.
+      """
+    )
+  else
+    {:skip, :no_openai_key}
+  end
+
+IO.inspect(deep_turn, label: "Deep turn")
+```
+
+## Optional: inspect the deep-turn request metadata
+
+The final answer is still just assistant text. Some providers also expose reasoning metadata. Jido stores that on the request record when it is available.
+
+```elixir
+deep_request_record =
+  if configured? do
+    case Jido.AgentServer.status(pid) do
+      {:ok, status} ->
+        request_id = status.raw_state[:last_request_id]
+        get_in(status.raw_state, [:requests, request_id])
+
+      other ->
+        other
+    end
+  else
+    {:skip, :no_openai_key}
+  end
+
+deep_request_meta =
+  case deep_request_record do
+    %{meta: meta} when is_map(meta) -> meta
+    _ -> %{}
+  end
+
+IO.inspect(deep_request_meta, label: "Deep turn meta")
+```
+
+Depending on the provider, `deep_request_meta` may include `:thinking_trace`, `:last_thinking`, both, or neither.
+
+## Quick turn again: draft the user-facing reply
+
+After the deeper reasoning step, drop back to a short turn on the same conversation.
+
+```elixir
+final_quick_turn =
+  if configured? do
+    MyApp.HybridSupportChat.quick_reply(
+      pid,
+      """
+      Draft a three-sentence update for the design partner.
+      Acknowledge the bug, say what we are checking next, and avoid over-promising.
+      """
+    )
+  else
+    {:skip, :no_openai_key}
+  end
+
+IO.inspect(final_quick_turn, label: "Final quick turn")
+```
+
+This is the whole pattern: quick turn, deep turn, quick turn again, all on one agent pid.
+
+## Inspect the stored conversation
+
+Once the turns work, inspect the stored context and confirm the agent kept the whole thread.
+
+```elixir
+conversation =
+  case Jido.AgentServer.status(pid) do
+    {:ok, status} ->
+      status.snapshot.details[:conversation] || []
+
+    other ->
+      other
+  end
+
+IO.inspect(conversation, label: "Conversation")
+```
+
+## When to use this pattern
+
+Use this pattern when:
+
+- most turns are ordinary chat replies
+- some turns need extra diagnostic or planning effort
+- you want one conversation thread without juggling multiple agents
+
+Do not start with `request_transformer` or model-routing plugins here. Those are the advanced follow-up once the manual escalation pattern is working.
+
+## Verification
+
+1. Run the quick turn and confirm it returns a short summary.
+2. Run the deep turn on the same `pid` and confirm it gives a more structured diagnostic answer.
+3. Run the final quick turn and confirm it drafts a shorter partner-facing update.
+4. Inspect `conversation` and confirm it includes all three turns.
+5. Inspect `deep_request_meta` and confirm the cell runs even if the provider returns no separate reasoning trace.
+
+## What to try next
+
+- Start with [Build an AI Chat Agent](/docs/learn/ai-chat-agent) if you want the simpler one-pid chat pattern first.
+- Continue to [AI Agent with Tools](/docs/learn/ai-agent-with-tools) when the deep turn should call actions instead of reasoning from text alone.
+- Reach for `request_transformer` only after this manual escalation pattern is clear.
