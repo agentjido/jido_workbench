@@ -2,7 +2,6 @@ defmodule AgentJido.Docs.AIChatAgentGuideTest do
   use ExUnit.Case, async: false
 
   alias Jido.AgentServer
-
   @jido_registry AgentJido.Jido.Registry
 
   defmodule GuideChatAgent do

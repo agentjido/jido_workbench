@@ -1,4 +1,4 @@
-%{
+<!-- %{
   title: "Build an AI Chat Agent",
   description: "Build a multi-turn conversational agent with Jido using one agent process, repeated turns, and snapshot inspection.",
   category: :docs,
@@ -18,17 +18,16 @@
     setup_instructions: "Set OPENAI_API_KEY or LB_OPENAI_API_KEY before running the chat cells."
   },
   draft: false
-}
----
+} -->
 ## Setup
 
 This notebook is self-contained. Install the dependencies, configure a provider key, start one chat agent, then send multiple turns to that same process. That is the core beginner pattern for chat in Jido.
 
 ```elixir
 Mix.install([
-  {{mix_dep:jido}},
-  {{mix_dep:jido_ai}},
-  {{mix_dep:req_llm}}
+  {:jido, "~> 2.1"},
+  {:jido_ai, "~> 2.0"},
+  {:req_llm, "~> 1.7"}
 ])
 
 Logger.configure(level: :warning)
@@ -54,6 +53,7 @@ configured? =
 ## Define the chat agent
 
 For a basic chat flow, keep the agent small: no tools, a short system prompt, and the standard `Jido.AI.Agent` interface.
+Because this notebook configures only OpenAI credentials, it pins an OpenAI model instead of relying on the provider-agnostic `:fast` alias.
 
 ```elixir
 defmodule MyApp.ChatAgent do
@@ -61,7 +61,7 @@ defmodule MyApp.ChatAgent do
     name: "chat_agent",
     description: "Multi-turn chat agent",
     tools: [],
-    model: :fast,
+    model: "openai:gpt-4o-mini",
     system_prompt: """
     You are a concise, friendly chat assistant.
     Ask a short clarifying question when the user is ambiguous.

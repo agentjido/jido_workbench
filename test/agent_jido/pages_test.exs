@@ -207,7 +207,12 @@ defmodule AgentJido.PagesTest do
       source =
         File.read!(Path.expand("priv/pages/docs/learn/ai-chat-agent.livemd", File.cwd!()))
 
+      assert String.starts_with?(String.trim_leading(source), "<!-- %{")
       assert source =~ "livebook: %{"
+      assert source =~ ~s({:jido, "~> 2.1"})
+      assert source =~ ~s({:jido_ai, "~> 2.0"})
+      assert source =~ ~s({:req_llm, "~> 1.7"})
+      refute source =~ "{{mix_dep:"
       assert source =~ "{:ok, _} = Jido.start()"
       assert source =~ "Jido.start_agent(runtime, MyApp.ChatAgent"
       assert source =~ "Jido.AgentServer.status(pid)"
@@ -215,6 +220,8 @@ defmodule AgentJido.PagesTest do
       assert source =~ "details.streaming_text"
       assert source =~ "Jido.AI.set_system_prompt"
       assert source =~ "Jido.AI.Plugins.Chat"
+      assert source =~ ~s(model: "openai:gpt-4o-mini")
+      refute source =~ "model: :fast"
       refute source =~ "{:ai_react_start, params}"
       refute source =~ "on_before_cmd"
       refute source =~ "on_after_cmd"
