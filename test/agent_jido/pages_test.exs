@@ -213,6 +213,7 @@ defmodule AgentJido.PagesTest do
       assert source =~ ~s({:jido_ai, "~> 2.0"})
       assert source =~ ~s({:req_llm, "~> 1.7"})
       refute source =~ "{{mix_dep:"
+      assert source =~ "Code.put_compiler_option(:docs, false)"
       assert source =~ "{:ok, _} = Jido.start()"
       assert source =~ "Jido.start_agent(runtime, MyApp.ChatAgent"
       assert source =~ "Jido.AgentServer.status(pid)"
@@ -226,6 +227,27 @@ defmodule AgentJido.PagesTest do
       refute source =~ "on_before_cmd"
       refute source =~ "on_after_cmd"
       refute source =~ "strategy_snapshot(pid)"
+    end
+
+    test "agent-defining Livebooks disable compiler docs for Livebook imports" do
+      source_paths =
+        Path.wildcard(Path.expand("priv/pages/docs/**/*.livemd", File.cwd!()))
+        |> Enum.filter(fn source_path ->
+          source = File.read!(source_path)
+
+          source =~ "use Jido.Agent" or
+            source =~ "use Jido.AI.Agent" or
+            source =~ "use Jido.AI.CoTAgent" or
+            source =~ "use Jido.AI.ToTAgent" or
+            source =~ "use Jido.AI.AdaptiveAgent"
+        end)
+
+      assert source_paths != []
+
+      Enum.each(source_paths, fn source_path ->
+        source = File.read!(source_path)
+        assert source =~ "Code.put_compiler_option(:docs, false)"
+      end)
     end
 
     test "AI agent with tools guide uses the LocationToGrid weather flow" do

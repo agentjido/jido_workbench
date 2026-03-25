@@ -26,6 +26,10 @@ Mix.install([
 ])
 
 Logger.configure(level: :warning)
+
+# Livebook imports can execute generated docs as doctests.
+# Disable compiler docs until the current Jido Hex release drops the invalid signal_types/0 example.
+Code.put_compiler_option(:docs, false)
 ```
 
 The FSM Strategy uses `RunInstruction` directives internally, which are normally processed by `AgentServer`. In Livebook, define a helper that runs the same loop without a server.

@@ -31,6 +31,10 @@ Mix.install([
 ])
 
 Logger.configure(level: :warning)
+
+# Livebook imports can execute generated docs as doctests.
+# Disable compiler docs until the current Jido Hex release drops the invalid signal_types/0 example.
+Code.put_compiler_option(:docs, false)
 ```
 
 ## Configure credentials

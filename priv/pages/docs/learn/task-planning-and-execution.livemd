@@ -31,6 +31,10 @@ Mix.install([
 ])
 
 Logger.configure(level: :warning)
+
+# Livebook imports can execute generated docs as doctests.
+# Disable compiler docs until the current Jido Hex release drops the invalid signal_types/0 example.
+Code.put_compiler_option(:docs, false)
 ```
 
 This tutorial runs entirely locally. The main path focuses on task state, memory, and resume behavior. A later section shows where AI planning can plug into the same pattern.
