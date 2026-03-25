@@ -33,6 +33,10 @@ Mix.install([
 ])
 
 Logger.configure(level: :warning)
+
+# Livebook imports can execute generated docs as doctests.
+# Disable compiler docs until the current Jido Hex release drops the invalid signal_types/0 example.
+Code.put_compiler_option(:docs, false)
 ```
 
 Configure the provider key the same way as [Your first LLM agent](/docs/getting-started/first-llm-agent). In Livebook, store it as a secret named `OPENAI_API_KEY`, which becomes `LB_OPENAI_API_KEY` inside the notebook.

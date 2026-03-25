@@ -12,6 +12,14 @@
 ---
 This page is intentionally explanatory rather than runnable. Use it as reference material, not as a step-by-step notebook tutorial.
 
+If you import this page into Livebook and experiment with Jido modules in scratch cells, keep compiler docs disabled until the current Jido Hex release ships the generated-doc fix:
+
+```elixir
+# Livebook imports can execute generated docs as doctests.
+# Disable compiler docs until the current Jido Hex release drops the invalid signal_types/0 example.
+Code.put_compiler_option(:docs, false)
+```
+
 GenServer is the natural starting point for stateful processes in Elixir. It gives you a process, a mailbox, and state management - which is enough for many problems. Jido builds on top of OTP by separating what an agent decides from how the runtime executes it.
 
 ## What GenServer gives you

@@ -17,6 +17,7 @@ Use this page as the canonical standard when writing or reviewing `.livemd` tuto
 
 - [ ] The notebook is self-contained and runnable without requiring another guide for setup
 - [ ] The first runnable cells include `Mix.install(...)` and `Logger.configure(level: :warning)`
+- [ ] Every docs Livebook includes the temporary `Code.put_compiler_option(:docs, false)` compatibility line until the upstream Jido generated-doc fix ships
 - [ ] Provider credentials are checked in a dedicated cell with a beginner-safe fallback
 - [ ] Livebook runtime setup uses `Jido.start()` and `Jido.start_agent(Jido.default_instance(), ...)`
 - [ ] The main path uses stable public APIs only
@@ -50,9 +51,15 @@ Mix.install([
 ])
 
 Logger.configure(level: :warning)
+
+# Livebook imports can execute generated docs as doctests.
+# Disable compiler docs until the current Jido Hex release drops the invalid signal_types/0 example.
+Code.put_compiler_option(:docs, false)
 ```
 
 If the notebook needs more packages, add them here rather than assuming previous setup cells from another notebook.
+
+This is a temporary site-wide compatibility rule. Keep it in every `.livemd` page on the docs site until the upstream `jido` fix for generated doctest-style docs is released and adopted.
 
 ## Credentials Cell
 
@@ -177,6 +184,7 @@ Some docs pages may remain explanatory rather than runnable. If a notebook is no
 - mark it explicitly with `livebook: %{runnable: false}`
 - keep it in the reference-only coverage list until it is promoted to runnable
 - say so clearly in the prose when that helps the reader
+- still include the temporary compiler-docs compatibility line somewhere near the top of the page if it may be imported into Livebook
 - do not present it as a beginner tutorial
 - do not add a drift test that implies full runnability
 
