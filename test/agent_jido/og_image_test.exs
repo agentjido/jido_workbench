@@ -26,7 +26,7 @@ defmodule AgentJido.OGImageTest do
       template: :marketing,
       title: ~S{<script>alert("xss")</script>},
       subtitle: "A & B > C",
-      eyebrow: "TEST",
+      eyebrow: "TEST & VERIFY",
       footer_url: "jido.run/features",
       badges: ["alpha&beta", "<unsafe>"],
       content_hash: "abc123",
@@ -39,7 +39,42 @@ defmodule AgentJido.OGImageTest do
     assert svg =~ "&lt;script&gt;"
     assert svg =~ "&amp;"
     assert svg =~ "&gt;"
+    assert svg =~ "TEST &amp; VERIFY"
     refute svg =~ "<script>alert(\"xss\")</script>"
+  end
+
+  test "svg keeps the image minimal and avoids repeating subtitle or badges" do
+    descriptor = %Descriptor{
+      template: :marketing,
+      title: "Build AI Agents That Run in Production",
+      subtitle:
+        "Jido is an open-source agent framework for Elixir. Build supervised AI agents with fault tolerance, tool calling, and multi-agent coordination built in.",
+      eyebrow: "FEATURES",
+      footer_url: "jido.run/features",
+      badges: ["Elixir/OTP", "Multi-Agent", "Production"],
+      content_hash: "abc123",
+      cache_key: "v8:path=/features:hash=abc123",
+      resolved_path: "/features"
+    }
+
+    svg = Templates.render_svg(descriptor)
+
+    assert svg =~ "jido.run"
+    assert svg =~ "FEATURES"
+    assert svg =~ "Build AI Agents That"
+    assert svg =~ "Run in Production"
+    refute svg =~ "<linearGradient"
+    refute svg =~ "<radialGradient"
+    refute svg =~ "tool calling"
+    refute svg =~ "Elixir/OTP"
+    refute svg =~ "Multi-Agent"
+    refute svg =~ "jido.run/features"
+
+    [y, _title_block] =
+      Regex.scan(~r/<text x="72" y="(\d+)"[^>]*>(.*?)<\/text>/s, svg, capture: :all_but_first)
+      |> List.last()
+
+    assert String.to_integer(y) > 420
   end
 
   test "svg wraps and truncates long copy with bounded multiline tspans" do
@@ -54,20 +89,21 @@ defmodule AgentJido.OGImageTest do
       footer_url: "jido.run/features",
       badges: ["alpha", "beta", "gamma", "delta"],
       content_hash: "abc123",
-      cache_key: "v5:path=/features:hash=abc123",
+      cache_key: "v8:path=/features:hash=abc123",
       resolved_path: "/features"
     }
 
     svg = Templates.render_svg(descriptor)
 
-    assert svg =~ "<text x=\"90\" y=\"198\""
     assert svg =~ "..."
     refute svg =~ long_token
 
-    [[title_block]] =
-      Regex.scan(~r/<text x="90" y="198"[^>]*>(.*?)<\/text>/s, svg, capture: :all_but_first)
+    [y, title_block] =
+      Regex.scan(~r/<text x="72" y="(\d+)"[^>]*>(.*?)<\/text>/s, svg, capture: :all_but_first)
+      |> List.last()
 
     title_tspan_count = Regex.scan(~r/<tspan /, title_block) |> length()
-    assert title_tspan_count == 2
+    assert String.to_integer(y) > 350
+    assert title_tspan_count == 3
   end
 end

@@ -8,185 +8,98 @@ defmodule AgentJido.OGImage.Templates do
   @image_width 1200
   @image_height 630
 
-  # Dark-mode aligned palette (derived from homepage tokens).
-  @color_bg_start "#0a0a0a"
-  @color_bg_mid "#0c0f12"
-  @color_bg_end "#121820"
-  @color_surface "#14181d"
-  @color_border "#292e36"
-  @color_border_soft "#1b1f26"
-
-  @color_text "#e8e8e8"
-  @color_text_muted "#8f96a1"
-  @color_text_subtle "#6f7783"
+  @color_bg "#0b0f14"
+  @color_text "#f3f7fa"
+  @color_text_muted "#9fb0bf"
 
   @color_primary "#00ff88"
   @color_primary_soft "#6cf3be"
   @color_cyan "#00ccff"
   @color_yellow "#ffb700"
-  @color_red "#e98181"
+  @color_red "#ff8b8b"
 
-  @layout_content_x 90
-  @layout_content_width 760
-  @layout_eyebrow_y 112
-  @layout_title_y 198
-  @layout_footer_line_y 540
-  @layout_footer_text_y 578
+  @layout_content_x 72
+  @layout_content_width 1000
+  @layout_brand_y 88
+  @layout_eyebrow_y 168
+  @layout_title_bottom_margin 76
 
-  @title_sizes [44, 40, 36, 32]
-  @subtitle_sizes [21, 19, 17, 15]
-
-  @title_line_height_factor 1.14
-  @subtitle_line_height_factor 1.32
-
-  @badge_font_size 12
-  @badge_min_width 52
-  @badge_max_width 220
-  @badge_height 30
-  @badge_pad_x 14
-  @badge_spacing 10
-  @max_badges 3
+  @title_sizes [84, 76, 68, 60, 54, 48]
+  @title_line_height_factor 1.02
 
   @spec render_svg(Descriptor.t()) :: String.t()
-  def render_svg(%Descriptor{} = descriptor), do: editorial_svg(descriptor)
+  def render_svg(%Descriptor{} = descriptor), do: minimal_svg(descriptor)
 
-  defp editorial_svg(descriptor) do
+  defp minimal_svg(descriptor) do
     theme = template_theme(descriptor.template)
-    title_text = descriptor.title || ""
-    subtitle_text = descriptor.subtitle || ""
-
-    title_layout = layout_text(title_text, @title_sizes, @layout_content_width, 2)
-
-    title_height =
-      text_block_height(title_layout.font_size, title_layout.lines, @title_line_height_factor)
-
-    subtitle_layout = layout_text(subtitle_text, @subtitle_sizes, @layout_content_width, 2)
-
-    subtitle_y = @layout_title_y + title_height + 22
-
-    subtitle_height =
-      text_block_height(subtitle_layout.font_size, subtitle_layout.lines, @subtitle_line_height_factor)
-
-    badges_y = subtitle_y + subtitle_height + 30
+    title_layout = layout_text(descriptor.title || "", @title_sizes, @layout_content_width, 3)
+    title_y = title_anchor_y(title_layout.lines, title_layout.font_size, @title_line_height_factor)
 
     """
-    <svg width="#{@image_width}" height="#{@image_height}" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        #{background_gradient()}
-        #{accent_gradient(theme.accent)}
-      </defs>
-      <rect width="#{@image_width}" height="#{@image_height}" fill="url(#bggrad)" />
-      #{decorative_surfaces(theme.accent)}
-      #{frame()}
-      #{eyebrow_text(descriptor.eyebrow || theme.eyebrow, @layout_content_x, @layout_eyebrow_y, theme.accent)}
+    <svg width="#{@image_width}" height="#{@image_height}" viewBox="0 0 #{@image_width} #{@image_height}" xmlns="http://www.w3.org/2000/svg">
+      <rect width="#{@image_width}" height="#{@image_height}" fill="#{@color_bg}" />
+      #{brand_lockup(theme.accent)}
+      #{eyebrow_label(descriptor.eyebrow || theme.eyebrow, theme.accent)}
       #{text_block_svg(title_layout.lines,
     x: @layout_content_x,
-    y: @layout_title_y,
+    y: title_y,
     font_size: title_layout.font_size,
     font_weight: 700,
     fill: theme.title_fill,
     line_height_factor: @title_line_height_factor)}
-      #{text_block_svg(subtitle_layout.lines,
-    x: @layout_content_x,
-    y: subtitle_y,
-    font_size: subtitle_layout.font_size,
-    font_weight: 500,
-    fill: @color_text_muted,
-    line_height_factor: @subtitle_line_height_factor)}
-      #{badges_svg(descriptor.badges || [], badges_y, theme.badge_accent)}
-      #{footer_line(descriptor.footer_url)}
     </svg>
     """
   end
 
   defp template_theme(:home) do
-    %{
-      eyebrow: "JIDO",
-      accent: @color_primary,
-      title_fill: @color_primary_soft,
-      badge_accent: @color_primary
-    }
+    %{eyebrow: "JIDO", accent: @color_primary, title_fill: @color_primary_soft}
   end
 
   defp template_theme(:marketing) do
-    %{eyebrow: "JIDO", accent: @color_cyan, title_fill: @color_text, badge_accent: @color_primary}
+    %{eyebrow: "JIDO", accent: @color_cyan, title_fill: @color_text}
   end
 
   defp template_theme(:docs_page) do
-    %{eyebrow: "DOCS", accent: @color_cyan, title_fill: @color_text, badge_accent: @color_cyan}
+    %{eyebrow: "DOCS", accent: @color_cyan, title_fill: @color_text}
   end
 
   defp template_theme(:blog_post) do
-    %{
-      eyebrow: "BLOG POST",
-      accent: @color_primary,
-      title_fill: @color_text,
-      badge_accent: @color_primary
-    }
+    %{eyebrow: "BLOG POST", accent: @color_primary, title_fill: @color_text}
   end
 
   defp template_theme(:example) do
-    %{eyebrow: "EXAMPLE", accent: @color_yellow, title_fill: @color_text, badge_accent: @color_yellow}
+    %{eyebrow: "EXAMPLE", accent: @color_yellow, title_fill: @color_text}
   end
 
   defp template_theme(:ecosystem_package) do
-    %{
-      eyebrow: "ECOSYSTEM PACKAGE",
-      accent: @color_yellow,
-      title_fill: @color_text,
-      badge_accent: @color_yellow
-    }
+    %{eyebrow: "ECOSYSTEM PACKAGE", accent: @color_yellow, title_fill: @color_text}
   end
 
   defp template_theme(:not_found) do
-    %{eyebrow: "NOT FOUND", accent: @color_red, title_fill: @color_text, badge_accent: @color_red}
+    %{eyebrow: "NOT FOUND", accent: @color_red, title_fill: @color_text}
   end
 
   defp template_theme(_template) do
-    %{eyebrow: "JIDO", accent: @color_cyan, title_fill: @color_text, badge_accent: @color_primary}
+    %{eyebrow: "JIDO", accent: @color_cyan, title_fill: @color_text}
   end
 
-  defp background_gradient do
+  defp brand_lockup(accent) do
     """
-    <linearGradient id="bggrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#{@color_bg_start}"/>
-      <stop offset="52%" stop-color="#{@color_bg_mid}"/>
-      <stop offset="100%" stop-color="#{@color_bg_end}"/>
-    </linearGradient>
-    """
-  end
-
-  defp accent_gradient(accent) do
-    """
-    <linearGradient id="accentglow" x1="0" y1="0" x2="0.9" y2="1">
-      <stop offset="0%" stop-color="#{accent}" stop-opacity="0.13"/>
-      <stop offset="48%" stop-color="#{accent}" stop-opacity="0.06"/>
-      <stop offset="100%" stop-color="#{accent}" stop-opacity="0"/>
-    </linearGradient>
+    <g transform="translate(#{@layout_content_x} #{@layout_brand_y})">
+      <rect x="0" y="9" width="12" height="12" rx="3" fill="#{accent}" />
+      <text x="24" y="22" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="650" fill="#{@color_text}">
+        jido.run
+      </text>
+    </g>
     """
   end
 
-  defp decorative_surfaces(accent) do
+  defp eyebrow_label(text, accent) do
     """
-    <rect x="812" y="74" width="300" height="402" rx="18" fill="url(#accentglow)" />
-    <line x1="812" y1="92" x2="1112" y2="92" stroke="#{accent}" stroke-opacity="0.12" stroke-width="1" />
-    <circle cx="1050" cy="512" r="118" fill="#{accent}" fill-opacity="0.05" />
-    <circle cx="978" cy="150" r="64" fill="#{accent}" fill-opacity="0.035" />
-    """
-  end
-
-  defp frame do
-    """
-    <rect x="16" y="16" width="#{@image_width - 32}" height="#{@image_height - 32}" rx="14" ry="14" fill="none" stroke="#{@color_border}" stroke-width="1" />
-    <rect x="18" y="18" width="#{@image_width - 36}" height="#{@image_height - 36}" rx="13" ry="13" fill="none" stroke="#{@color_border_soft}" stroke-width="1" />
-    """
-  end
-
-  defp eyebrow_text(text, x, y, accent) do
-    """
-    <text x="#{x}" y="#{y}" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="600" fill="#{accent}" letter-spacing="2.1">
+    <text x="#{@layout_content_x}" y="#{@layout_eyebrow_y}" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="700" fill="#{accent}" letter-spacing="2.2">
       #{escape_text(text)}
     </text>
+    <line x1="#{@layout_content_x}" y1="#{@layout_eyebrow_y + 18}" x2="#{@layout_content_x + 120}" y2="#{@layout_eyebrow_y + 18}" stroke="#{@color_text_muted}" stroke-width="2" stroke-linecap="square" />
     """
   end
 
@@ -218,87 +131,13 @@ defmodule AgentJido.OGImage.Templates do
     """
   end
 
-  defp badges_svg(labels, y, accent) do
-    fitted_badges = fit_badges(labels, @layout_content_width, @max_badges)
+  defp title_anchor_y([], _font_size, _line_height_factor), do: @image_height - @layout_title_bottom_margin
 
-    if fitted_badges == [] do
-      ""
-    else
-      {svg, _next_x} =
-        Enum.reduce(fitted_badges, {"", @layout_content_x}, fn label, {acc, x} ->
-          width = badge_width(label)
-
-          fragment = """
-          <rect x="#{x}" y="#{y}" width="#{width}" height="#{@badge_height}" rx="15" fill="#{@color_surface}" fill-opacity="0.72" stroke="#{accent}" stroke-opacity="0.34" stroke-width="1" />
-          <text x="#{x + width / 2}" y="#{y + 20}" font-family="system-ui, -apple-system, sans-serif" font-size="#{@badge_font_size}" font-weight="500" fill="#{accent}" text-anchor="middle">
-            #{escape_text(label)}
-          </text>
-          """
-
-          {acc <> fragment, x + width + @badge_spacing}
-        end)
-
-      svg
-    end
-  end
-
-  defp fit_badges(labels, max_width, max_count) do
-    labels =
-      labels
-      |> Enum.map(&normalize_text/1)
-      |> Enum.reject(&(&1 == ""))
-      |> Enum.uniq()
-
-    {picked, _consumed_width} =
-      Enum.reduce(labels, {[], 0}, fn label, {acc, consumed} ->
-        fitted_label = fit_text_with_ellipsis(label, @badge_font_size, @badge_max_width - @badge_pad_x * 2)
-        width = badge_width(fitted_label)
-        next_consumed = if consumed == 0, do: width, else: consumed + @badge_spacing + width
-
-        if length(acc) < max_count and next_consumed <= max_width do
-          {acc ++ [fitted_label], next_consumed}
-        else
-          {acc, consumed}
-        end
-      end)
-
-    case picked do
-      [] ->
-        case labels do
-          [] -> []
-          [first | _] -> [fit_text_with_ellipsis(first, @badge_font_size, max_width - @badge_pad_x * 2)]
-        end
-
-      _ ->
-        picked
-    end
-  end
-
-  defp badge_width(label) do
-    label_width = round(estimate_line_width(label, @badge_font_size))
-
-    label_width
-    |> Kernel.+(@badge_pad_x * 2)
-    |> max(@badge_min_width)
-    |> min(@badge_max_width)
-  end
-
-  defp footer_line(url) do
-    footer_label = fit_text_with_ellipsis(normalize_text(url), 16, 560)
-
-    """
-    <line x1="90" y1="#{@layout_footer_line_y}" x2="1110" y2="#{@layout_footer_line_y}" stroke="#{@color_border}" stroke-width="1" />
-    <text x="600" y="#{@layout_footer_text_y}" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#{@color_text_subtle}" text-anchor="middle">
-      #{escape_text(footer_label)}
-    </text>
-    """
-  end
-
-  defp text_block_height(_font_size, [], _line_height_factor), do: 0
-
-  defp text_block_height(font_size, lines, line_height_factor) do
+  defp title_anchor_y(lines, font_size, line_height_factor) do
     line_height = round(font_size * line_height_factor)
-    font_size + max(length(lines) - 1, 0) * line_height
+    consumed_height = max(length(lines) - 1, 0) * line_height
+
+    @image_height - @layout_title_bottom_margin - consumed_height
   end
 
   defp layout_text(text, font_sizes, max_width, max_lines) do
@@ -446,24 +285,6 @@ defmodule AgentJido.OGImage.Templates do
     case tail do
       [last] -> head ++ [append_ellipsis_to_fit(last, font_size, max_width)]
       _ -> lines
-    end
-  end
-
-  defp fit_text_with_ellipsis(text, font_size, max_width) do
-    normalized = normalize_text(text)
-
-    cond do
-      normalized == "" ->
-        ""
-
-      fits_width?(normalized, font_size, max_width) ->
-        normalized
-
-      not fits_width?("...", font_size, max_width) ->
-        ""
-
-      true ->
-        trim_to_fit_with_suffix(normalized, "...", font_size, max_width)
     end
   end
 
