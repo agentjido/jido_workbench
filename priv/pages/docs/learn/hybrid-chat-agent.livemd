@@ -8,7 +8,7 @@
   learning_outcomes: [
     "Reuse one chat agent process for both fast and deep turns",
     "Escalate a single turn with per-request LLM options instead of rebuilding the agent",
-    "Inspect conversation state and optional deep-turn metadata after a reasoning-heavy reply"
+    "Compare quick-turn and deep-turn runtime usage after a reasoning-heavy reply"
   ],
   livebook: %{
     runnable: true,
@@ -128,6 +128,27 @@ quick_turn =
 IO.inspect(quick_turn, label: "Quick turn")
 ```
 
+```elixir
+quick_turn_snapshot =
+  if configured? do
+    case Jido.AgentServer.status(pid) do
+      {:ok, status} ->
+        %{
+          request_id: status.raw_state[:last_request_id],
+          usage: status.snapshot.details[:usage] || %{},
+          status: status.snapshot.status
+        }
+
+      other ->
+        other
+    end
+  else
+    {:skip, :no_openai_key}
+  end
+
+IO.inspect(quick_turn_snapshot, label: "Quick turn snapshot")
+```
+
 ## Deep turn: reason through causes and next steps
 
 Reuse the same `pid`, but escalate this turn with `reasoning_effort: :high`. That keeps the conversation intact while asking the model to spend more effort on diagnosis.
@@ -153,17 +174,20 @@ deep_turn =
 IO.inspect(deep_turn, label: "Deep turn")
 ```
 
-## Optional: inspect the deep-turn request metadata
+## Compare the quick-turn and deep-turn snapshots
 
-The final answer is still just assistant text. Some providers also expose reasoning metadata. Jido stores that on the request record when it is available.
+The final answer is still just assistant text, but the runtime snapshot gives you a stable place to inspect the completed turn. On OpenAI reasoning-capable models, the deep turn usually shows much larger usage and reasoning-token counts than the quick turn.
 
 ```elixir
-deep_request_record =
+deep_turn_snapshot =
   if configured? do
     case Jido.AgentServer.status(pid) do
       {:ok, status} ->
-        request_id = status.raw_state[:last_request_id]
-        get_in(status.raw_state, [:requests, request_id])
+        %{
+          request_id: status.raw_state[:last_request_id],
+          usage: status.snapshot.details[:usage] || %{},
+          status: status.snapshot.status
+        }
 
       other ->
         other
@@ -172,16 +196,26 @@ deep_request_record =
     {:skip, :no_openai_key}
   end
 
-deep_request_meta =
-  case deep_request_record do
-    %{meta: meta} when is_map(meta) -> meta
-    _ -> %{}
+turn_usage_comparison =
+  case {quick_turn_snapshot, deep_turn_snapshot} do
+    {%{usage: quick_usage}, %{usage: deep_usage}} ->
+      %{
+        quick_usage: quick_usage,
+        deep_usage: deep_usage,
+        reasoning_token_delta:
+          (deep_usage[:reasoning_tokens] || 0) - (quick_usage[:reasoning_tokens] || 0),
+        output_token_delta: (deep_usage[:output_tokens] || 0) - (quick_usage[:output_tokens] || 0)
+      }
+
+    _ ->
+      %{quick_turn_snapshot: quick_turn_snapshot, deep_turn_snapshot: deep_turn_snapshot}
   end
 
-IO.inspect(deep_request_meta, label: "Deep turn meta")
+IO.inspect(deep_turn_snapshot, label: "Deep turn snapshot")
+IO.inspect(turn_usage_comparison, label: "Turn usage comparison")
 ```
 
-Depending on the provider, `deep_request_meta` may include `:thinking_trace`, `:last_thinking`, both, or neither.
+Some providers may also expose separate reasoning traces, but that is not guaranteed. The snapshot and usage fields above are the stable inspection points for this guide.
 
 ## Quick turn again: draft the user-facing reply
 
@@ -239,7 +273,7 @@ Do not start with `request_transformer` or model-routing plugins here. Those are
 2. Run the deep turn on the same `pid` and confirm it gives a more structured diagnostic answer.
 3. Run the final quick turn and confirm it drafts a shorter partner-facing update.
 4. Inspect `conversation` and confirm it includes all three turns.
-5. Inspect `deep_request_meta` and confirm the cell runs even if the provider returns no separate reasoning trace.
+5. Inspect `turn_usage_comparison` and confirm the deep turn used more tokens than the quick turn.
 
 ## What to try next
 

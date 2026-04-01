@@ -7,6 +7,7 @@
   license: "Apache-2.0",
   visibility: :public,
   category: :tools,
+  atlas_facet: :automation,
   tier: 2,
   tags: [:browser, :automation, :web, :scraping],
   hex_url: "https://hex.pm/packages/jido_browser",

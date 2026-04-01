@@ -8,6 +8,7 @@
   license: "Apache-2.0",
   visibility: :public,
   category: :core,
+  atlas_facet: :primitives,
   tier: 1,
   tags: [:agents, :otp, :framework, :beam],
   hex_url: "https://hex.pm/packages/jido",

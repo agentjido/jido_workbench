@@ -7,6 +7,7 @@
   license: "Apache-2.0",
   visibility: :public,
   category: :integrations,
+  atlas_facet: :framework_bridges,
   tier: 2,
   tags: [:ash, :bridge, :code_generation, :actions],
   github_url: "https://github.com/agentjido/ash_jido",

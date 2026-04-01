@@ -7,6 +7,7 @@
   license: "Apache-2.0",
   visibility: :public,
   category: :ai,
+  atlas_facet: :evaluation,
   tier: 2,
   tags: [:evaluation, :llm, :benchmarking, :quality],
   github_url: "https://github.com/agentjido/jido_eval",

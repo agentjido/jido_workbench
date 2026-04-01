@@ -7,6 +7,7 @@
   license: "Apache-2.0",
   visibility: :public,
   category: :integrations,
+  atlas_facet: :provider_adapters,
   tier: 2,
   tags: [:amp, :cli, :agents, :coding, :integration],
   github_url: "https://github.com/agentjido/jido_amp",

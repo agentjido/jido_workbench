@@ -18,11 +18,59 @@ defmodule AgentJido.Site do
   """
   @spec endpoint_host() :: String.t() | nil
   def endpoint_host do
-    case URI.parse(AgentJidoWeb.Endpoint.url()) do
+    case endpoint_url() do
+      nil ->
+        nil
+
+      url ->
+        normalize_host_from_url(url)
+    end
+  end
+
+  defp endpoint_url do
+    AgentJidoWeb.Endpoint.url()
+  rescue
+    RuntimeError ->
+      endpoint_url_from_config()
+  end
+
+  defp endpoint_url_from_config do
+    case Application.get_env(:agent_jido, AgentJidoWeb.Endpoint, []) do
+      config when is_list(config) ->
+        url_config = Keyword.get(config, :url, [])
+        build_url_from_config(url_config)
+
+      _other ->
+        nil
+    end
+  end
+
+  defp build_url_from_config(url_config) when is_list(url_config) do
+    host =
+      case Keyword.get(url_config, :host) do
+        value when is_binary(value) and value != "" -> String.downcase(value)
+        _other -> nil
+      end
+
+    scheme =
+      case Keyword.get(url_config, :scheme, "https") do
+        value when is_binary(value) and value != "" -> String.downcase(value)
+        _other -> "https"
+      end
+
+    if is_binary(host), do: "#{scheme}://#{host}", else: nil
+  end
+
+  defp build_url_from_config(_url_config), do: nil
+
+  defp normalize_host_from_url(url) when is_binary(url) do
+    case URI.parse(url) do
       %URI{host: host} when is_binary(host) and host != "" -> String.downcase(host)
       _ -> nil
     end
   end
+
+  defp normalize_host_from_url(_url), do: nil
 
   @doc """
   Returns hosts treated as first-party/internal.

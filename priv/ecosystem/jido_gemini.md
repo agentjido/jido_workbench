@@ -7,6 +7,7 @@
   license: "Apache-2.0",
   visibility: :public,
   category: :integrations,
+  atlas_facet: :provider_adapters,
   tier: 2,
   tags: [:gemini, :google, :cli, :harness, :coding],
   github_url: "https://github.com/agentjido/jido_gemini",

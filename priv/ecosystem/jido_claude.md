@@ -7,6 +7,7 @@
   license: "Apache-2.0",
   visibility: :public,
   category: :integrations,
+  atlas_facet: :provider_adapters,
   tier: 2,
   tags: [:claude, :anthropic, :cli, :harness, :coding],
   hex_url: "https://hex.pm/packages/jido_claude",

@@ -13,6 +13,7 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
 
   import AgentJidoWeb.ContentAssistantSupport,
     only: [
+      analytics_value: 1,
       analytics_metadata: 2,
       llm_enabled?: 1,
       maybe_apply_search_response_mode: 2,
@@ -20,10 +21,16 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
       monotonic_ms: 0,
       normalize_feedback_note: 1,
       normalize_feedback_value: 1,
+      package_label: 1,
+      page_kind_label: 1,
+      provider_label: 1,
       normalize_query: 1,
       query_latency_ms: 1,
+      external_result?: 1,
       require_turnstile?: 0,
       reset_turnstile_widget: 1,
+      result_rel: 1,
+      result_target: 1,
       search_response_mode: 0,
       search_retrieval_mode: 0,
       source_label: 1,
@@ -124,6 +131,16 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
     target_url = normalize_query(Map.get(params, "url"))
     response = socket.assigns.response
 
+    metadata =
+      analytics_metadata(response, %{
+        surface: "content_assistant_modal",
+        external: Map.get(params, "external") == "true",
+        provider: normalize_query(Map.get(params, "provider")),
+        package_id: normalize_query(Map.get(params, "package_id")),
+        package_version: normalize_query(Map.get(params, "package_version")),
+        page_kind: normalize_query(Map.get(params, "page_kind"))
+      })
+
     analytics_module().track_event_safe(socket.assigns.current_scope, %{
       event: "content_assistant_reference_clicked",
       source: "content_assistant",
@@ -134,7 +151,7 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
       query_log_id: socket.assigns.last_query_log_id,
       visitor_id: socket.assigns.analytics_identity[:visitor_id],
       session_id: socket.assigns.analytics_identity[:session_id],
-      metadata: analytics_metadata(response, %{surface: "content_assistant_modal"})
+      metadata: metadata
     })
 
     {:noreply, socket}
@@ -363,20 +380,62 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
               <p class="text-xs font-semibold uppercase tracking-wide text-primary">Citations</p>
               <div class="search-modal-scrollbar max-h-[34vh] overflow-y-auto pr-1 space-y-2">
                 <%= for {citation, rank} <- Enum.with_index(@response.citations || [], 1) do %>
-                  <a
-                    href={citation.url}
-                    phx-click={JS.push("reference_click", target: @myself, value: %{url: citation.url, rank: rank}) |> hide_modal(@id)}
-                    class="block rounded-lg border border-border bg-background/70 p-3 transition hover:border-primary/50"
-                  >
-                    <div class="mb-1 flex items-center justify-between gap-2">
+                  <div class="rounded-lg border border-border bg-background/70 p-3">
+                    <div class="mb-2 flex flex-wrap items-center gap-2">
                       <p class="text-xs font-semibold uppercase tracking-wide text-primary">
                         {source_label(citation.source_type)}
                       </p>
-                      <span class="text-[11px] text-muted-foreground">Open</span>
+                      <span
+                        :if={provider_label(citation.provider)}
+                        class="rounded-full border border-border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground"
+                      >
+                        {provider_label(citation.provider)}
+                      </span>
+                      <span
+                        :if={page_kind_label(citation.page_kind)}
+                        class="rounded-full border border-border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground"
+                      >
+                        {page_kind_label(citation.page_kind)}
+                      </span>
                     </div>
                     <p class="text-sm font-medium text-foreground">{citation.title}</p>
                     <p class="mt-1 text-xs text-muted-foreground">{citation.snippet}</p>
-                  </a>
+                    <p :if={reference_meta(citation) != []} class="mt-2 text-[11px] text-muted-foreground">
+                      {Enum.join(reference_meta(citation), " • ")}
+                    </p>
+                    <div class="mt-3 flex flex-wrap items-center gap-2">
+                      <a
+                        href={citation.url}
+                        target={result_target(citation)}
+                        rel={result_rel(citation)}
+                        phx-click={
+                          JS.push("reference_click",
+                            target: @myself,
+                            value: %{
+                              url: citation.url,
+                              rank: rank,
+                              external: if(external_result?(citation), do: "true", else: "false"),
+                              provider: analytics_value(citation.provider),
+                              package_id: citation.package_id,
+                              package_version: citation.package_version,
+                              page_kind: analytics_value(citation.page_kind)
+                            }
+                          )
+                          |> hide_modal(@id)
+                        }
+                        class="inline-flex items-center rounded-md border border-border bg-card px-3 py-2 text-xs font-semibold text-foreground transition hover:border-primary/50"
+                      >
+                        {primary_action_label(citation)}
+                      </a>
+                      <a
+                        :if={is_binary(citation.secondary_url) and citation.secondary_url != ""}
+                        href={citation.secondary_url}
+                        class="inline-flex items-center rounded-md border border-border bg-transparent px-3 py-2 text-xs font-semibold text-muted-foreground transition hover:border-primary/50 hover:text-foreground"
+                      >
+                        About Package
+                      </a>
+                    </div>
+                  </div>
                 <% end %>
               </div>
             </div>
@@ -745,6 +804,24 @@ defmodule AgentJidoWeb.ContentAssistantModalComponent do
   end
 
   defp replace_latest_thread_entry(thread, _response), do: thread
+
+  defp reference_meta(citation) do
+    [
+      package_label(citation),
+      package_version_label(citation),
+      if(external_result?(citation), do: "Opens in new tab", else: nil)
+    ]
+    |> Enum.reject(&is_nil/1)
+  end
+
+  defp package_version_label(%{package_version: version}) when is_binary(version) and version != "",
+    do: "v#{version}"
+
+  defp package_version_label(_citation), do: nil
+
+  defp primary_action_label(citation) do
+    if external_result?(citation), do: "Open in HexDocs", else: "Open"
+  end
 
   defp fallback_banner(%Response{answer_mode: :quota_fallback}) do
     "LLM quota or rate limits are active. Showing citation-grounded fallback."

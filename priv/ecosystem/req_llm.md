@@ -7,6 +7,7 @@
   license: "Apache-2.0",
   visibility: :public,
   category: :ai,
+  atlas_facet: :reasoning_models,
   tier: 1,
   tags: [:llm, :ai, :http, :streaming],
   hex_url: "https://hex.pm/packages/req_llm",

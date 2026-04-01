@@ -7,6 +7,7 @@
   license: "Apache-2.0",
   visibility: :public,
   category: :ai,
+  atlas_facet: :reasoning_models,
   tier: 1,
   tags: [:ai, :llm, :reasoning, :agents],
   hex_url: "https://hex.pm/packages/jido_ai",

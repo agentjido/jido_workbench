@@ -7,6 +7,7 @@
   license: "Apache-2.0",
   visibility: :public,
   category: :integrations,
+  atlas_facet: :protocols,
   tier: 2,
   tags: [:mcp, :tools, :resources, :prompts, :integrations],
   github_url: "https://github.com/agentjido/jido_mcp",

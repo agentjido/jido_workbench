@@ -37,6 +37,7 @@ config :arcana,
   graph: [enabled: false]
 
 config :agent_jido, AgentJido.GithubStarsTracker, enabled: false
+config :agent_jido, AgentJido.ContentIngest.EcosystemDocs.Crawler, enabled: false, startup_sync: false
 config :agent_jido, :analytics_module, AgentJido.Analytics.Composite
 
 config :agent_jido, :posthog,

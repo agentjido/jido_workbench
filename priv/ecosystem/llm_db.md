@@ -7,6 +7,7 @@
   license: "MIT",
   visibility: :public,
   category: :ai,
+  atlas_facet: :reasoning_models,
   tier: 2,
   tags: [:llm, :metadata, :catalog, :models],
   hex_url: "https://hex.pm/packages/llm_db",

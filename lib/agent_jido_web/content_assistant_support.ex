@@ -33,7 +33,36 @@ defmodule AgentJidoWeb.ContentAssistantSupport do
   def source_label(:docs), do: "Docs"
   def source_label(:blog), do: "Blog"
   def source_label(:ecosystem), do: "Ecosystem"
+  def source_label(:ecosystem_docs), do: "HexDocs"
   def source_label(_), do: "Content"
+
+  def provider_label(:hexdocs), do: "HexDocs"
+  def provider_label("hexdocs"), do: "HexDocs"
+  def provider_label(_provider), do: nil
+
+  def page_kind_label(:module), do: "Module"
+  def page_kind_label(:guide), do: "Guide"
+  def page_kind_label(:readme), do: "README"
+  def page_kind_label(:task), do: "Task"
+  def page_kind_label("module"), do: "Module"
+  def page_kind_label("guide"), do: "Guide"
+  def page_kind_label("readme"), do: "README"
+  def page_kind_label("task"), do: "Task"
+  def page_kind_label(_kind), do: nil
+
+  def external_result?(%{external?: true}), do: true
+  def external_result?(_result), do: false
+
+  def result_target(%{external?: true}), do: "_blank"
+  def result_target(_result), do: nil
+
+  def result_rel(%{external?: true}), do: "noopener noreferrer"
+  def result_rel(_result), do: nil
+
+  def package_label(%{package_title: title}) when is_binary(title) and title != "", do: title
+  def package_label(%{package_name: name}) when is_binary(name) and name != "", do: name
+  def package_label(%{package_id: id}) when is_binary(id) and id != "", do: id
+  def package_label(_result), do: nil
 
   def analytics_metadata(%Response{} = response, metadata) when is_map(metadata) do
     Map.merge(metadata, %{
@@ -46,6 +75,10 @@ defmodule AgentJidoWeb.ContentAssistantSupport do
   end
 
   def analytics_metadata(_response, metadata) when is_map(metadata), do: metadata
+
+  def analytics_value(nil), do: nil
+  def analytics_value(value) when is_atom(value), do: Atom.to_string(value)
+  def analytics_value(value), do: value
 
   def query_latency_ms(started_at) when is_integer(started_at) do
     System.monotonic_time()

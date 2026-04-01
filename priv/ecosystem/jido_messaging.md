@@ -7,6 +7,7 @@
   license: "Apache-2.0",
   visibility: :public,
   category: :integrations,
+  atlas_facet: :chat,
   tier: 2,
   tags: [:messaging, :telegram, :discord, :slack, :whatsapp, :chat],
   github_url: "https://github.com/agentjido/jido_messaging",

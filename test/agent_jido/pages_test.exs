@@ -245,6 +245,8 @@ defmodule AgentJido.PagesTest do
       assert source =~ "MyApp.HybridSupportChat.deep_reply"
       assert source =~ "llm_opts: [reasoning_effort: :high]"
       assert source =~ "status.raw_state[:last_request_id]"
+      assert source =~ "turn_usage_comparison ="
+      assert source =~ "reasoning_token_delta"
       assert source =~ "status.snapshot.details[:conversation]"
       refute source =~ "request_transformer:"
       refute source =~ "on_before_cmd"

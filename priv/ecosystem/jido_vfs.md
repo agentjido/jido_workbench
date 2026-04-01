@@ -7,6 +7,7 @@
   license: "Apache-2.0",
   visibility: :public,
   category: :tools,
+  atlas_facet: :workspace,
   tier: 2,
   tags: [:vfs, :filesystem, :runtime, :sandbox, :tools],
   github_url: "https://github.com/agentjido/jido_vfs",

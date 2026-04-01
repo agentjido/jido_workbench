@@ -215,6 +215,7 @@ defmodule AgentJidoWeb.PageLiveTest do
     test "renders the new contributor handbook pages", %{conn: conn} do
       for {path, title} <- [
             {"/docs/contributors/ecosystem-atlas", "Ecosystem Atlas"},
+            {"/docs/contributors/livebook-authoring-standards", "Livebook Authoring Standards"},
             {"/docs/contributors/roadmap", "Roadmap"},
             {"/docs/contributors/contributing", "Contributing"},
             {"/docs/contributors/governance-and-team", "Governance and Team Structure"}
@@ -238,6 +239,7 @@ defmodule AgentJidoWeb.PageLiveTest do
                "/docs/contributors/ecosystem-atlas",
                "/docs/contributors/package-support-levels",
                "/docs/contributors/package-quality-standards",
+               "/docs/contributors/livebook-authoring-standards",
                "/docs/contributors/roadmap",
                "/docs/contributors/contributing",
                "/docs/contributors/governance-and-team"
@@ -247,10 +249,15 @@ defmodule AgentJidoWeb.PageLiveTest do
     test "ecosystem atlas renders public package links, owner handles, and excludes private packages", %{conn: conn} do
       {:ok, _view, html} = live(conn, "/docs/contributors/ecosystem-atlas")
 
+      assert html =~ "Core"
+      assert html =~ "Integrations"
+      assert html =~ "Chat"
+      assert html =~ "Provider Adapters"
       assert html =~ ~s(href="/ecosystem/jido")
       assert html =~ ~s(href="/ecosystem/jido_memory_os")
       assert html =~ "@mikehostetler"
       assert html =~ "@pcharbon70"
+      refute html =~ "Integration / Framework"
       refute html =~ ~s(href="/ecosystem/agent_jido")
       refute html =~ ~s(href="/ecosystem/jido_code")
     end

@@ -115,6 +115,37 @@ defmodule AgentJidoWeb.ContentAssistantLiveTest do
        }}
     end
 
+    def respond("hexdocs", _opts) do
+      {:ok,
+       %Response{
+         query: "hexdocs",
+         answer_markdown: "HexDocs answer",
+         answer_html: "<p>HexDocs answer</p>",
+         answer_mode: :deterministic,
+         citations: [
+           %Result{
+             title: "Jido.Agent",
+             snippet: "API reference for cmd/2.",
+             url: "https://hexdocs.pm/jido/Jido.Agent.html",
+             source_type: :ecosystem_docs,
+             score: 0.93,
+             external?: true,
+             provider: :hexdocs,
+             package_id: "jido",
+             package_name: "jido",
+             package_version: "2.1.0",
+             page_kind: :module,
+             secondary_url: "/ecosystem/jido"
+           }
+         ],
+         retrieval_status: :success,
+         llm_attempted?: false,
+         llm_enhanced?: false,
+         enhancement_blocked_reason: nil,
+         query_log_id: nil
+       }}
+    end
+
     def respond(_query, _opts) do
       {:ok,
        %Response{
@@ -231,6 +262,26 @@ defmodule AgentJidoWeb.ContentAssistantLiveTest do
       assert html =~ ~s(href="/docs/getting-started")
       assert html =~ ~s(href="/blog/release-notes")
       assert html =~ ~s(href="/ecosystem/jido-core")
+    end
+
+    test "renders HexDocs citations as external results with package handoff details", %{conn: conn} do
+      conn = with_content_assistant_stub(conn)
+      {:ok, view, _html} = mount_live(conn)
+
+      view
+      |> form("#content-assistant-form", assistant: %{q: "hexdocs"})
+      |> render_submit()
+
+      html = assert_state(view, ~s(id="content-assistant-answer-state"))
+
+      assert html =~ "HexDocs"
+      assert html =~ "Jido.Agent"
+      assert html =~ "Opens in new tab"
+      assert html =~ ~s(href="https://hexdocs.pm/jido/Jido.Agent.html")
+      assert html =~ ~s(target="_blank")
+      assert html =~ ~s(rel="noopener noreferrer")
+      assert html =~ ~s(href="/ecosystem/jido")
+      assert html =~ "About Package"
     end
 
     test "submitting a query persists state in URL and reloads from params", %{conn: conn} do

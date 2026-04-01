@@ -47,4 +47,11 @@ defmodule AgentJido.EcosystemSupportLevelTest do
     assert Ecosystem.get_package!("jido_memory_os").tech_lead == "@pcharbon70"
     assert Enum.all?(Ecosystem.public_packages(), &is_binary(&1.tech_lead))
   end
+
+  test "exposes atlas facet metadata for public packages" do
+    assert Ecosystem.get_package!("jido_chat").atlas_facet == :chat
+    assert Ecosystem.get_package!("jido_harness").atlas_facet == :harness
+    assert Ecosystem.get_package!("jido_otel").atlas_facet == :observability
+    assert Enum.all?(Ecosystem.public_packages(), &is_atom(&1.atlas_facet))
+  end
 end

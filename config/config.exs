@@ -128,6 +128,13 @@ config :agent_jido, AgentJido.GithubStarsTracker,
     "req_llm" => :timer.hours(24)
   }
 
+config :agent_jido, AgentJido.ContentIngest.EcosystemDocs.Crawler,
+  enabled: true,
+  refresh_interval_ms: :timer.hours(24),
+  startup_sync: true,
+  request_timeout_ms: 15_000,
+  page_concurrency: 4
+
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.27.3",

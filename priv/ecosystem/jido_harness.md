@@ -7,6 +7,7 @@
   license: "Apache-2.0",
   visibility: :public,
   category: :runtime,
+  atlas_facet: :harness,
   tier: 2,
   tags: [:harness, :protocol, :runtime, :cli, :adapters],
   github_url: "https://github.com/agentjido/jido_harness",

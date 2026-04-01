@@ -62,21 +62,24 @@ defmodule AgentJido.ContentAssistant.RetrievalTest do
                  snippet: "docs snippet",
                  url: "/docs/getting-started",
                  source_type: :docs,
-                 score: 0.9
+                 score: 0.9,
+                 external?: false
                },
                %Result{
                  title: "Release Notes",
                  snippet: "blog snippet",
                  url: "/blog/release-notes",
                  source_type: :blog,
-                 score: 0.7
+                 score: 0.7,
+                 external?: false
                },
                %Result{
                  title: "Jido Core",
                  snippet: "ecosystem snippet",
                  url: "/ecosystem/jido-core",
                  source_type: :ecosystem,
-                 score: nil
+                 score: nil,
+                 external?: false
                }
              ]
     end
@@ -151,7 +154,7 @@ defmodule AgentJido.ContentAssistant.RetrievalTest do
             source_id: "docs:/docs/getting-started",
             metadata: %{
               "title" => "Getting Started",
-              "url" => AgentJidoWeb.Endpoint.url() <> "/docs/getting-started#intro"
+              "url" => "http://localhost/docs/getting-started#intro"
             }
           }
         }
@@ -176,6 +179,128 @@ defmodule AgentJido.ContentAssistant.RetrievalTest do
                  search_fun: search_fun,
                  document_lookup_fun: fn _rows, _repo -> %{} end
                )
+    end
+
+    test "normalizes ecosystem docs results to external HexDocs links" do
+      rows = [%{document_id: "doc-1", text: "module docs snippet", score: 0.61}]
+      search_fun = fn _query, _opts -> {:ok, rows} end
+
+      document_lookup_fun = fn _rows, _repo ->
+        %{
+          "doc-1" => %{
+            collection: "site_ecosystem_docs",
+            source_id: "ecosystem_docs:jido:module:Jido.Agent",
+            metadata: %{
+              "title" => "Jido.Agent",
+              "source_type" => "ecosystem_docs",
+              "outbound_url" => "https://hexdocs.pm/jido/Jido.Agent.html",
+              "package_url" => "/ecosystem/jido",
+              "package_id" => "jido",
+              "package_name" => "jido",
+              "package_version" => "2.1.0",
+              "page_kind" => "module"
+            }
+          }
+        }
+      end
+
+      assert {:ok, [%Result{} = result]} =
+               Retrieval.query("Jido.Agent",
+                 search_fun: search_fun,
+                 document_lookup_fun: document_lookup_fun,
+                 repo: :repo
+               )
+
+      assert result.url == "https://hexdocs.pm/jido/Jido.Agent.html"
+      assert result.source_type == :ecosystem_docs
+      assert result.external? == true
+      assert result.provider == :hexdocs
+      assert result.secondary_url == "/ecosystem/jido"
+      assert result.page_kind == :module
+    end
+
+    test "reranks package overviews above deep docs for broad package-intent queries" do
+      rows = [
+        %{document_id: "doc-overview", text: "overview snippet", score: 0.55},
+        %{document_id: "doc-module", text: "module snippet", score: 0.9}
+      ]
+
+      search_fun = fn _query, _opts -> {:ok, rows} end
+
+      document_lookup_fun = fn _rows, _repo ->
+        %{
+          "doc-overview" => %{
+            collection: "site_ecosystem",
+            source_id: "ecosystem:jido",
+            metadata: %{"title" => "Jido", "id" => "jido"}
+          },
+          "doc-module" => %{
+            collection: "site_ecosystem_docs",
+            source_id: "ecosystem_docs:jido:module:Jido.Agent",
+            metadata: %{
+              "title" => "Jido.Agent",
+              "source_type" => "ecosystem_docs",
+              "outbound_url" => "https://hexdocs.pm/jido/Jido.Agent.html",
+              "package_url" => "/ecosystem/jido",
+              "package_id" => "jido",
+              "package_version" => "2.1.0",
+              "page_kind" => "module"
+            }
+          }
+        }
+      end
+
+      assert {:ok, [first | _rest]} =
+               Retrieval.query("what is jido",
+                 search_fun: search_fun,
+                 document_lookup_fun: document_lookup_fun,
+                 repo: :repo
+               )
+
+      assert first.source_type == :ecosystem
+      assert first.url == "/ecosystem/jido"
+    end
+
+    test "reranks HexDocs above package overviews for API-style queries" do
+      rows = [
+        %{document_id: "doc-overview", text: "overview snippet", score: 0.95},
+        %{document_id: "doc-module", text: "module snippet", score: 0.55}
+      ]
+
+      search_fun = fn _query, _opts -> {:ok, rows} end
+
+      document_lookup_fun = fn _rows, _repo ->
+        %{
+          "doc-overview" => %{
+            collection: "site_ecosystem",
+            source_id: "ecosystem:jido",
+            metadata: %{"title" => "Jido", "id" => "jido"}
+          },
+          "doc-module" => %{
+            collection: "site_ecosystem_docs",
+            source_id: "ecosystem_docs:jido:module:Jido.Agent",
+            metadata: %{
+              "title" => "Jido.Agent",
+              "source_type" => "ecosystem_docs",
+              "outbound_url" => "https://hexdocs.pm/jido/Jido.Agent.html",
+              "package_url" => "/ecosystem/jido",
+              "package_id" => "jido",
+              "package_version" => "2.1.0",
+              "page_kind" => "module"
+            }
+          }
+        }
+      end
+
+      assert {:ok, [first | _rest]} =
+               Retrieval.query("Jido.Agent cmd/2",
+                 search_fun: search_fun,
+                 document_lookup_fun: document_lookup_fun,
+                 repo: :repo
+               )
+
+      assert first.source_type == :ecosystem_docs
+      assert first.url == "https://hexdocs.pm/jido/Jido.Agent.html"
     end
 
     test "filters retired training routes from backend results" do

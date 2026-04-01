@@ -7,6 +7,7 @@
   license: "Apache-2.0",
   visibility: :public,
   category: :ai,
+  atlas_facet: :memory,
   tier: 2,
   tags: [:memory, :state, :plugin, :agents],
   github_url: "https://github.com/agentjido/jido_memory",

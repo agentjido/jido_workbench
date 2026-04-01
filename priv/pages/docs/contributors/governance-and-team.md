@@ -9,11 +9,11 @@
 }
 ---
 
-Jido uses a lightweight BDFL model with explicit repository ownership. The goal is clear responsibility, not bureaucracy: one final decision maker for ecosystem direction, named stewards for repositories, and small cross-cutting teams that can support the whole project.
+Jido uses a lightweight [BDFL](https://en.wikipedia.org/wiki/Benevolent_dictator_for_life) model with explicit repository ownership. The goal is clear responsibility, not bureaucracy: one final decision maker for ecosystem direction, named stewards for repositories, and small cross-cutting teams that can support the whole project.
 
 ## Governance Model
 
-Mike Hostetler is the BDFL of Jido. In practice, that means Mike is responsible for:
+Mike Hostetler is the [BDFL](https://en.wikipedia.org/wiki/Benevolent_dictator_for_life) of Jido. In practice, that means Mike is responsible for:
 
 - overall direction of the ecosystem
 - package placement and structural decisions

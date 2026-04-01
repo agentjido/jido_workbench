@@ -7,6 +7,7 @@
   license: "Apache-2.0",
   visibility: :public,
   category: :tools,
+  atlas_facet: :automation,
   tier: 2,
   tags: [:library, :workflows, :github, :orchestration, :automation],
   github_url: "https://github.com/agentjido/jido_lib",

@@ -7,6 +7,7 @@
   license: "Apache-2.0",
   visibility: :public,
   category: :runtime,
+  atlas_facet: :distributed,
   tier: 2,
   tags: [:cluster, :distributed, :runtime, :storage, :agents],
   github_url: "https://github.com/agentjido/jido_cluster",

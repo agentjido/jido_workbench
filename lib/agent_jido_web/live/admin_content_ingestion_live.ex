@@ -5,11 +5,13 @@ defmodule AgentJidoWeb.AdminContentIngestionLive do
   use AgentJidoWeb, :live_view
 
   alias AgentJido.ContentIngest
+  alias AgentJido.ContentIngest.EcosystemDocs
   alias AgentJido.ContentIngest.Inventory
 
   @task_supervisor_key :content_ingest_task_supervisor
   @task_ref_key :content_ingest_task_ref
   @running_key :content_ingest_running
+  @ecosystem_docs_poll_default_ms 1_000
 
   @issue_order [
     :missing,
@@ -38,7 +40,10 @@ defmodule AgentJidoWeb.AdminContentIngestionLive do
      |> assign(:collection_counts, %{})
      |> assign(:needs_refresh_count, 0)
      |> assign(:orphaned_count, 0)
-     |> load_status()}
+     |> assign(:ecosystem_docs_status, empty_ecosystem_docs_status())
+     |> assign(:ecosystem_docs_snapshot, empty_ecosystem_docs_snapshot())
+     |> load_status()
+     |> maybe_schedule_ecosystem_docs_refresh()}
   end
 
   @impl true
@@ -133,6 +138,67 @@ defmodule AgentJidoWeb.AdminContentIngestionLive do
         </section>
 
         <section class="space-y-4 rounded-lg border border-border bg-card p-6">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div class="space-y-1">
+              <h2 class="text-lg font-semibold text-foreground">Package docs crawl</h2>
+              <p class="text-sm text-muted-foreground">
+                Background-managed HexDocs ingestion for published ecosystem packages.
+              </p>
+            </div>
+
+            <div class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              {if @ecosystem_docs_status.running, do: "Running", else: "Idle"}
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-xs text-muted-foreground md:grid-cols-5">
+            <span>documents: {@ecosystem_docs_snapshot.total_documents}</span>
+            <span>crawled packages: {@ecosystem_docs_snapshot.package_count}</span>
+            <span>eligible: {ecosystem_docs_summary_value(@ecosystem_docs_status.last_summary, :eligible_packages)}</span>
+            <span>skipped unpublished: {ecosystem_docs_summary_value(@ecosystem_docs_status.last_summary, :skipped_unpublished_count)}</span>
+            <span>pages: {ecosystem_docs_summary_value(@ecosystem_docs_status.last_summary, :total_sources)}</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-xs text-muted-foreground md:grid-cols-3">
+            <span>last crawled: {format_datetime(@ecosystem_docs_snapshot.latest_crawled_at)}</span>
+            <span>last started: {format_datetime(@ecosystem_docs_status.last_started_at)}</span>
+            <span>last finished: {format_datetime(@ecosystem_docs_status.last_finished_at)}</span>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              phx-click="sync_ecosystem_docs"
+              disabled={@ecosystem_docs_status.running}
+              class="rounded-md bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Sync package docs now
+            </button>
+          </div>
+
+          <section :if={@ecosystem_docs_status.last_summary} class="space-y-2 rounded-md border border-border bg-background p-4">
+            <h3 class="text-sm font-semibold text-foreground">Last package docs run</h3>
+            <div class="grid grid-cols-2 gap-2 text-xs text-muted-foreground md:grid-cols-6">
+              <span>inserted: {ecosystem_docs_summary_value(@ecosystem_docs_status.last_summary, :inserted)}</span>
+              <span>updated: {ecosystem_docs_summary_value(@ecosystem_docs_status.last_summary, :updated)}</span>
+              <span>deleted: {ecosystem_docs_summary_value(@ecosystem_docs_status.last_summary, :deleted)}</span>
+              <span>skipped: {ecosystem_docs_summary_value(@ecosystem_docs_status.last_summary, :skipped)}</span>
+              <span>failed: {ecosystem_docs_summary_value(@ecosystem_docs_status.last_summary, :failed_count)}</span>
+              <span>mode: {Map.get(@ecosystem_docs_status.last_summary, :mode, :apply)}</span>
+            </div>
+
+            <div :if={ecosystem_docs_failures(@ecosystem_docs_status.last_summary) != []} class="space-y-1">
+              <p class="text-xs font-semibold uppercase tracking-wide text-accent-yellow">Failed packages</p>
+              <div class="space-y-1 text-xs text-muted-foreground">
+                <p :for={failure <- ecosystem_docs_failures(@ecosystem_docs_status.last_summary)}>
+                  {failure.package_id}: {failure.reason}
+                </p>
+              </div>
+            </div>
+          </section>
+        </section>
+
+        <section class="space-y-4 rounded-lg border border-border bg-card p-6">
           <div class="space-y-1">
             <h2 class="text-lg font-semibold text-foreground">Source status</h2>
             <p class="text-sm text-muted-foreground">
@@ -210,6 +276,20 @@ defmodule AgentJidoWeb.AdminContentIngestionLive do
     trigger_ingest(socket, :ingest_source, source_id)
   end
 
+  def handle_event("sync_ecosystem_docs", _params, socket) do
+    case ecosystem_docs_module().sync() do
+      :ok ->
+        Process.send_after(self(), :refresh_ecosystem_docs_status, ecosystem_docs_poll_interval_ms())
+        {:noreply, put_flash(socket, :info, "Package docs crawl started.")}
+
+      {:error, :already_running} ->
+        {:noreply, put_flash(socket, :error, "Package docs crawl is already running.")}
+
+      {:error, reason} ->
+        {:noreply, put_flash(socket, :error, "Could not start package docs crawl: #{inspect(reason)}")}
+    end
+  end
+
   @impl true
   def handle_info({ref, {:ok, mode, source_id, summary}}, socket) do
     if ref == socket.assigns[@task_ref_key] do
@@ -258,6 +338,15 @@ defmodule AgentJidoWeb.AdminContentIngestionLive do
     else
       {:noreply, socket}
     end
+  end
+
+  def handle_info(:refresh_ecosystem_docs_status, socket) do
+    socket =
+      socket
+      |> load_ecosystem_docs_status()
+      |> maybe_schedule_ecosystem_docs_refresh()
+
+    {:noreply, socket}
   end
 
   def handle_info(_msg, socket), do: {:noreply, socket}
@@ -378,6 +467,12 @@ defmodule AgentJidoWeb.AdminContentIngestionLive do
   defp run_complete_text(_mode, _source_id), do: "Ingestion completed."
 
   defp load_status(socket) do
+    socket
+    |> load_local_status()
+    |> load_ecosystem_docs_status()
+  end
+
+  defp load_local_status(socket) do
     sources =
       Inventory.build()
       |> Enum.sort_by(&{&1.collection, &1.source_id})
@@ -404,6 +499,17 @@ defmodule AgentJidoWeb.AdminContentIngestionLive do
       |> assign(:audit_summary, empty_audit_summary())
       |> assign(:needs_refresh_count, 0)
       |> assign(:orphaned_count, 0)
+  end
+
+  defp load_ecosystem_docs_status(socket) do
+    socket
+    |> assign(:ecosystem_docs_status, normalize_ecosystem_docs_status(ecosystem_docs_module().status()))
+    |> assign(:ecosystem_docs_snapshot, normalize_ecosystem_docs_snapshot(ecosystem_docs_module().snapshot()))
+  rescue
+    _error ->
+      socket
+      |> assign(:ecosystem_docs_status, empty_ecosystem_docs_status())
+      |> assign(:ecosystem_docs_snapshot, empty_ecosystem_docs_snapshot())
   end
 
   defp build_audit_rows(rows, source_lookup) do
@@ -502,6 +608,37 @@ defmodule AgentJidoWeb.AdminContentIngestionLive do
     %{expected_count: 0, ingested_count: 0, compared_count: 0, ok_count: 0, blocking_count: 0}
   end
 
+  defp empty_ecosystem_docs_status do
+    %{enabled: false, running: false, last_started_at: nil, last_finished_at: nil, last_summary: nil}
+  end
+
+  defp empty_ecosystem_docs_snapshot do
+    %{total_documents: 0, package_count: 0, latest_crawled_at: nil, packages: []}
+  end
+
+  defp normalize_ecosystem_docs_status(status) when is_map(status) do
+    %{
+      enabled: Map.get(status, :enabled, false),
+      running: Map.get(status, :running, false),
+      last_started_at: Map.get(status, :last_started_at),
+      last_finished_at: Map.get(status, :last_finished_at),
+      last_summary: Map.get(status, :last_summary)
+    }
+  end
+
+  defp normalize_ecosystem_docs_status(_status), do: empty_ecosystem_docs_status()
+
+  defp normalize_ecosystem_docs_snapshot(snapshot) when is_map(snapshot) do
+    %{
+      total_documents: Map.get(snapshot, :total_documents, 0),
+      package_count: Map.get(snapshot, :package_count, 0),
+      latest_crawled_at: Map.get(snapshot, :latest_crawled_at),
+      packages: Map.get(snapshot, :packages, [])
+    }
+  end
+
+  defp normalize_ecosystem_docs_snapshot(_snapshot), do: empty_ecosystem_docs_snapshot()
+
   defp summary_status_text(summary) do
     changed = summary.inserted + summary.updated + summary.deleted
 
@@ -524,6 +661,43 @@ defmodule AgentJidoWeb.AdminContentIngestionLive do
       "text-xs font-semibold text-accent-green"
     end
   end
+
+  defp maybe_schedule_ecosystem_docs_refresh(socket) do
+    if socket.assigns[:ecosystem_docs_status][:running] do
+      Process.send_after(self(), :refresh_ecosystem_docs_status, ecosystem_docs_poll_interval_ms())
+    end
+
+    socket
+  end
+
+  defp ecosystem_docs_summary_value(summary, key) when is_map(summary), do: Map.get(summary, key, 0)
+  defp ecosystem_docs_summary_value(_summary, _key), do: 0
+
+  defp ecosystem_docs_failures(summary) when is_map(summary), do: Map.get(summary, :failed, [])
+  defp ecosystem_docs_failures(_summary), do: []
+
+  defp ecosystem_docs_module do
+    Application.get_env(:agent_jido, :dashboard_ecosystem_docs_module, EcosystemDocs)
+  end
+
+  defp ecosystem_docs_poll_interval_ms do
+    case Application.get_env(:agent_jido, :dashboard_ecosystem_docs_poll_interval_ms, @ecosystem_docs_poll_default_ms) do
+      value when is_integer(value) and value > 0 -> value
+      _other -> @ecosystem_docs_poll_default_ms
+    end
+  end
+
+  defp format_datetime(nil), do: "—"
+
+  defp format_datetime(%DateTime{} = value) do
+    Calendar.strftime(value, "%Y-%m-%d %H:%M:%S UTC")
+  end
+
+  defp format_datetime(%NaiveDateTime{} = value) do
+    Calendar.strftime(value, "%Y-%m-%d %H:%M:%S")
+  end
+
+  defp format_datetime(_value), do: "—"
 
   defp status_rank(status) do
     Enum.find_index(@status_order, &(&1 == status)) || length(@status_order)

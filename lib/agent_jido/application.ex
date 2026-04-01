@@ -16,11 +16,13 @@ defmodule AgentJido.Application do
         AgentJidoWeb.Presence,
         {Finch, name: AgentJido.Finch},
         {Task.Supervisor, name: AgentJido.ContentAssistant.TaskSupervisor},
+        {Task.Supervisor, name: AgentJido.ContentIngest.EcosystemDocs.TaskSupervisor},
         AgentJido.ContentAssistant.PageResponseCache
       ] ++
         github_stars_tracker_children() ++
         [
-          Arcana.TaskSupervisor
+          Arcana.TaskSupervisor,
+          AgentJido.ContentIngest.EcosystemDocs.Crawler
         ] ++
         arcana_embedder_children() ++
         [

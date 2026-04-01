@@ -7,6 +7,7 @@
   license: "Apache-2.0",
   visibility: :public,
   category: :ai,
+  atlas_facet: :optimization,
   tier: 2,
   tags: [:evolution, :optimization, :search, :algorithms],
   github_url: "https://github.com/agentjido/jido_evolve",

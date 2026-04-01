@@ -235,6 +235,11 @@ function trackDatasetAnalyticsEvent(target) {
     target_url: analyticsNode.dataset.analyticsTargetUrl,
     query_log_id: analyticsNode.dataset.analyticsQueryLogId,
     rank: parsePositiveInt(analyticsNode.dataset.analyticsRank),
+    external: analyticsNode.dataset.analyticsExternal,
+    provider: analyticsNode.dataset.analyticsProvider,
+    package_id: analyticsNode.dataset.analyticsPackageId,
+    package_version: analyticsNode.dataset.analyticsPackageVersion,
+    page_kind: analyticsNode.dataset.analyticsPageKind,
     path: window.location.pathname,
   });
 }

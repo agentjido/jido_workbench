@@ -7,6 +7,7 @@
   license: "Apache-2.0",
   visibility: :public,
   category: :tools,
+  atlas_facet: :developer_ux,
   tier: 2,
   tags: [:dashboard, :observability, :debugging, :liveview],
   hexdocs_url: "https://hexdocs.pm/jido_live_dashboard",

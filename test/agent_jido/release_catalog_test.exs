@@ -43,6 +43,25 @@ defmodule AgentJido.ReleaseCatalogTest do
     refute body =~ "{{mix_dep:"
   end
 
+  test "expands contributor ecosystem atlas placeholder from ecosystem metadata" do
+    raw = """
+    %{
+      title: "Atlas Placeholder"
+    }
+    ---
+    {{contributors_ecosystem_atlas_tables}}
+    """
+
+    {attrs, body} = LivebookParser.parse("atlas-placeholder.md", raw)
+
+    assert attrs.title == "Atlas Placeholder"
+    assert body =~ "## Core"
+    assert body =~ "## Integrations"
+    assert body =~ "### Chat"
+    assert body =~ "[Jido Chat](/ecosystem/jido_chat)"
+    refute body =~ "{{contributors_ecosystem_atlas_tables}}"
+  end
+
   test "actual docs sources expand released dependencies instead of github main guidance" do
     source =
       File.read!(Path.expand("../../priv/pages/docs/getting-started/first-llm-agent.livemd", __DIR__))

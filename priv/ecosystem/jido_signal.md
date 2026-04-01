@@ -7,6 +7,7 @@
   license: "Apache-2.0",
   visibility: :public,
   category: :core,
+  atlas_facet: :primitives,
   tier: 1,
   tags: [:signals, :events, :pubsub, :cloudevents],
   hex_url: "https://hex.pm/packages/jido_signal",

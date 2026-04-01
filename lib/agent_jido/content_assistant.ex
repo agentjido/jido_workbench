@@ -169,7 +169,11 @@ defmodule AgentJido.ContentAssistant do
         %Result{
           result
           | url: url,
-            snippet: normalize_snippet(result.snippet)
+            snippet: normalize_snippet(result.snippet),
+            source_type: normalize_source_type(result.source_type),
+            secondary_url: normalize_optional_href(result.secondary_url),
+            page_kind: normalize_page_kind(result.page_kind),
+            provider: normalize_provider(result.provider)
         }
 
       _ ->
@@ -186,7 +190,15 @@ defmodule AgentJido.ContentAssistant do
           snippet: normalize_snippet(snippet),
           url: normalized_url,
           source_type: normalize_source_type(source_type),
-          score: Map.get(map, :score) || Map.get(map, "score")
+          score: Map.get(map, :score) || Map.get(map, "score"),
+          external?: truthy?(Map.get(map, :external?) || Map.get(map, "external?")),
+          provider: normalize_provider(Map.get(map, :provider) || Map.get(map, "provider")),
+          package_id: Map.get(map, :package_id) || Map.get(map, "package_id"),
+          package_name: Map.get(map, :package_name) || Map.get(map, "package_name"),
+          package_title: Map.get(map, :package_title) || Map.get(map, "package_title"),
+          package_version: Map.get(map, :package_version) || Map.get(map, "package_version"),
+          page_kind: normalize_page_kind(Map.get(map, :page_kind) || Map.get(map, "page_kind")),
+          secondary_url: normalize_optional_href(Map.get(map, :secondary_url) || Map.get(map, "secondary_url"))
         }
 
       _ ->
@@ -196,7 +208,8 @@ defmodule AgentJido.ContentAssistant do
 
   defp normalize_result(_result), do: nil
 
-  defp normalize_source_type(source_type) when source_type in [:docs, :blog, :ecosystem], do: source_type
+  defp normalize_source_type(source_type) when source_type in [:docs, :blog, :ecosystem, :ecosystem_docs],
+    do: source_type
 
   defp normalize_source_type(source_type) when is_binary(source_type) do
     case String.downcase(String.trim(source_type)) do
@@ -204,6 +217,7 @@ defmodule AgentJido.ContentAssistant do
       "documentation" -> :docs
       "blog" -> :blog
       "ecosystem" -> :ecosystem
+      "ecosystem_docs" -> :ecosystem_docs
       _ -> :docs
     end
   end
@@ -331,7 +345,42 @@ defmodule AgentJido.ContentAssistant do
   defp source_label(:docs), do: "Docs"
   defp source_label(:blog), do: "Blog"
   defp source_label(:ecosystem), do: "Ecosystem"
+  defp source_label(:ecosystem_docs), do: "HexDocs"
   defp source_label(_), do: "Content"
+
+  defp normalize_optional_href(nil), do: nil
+
+  defp normalize_optional_href(url) do
+    URL.normalize_href(url)
+  end
+
+  defp normalize_page_kind(page_kind) when page_kind in [:module, :guide, :readme, :task], do: page_kind
+
+  defp normalize_page_kind(page_kind) when is_binary(page_kind) do
+    case String.downcase(String.trim(page_kind)) do
+      "module" -> :module
+      "guide" -> :guide
+      "readme" -> :readme
+      "task" -> :task
+      _ -> nil
+    end
+  end
+
+  defp normalize_page_kind(_page_kind), do: nil
+
+  defp normalize_provider(provider) when provider in [:hexdocs], do: provider
+
+  defp normalize_provider(provider) when is_binary(provider) do
+    case String.downcase(String.trim(provider)) do
+      "hexdocs" -> :hexdocs
+      "" -> nil
+      other -> other
+    end
+  end
+
+  defp normalize_provider(_provider), do: nil
+
+  defp truthy?(value), do: value in [true, "true", 1, "1", "on"]
 
   @spec truncate_line(String.t(), pos_integer()) :: String.t()
   defp truncate_line(text, max_len) when is_binary(text) and max_len > 0 do

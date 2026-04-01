@@ -7,6 +7,7 @@
   license: "Apache-2.0",
   visibility: :public,
   category: :tools,
+  atlas_facet: :workspace,
   tier: 2,
   tags: [:shell, :cli, :sessions, :runtime, :tools],
   github_url: "https://github.com/agentjido/jido_shell",

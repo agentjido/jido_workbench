@@ -7,6 +7,7 @@
   license: "Apache-2.0",
   visibility: :public,
   category: :integrations,
+  atlas_facet: :chat,
   tier: 2,
   tags: [:chat, :sdk, :messages, :adapters, :agents],
   github_url: "https://github.com/agentjido/jido_chat",

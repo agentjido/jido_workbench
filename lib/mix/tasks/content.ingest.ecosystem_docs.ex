@@ -1,0 +1,67 @@
+defmodule Mix.Tasks.Content.Ingest.EcosystemDocs do
+  @moduledoc """
+  Ingest published HexDocs package pages for public ecosystem packages.
+
+  Examples:
+
+      mix content.ingest.ecosystem_docs
+      mix content.ingest.ecosystem_docs --dry-run
+      mix content.ingest.ecosystem_docs --package jido
+  """
+
+  use Mix.Task
+
+  alias AgentJido.ContentIngest.EcosystemDocs
+
+  @shortdoc "Ingest published HexDocs pages into Arcana"
+  @switches [dry_run: :boolean, package: :string]
+
+  @impl Mix.Task
+  def run(args) do
+    Mix.Task.run("app.start")
+
+    {opts, _argv, _invalid} = OptionParser.parse(args, strict: @switches)
+
+    sync_opts =
+      [repo: AgentJido.Repo, dry_run: Keyword.get(opts, :dry_run, false)]
+      |> maybe_put_package(opts[:package])
+
+    summary =
+      case opts[:package] do
+        package_id when is_binary(package_id) and package_id != "" ->
+          EcosystemDocs.sync_package_now(package_id, sync_opts)
+
+        _other ->
+          EcosystemDocs.sync_now(sync_opts)
+      end
+
+    print_summary(summary)
+
+    if summary.failed_count > 0 do
+      Mix.raise("HexDocs ingestion completed with #{summary.failed_count} failure(s)")
+    end
+  end
+
+  defp print_summary(summary) do
+    Mix.shell().info("Arcana HexDocs ingestion summary")
+    Mix.shell().info("mode: #{summary.mode}")
+    Mix.shell().info("packages: #{summary.total_packages}")
+    Mix.shell().info("eligible_packages: #{summary.eligible_packages}")
+    Mix.shell().info("skipped_unpublished: #{summary.skipped_unpublished_count}")
+    Mix.shell().info("pages: #{summary.total_sources}")
+    Mix.shell().info("inserted: #{summary.inserted}")
+    Mix.shell().info("updated: #{summary.updated}")
+    Mix.shell().info("skipped: #{summary.skipped}")
+    Mix.shell().info("deleted: #{summary.deleted}")
+    Mix.shell().info("failed: #{summary.failed_count}")
+
+    Enum.each(summary.failed, fn failure ->
+      Mix.shell().error("  - #{failure.package_id}: #{failure.reason}")
+    end)
+  end
+
+  defp maybe_put_package(opts, package_id) when is_binary(package_id) and package_id != "",
+    do: Keyword.put(opts, :package_id, package_id)
+
+  defp maybe_put_package(opts, _package_id), do: opts
+end

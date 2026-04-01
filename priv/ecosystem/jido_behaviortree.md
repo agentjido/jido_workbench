@@ -7,6 +7,7 @@
   license: "Apache-2.0",
   visibility: :public,
   category: :tools,
+  atlas_facet: :workflow,
   tier: 2,
   tags: [:behavior_tree, :ai, :decision_making, :strategy],
   hex_url: "https://hex.pm/packages/jido_behaviortree",

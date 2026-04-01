@@ -7,6 +7,7 @@
   license: "Apache-2.0",
   visibility: :public,
   category: :runtime,
+  atlas_facet: :applications,
   tier: 2,
   tags: [:studio, :dashboard, :liveview, :debugging],
   github_url: "https://github.com/agentjido/jido_studio",

@@ -7,6 +7,7 @@
   license: "Apache-2.0",
   visibility: :public,
   category: :ai,
+  atlas_facet: :reasoning_models,
   tier: 2,
   tags: [:character, :persona, :prompting, :ai],
   github_url: "https://github.com/agentjido/jido_character",

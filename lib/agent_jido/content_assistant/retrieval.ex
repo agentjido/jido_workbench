@@ -15,9 +15,35 @@ defmodule AgentJido.ContentAssistant.Retrieval do
 
   @default_limit 10
   @default_mode :hybrid
-  @collections ["site_docs", "site_blog", "site_ecosystem"]
+  @collections ["site_docs", "site_blog", "site_ecosystem", "site_ecosystem_docs"]
   @snippet_max_length 320
   @disabled_route_prefixes ["/training", "/search"]
+  @broad_package_phrases [
+    "what is",
+    "compare",
+    " vs ",
+    " versus ",
+    "which package",
+    "when should i use",
+    "should i use",
+    "difference between",
+    "overview"
+  ]
+  @api_intent_terms [
+    "module",
+    "function",
+    "callback",
+    "config",
+    "configure",
+    "how to",
+    "how do i",
+    "error",
+    "undefined",
+    "setup",
+    "install",
+    "usage",
+    "guide"
+  ]
 
   @type query_status :: :success | :fallback
   @type search_fun :: (String.t(), keyword() -> {:ok, [map()]} | {:error, term()})
@@ -87,6 +113,7 @@ defmodule AgentJido.ContentAssistant.Retrieval do
           normalized_results =
             rows
             |> normalize_results(docs_by_id)
+            |> rerank_results(query)
 
           primary_results = filter_disabled_results(normalized_results, limit)
 
@@ -114,6 +141,7 @@ defmodule AgentJido.ContentAssistant.Retrieval do
   defp fallback_response(fallback_fun, query, limit) do
     fallback_results =
       safe_fallback_search(fallback_fun, query, limit)
+      |> rerank_results(query)
       |> filter_disabled_results(limit)
 
     {:ok, fallback_results, :fallback}
@@ -486,9 +514,17 @@ defmodule AgentJido.ContentAssistant.Retrieval do
     %Result{
       title: resolve_title(metadata, source_type),
       snippet: resolve_snippet(row, metadata),
-      url: resolve_url(row, collection, metadata, source_id),
+      url: resolve_url(row, collection, metadata, source_id, source_type),
       source_type: source_type,
-      score: resolve_score(value(row, :score))
+      score: resolve_score(value(row, :score)),
+      external?: resolve_external?(source_type, metadata),
+      provider: resolve_provider(source_type, metadata),
+      package_id: string_value(metadata, :package_id),
+      package_name: string_value(metadata, :package_name),
+      package_title: string_value(metadata, :package_title),
+      package_version: string_value(metadata, :package_version),
+      page_kind: resolve_page_kind(metadata),
+      secondary_url: resolve_secondary_url(source_type, metadata)
     }
   end
 
@@ -525,7 +561,13 @@ defmodule AgentJido.ContentAssistant.Retrieval do
     |> trim_snippet(@snippet_max_length)
   end
 
-  defp resolve_url(row, collection, metadata, source_id) do
+  defp resolve_url(row, collection, metadata, source_id, :ecosystem_docs) do
+    normalize_any_url(string_value(metadata, :outbound_url)) ||
+      normalize_any_url(string_value(metadata, :crawl_url)) ||
+      resolve_url(row, collection, metadata, source_id, :docs)
+  end
+
+  defp resolve_url(row, collection, metadata, source_id, _source_type) do
     canonical_route(collection, metadata, source_id) ||
       normalize_internal_url(string_value(metadata, :url)) ||
       row_text_route(row) ||
@@ -537,6 +579,7 @@ defmodule AgentJido.ContentAssistant.Retrieval do
       "site_docs" -> :docs
       "site_blog" -> :blog
       "site_ecosystem" -> :ecosystem
+      "site_ecosystem_docs" -> :ecosystem_docs
       _ -> resolve_source_type_from_metadata(metadata)
     end
   end
@@ -547,6 +590,7 @@ defmodule AgentJido.ContentAssistant.Retrieval do
       "docs" -> :docs
       "blog" -> :blog
       "ecosystem" -> :ecosystem
+      "ecosystem_docs" -> :ecosystem_docs
       _ -> :docs
     end
   end
@@ -612,6 +656,9 @@ defmodule AgentJido.ContentAssistant.Retrieval do
   end
 
   defp normalize_internal_url(_url), do: nil
+
+  defp normalize_any_url(nil), do: nil
+  defp normalize_any_url(url), do: URL.normalize_href(url)
 
   defp route_from_collection_id(metadata, source_id, prefix, route_prefix) do
     case string_value(metadata, :id) || source_id_suffix(source_id, prefix) do
@@ -684,6 +731,7 @@ defmodule AgentJido.ContentAssistant.Retrieval do
   defp default_title(:docs), do: "Documentation"
   defp default_title(:blog), do: "Blog"
   defp default_title(:ecosystem), do: "Ecosystem"
+  defp default_title(:ecosystem_docs), do: "HexDocs"
 
   defp normalize_collection(value) when is_binary(value), do: String.trim(value)
   defp normalize_collection(value) when is_atom(value), do: Atom.to_string(value)
@@ -707,9 +755,82 @@ defmodule AgentJido.ContentAssistant.Retrieval do
   defp normalize_metadata(metadata) when is_map(metadata), do: metadata
   defp normalize_metadata(_metadata), do: %{}
 
+  defp resolve_external?(:ecosystem_docs, _metadata), do: true
+  defp resolve_external?(_source_type, metadata), do: truthy?(value(metadata, :external?))
+
+  defp resolve_provider(:ecosystem_docs, metadata) do
+    case string_value(metadata, :provider) do
+      nil -> :hexdocs
+      provider -> provider
+    end
+  end
+
+  defp resolve_provider(_source_type, metadata), do: string_value(metadata, :provider)
+
+  defp resolve_page_kind(metadata) do
+    case string_value(metadata, :page_kind) do
+      "module" -> :module
+      "guide" -> :guide
+      "readme" -> :readme
+      "task" -> :task
+      _other -> nil
+    end
+  end
+
+  defp resolve_secondary_url(:ecosystem_docs, metadata) do
+    normalize_internal_url(string_value(metadata, :package_url))
+  end
+
+  defp resolve_secondary_url(_source_type, _metadata), do: nil
+
   defp resolve_score(score) when is_integer(score), do: score * 1.0
   defp resolve_score(score) when is_float(score), do: score
   defp resolve_score(_score), do: nil
+
+  defp score_value(score) when is_number(score), do: score * 1.0
+  defp score_value(_score), do: 0.0
+
+  defp rerank_results(results, query) when is_list(results) and is_binary(query) do
+    broad_package_query? = broad_package_query?(query)
+    api_style_query? = api_style_query?(query) and not broad_package_query?
+
+    results
+    |> Enum.with_index()
+    |> Enum.sort_by(fn {%Result{} = result, index} ->
+      {
+        -(score_value(result.score) + ranking_bonus(result, broad_package_query?, api_style_query?)),
+        index
+      }
+    end)
+    |> Enum.map(&elem(&1, 0))
+  end
+
+  defp rerank_results(results, _query), do: results
+
+  defp ranking_bonus(%Result{source_type: :ecosystem}, true, _api_style_query?), do: 25.0
+  defp ranking_bonus(%Result{source_type: :ecosystem_docs}, true, _api_style_query?), do: -5.0
+  defp ranking_bonus(%Result{source_type: :ecosystem_docs}, _broad_package_query?, true), do: 25.0
+  defp ranking_bonus(%Result{source_type: :ecosystem}, _broad_package_query?, true), do: -5.0
+  defp ranking_bonus(%Result{source_type: :docs}, _broad_package_query?, true), do: 2.0
+  defp ranking_bonus(_result, _broad_package_query?, _api_style_query?), do: 0.0
+
+  defp broad_package_query?(query) when is_binary(query) do
+    query_downcase = String.downcase(String.trim(query))
+    Enum.any?(@broad_package_phrases, &String.contains?(query_downcase, &1))
+  end
+
+  defp broad_package_query?(_query), do: false
+
+  defp api_style_query?(query) when is_binary(query) do
+    query_downcase = String.downcase(String.trim(query))
+
+    Enum.any?(@api_intent_terms, &String.contains?(query_downcase, &1)) or
+      String.match?(query, ~r/\b[A-Z][A-Za-z0-9_]*(?:\.[A-Z][A-Za-z0-9_]*)+\b/u) or
+      String.match?(query_downcase, ~r/\b[a-z_!?]+\/\d+\b/u) or
+      String.contains?(query, "(")
+  end
+
+  defp api_style_query?(_query), do: false
 
   defp trim_snippet(text, max_len) when is_binary(text) do
     if String.length(text) <= max_len do
@@ -740,6 +861,8 @@ defmodule AgentJido.ContentAssistant.Retrieval do
     |> value(key)
     |> normalize_string()
   end
+
+  defp truthy?(value), do: value in [true, "true", 1, "1", "on"]
 
   defp value(map, key, default \\ nil)
 

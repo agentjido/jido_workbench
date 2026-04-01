@@ -191,12 +191,96 @@ defmodule AgentJidoWeb.AdminContentIngestionLiveTest do
     end
   end
 
+  defmodule EcosystemDocsStub do
+    @key {__MODULE__, :state}
+
+    def seed!(state), do: :persistent_term.put(@key, state)
+    def clear!, do: :persistent_term.erase(@key)
+
+    def status, do: state().status
+    def snapshot, do: state().snapshot
+
+    def sync do
+      current = state()
+
+      seed!(%{
+        current
+        | status: %{
+            current.status
+            | running: true,
+              last_started_at: DateTime.utc_now() |> DateTime.truncate(:second)
+          }
+      })
+
+      spawn(fn ->
+        Process.sleep(30)
+
+        seed!(%{
+          status: %{
+            enabled: true,
+            running: false,
+            last_started_at: DateTime.utc_now() |> DateTime.truncate(:second),
+            last_finished_at: DateTime.utc_now() |> DateTime.truncate(:second),
+            last_summary: %{
+              mode: :apply,
+              inserted: 2,
+              updated: 1,
+              deleted: 0,
+              skipped: 5,
+              eligible_packages: 3,
+              skipped_unpublished_count: 1,
+              total_sources: 8,
+              failed: [],
+              failed_count: 0
+            }
+          },
+          snapshot: %{
+            total_documents: 8,
+            package_count: 3,
+            latest_crawled_at: DateTime.utc_now() |> DateTime.truncate(:second),
+            packages: []
+          }
+        })
+      end)
+
+      :ok
+    end
+
+    defp state do
+      :persistent_term.get(@key, %{
+        status: %{
+          enabled: true,
+          running: false,
+          last_started_at: nil,
+          last_finished_at: nil,
+          last_summary: nil
+        },
+        snapshot: %{total_documents: 4, package_count: 2, latest_crawled_at: nil, packages: []}
+      })
+    end
+  end
+
   setup %{conn: conn} do
     original_ingest_module = Application.get_env(:agent_jido, :dashboard_ingest_module)
     original_audit_module = Application.get_env(:agent_jido, :dashboard_content_audit_module)
+    original_ecosystem_docs_module = Application.get_env(:agent_jido, :dashboard_ecosystem_docs_module)
+    original_poll_ms = Application.get_env(:agent_jido, :dashboard_ecosystem_docs_poll_interval_ms)
 
     Application.put_env(:agent_jido, :dashboard_ingest_module, ContentIngestStub)
     Application.put_env(:agent_jido, :dashboard_content_audit_module, ContentAuditStub)
+    Application.put_env(:agent_jido, :dashboard_ecosystem_docs_module, EcosystemDocsStub)
+    Application.put_env(:agent_jido, :dashboard_ecosystem_docs_poll_interval_ms, 10)
+
+    EcosystemDocsStub.seed!(%{
+      status: %{
+        enabled: true,
+        running: false,
+        last_started_at: nil,
+        last_finished_at: nil,
+        last_summary: nil
+      },
+      snapshot: %{total_documents: 4, package_count: 2, latest_crawled_at: nil, packages: []}
+    })
 
     admin_conn = log_in_user(conn, admin_user_fixture())
 
@@ -212,6 +296,20 @@ defmodule AgentJidoWeb.AdminContentIngestionLiveTest do
       else
         Application.delete_env(:agent_jido, :dashboard_content_audit_module)
       end
+
+      if original_ecosystem_docs_module do
+        Application.put_env(:agent_jido, :dashboard_ecosystem_docs_module, original_ecosystem_docs_module)
+      else
+        Application.delete_env(:agent_jido, :dashboard_ecosystem_docs_module)
+      end
+
+      if original_poll_ms do
+        Application.put_env(:agent_jido, :dashboard_ecosystem_docs_poll_interval_ms, original_poll_ms)
+      else
+        Application.delete_env(:agent_jido, :dashboard_ecosystem_docs_poll_interval_ms)
+      end
+
+      EcosystemDocsStub.clear!()
     end)
 
     %{admin_conn: admin_conn}
@@ -234,10 +332,12 @@ defmodule AgentJidoWeb.AdminContentIngestionLiveTest do
     refute has_element?(view, "a[data-admin-nav-path='/dashboard/content-ingestion/audit']")
     assert html =~ "Content Ingestion Status"
     assert html =~ "Current state"
+    assert html =~ "Package docs crawl"
     assert html =~ "Source status"
     assert has_element?(view, "button[phx-click='refresh_status']", "Refresh status")
     assert has_element?(view, "button[phx-click='ingest_needs_refresh']", "Ingest needs refresh")
     assert has_element?(view, "button[phx-click='ingest_all']", "Ingest all")
+    assert has_element?(view, "button[phx-click='sync_ecosystem_docs']", "Sync package docs now")
   end
 
   test "ingest needs refresh shows summary", %{admin_conn: admin_conn} do
@@ -288,6 +388,19 @@ defmodule AgentJidoWeb.AdminContentIngestionLiveTest do
     assert_eventually(fn ->
       html = render(view)
       html =~ "Last run: Re-ingest #{source.source_id}" and html =~ "sources: 1" and html =~ "inserted: 1"
+    end)
+  end
+
+  test "manual package docs sync refreshes status independently", %{admin_conn: admin_conn} do
+    {:ok, view, _html} = live(admin_conn, "/dashboard/content-ingestion")
+
+    view
+    |> element("button[phx-click='sync_ecosystem_docs']")
+    |> render_click()
+
+    assert_eventually(fn ->
+      html = render(view)
+      html =~ "Last package docs run" and html =~ "eligible: 3" and html =~ "pages: 8"
     end)
   end
 
