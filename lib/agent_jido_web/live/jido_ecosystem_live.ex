@@ -2,6 +2,7 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
   use AgentJidoWeb, :live_view
 
   alias AgentJido.Ecosystem
+  alias AgentJido.Ecosystem.Bookmarks, as: EcosystemBookmarks
   alias AgentJido.Ecosystem.Layering
   alias AgentJido.Ecosystem.SupportLevel
   alias AgentJido.GithubStarsTracker
@@ -28,6 +29,7 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
        current_params: %{},
        explorer_packages: [],
        compare_rows: [],
+       bookmark_count: EcosystemBookmarks.count(),
        package_count: 0,
        layer_count: 0,
        support_levels: Ecosystem.support_levels(),
@@ -361,6 +363,33 @@ defmodule AgentJidoWeb.JidoEcosystemLive do
               </div>
             </section>
           <% end %>
+        </section>
+
+        <section class="mb-16">
+          <div class="rounded-lg border border-border bg-card/60 p-6 md:p-8">
+            <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+              <div>
+                <span class="text-sm font-bold tracking-wider">REPO BOOKMARKS</span>
+                <p class="copy-measure text-sm leading-relaxed text-secondary-foreground mt-2">
+                  Download a flat browser bookmarks file for the full public Jido repo set. The export is generated
+                  from ecosystem package metadata, so new public packages with GitHub URLs appear automatically.
+                </p>
+                <p class="copy-measure text-xs leading-relaxed text-muted-foreground mt-3">
+                  Includes {@bookmark_count} GitHub repo bookmarks.
+                  <.link navigate="/docs/contributors/ecosystem-atlas" class="text-primary hover:text-primary/80 transition-colors font-semibold ml-1">
+                    See the Atlas →
+                  </.link>
+                </p>
+              </div>
+
+              <a
+                href="/ecosystem/bookmarks.html"
+                class="inline-flex items-center justify-center rounded bg-primary px-5 py-3 text-[13px] font-bold text-primary-foreground transition-colors hover:bg-primary/90"
+              >
+                DOWNLOAD BOOKMARKS
+              </a>
+            </div>
+          </div>
         </section>
 
         <section class="mb-16">

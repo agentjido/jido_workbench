@@ -43,6 +43,8 @@ defmodule AgentJidoWeb.Router do
   scope "/", AgentJidoWeb do
     pipe_through(:browser)
 
+    get "/ecosystem/bookmarks.html", EcosystemBookmarksController, :show
+
     live_session :public_site, session: {__MODULE__, :examples_live_session, []} do
       live "/", JidoHomeLive, :index
       live "/skills", JidoSkillsLive, :index

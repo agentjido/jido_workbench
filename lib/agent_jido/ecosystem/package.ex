@@ -114,6 +114,15 @@ defmodule AgentJido.Ecosystem.Package do
               github_url: Zoi.string(description: "GitHub repository URL") |> Zoi.optional(),
               github_org: Zoi.string(description: "GitHub organization") |> Zoi.default("agentjido"),
               github_repo: Zoi.string(description: "GitHub repository name") |> Zoi.optional(),
+              bookmark_include:
+                Zoi.boolean(description: "Whether the package should appear in the public repo bookmarks export")
+                |> Zoi.default(true),
+              bookmark_title:
+                Zoi.string(description: "Optional bookmark label override for repo bookmark exports")
+                |> Zoi.optional(),
+              atlas_facet:
+                Zoi.atom(description: "Optional secondary Atlas grouping under the canonical category")
+                |> Zoi.optional(),
               tech_lead:
                 Zoi.string(description: "Canonical GitHub-handle-first owner or tech lead for the package")
                 |> Zoi.optional(),
