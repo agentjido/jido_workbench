@@ -221,7 +221,7 @@ defmodule AgentJido.PagesTest do
       assert source =~ "details.streaming_text"
       assert source =~ "Jido.AI.set_system_prompt"
       assert source =~ "Jido.AI.Plugins.Chat"
-      assert source =~ ~s(model: "openai:gpt-4o-mini")
+      assert source =~ ~s(model: "openai:gpt-5-mini")
       refute source =~ "model: :fast"
       refute source =~ "{:ai_react_start, params}"
       refute source =~ "on_before_cmd"
@@ -263,18 +263,26 @@ defmodule AgentJido.PagesTest do
       end)
     end
 
-    test "AI agent with tools guide uses the LocationToGrid weather flow" do
+    test "AI agent with tools guide uses notebook-local weather actions and completed-run inspection" do
       source =
         File.read!(Path.expand("priv/pages/docs/learn/ai-agent-with-tools.livemd", File.cwd!()))
 
       assert source =~ "livebook: %{"
+      assert source =~ "runnable: true"
+      assert source =~ ~s({:req, "~> 0.5"})
       assert source =~ "{:ok, _} = Jido.start()"
       assert source =~ "Jido.start_agent(runtime, MyApp.WeatherAgent"
-      assert source =~ "details[:tool_calls]"
-      assert source =~ "Jido.Tools.Weather.LocationToGrid.run"
+      assert source =~ "defmodule MyApp.WeatherGeocode do"
+      assert source =~ "defmodule MyApp.WeatherLocationToGrid do"
+      assert source =~ "defmodule MyApp.WeatherForecast do"
+      assert source =~ "defmodule MyApp.WeatherCurrentConditions do"
+      assert source =~ "MyApp.WeatherLocationToGrid.run"
       assert source =~ "%{forecast_url: grid_info.urls.forecast}"
       assert source =~ "%{observation_stations_url: grid_info.urls.observation_stations}"
       assert source =~ "weather_location_to_grid"
+      assert source =~ ~s(type: {:in, ["fahrenheit", "celsius"]})
+      assert source =~ "details[:conversation]"
+      assert source =~ "details[:trace_summary]"
 
       refute source =~ """
              Jido.Tools.Weather.Forecast.run(
@@ -282,6 +290,9 @@ defmodule AgentJido.PagesTest do
                %{}
              )
              """
+
+      refute source =~ "Jido.Tools.Weather."
+      refute source =~ "tool_calls: status.snapshot.details[:tool_calls] || []"
     end
 
     test "local-only guide notebooks declare quiet setup and explicit local-only metadata" do
