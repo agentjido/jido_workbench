@@ -17,6 +17,7 @@ Use this section as the public contributor handbook for Jido. It is the place to
 - [Ecosystem Atlas](/docs/contributors/ecosystem-atlas) - public package roster by category with current support level, owner, release status, and purpose
 - [Package Support Levels](/docs/contributors/package-support-levels) - canonical meaning of `Stable`, `Beta`, and `Experimental`
 - [Package Quality Standards](/docs/contributors/package-quality-standards) - package bar for repository structure, CI, docs, release hygiene, and review gates
+- [Observability and Error Reporting Standards](/docs/contributors/observability-and-error-reporting-standards) - canonical policy for `Logger`, telemetry, sanitization, and Splode-backed error contracts
 - [Livebook Authoring Standards](/docs/contributors/livebook-authoring-standards) - canonical format for runnable docs notebooks, metadata, and drift tests
 - [Roadmap](/docs/contributors/roadmap) - current milestone, next milestone, and active epics shaping the ecosystem
 - [Contributing](/docs/contributors/contributing) - who can contribute, where to start, and how lightweight contribution flow works
@@ -26,6 +27,7 @@ Use this section as the public contributor handbook for Jido. It is the place to
 
 - Package lookup or owner lookup: start with [Ecosystem Atlas](/docs/contributors/ecosystem-atlas)
 - Release expectations or package review bar: use [Package Support Levels](/docs/contributors/package-support-levels) and [Package Quality Standards](/docs/contributors/package-quality-standards)
+- Logging, telemetry, or error-contract policy: use [Observability and Error Reporting Standards](/docs/contributors/observability-and-error-reporting-standards)
 - Runnable tutorial or cookbook format: use [Livebook Authoring Standards](/docs/contributors/livebook-authoring-standards)
 - Where the project is heading and where help is useful now: use [Roadmap](/docs/contributors/roadmap) and [Contributing](/docs/contributors/contributing)
 

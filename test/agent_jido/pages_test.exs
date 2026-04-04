@@ -96,6 +96,7 @@ defmodule AgentJido.PagesTest do
                "/docs/contributors/ecosystem-atlas",
                "/docs/contributors/package-support-levels",
                "/docs/contributors/package-quality-standards",
+               "/docs/contributors/observability-and-error-reporting-standards",
                "/docs/contributors/livebook-authoring-standards",
                "/docs/contributors/roadmap",
                "/docs/contributors/contributing",

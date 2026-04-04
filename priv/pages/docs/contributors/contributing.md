@@ -25,7 +25,7 @@ For conversation, onboarding, and general community entry, go to [/community](/c
 
 1. Pick a package, team, or problem you want to help with.
 2. Open an issue, join a discussion, or send a pull request for normal contribution work.
-3. Follow the shared standards in [Package Quality Standards](/docs/contributors/package-quality-standards). If the change is a runnable docs notebook or cookbook example, also use [Livebook Authoring Standards](/docs/contributors/livebook-authoring-standards).
+3. Follow the shared standards in [Package Quality Standards](/docs/contributors/package-quality-standards). If the change touches logging, telemetry, sanitization, or public error contracts, also use [Observability and Error Reporting Standards](/docs/contributors/observability-and-error-reporting-standards). If the change is a runnable docs notebook or cookbook example, also use [Livebook Authoring Standards](/docs/contributors/livebook-authoring-standards).
 4. If the change affects package positioning, ownership, or support claims, align it with the [Ecosystem Atlas](/docs/contributors/ecosystem-atlas), [Package Support Levels](/docs/contributors/package-support-levels), and [Roadmap](/docs/contributors/roadmap).
 5. Hand off clearly if you stop, pause, or need someone else to pick up the work.
 
@@ -60,5 +60,6 @@ If you want to take on ongoing stewardship, talk with Mike Hostetler or the curr
 
 - [Community](/community) - join Discord and collaborate in public
 - [Package Quality Standards](/docs/contributors/package-quality-standards) - use the package review and release bar
+- [Observability and Error Reporting Standards](/docs/contributors/observability-and-error-reporting-standards) - use the canonical logging, telemetry, and error-contract policy
 - [Livebook Authoring Standards](/docs/contributors/livebook-authoring-standards) - use the canonical runnable notebook format for docs examples
 - [Governance and Team Structure](/docs/contributors/governance-and-team) - understand how ownership and decisions work

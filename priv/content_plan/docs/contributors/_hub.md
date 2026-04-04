@@ -15,7 +15,8 @@
   prerequisites: [],
   purpose: "Section root organizing contributor-facing policy, package ownership, roadmap, and shared ecosystem workflows",
   related: ["docs/contributors/ecosystem-atlas", "docs/contributors/package-support-levels",
-   "docs/contributors/package-quality-standards", "docs/contributors/roadmap",
+   "docs/contributors/package-quality-standards",
+   "docs/contributors/observability-and-error-reporting-standards", "docs/contributors/roadmap",
    "docs/contributors/contributing", "docs/contributors/governance-and-team"],
   prompt_overrides: %{
     document_intent: "Create the contributors section hub that routes maintainers and outside contributors to the canonical ecosystem handbook pages.",
@@ -24,7 +25,8 @@
      "One-line description of each contributor page"],
     must_avoid: ["Duplicating the full content of child pages", "Long prose"],
     required_links: ["/docs/contributors/ecosystem-atlas", "/docs/contributors/package-support-levels",
-     "/docs/contributors/package-quality-standards", "/docs/contributors/roadmap",
+     "/docs/contributors/package-quality-standards",
+     "/docs/contributors/observability-and-error-reporting-standards", "/docs/contributors/roadmap",
      "/docs/contributors/contributing", "/docs/contributors/governance-and-team", "/community"],
     min_words: 150,
     max_words: 450,
@@ -43,4 +45,4 @@ Section root for Contributors. Organizes canonical contributor policy, ownership
 
 - Makes it obvious this is the contributor-facing handbook
 - Distinguishes `/community` from `/docs/contributors`
-- Links directly to all six contributor child pages
+- Links directly to all contributor child pages, including observability standards

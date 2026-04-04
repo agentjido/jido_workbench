@@ -215,6 +215,7 @@ defmodule AgentJidoWeb.PageLiveTest do
     test "renders the new contributor handbook pages", %{conn: conn} do
       for {path, title} <- [
             {"/docs/contributors/ecosystem-atlas", "Ecosystem Atlas"},
+            {"/docs/contributors/observability-and-error-reporting-standards", "Observability and Error Reporting Standards"},
             {"/docs/contributors/livebook-authoring-standards", "Livebook Authoring Standards"},
             {"/docs/contributors/roadmap", "Roadmap"},
             {"/docs/contributors/contributing", "Contributing"},
@@ -239,6 +240,7 @@ defmodule AgentJidoWeb.PageLiveTest do
                "/docs/contributors/ecosystem-atlas",
                "/docs/contributors/package-support-levels",
                "/docs/contributors/package-quality-standards",
+               "/docs/contributors/observability-and-error-reporting-standards",
                "/docs/contributors/livebook-authoring-standards",
                "/docs/contributors/roadmap",
                "/docs/contributors/contributing",
