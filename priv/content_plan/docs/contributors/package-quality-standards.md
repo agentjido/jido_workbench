@@ -11,7 +11,8 @@
   ecosystem_packages: ["jido", "req_llm", "llm_db", "jido_action", "jido_signal"],
   learning_outcomes: ["Audit a package against the shared Jido quality baseline",
    "Verify required repo structure, quality gates, and release workflow expectations",
-   "Use a canonical checklist for contributor onboarding and PR review"],
+   "Use a canonical checklist for contributor onboarding and PR review",
+   "Apply worktree-safe git hook and release-tooling patterns"],
   order: 10,
   prerequisites: ["docs/contributors/_hub"],
   purpose: "Canonical contributor-facing checklist for Jido ecosystem package quality, CI, documentation coverage, and GitOps-style release readiness",
@@ -23,7 +24,8 @@
     required_sections: ["Fast Path Checklist", "How to use this page", "Package Structure", "Shared Building Blocks", "Quality Gates", "Release Workflow", "Contributor Checklists"],
     must_include: ["Short explanation that quality standards are distinct from support levels",
      "Explicit `mix quality` policy", "GitOps-style release workflow expectations",
-     "Contributor checklists for new packages, first release, and ongoing maintenance"],
+     "Contributor checklists for new packages, first release, and ongoing maintenance",
+     "Worktree-safe git hook guidance with explicit install rather than compile-time auto-install"],
     must_avoid: ["Package-specific implementation details that belong in per-repo docs"],
     required_links: ["/docs/contributors", "/docs/contributors/ecosystem-atlas",
      "/docs/contributors/package-support-levels", "/docs/reference", "/ecosystem"],
@@ -45,5 +47,6 @@ Canonical checklist and standards page for public Jido ecosystem packages. This 
 - Includes a fast review path near the top
 - Distinguishes quality standards from support level and package roster pages
 - Covers repo structure, quality gates, docs coverage, CI, and release workflow
+- Captures worktree-safe git hook and local tooling expectations
 - States the canonical package policies clearly enough to link from PRs
 - Includes actionable checklists, not just prose

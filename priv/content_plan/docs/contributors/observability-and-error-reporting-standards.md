@@ -11,7 +11,8 @@
   ecosystem_packages: ["jido", "jido_action", "jido_signal", "jido_ai"],
   learning_outcomes: ["Audit a package's logging, telemetry, and error handling against the shared Jido baseline",
    "Implement a canonical package boundary for normalization, sanitization, and public error serialization",
-   "Distinguish what belongs in logs, telemetry, and public error contracts"],
+   "Distinguish what belongs in logs, telemetry, and public error contracts",
+   "Recognize when observability or error-shape changes are semver-relevant contract changes"],
   order: 11,
   prerequisites: ["docs/contributors/_hub", "docs/reference/telemetry-and-observability"],
   purpose: "Canonical contributor-facing implementation guide for logging, telemetry, sanitization, and Splode-backed error contracts across the Jido ecosystem",
@@ -28,7 +29,8 @@
      "Direct `Logger` policy and lazy logging guidance",
      "Two-profile sanitization guidance for `:telemetry` and `:transport`",
      "Stable `Error.to_map/1` policy",
-     "At least one bounded boundary example showing normalize -> observe -> transport flow"],
+     "At least one bounded boundary example showing normalize -> observe -> transport flow",
+     "Guidance that telemetry metadata and public error-shape changes are contract changes, not just refactors"],
     must_avoid: ["Runtime-specific event inventories that belong on the telemetry reference page",
      "Package-specific implementation detail that should live in per-repo docs"],
     required_links: ["/docs/contributors", "/docs/contributors/package-quality-standards",
@@ -52,4 +54,5 @@ Canonical implementation guide for logging, telemetry, sanitization, and error r
 - Separates human logs, machine telemetry, and public error contracts clearly
 - Defines the minimum canonical package surfaces for errors, sanitization, and observation
 - Includes actionable examples for telemetry spans and `Error.to_map/1`
+- Treats telemetry metadata and public error shape as real contracts for review and changelog purposes
 - States verification expectations clearly enough to link from reviews and implementation handoffs

@@ -26,6 +26,7 @@ This page defines the package bar. It is separate from [Package Support Levels](
 - [ ] CI and release automation exist and are wired correctly
 - [ ] Public API, validation, error, and telemetry patterns follow ecosystem conventions
 - [ ] Contributor-facing files exist: `CONTRIBUTING.md`, `CHANGELOG.md`, `AGENTS.md`, and license
+- [ ] Git hook and release tooling is worktree-safe and does not depend on compile-time auto-install or ephemeral local paths
 - [ ] Examples live outside shipped library code when they need extra app wiring
 - [ ] Hex/release metadata is ready if the package is being published
 - [ ] Any exception to this page is explicit and documented
@@ -379,7 +380,8 @@ defmodule MyPackage.MixProject do
 
   defp aliases do
     [
-      setup: ["deps.get", "git_hooks.install"],
+      setup: ["deps.get"],
+      install_hooks: ["git_hooks.install"],
       test: "test --exclude flaky",
       q: ["quality"],
       quality: [
@@ -420,6 +422,8 @@ defmodule MyPackage.MixProject do
   end
 end
 ```
+
+When a package uses `git_hooks`, keep installation explicit rather than compile-time or dependency-compile side effects. That keeps contributor worktrees, detached review checkouts, and automation environments usable.
 
 ---
 
@@ -519,6 +523,47 @@ git commit -m "feat(schema): add validation for email fields"
 git commit -m "fix: resolve timeout in async operations"
 git commit -m "feat!: breaking change to API"
 ```
+
+---
+
+## Git Hooks and Worktree Safety
+
+Git hooks are useful, but they must not make a repository hostile to secondary worktrees, detached PR review checkouts, or automation environments.
+
+The canonical Jido policy is:
+
+- disable `git_hooks` auto-install in normal environments
+- install hooks explicitly from the primary repository checkout
+- ensure custom hook scripts resolve the repository root dynamically
+- never bake a temporary worktree path into committed or generated hook scripts
+- prefer graceful degradation over breaking compile or commit flow when `.git` is unavailable
+
+### Canonical Pattern
+
+```elixir
+# config/dev.exs and config/test.exs
+import Config
+
+config :git_hooks, auto_install: false
+```
+
+```elixir
+defp aliases do
+  [
+    setup: ["deps.get"],
+    install_hooks: ["git_hooks.install"]
+  ]
+end
+```
+
+If a package needs custom hook scripts, they should derive the repository root at runtime, for example with `git rev-parse --show-toplevel`, instead of hard-coding an absolute local path.
+
+### Worktree Checklist
+
+- [ ] `git_hooks` auto-install is disabled by default.
+- [ ] Hook installation is an explicit maintainer step such as `mix install_hooks`.
+- [ ] Hook scripts do not embed temporary or machine-specific absolute paths.
+- [ ] Compile and commit flows still work from a secondary worktree or fail with a clear, bounded message.
 
 ---
 
@@ -722,6 +767,7 @@ This approach:
 
 - [ ] `mix.exs` follows standard configuration (Elixir `~> 1.18`).
 - [ ] `quality` alias defined (includes `doctor --raise`).
+- [ ] Git hook setup is explicit and worktree-safe.
 - [ ] `.formatter.exs` configured.
 - [ ] `.gitignore` includes `_build/`, `deps/`, `cover/`, `priv/plts/`, `*.plt`, `.elixir_ls/`.
 - [ ] `README.md` with installation (Hex + Igniter if applicable) and quick start.
@@ -751,6 +797,7 @@ This approach:
 - [ ] Coverage maintained above threshold.
 - [ ] Documentation coverage maintained (doctor).
 - [ ] Conventional commits enforced.
+- [ ] Hook scripts and git tooling still work from contributor worktrees.
 - [ ] CHANGELOG updated on releases.
 - [ ] Dependencies kept up to date.
 - [ ] Security advisories addressed promptly.
@@ -761,6 +808,7 @@ This approach:
 
 ```bash
 mix setup              # Setup dev environment
+mix install_hooks      # Explicitly install git hooks from the primary checkout
 mix quality            # Run all quality checks
 mix coveralls.html     # Run tests with coverage report
 mix docs               # Generate documentation

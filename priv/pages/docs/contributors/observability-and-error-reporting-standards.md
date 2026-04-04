@@ -32,6 +32,7 @@ Use it as the canonical implementation guide when a package needs to decide what
 - [ ] Packages standardize on Splode for error composition and classification
 - [ ] Retryability and outcome classification are derived centrally, not controlled by per-call shape switches
 - [ ] The same failure is not logged independently at every layer of the stack
+- [ ] Changes to telemetry metadata, event names, or public error shape are treated as semver-relevant and documented clearly
 
 ## How to use this page
 
@@ -493,6 +494,17 @@ The exact field set may grow for package-specific reasons, but these expectation
 - `details` is a JSON-safe map
 - `retryable?` is computed centrally and consistently
 
+### Contract changes are not "just refactors"
+
+Changing any of the following should be treated as a contract change, not a cleanup detail:
+
+- documented telemetry event names
+- default telemetry metadata fields
+- public `Error.to_map/1` fields or meanings
+- per-call observability options that downstream code may already rely on
+
+For ecosystem packages, these changes should be called out explicitly in PR descriptions, changelogs, and migration notes when relevant. Even when the main execution API stays the same, observability consumers may still experience a real breaking change.
+
 ### Retryability is centralized policy
 
 Retryability should be derived from typed errors and structured details in one place, usually the package error module.
@@ -553,6 +565,7 @@ Use this checklist when reviewing observability or error-model pull requests:
 - [ ] Are raw failures normalized once at a boundary?
 - [ ] Is public error serialization centralized in `Error.to_map/1` or equivalent?
 - [ ] Is retryability derived centrally rather than configured ad hoc?
+- [ ] If telemetry metadata or public error shape changed, is that change described as a contract change rather than hidden inside a "cleanup" summary?
 - [ ] Are there any duplicated logs, leaked secrets, or unbounded payloads?
 
 ## Anti-Patterns
