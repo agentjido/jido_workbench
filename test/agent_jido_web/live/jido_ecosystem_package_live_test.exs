@@ -61,6 +61,23 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLiveTest do
     refute html =~ "Ecosystem Fit"
   end
 
+  test "renders mattermost adapter details with websocket-first positioning", %{conn: conn} do
+    {:ok, _view, html} = live(conn, "/ecosystem/jido_chat_mattermost")
+
+    assert html =~ "Jido Chat Mattermost"
+    assert html =~ "Mattermost adapter package implementing the Jido Chat adapter contract"
+    assert html =~ "AT A GLANCE"
+    assert html =~ "DEEP DIVE"
+    assert html =~ "Uses a websocket-only ingress model and does not include webhook ingestion support."
+    assert html =~ "Provides standalone transport implementation without external adapter dependencies"
+    assert html =~ ~s(href="https://github.com/www-zaq-ai/jido_chat_mattermost")
+    refute html =~ "WHEN TO USE Jido Chat Mattermost"
+    refute html =~ "START HERE"
+    refute html =~ "KEY MODULES"
+    refute html =~ "FAQ"
+    refute html =~ "Add to mix.exs"
+  end
+
   test "renders curated seo metadata and structured data for package pages", %{conn: conn} do
     html =
       conn
