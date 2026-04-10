@@ -163,6 +163,7 @@ defmodule AgentJidoWeb.JidoEcosystemLiveTest do
     {:ok, _view, html} = live(conn, "/ecosystem")
 
     assert html =~ "jido_chat_discord"
+    assert html =~ "jido_chat_mattermost"
     assert html =~ "jido_chat_telegram"
     assert html =~ ~s(orbit_parent&quot;:&quot;jido_chat&quot;)
   end
