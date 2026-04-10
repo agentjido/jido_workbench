@@ -429,7 +429,7 @@ Use the Planning action directly:
   Jido.Exec.run(Jido.AI.Actions.Planning.Decompose, %{
     goal: "Prepare a release readiness brief for the new command palette",
     max_depth: 2,
-    model: "openai:gpt-4o-mini"
+    model: "openai:gpt-5-mini"
   })
 ```
 

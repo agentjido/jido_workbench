@@ -65,7 +65,7 @@ defmodule MyApp.ChatAgent do
     name: "chat_agent",
     description: "Multi-turn chat agent",
     tools: [],
-    model: "openai:gpt-4o-mini",
+    model: "openai:gpt-5-mini",
     system_prompt: """
     You are a concise, friendly chat assistant.
     Ask a short clarifying question when the user is ambiguous.
