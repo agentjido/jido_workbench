@@ -125,8 +125,8 @@ Hooks.ThemeToggle = {
     const sunIcon = this.el.querySelector("[data-theme-icon='sun']");
 
     if (moonIcon && sunIcon) {
-      moonIcon.classList.toggle("hidden", isLight);
-      sunIcon.classList.toggle("hidden", !isLight);
+      moonIcon.classList.toggle("hidden", !isLight);
+      sunIcon.classList.toggle("hidden", isLight);
       this.el.setAttribute("aria-label", isLight ? "Switch to dark mode" : "Switch to light mode");
     }
   },
