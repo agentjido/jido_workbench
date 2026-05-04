@@ -51,7 +51,7 @@ defmodule AgentJido.MixProject do
       {:remote_ip, "~> 1.2"},
       {:plug_canonical_host, "~> 2.0"},
       {:multipart, "~> 0.4", override: true},
-      {:phoenix_seo, "~> 0.1.11"},
+      {:phoenix_seo, "~> 0.2.1"},
       {:finch, "~> 0.13"},
       {:posthog, "~> 2.5"},
       {:swoosh, "~> 1.5"},
