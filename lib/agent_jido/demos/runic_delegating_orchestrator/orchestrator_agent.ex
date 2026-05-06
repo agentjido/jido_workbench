@@ -44,9 +44,9 @@ defmodule AgentJido.Demos.RunicDelegatingOrchestrator.OrchestratorAgent do
 
     Workflow.new(name: :delegating_pipeline)
     |> Workflow.add(PlanQueries)
-    |> Workflow.add(SimulateSearch, to: :plan_queries)
-    |> Workflow.add(BuildOutline, to: :simulate_search)
-    |> Workflow.add(draft_node, to: :build_outline)
-    |> Workflow.add(edit_node, to: :draft_article)
+    |> Workflow.add(SimulateSearch, to: :plan_queries, validate: :off)
+    |> Workflow.add(BuildOutline, to: :simulate_search, validate: :off)
+    |> Workflow.add(draft_node, to: :build_outline, validate: :off)
+    |> Workflow.add(edit_node, to: :draft_article, validate: :off)
   end
 end

@@ -74,7 +74,7 @@ defmodule AgentJido.ContentOps.Chat.BindingBootstrapper do
         {:ok, room}
 
       {:error, :not_found} ->
-        room = %JidoMessaging.Room{
+        room = %Jido.Chat.Room{
           id: room_id,
           type: :group,
           name: room_name,

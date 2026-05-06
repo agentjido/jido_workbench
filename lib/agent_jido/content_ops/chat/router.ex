@@ -16,7 +16,7 @@ defmodule AgentJido.ContentOps.Chat.Router do
   }
 
   @doc "Main callback used by channel handlers."
-  @spec handle_message(JidoMessaging.Message.t(), map()) :: {:reply, String.t()} | :noreply
+  @spec handle_message(Jido.Messaging.Message.t(), map()) :: {:reply, String.t()} | :noreply
   def handle_message(message, context) do
     text = extract_text(message) |> String.trim()
 
@@ -324,7 +324,7 @@ defmodule AgentJido.ContentOps.Chat.Router do
     |> Enum.find_value("", fn
       %{text: text} when is_binary(text) -> text
       %{"text" => text} when is_binary(text) -> text
-      %JidoMessaging.Content.Text{text: text} -> text
+      %Jido.Chat.Content.Text{text: text} -> text
       _ -> nil
     end)
   end

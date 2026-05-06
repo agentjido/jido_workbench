@@ -30,7 +30,7 @@ defmodule AgentJido.Demos.RunicAdaptiveResearcher.OrchestratorAgent do
   def build_phase_1 do
     Workflow.new(name: :phase_1_research)
     |> Workflow.add(PlanQueries)
-    |> Workflow.add(SimulateSearch, to: :plan_queries)
+    |> Workflow.add(SimulateSearch, to: :plan_queries, validate: :off)
   end
 
   @doc "Builds the selected phase-2 workflow based on research summary richness."
@@ -39,12 +39,12 @@ defmodule AgentJido.Demos.RunicAdaptiveResearcher.OrchestratorAgent do
     if rich_research?(productions) do
       Workflow.new(name: :phase_2_full)
       |> Workflow.add(BuildOutline)
-      |> Workflow.add(DraftArticle, to: :build_outline)
-      |> Workflow.add(EditAndAssemble, to: :draft_article)
+      |> Workflow.add(DraftArticle, to: :build_outline, validate: :off)
+      |> Workflow.add(EditAndAssemble, to: :draft_article, validate: :off)
     else
       Workflow.new(name: :phase_2_slim)
       |> Workflow.add(DraftArticle)
-      |> Workflow.add(EditAndAssemble, to: :draft_article)
+      |> Workflow.add(EditAndAssemble, to: :draft_article, validate: :off)
     end
   end
 

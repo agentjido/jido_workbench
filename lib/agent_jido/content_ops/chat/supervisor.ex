@@ -79,7 +79,7 @@ defmodule AgentJido.ContentOps.Chat.Supervisor do
 
     agent_runner_children =
       Enum.map(room_ids, fn room_id ->
-        {JidoMessaging.AgentRunner,
+        {Jido.Messaging.AgentRunner,
          room_id: room_id, agent_id: "chat_agent", agent_config: ChatAgentRunner.agent_config(), instance_module: Messaging}
       end)
 

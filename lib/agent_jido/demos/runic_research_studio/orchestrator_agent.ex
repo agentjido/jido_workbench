@@ -30,9 +30,9 @@ defmodule AgentJido.Demos.RunicResearchStudio.OrchestratorAgent do
   def build_workflow do
     Workflow.new(name: :runic_research_studio)
     |> Workflow.add(PlanQueries)
-    |> Workflow.add(SimulateSearch, to: :plan_queries)
-    |> Workflow.add(BuildOutline, to: :simulate_search)
-    |> Workflow.add(DraftArticle, to: :build_outline)
-    |> Workflow.add(EditAndAssemble, to: :draft_article)
+    |> Workflow.add(SimulateSearch, to: :plan_queries, validate: :off)
+    |> Workflow.add(BuildOutline, to: :simulate_search, validate: :off)
+    |> Workflow.add(DraftArticle, to: :build_outline, validate: :off)
+    |> Workflow.add(EditAndAssemble, to: :draft_article, validate: :off)
   end
 end

@@ -3,7 +3,7 @@ defmodule AgentJido.ContentOps.Chat.AuthorizerTest do
 
   @moduletag :content_ops
 
-  alias AgentJido.ContentOps.Chat.Authorizer
+  alias AgentJido.ContentOps.Chat.{Authorizer, DiscordChannel}
 
   setup do
     original = Application.get_env(:agent_jido, AgentJido.ContentOps.Chat)
@@ -38,7 +38,7 @@ defmodule AgentJido.ContentOps.Chat.AuthorizerTest do
 
   test "actor_from_context/1 extracts actor identity" do
     context = %{
-      channel: JidoMessaging.Channels.Discord,
+      channel: DiscordChannel,
       participant: %{external_ids: %{discord: "222"}}
     }
 

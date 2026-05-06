@@ -5,7 +5,8 @@ defmodule AgentJido.ContentOps.Chat.IntegrationTest do
 
   alias AgentJido.ContentOps.Chat.{BindingBootstrapper, Bridge, RunNotifier, RunStore, SessionManager}
   alias AgentJido.ContentOps.Messaging
-  alias JidoMessaging.RoomServer
+  alias Jido.Chat.{Content.Text, Room}
+  alias Jido.Messaging.RoomServer
 
   defmodule TelegramStub do
     def send_message(external_id, text, _opts \\ []) do
@@ -89,7 +90,7 @@ defmodule AgentJido.ContentOps.Chat.IntegrationTest do
 
     room_id = "contentops:bridge:" <> Integer.to_string(System.unique_integer([:positive]))
 
-    room = %JidoMessaging.Room{
+    room = %Room{
       id: room_id,
       type: :group,
       name: "Bridge Test",
@@ -118,7 +119,7 @@ defmodule AgentJido.ContentOps.Chat.IntegrationTest do
         room_id: room_id,
         sender_id: "user-1",
         role: :user,
-        content: [%JidoMessaging.Content.Text{text: "hello bridge"}],
+        content: [%Text{text: "hello bridge"}],
         status: :sent,
         metadata: %{channel: :telegram, username: "alice"}
       })

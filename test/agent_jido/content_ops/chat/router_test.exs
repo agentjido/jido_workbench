@@ -3,7 +3,8 @@ defmodule AgentJido.ContentOps.Chat.RouterTest do
 
   @moduletag :content_ops
 
-  alias AgentJido.ContentOps.Chat.Router
+  alias AgentJido.ContentOps.Chat.{Router, TelegramChannel}
+  alias Jido.Chat.Content.Text
 
   defmodule OpsServiceStub do
     def run(mode, actor) do
@@ -75,17 +76,17 @@ defmodule AgentJido.ContentOps.Chat.RouterTest do
   end
 
   test "handle_message/2 returns noreply for non-addressed non-command text" do
-    message = %{room_id: "r1", content: [%JidoMessaging.Content.Text{text: "hello world"}]}
+    message = %{room_id: "r1", content: [%Text{text: "hello world"}]}
     context = %{}
 
     assert :noreply = Router.handle_message(message, context)
   end
 
   test "allowlisted actor can trigger /ops run" do
-    message = %{room_id: "r1", content: [%JidoMessaging.Content.Text{text: "/ops run weekly"}]}
+    message = %{room_id: "r1", content: [%Text{text: "/ops run weekly"}]}
 
     context = %{
-      channel: JidoMessaging.Channels.Telegram,
+      channel: TelegramChannel,
       participant: %{external_ids: %{telegram: "111"}}
     }
 
@@ -94,10 +95,10 @@ defmodule AgentJido.ContentOps.Chat.RouterTest do
   end
 
   test "addressed command can trigger /ops run" do
-    message = %{room_id: "r1", content: [%JidoMessaging.Content.Text{text: "@ContentOps /ops run weekly"}]}
+    message = %{room_id: "r1", content: [%Text{text: "@ContentOps /ops run weekly"}]}
 
     context = %{
-      channel: JidoMessaging.Channels.Telegram,
+      channel: TelegramChannel,
       participant: %{external_ids: %{telegram: "111"}}
     }
 
@@ -106,10 +107,10 @@ defmodule AgentJido.ContentOps.Chat.RouterTest do
   end
 
   test "run command forwards actor context to ops service" do
-    message = %{room_id: "r1", content: [%JidoMessaging.Content.Text{text: "/ops run weekly"}]}
+    message = %{room_id: "r1", content: [%Text{text: "/ops run weekly"}]}
 
     context = %{
-      channel: JidoMessaging.Channels.Telegram,
+      channel: TelegramChannel,
       participant: %{external_ids: %{telegram: "999"}}
     }
 

@@ -13,8 +13,8 @@ defmodule AgentJido.ContentOps.Chat.ChatAgentRunner do
 
   @agent_name "AgentJido"
 
-  @doc "Returns an agent_config map for use with JidoMessaging.AgentRunner."
-  @spec agent_config(keyword()) :: JidoMessaging.AgentRunner.agent_config()
+  @doc "Returns an agent_config map for use with `Jido.Messaging.AgentRunner`."
+  @spec agent_config(keyword()) :: Jido.Messaging.AgentRunner.agent_config()
   def agent_config(opts \\ []) do
     %{
       name: Keyword.get(opts, :name, @agent_name),
@@ -69,7 +69,7 @@ defmodule AgentJido.ContentOps.Chat.ChatAgentRunner do
   defp extract_text(%{content: content}) when is_list(content) do
     Enum.find_value(content, "", fn
       %{text: text} when is_binary(text) -> text
-      %JidoMessaging.Content.Text{text: text} -> text
+      %Jido.Chat.Content.Text{text: text} -> text
       _ -> nil
     end)
   end

@@ -5,7 +5,7 @@ defmodule AgentJido.ContentOps.Messaging do
   Uses in-memory ETS storage in V1.
   """
 
-  use JidoMessaging,
-    adapter: JidoMessaging.Adapters.ETS,
+  use Jido.Messaging,
+    persistence: Jido.Messaging.Persistence.ETS,
     pubsub: AgentJido.PubSub
 end

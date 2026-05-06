@@ -7,8 +7,9 @@ defmodule AgentJido.ContentOps.Chat.Bridge do
 
   require Logger
 
+  alias AgentJido.ContentOps.Chat.{DiscordHandler, TelegramHandler}
   alias Jido.Signal.Bus
-  alias JidoMessaging.Supervisor, as: MessagingSupervisor
+  alias Jido.Messaging.Supervisor, as: MessagingSupervisor
 
   @type state :: %{
           instance_module: module(),
@@ -28,8 +29,8 @@ defmodule AgentJido.ContentOps.Chat.Bridge do
   def init(opts) do
     state = %{
       instance_module: Keyword.fetch!(opts, :instance_module),
-      telegram_sender: Keyword.get(opts, :telegram_sender, JidoMessaging.Channels.Telegram),
-      discord_sender: Keyword.get(opts, :discord_sender, JidoMessaging.Channels.Discord),
+      telegram_sender: Keyword.get(opts, :telegram_sender, TelegramHandler),
+      discord_sender: Keyword.get(opts, :discord_sender, DiscordHandler),
       subscribed: false
     }
 
@@ -154,7 +155,7 @@ defmodule AgentJido.ContentOps.Chat.Bridge do
     |> Enum.find_value("", fn
       %{text: text} when is_binary(text) -> text
       %{"text" => text} when is_binary(text) -> text
-      %JidoMessaging.Content.Text{text: text} -> text
+      %Jido.Chat.Content.Text{text: text} -> text
       _ -> nil
     end)
   end

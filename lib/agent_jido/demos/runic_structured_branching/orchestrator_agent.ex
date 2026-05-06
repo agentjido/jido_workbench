@@ -42,7 +42,7 @@ defmodule AgentJido.Demos.RunicStructuredBranching.OrchestratorAgent do
   def build_phase_2(:analysis) do
     Workflow.new(name: :phase_2_analysis)
     |> Workflow.add(AnalysisPlan)
-    |> Workflow.add(AnalysisAnswer, to: :analysis_plan)
+    |> Workflow.add(AnalysisAnswer, to: :analysis_plan, validate: :off)
   end
 
   def build_phase_2(:safe) do
