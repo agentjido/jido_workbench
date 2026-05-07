@@ -17,7 +17,7 @@ Link contributors and automated reviewers here when a package PR needs the canon
 
 This page defines the package bar. It is separate from [Package Support Levels](/docs/contributors/package-support-levels), which define maintenance commitment, and separate from the [Ecosystem Atlas](/docs/contributors/ecosystem-atlas), which lists the current public package roster and owners.
 
-> **Note:** The ecosystem is still finishing the move from Elixir `~> 1.17` packages to an Elixir `~> 1.18` contributor baseline. Treat `~> 1.18` as the target bar for new packages and when touching CI or release surfaces on older packages.
+> **Note:** The ecosystem is still finishing the move from Elixir `~> 1.17` packages to an Elixir `~> 1.18` contributor baseline. Treat `~> 1.18` as the target bar for new packages and when touching CI or release surfaces on older packages. CI should exercise every released Elixir version line from that baseline forward and include the current Elixir release candidate in an experimental compile lane.
 
 ## Fast Path Checklist
 
@@ -37,7 +37,7 @@ This page defines the package bar. It is separate from [Package Support Levels](
 - Use it as the review baseline for pull requests that change package structure, CI, or release automation.
 - Use it as the canonical policy page when agents need a stable source of truth for ecosystem package standards.
 
-- New packages MUST:
+New packages MUST:
 
 - Target **Elixir `~> 1.18`** as the baseline.
 - Follow the conventions in this document unless there is a strong, documented reason not to.
@@ -54,8 +54,9 @@ Existing packages should move to that baseline as they are actively maintained. 
 my_package/
 ├── .github/
 │   └── workflows/
-│       ├── ci.yml              # Lint + test matrix
-│       └── release.yml         # Hex publish workflow
+│       ├── ci.yml              # Shared Jido CI caller
+│       ├── release.yml         # Shared Jido release caller
+│       └── review.yml          # Shared Jido advisory PR review caller
 ├── config/
 │   ├── config.exs              # Base configuration
 │   ├── dev.exs                 # Development overrides
@@ -330,13 +331,7 @@ defmodule MyPackage.MixProject do
       # Test Coverage
       test_coverage: [
         tool: ExCoveralls,
-        summary: [threshold: 90]
-      ],
-
-      # Dialyzer
-      dialyzer: [
-        plt_local_path: "priv/plts/project.plt",
-        plt_core_path: "priv/plts/core.plt"
+        summary: [threshold: 80]
       ]
     ]
   end
@@ -427,6 +422,170 @@ When a package uses `git_hooks`, keep installation explicit rather than compile-
 
 ---
 
+## Elixir Version Baseline
+
+The package baseline is Elixir `~> 1.18` in `mix.exs`.
+
+CI MUST test every released Elixir version line from that baseline forward. As of May 2026, that means:
+
+- Elixir `1.18`
+- Elixir `1.19`
+
+CI SHOULD also compile against the current Elixir release candidate in an experimental lane. Experimental lanes are allowed to warn or fail without failing the required CI gate, but their output should be reviewed before releases and dependency upgrades. As of May 2026, the current RC lane is `v1.20.0-rc.4` on OTP `28.4.1`.
+
+Update the matrix in the same PR that updates the package's shared workflow installation when a new Elixir version line or release candidate becomes available.
+
+---
+
+## GitHub Actions v4 Integration
+
+Standard Jido packages should use the shared v4 workflow platform from [`agentjido/github-actions`](https://github.com/agentjido/github-actions). Add exactly these caller workflows to the package repository:
+
+- `.github/workflows/ci.yml`
+- `.github/workflows/release.yml`
+- `.github/workflows/review.yml`
+
+Consumer repositories should call only the public `jido-*` workflows. Do not add package-local copies of the reusable workflows or old internal workflow files such as `elixir-ci.yml`, `elixir-release.yml`, `elixir-quality.yml`, `elixir-test.yml`, `jido-policy.yml`, or `jido-sync.yml`.
+
+### CI Caller
+
+```yaml
+name: CI
+
+on:
+  pull_request:
+  merge_group:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  ci:
+    name: CI
+    uses: agentjido/github-actions/.github/workflows/jido-ci.yml@v4
+    secrets: inherit
+    with:
+      otp_versions: '["27", "28"]'
+      elixir_versions: '["1.18", "1.19"]'
+      experimental_compile_elixir_versions: '["v1.20.0-rc.4"]'
+      experimental_compile_otp_versions: '["28.4.1"]'
+      experimental_compile_otp_name: "28"
+      docs_command: mix docs -f html
+      test_command: mix test
+```
+
+Packages that are not yet strict-Credo clean may temporarily pass exactly one `credo_command` override under `with:`. Keep the override package-specific and remove it when the package reaches the strict baseline.
+
+```yaml
+      credo_command: mix credo --min-priority higher
+```
+
+### Release Caller
+
+```yaml
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: "Release operation: auto, prepare, or publish"
+        required: false
+        type: choice
+        default: auto
+        options:
+          - auto
+          - prepare
+          - publish
+      tag_name:
+        description: "Optional v-prefixed tag for publish simulation"
+        required: false
+        type: string
+        default: ""
+      dry_run:
+        description: "Dry run (no git push, no tag, no GitHub release, no Hex publish)"
+        required: false
+        type: boolean
+        default: false
+      hex_dry_run:
+        description: "Hex dry run only (run all git/release steps, but skip actual Hex publish)"
+        required: false
+        type: boolean
+        default: false
+      skip_tests:
+        description: "Skip tests before release"
+        required: false
+        type: boolean
+        default: false
+      version_override:
+        description: "Optional bare SemVer override (for example 1.2.3, not v1.2.3)"
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  release:
+    name: Release
+    uses: agentjido/github-actions/.github/workflows/jido-release.yml@v4
+    with:
+      operation: ${{ inputs.operation || 'auto' }}
+      tag_name: ${{ inputs.tag_name || '' }}
+      dry_run: ${{ inputs.dry_run || false }}
+      hex_dry_run: ${{ inputs.hex_dry_run || false }}
+      skip_tests: ${{ inputs.skip_tests || false }}
+      version_override: ${{ inputs.version_override || '' }}
+    secrets: inherit
+```
+
+Use `operation: auto` for normal operation: branch dispatch resolves to release preparation, and pushed `v*` tags resolve to Hex publishing. Real releases require a `HEX_API_KEY` secret for Hex publishing. Non-dry-run release preparation also requires a `RELEASE_TOKEN` secret so release commits and tags can trigger the publish workflow reliably.
+
+### Review Caller
+
+```yaml
+name: Jido Review
+
+on:
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  review:
+    name: Jido Review
+    uses: agentjido/github-actions/.github/workflows/jido-review.yml@v4
+```
+
+The review lane is advisory. Keep it separate from CI and do not add write-back, dependency submission, Sobelow, REUSE, or repo-local review configuration unless a future shared workflow release explicitly requires it.
+
+Pin shared workflows to `@v4` for compatible automatic updates, to an exact tag such as `@v4.0.0` for fixed reproducibility, or to a commit SHA for maximum reproducibility. Do not use `@main` for stable package workflows.
+
+---
+
 ## Quality Checks
 
 ### The `mix quality` Alias
@@ -462,7 +621,7 @@ mix doctor --raise
 
 ### Coverage Requirements
 
-- **Minimum threshold**: 90% line coverage
+- **Minimum threshold**: 80% line coverage
 - **Tool**: ExCoveralls
 - **CI enforcement**: Coverage check in GitHub Actions
 
@@ -471,7 +630,7 @@ mix doctor --raise
 ```elixir
 test_coverage: [
   tool: ExCoveralls,
-  summary: [threshold: 90],
+  summary: [threshold: 80],
   export: "cov",
   ignore_modules: [~r/^MyPackageTest\./]
 ]
@@ -648,7 +807,6 @@ end
 /cover/
 
 # Dialyzer PLT files - do NOT commit these
-/priv/plts/
 *.plt
 *.plt.hash
 
@@ -769,7 +927,7 @@ This approach:
 - [ ] `quality` alias defined (includes `doctor --raise`).
 - [ ] Git hook setup is explicit and worktree-safe.
 - [ ] `.formatter.exs` configured.
-- [ ] `.gitignore` includes `_build/`, `deps/`, `cover/`, `priv/plts/`, `*.plt`, `.elixir_ls/`.
+- [ ] `.gitignore` includes `_build/`, `deps/`, `cover/`, `*.plt`, `.elixir_ls/`.
 - [ ] `README.md` with installation (Hex + Igniter if applicable) and quick start.
 - [ ] `LICENSE` file present.
 - [ ] `AGENTS.md` for AI agent instructions.
@@ -781,13 +939,14 @@ This approach:
 ### Before First Release
 
 - [ ] `mix quality` passes.
-- [ ] `mix test` passes with >90% coverage.
+- [ ] `mix test` passes with at least 80% coverage.
 - [ ] `mix docs` builds without errors.
 - [ ] `mix doctor --raise` passes.
 - [ ] `CHANGELOG.md` has initial entry.
 - [ ] `CONTRIBUTING.md` describes workflow.
-- [ ] GitHub Actions CI configured.
-- [ ] Release workflow configured.
+- [ ] GitHub Actions v4 CI configured with required released Elixir version lines and the current RC experimental lane.
+- [ ] Release workflow configured with `jido-release.yml@v4`.
+- [ ] Advisory review workflow configured with `jido-review.yml@v4`.
 - [ ] Hex.pm package metadata complete.
 - [ ] Igniter installer documented (if provided).
 
