@@ -210,9 +210,9 @@ defmodule AgentJido.PagesTest do
 
       assert String.starts_with?(String.trim_leading(source), "<!-- %{")
       assert source =~ "livebook: %{"
-      assert source =~ ~s({:jido, "~> 2.1"})
-      assert source =~ ~s({:jido_ai, "~> 2.0"})
-      assert source =~ ~s({:req_llm, "~> 1.7"})
+      assert source =~ ~s({:jido, "~> 2.2"})
+      assert source =~ ~s({:jido_ai, "~> 2.1"})
+      assert source =~ ~s({:req_llm, "~> 1.11"})
       refute source =~ "{{mix_dep:"
       assert source =~ "Code.put_compiler_option(:docs, false)"
       assert source =~ "{:ok, _} = Jido.start()"
@@ -236,9 +236,9 @@ defmodule AgentJido.PagesTest do
 
       assert String.starts_with?(String.trim_leading(source), "<!-- %{")
       assert source =~ "livebook: %{"
-      assert source =~ ~s({:jido, "~> 2.1"})
-      assert source =~ ~s({:jido_ai, "~> 2.0"})
-      assert source =~ ~s({:req_llm, "~> 1.7"})
+      assert source =~ ~s({:jido, "~> 2.2"})
+      assert source =~ ~s({:jido_ai, "~> 2.1"})
+      assert source =~ ~s({:req_llm, "~> 1.11"})
       assert source =~ "Code.put_compiler_option(:docs, false)"
       assert source =~ "Jido.start_agent(runtime, MyApp.HybridSupportAgent"
       assert source =~ ~s(model: "openai:o4-mini")

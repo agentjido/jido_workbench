@@ -5,7 +5,7 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLiveTest do
 
   test "private packages are not accessible from public ecosystem routes", %{conn: conn} do
     assert_raise AgentJido.Ecosystem.NotFoundError, fn ->
-      live(conn, "/ecosystem/jido_code")
+      live(conn, "/ecosystem/jido_memory_os")
     end
   end
 
@@ -38,7 +38,7 @@ defmodule AgentJidoWeb.JidoEcosystemPackageLiveTest do
     assert html =~ "DEEP DIVE"
     assert html =~ "Add to mix.exs"
     assert html =~ "defp deps do"
-    assert html =~ "~&gt; 2.1.0"
+    assert html =~ "~&gt; 2.2.0"
     assert html =~ "View package metadata source"
     refute html =~ "Ecosystem Fit"
     refute html =~ "IMPORTANT PACKAGES"

@@ -124,7 +124,7 @@ defmodule AgentJido.ReleaseCatalog do
   @doc """
   Returns a rendered dependency tuple snippet like:
 
-      {:jido, "~> 2.1"}
+      {:jido, "~> 2.2"}
   """
   @spec mix_dep(String.t()) :: String.t()
   def mix_dep(id_or_name) do

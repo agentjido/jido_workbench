@@ -256,12 +256,13 @@ defmodule AgentJidoWeb.PageLiveTest do
       assert html =~ "Chat"
       assert html =~ "Provider Adapters"
       assert html =~ ~s(href="/ecosystem/jido")
-      assert html =~ ~s(href="/ecosystem/jido_memory_os")
+      assert html =~ ~s(href="/ecosystem/jido_code")
       assert html =~ "@mikehostetler"
       assert html =~ "@pcharbon70"
       refute html =~ "Integration / Framework"
       refute html =~ ~s(href="/ecosystem/agent_jido")
-      refute html =~ ~s(href="/ecosystem/jido_code")
+      refute html =~ ~s(href="/ecosystem/jido_memory_os")
+      refute html =~ ~s(href="/ecosystem/jido_flame")
     end
 
     test "docs right rail includes Livebook run link for livebook-backed docs pages", %{conn: conn} do

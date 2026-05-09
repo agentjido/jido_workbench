@@ -13,7 +13,7 @@ defmodule AgentJido.ContentIngest.EcosystemDocs.SyncTest do
 
       case fixture do
         :unpublished ->
-          {:ok, %{status: 404, body: "", headers: [], url: "https://hex.pm/api/packages/jido/releases/2.1.0"}}
+          {:ok, %{status: 404, body: "", headers: [], url: "https://hex.pm/api/packages/jido/releases/2.2.0"}}
 
         _other ->
           {:ok,
@@ -22,10 +22,10 @@ defmodule AgentJido.ContentIngest.EcosystemDocs.SyncTest do
              body:
                Jason.encode!(%{
                  "has_docs" => true,
-                 "docs_html_url" => "https://hexdocs.pm/jido/2.1.0/"
+                 "docs_html_url" => "https://hexdocs.pm/jido/2.2.0/"
                }),
              headers: [],
-             url: "https://hex.pm/api/packages/jido/releases/2.1.0"
+             url: "https://hex.pm/api/packages/jido/releases/2.2.0"
            }}
       end
     end
@@ -34,10 +34,10 @@ defmodule AgentJido.ContentIngest.EcosystemDocs.SyncTest do
       fixture = Keyword.get(opts, :fixture, :v1)
 
       case {fixture, url} do
-        {_, "https://hexdocs.pm/jido/2.1.0/"} ->
+        {_, "https://hexdocs.pm/jido/2.2.0/"} ->
           {:ok, response(url, root_html())}
 
-        {fixture, "https://hexdocs.pm/jido/2.1.0/overview.html"} when fixture in [:v1, :v2, :page_failure] ->
+        {fixture, "https://hexdocs.pm/jido/2.2.0/overview.html"} when fixture in [:v1, :v2, :page_failure] ->
           {:ok,
            response(
              url,
@@ -45,7 +45,7 @@ defmodule AgentJido.ContentIngest.EcosystemDocs.SyncTest do
              canonical: "https://hexdocs.pm/jido/overview.html"
            )}
 
-        {fixture, "https://hexdocs.pm/jido/2.1.0/getting-started.html"} when fixture in [:v1, :page_failure] ->
+        {fixture, "https://hexdocs.pm/jido/2.2.0/getting-started.html"} when fixture in [:v1, :page_failure] ->
           {:ok,
            response(
              url,
@@ -53,7 +53,7 @@ defmodule AgentJido.ContentIngest.EcosystemDocs.SyncTest do
              canonical: "https://hexdocs.pm/jido/getting-started.html"
            )}
 
-        {:v2, "https://hexdocs.pm/jido/2.1.0/Jido.Agent.html"} ->
+        {:v2, "https://hexdocs.pm/jido/2.2.0/Jido.Agent.html"} ->
           {:ok,
            response(
              url,
@@ -61,7 +61,7 @@ defmodule AgentJido.ContentIngest.EcosystemDocs.SyncTest do
              canonical: "https://hexdocs.pm/jido/Jido.Agent.html"
            )}
 
-        {:v1, "https://hexdocs.pm/jido/2.1.0/Jido.Agent.html"} ->
+        {:v1, "https://hexdocs.pm/jido/2.2.0/Jido.Agent.html"} ->
           {:ok,
            response(
              url,
@@ -69,16 +69,16 @@ defmodule AgentJido.ContentIngest.EcosystemDocs.SyncTest do
              canonical: "https://hexdocs.pm/jido/Jido.Agent.html"
            )}
 
-        {:page_failure, "https://hexdocs.pm/jido/2.1.0/Jido.Agent.html"} ->
+        {:page_failure, "https://hexdocs.pm/jido/2.2.0/Jido.Agent.html"} ->
           {:error, :timeout}
 
-        {:v1, "https://hexdocs.pm/jido/2.1.0/dist/sidebar_items-test.js"} ->
+        {:v1, "https://hexdocs.pm/jido/2.2.0/dist/sidebar_items-test.js"} ->
           {:ok, response(url, manifest_js(include_getting_started?: true))}
 
-        {:v2, "https://hexdocs.pm/jido/2.1.0/dist/sidebar_items-test.js"} ->
+        {:v2, "https://hexdocs.pm/jido/2.2.0/dist/sidebar_items-test.js"} ->
           {:ok, response(url, manifest_js(include_getting_started?: false))}
 
-        {:page_failure, "https://hexdocs.pm/jido/2.1.0/dist/sidebar_items-test.js"} ->
+        {:page_failure, "https://hexdocs.pm/jido/2.2.0/dist/sidebar_items-test.js"} ->
           {:ok, response(url, manifest_js(include_getting_started?: true))}
 
         _other ->
@@ -182,7 +182,7 @@ defmodule AgentJido.ContentIngest.EcosystemDocs.SyncTest do
     assert third.updated == 1
     assert third.deleted >= 2
     assert managed_doc_count() == 2
-    assert latest_package_version() == "2.1.0"
+    assert latest_package_version() == "2.2.0"
   end
 
   test "sync_now removes previously indexed docs when the exact release is unpublished" do

@@ -159,7 +159,7 @@
     snippet: """
     defp deps do
       [
-        {:jido, "~> 2.1.0"}
+        {:jido, "~> 2.2.0"}
       ]
     end
     """

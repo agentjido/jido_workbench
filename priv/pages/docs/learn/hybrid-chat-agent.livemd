@@ -25,9 +25,9 @@ This notebook builds on [Build an AI Chat Agent](/docs/learn/ai-chat-agent). The
 
 ```elixir
 Mix.install([
-  {:jido, "~> 2.1"},
-  {:jido_ai, "~> 2.0"},
-  {:req_llm, "~> 1.7"}
+  {:jido, "~> 2.2"},
+  {:jido_ai, "~> 2.1"},
+  {:req_llm, "~> 1.11"}
 ])
 
 Logger.configure(level: :warning)
