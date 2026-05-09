@@ -1,7 +1,7 @@
 %{
   name: "jido_ai",
   title: "Jido AI",
-  version: "2.0.0",
+  version: "2.1.0",
   tagline: "LLM orchestration, reasoning strategies, and accuracy improvement for Jido agents",
   graph_label: "Jido AI",
   license: "Apache-2.0",
@@ -19,7 +19,7 @@
   elixir: "~> 1.17",
   maturity: :stable,
   support_level: :stable,
-  hex_status: "2.0.0",
+  hex_status: "2.1.0",
   api_stability: "stable — 2.0 shipped, with ongoing provider and strategy improvements in the 2.x line",
   stub: false,
   support: :maintained,

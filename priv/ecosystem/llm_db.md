@@ -1,7 +1,7 @@
 %{
   name: "llm_db",
   title: "LLMDB",
-  version: "2026.3.2",
+  version: "2026.5.0",
   tagline: "Fast, zero-network LLM model metadata catalog for Elixir",
   graph_label: "LLM DB",
   license: "MIT",
@@ -19,7 +19,7 @@
   elixir: "~> 1.17",
   maturity: :stable,
   support_level: :stable,
-  hex_status: "2026.3.2",
+  hex_status: "2026.5.0",
   api_stability: "stable",
   stub: false,
   support: :maintained,

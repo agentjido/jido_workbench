@@ -3,7 +3,7 @@
   title: "Jido Workflow",
   graph_label: "Jido Workflow",
   version: "0.1.0",
-  tagline: "Workflow runtime and CLI for DAG-based Jido code workflows",
+  tagline: "Deprecated workflow runtime retained for historical reference",
   license: "Apache-2.0",
   visibility: :private,
   category: :runtime,
@@ -20,6 +20,7 @@
   stub: false,
   support: :best_effort,
   limitations: [
+    "Deprecated and removed from the public ecosystem atlas",
     "Not published to Hex - available via GitHub dependency",
     "CLI and task contract behavior is still evolving",
     "Current source metadata in upstream mix config may point to a non-org URL"

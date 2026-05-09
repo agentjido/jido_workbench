@@ -21,18 +21,18 @@ defmodule AgentJido.EcosystemSupportLevelTest do
     assert Ecosystem.get_package!("jido_behaviortree").support_level == :stable
     assert Ecosystem.get_package!("jido_character").support_level == :stable
     assert Ecosystem.get_package!("jido_memory").support_level == :stable
-    assert Ecosystem.get_package!("jido_memory_os").support_level == :stable
     assert Ecosystem.get_package!("jido_mcp").support_level == :beta
     assert Ecosystem.get_package!("jido_messaging").support_level == :beta
   end
 
   test "aligns published package versions with the official ecosystem inventory" do
-    assert Ecosystem.get_package!("jido").version == "2.1.0"
-    assert Ecosystem.get_package!("jido_action").version == "2.1.1"
-    assert Ecosystem.get_package!("jido_ai").version == "2.0.0"
+    assert Ecosystem.get_package!("jido").version == "2.2.0"
+    assert Ecosystem.get_package!("jido_action").version == "2.2.1"
+    assert Ecosystem.get_package!("jido_ai").version == "2.1.0"
     assert Ecosystem.get_package!("jido_browser").version == "2.0.0"
-    assert Ecosystem.get_package!("llm_db").version == "2026.3.2"
-    assert Ecosystem.get_package!("req_llm").version == "1.7.1"
+    assert Ecosystem.get_package!("jido_signal").version == "2.1.1"
+    assert Ecosystem.get_package!("llm_db").version == "2026.5.0"
+    assert Ecosystem.get_package!("req_llm").version == "1.11.0"
   end
 
   test "groups public packages by support level" do
@@ -44,7 +44,6 @@ defmodule AgentJido.EcosystemSupportLevelTest do
 
   test "exposes tech lead ownership metadata for public packages" do
     assert Ecosystem.get_package!("jido").tech_lead == "@mikehostetler"
-    assert Ecosystem.get_package!("jido_memory_os").tech_lead == "@pcharbon70"
     assert Enum.all?(Ecosystem.public_packages(), &is_binary(&1.tech_lead))
   end
 

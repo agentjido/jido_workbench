@@ -3,7 +3,7 @@
   title: "Jido Skill",
   graph_label: "Jido Skill",
   version: "0.1.0",
-  tagline: "Skill-only runtime for markdown-defined skills with signal-first dispatch",
+  tagline: "Deprecated skill runtime retained for historical reference",
   license: "Apache-2.0",
   visibility: :private,
   category: :tools,
@@ -20,6 +20,7 @@
   stub: false,
   support: :best_effort,
   limitations: [
+    "Deprecated and removed from the public ecosystem atlas",
     "Not published to Hex - available via GitHub dependency",
     "Skill conventions are markdown/file-structure driven and still evolving",
     "Registry and route dispatch APIs are pre-1.0 and subject to change"

@@ -3,7 +3,7 @@
   title: "Jido Command",
   graph_label: "Jido Command",
   version: "0.1.0",
-  tagline: "Signal-first slash-command runtime with markdown-defined command specs",
+  tagline: "Deprecated slash-command runtime retained for historical reference",
   license: "Apache-2.0",
   visibility: :private,
   category: :tools,
@@ -20,6 +20,7 @@
   stub: false,
   support: :best_effort,
   limitations: [
+    "Deprecated and removed from the public ecosystem atlas",
     "Not published to Hex - available via GitHub dependency",
     "Relies on markdown + frontmatter command definitions and local file conventions",
     "Hook lifecycle and dispatch contracts are still pre-1.0"

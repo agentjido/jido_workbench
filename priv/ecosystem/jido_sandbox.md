@@ -3,7 +3,7 @@
   title: "Jido Sandbox",
   graph_label: "Jido Sandbox",
   version: "0.1.0",
-  tagline: "Pure-BEAM sandbox with virtual filesystem and Lua runtime for safe LLM tool execution",
+  tagline: "Deprecated sandbox package retained for historical reference",
   license: "Apache-2.0",
   visibility: :private,
   category: :tools,
@@ -21,6 +21,7 @@
   stub: false,
   support: :best_effort,
   limitations: [
+    "Deprecated and removed from the public ecosystem atlas",
     "Not published to Hex — available only via GitHub dependency",
     "Lua runtime has restricted stdlib — no os, io, package, or debug modules",
     "VFS is in-memory only with no disk persistence"
