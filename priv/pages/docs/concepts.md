@@ -27,7 +27,7 @@ Beyond the core, Jido has three cognitive pillars: Thread records what happened 
 7. **[Strategy](/docs/concepts/strategy)** - Pluggable execution models that control how agents process actions.
 8. **[Plugins](/docs/concepts/plugins)** - Composable behavior bundles that extend agents with actions, routes, and state.
 9. **[Execution](/docs/concepts/execution)** - The pipeline that runs actions: validation, chaining, retry, compensation, and async.
-10. **[Thread](/docs/concepts/thread)** - The append-only interaction log that records what happened during agent operation.
+10. **[Threads](/docs/concepts/threads)** - The append-only interaction log that records what happened during agent operation.
 11. **[Memory](/docs/concepts/memory)** - The mutable cognitive substrate where agents store current beliefs and goals.
 12. **[Persistence](/docs/concepts/persistence)** - How agents survive restarts through hibernate, thaw, and storage adapters.
 

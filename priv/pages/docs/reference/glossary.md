@@ -60,7 +60,7 @@ A named partition within [Memory](#memory). Each space holds either a key-value 
 
 ### Thread
 
-An immutable, append-only log of `Entry` structs stored at `agent.state[:__thread__]`. Records what happened during agent operation. Provider-agnostic: LLM conversation context is projected from Thread entries, never stored directly. See [Thread concept](/docs/concepts/thread).
+An immutable, append-only log of `Entry` structs stored at `agent.state[:__thread__]`. Records what happened during agent operation. Provider-agnostic: LLM conversation context is projected from Thread entries, never stored directly. See [Thread concept](/docs/concepts/threads).
 
 ### Thread Entry
 

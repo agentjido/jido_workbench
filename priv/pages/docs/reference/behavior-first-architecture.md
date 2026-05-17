@@ -119,7 +119,7 @@ The rest of the core extends the same split.
 | [Strategy](/docs/concepts/strategy) | Defines execution policy without changing the Agent contract |
 | [Plugin](/docs/concepts/plugins) | Packages reusable capability bundles for composition |
 | [Execution](/docs/concepts/execution) | Runs validation, chaining, retry, and compensation consistently |
-| [Thread](/docs/concepts/thread) | Records what happened in an append-only log |
+| [Thread](/docs/concepts/threads) | Records what happened in an append-only log |
 | [Memory](/docs/concepts/memory) | Holds mutable working knowledge and intent |
 | [Persistence](/docs/concepts/persistence) | Defines how agents survive restart and restore state |
 
