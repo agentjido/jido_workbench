@@ -90,4 +90,4 @@ Jido's architecture is built on a small set of composable primitives. The [Conce
 
 - [Start with installation](/docs/getting-started/installation) - begin the onboarding ladder
 - [Concepts](/docs/concepts) - the full architectural reference for every Jido primitive
-- [Why not just a GenServer?](/docs/learn/why-not-just-a-genserver) - the full case for separating data from process
+- [Why not just a GenServer?](/docs/reference/why-not-just-a-genserver) - the full case for separating data from process
