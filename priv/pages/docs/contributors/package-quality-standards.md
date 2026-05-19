@@ -424,14 +424,11 @@ When a package uses `git_hooks`, keep installation explicit rather than compile-
 
 ## Elixir Version Baseline
 
-The package baseline is Elixir `~> 1.18` in `mix.exs`.
+The package baseline is the lowest Elixir version line declared in `mix.exs`.
 
-CI MUST test every released Elixir version line from that baseline forward. As of May 2026, that means:
+CI MUST test every supported released Elixir version line from that baseline through the latest stable line used by the ecosystem.
 
-- Elixir `1.18`
-- Elixir `1.19`
-
-CI SHOULD also compile against the current Elixir release candidate in an experimental lane. Experimental lanes are allowed to warn or fail without failing the required CI gate, but their output should be reviewed before releases and dependency upgrades. As of May 2026, the current RC lane is `v1.20.0-rc.4` on OTP `28.4.1`.
+CI SHOULD also compile against the current Elixir release candidate in an experimental lane. Experimental lanes are allowed to warn or fail without failing the required CI gate, but their output should be reviewed before releases and dependency upgrades. Use the latest exact Elixir release-candidate tag supported by the toolchain and pair it with a compatible OTP version.
 
 Update the matrix in the same PR that updates the package's shared workflow installation when a new Elixir version line or release candidate becomes available.
 
@@ -475,9 +472,10 @@ jobs:
     with:
       otp_versions: '["27", "28"]'
       elixir_versions: '["1.18", "1.19"]'
-      experimental_compile_elixir_versions: '["v1.20.0-rc.4"]'
-      experimental_compile_otp_versions: '["28.4.1"]'
-      experimental_compile_otp_name: "28"
+      # Optional: keep this lane on the latest exact Elixir release-candidate tag.
+      experimental_compile_elixir_versions: '["<latest-elixir-rc-tag>"]'
+      experimental_compile_otp_versions: '["<matching-otp-version>"]'
+      experimental_compile_otp_name: "<otp-major>"
       docs_command: mix docs -f html
       test_command: mix test
 ```
