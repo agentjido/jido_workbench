@@ -338,6 +338,35 @@ defmodule AgentJido.PagesTest do
       end)
     end
 
+    test "sensors guide keeps routes stable and state checks inside actions" do
+      source =
+        File.read!(Path.expand("priv/pages/docs/learn/sensors-and-real-time-events.livemd", File.cwd!()))
+
+      assert source =~ "Routes are calculated when the Agent starts"
+      assert source =~ "keep the route table stable and branch inside the Action"
+      assert source =~ "def signal_routes(_ctx) do"
+      assert source =~ ~s({"process", MyApp.ProcessAction})
+      assert source =~ "The Signal still routed to `ProcessAction`"
+
+      refute source =~ "dynamic signal routing"
+      refute source =~ "maintenance: true"
+      refute source =~ "MyApp.MaintenanceAction"
+      refute source =~ "The routing decision happens on every incoming Signal"
+      refute source =~ "You can return different routes based on the Agent's current state"
+    end
+
+    test "sensors guide defines QuoteSensor in one Livebook code block" do
+      source =
+        File.read!(Path.expand("priv/pages/docs/learn/sensors-and-real-time-events.livemd", File.cwd!()))
+
+      [_before, after_module_start] = String.split(source, "defmodule MyApp.QuoteSensor do", parts: 2)
+      [quote_sensor_block, _after] = String.split(after_module_start, "```", parts: 2)
+
+      assert quote_sensor_block =~ "def init(opts) do"
+      assert quote_sensor_block =~ "def handle_info(:emit, state) do"
+      assert quote_sensor_block =~ "Jido.AgentServer.cast(state.target, signal)"
+    end
+
     test "reasoning strategies guide uses public strategy agents and runnable metadata" do
       source =
         File.read!(Path.expand("priv/pages/docs/learn/reasoning-strategies-compared.livemd", File.cwd!()))
