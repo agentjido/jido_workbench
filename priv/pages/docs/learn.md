@@ -36,4 +36,4 @@ Add LLM reasoning, tools, and multi-agent coordination.
 
 - [Concepts](/docs/concepts) - understand the architecture behind what you built
 - [Guides](/docs/guides) - task-focused recipes for specific problems
-- [Ecosystem](/docs/ecosystem) - explore the packages that extend Jido
+- [Ecosystem](/ecosystem) - explore the packages that extend Jido
