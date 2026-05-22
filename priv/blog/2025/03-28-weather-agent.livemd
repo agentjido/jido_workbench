@@ -90,7 +90,7 @@ defmodule WeatherAgent do
       agent: __MODULE__,           # Link this module to the server
       # log_level: :info,         # Optional: Increase agent logging
       ai: [                       # AI-specific configuration
-        model: {:openai, model: "gpt-4o-mini"}, # Specify the LLM
+        model: {:openai, model: "gpt-5-mini"}, # Specify the LLM
         prompt: """
         You are an enthusiastic weather reporter.
         <%= @message %>

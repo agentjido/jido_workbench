@@ -12,6 +12,7 @@ defmodule AgentJido.LivebookDocsCoverageTest do
     "priv/pages/docs/guides/error-handling-and-recovery.livemd",
     "priv/pages/docs/guides/persistence-and-checkpoints.livemd",
     "priv/pages/docs/guides/testing-agents-and-actions.livemd",
+    "priv/pages/docs/learn/ai-agent-with-tools.livemd",
     "priv/pages/docs/learn/ai-chat-agent.livemd",
     "priv/pages/docs/learn/first-workflow.livemd",
     "priv/pages/docs/learn/hybrid-chat-agent.livemd",
@@ -26,7 +27,6 @@ defmodule AgentJido.LivebookDocsCoverageTest do
   ]
 
   @reference_only_livebooks [
-    "priv/pages/docs/learn/ai-agent-with-tools.livemd",
     "priv/pages/docs/reference/why-not-just-a-genserver.livemd"
   ]
 
