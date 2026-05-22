@@ -1,6 +1,6 @@
 <!-- %{
   title: "Sensors and real-time events",
-  description: "Connect external data sources to agents via sensors and dynamic signal routing.",
+  description: "Connect external data sources to agents via sensors and signal routing.",
   category: :docs,
   order: 17,
   tags: [:docs, :learn, :sensors, :signals, :livebook],
@@ -129,11 +129,7 @@ defmodule MyApp.QuoteSensor do
     send(self(), :emit)
     {:ok, state}
   end
-```
 
-The `init/1` callback stores the target Agent reference, polling interval, and maximum number of emissions. It immediately sends itself the first `:emit` message.
-
-```elixir
   def handle_info(:emit, %{emit_count: count, max_emits: max} = state)
       when count >= max do
     {:stop, :normal, state}
@@ -156,6 +152,8 @@ The `init/1` callback stores the target Agent reference, polling interval, and m
   end
 end
 ```
+
+The `init/1` callback stores the target Agent reference, polling interval, and maximum number of emissions. It immediately sends itself the first `:emit` message.
 
 When `emit_count` reaches `max_emits`, the Sensor stops itself. Otherwise it builds a Signal with type `"sensor.quote"`, delivers it to the Agent via `AgentServer.cast/2`, and schedules the next emission. The `cast` call is fire-and-forget, so the Sensor does not block waiting for the Agent to process the Signal.
 
@@ -253,9 +251,9 @@ The Agent processed the webhook Signal through the same routing mechanism as the
 
 ## Context-aware routing
 
-`signal_routes/1` receives a context map. You can return different routes based on the Agent's current state. This lets you build Agents that change behavior dynamically.
+`signal_routes/1` receives a context map when the Agent's routes are built. Routes are calculated when the Agent starts, so do not use this callback to switch routes based on state changes that happen later.
 
-Define Actions for normal and maintenance modes.
+When runtime behavior depends on Agent state, keep the route table stable and branch inside the Action. This example routes every `"process"` Signal to one Action, then lets that Action decide what to do based on the current mode.
 
 ```elixir
 defmodule MyApp.ProcessAction do
@@ -265,22 +263,19 @@ defmodule MyApp.ProcessAction do
 
   @impl true
   def run(%{value: value}, context) do
-    current = Map.get(context.state, :counter, 0)
-    {:ok, %{counter: current + value, message: "processed"}}
-  end
-end
+    case Map.get(context.state, :mode, :normal) do
+      :maintenance ->
+        {:ok, %{message: "system in maintenance mode"}}
 
-defmodule MyApp.MaintenanceAction do
-  use Jido.Action,
-    name: "maintenance_handler",
-    schema: [value: [type: :integer, default: 0]]
-
-  @impl true
-  def run(_params, _context) do
-    {:ok, %{message: "system in maintenance mode"}}
+      _mode ->
+        current = Map.get(context.state, :counter, 0)
+        {:ok, %{counter: current + value, message: "processed"}}
+    end
   end
 end
 ```
+
+Use a second Action to update the Agent's mode.
 
 ```elixir
 defmodule MyApp.SetModeAction do
@@ -295,7 +290,7 @@ defmodule MyApp.SetModeAction do
 end
 ```
 
-Now define the Agent with context-aware routing. When the context includes `maintenance: true`, the `"process"` Signal routes to `MaintenanceAction` instead of `ProcessAction`.
+Now define the Agent with stable routes. The route table does not change when the mode changes; the `"process"` route always points to `MyApp.ProcessAction`.
 
 ```elixir
 defmodule MyApp.GatedAgent do
@@ -307,21 +302,16 @@ defmodule MyApp.GatedAgent do
       message: [type: :string, default: nil]
     ]
 
-  def signal_routes(ctx) do
-    base_routes = [{"set_mode", MyApp.SetModeAction}]
-
-    process_route =
-      case ctx do
-        %{maintenance: true} -> {"process", MyApp.MaintenanceAction}
-        _ -> {"process", MyApp.ProcessAction}
-      end
-
-    [process_route | base_routes]
+  def signal_routes(_ctx) do
+    [
+      {"process", MyApp.ProcessAction},
+      {"set_mode", MyApp.SetModeAction}
+    ]
   end
 end
 ```
 
-The routing decision happens on every incoming Signal. The runtime calls `signal_routes/1` with the current context, so the Agent can gate behavior based on any context value: feature flags, agent mode, time of day, or accumulated state.
+This is the important boundary: Signal Routes decide which Action handles a Signal type, and Actions decide how current Agent state affects behavior.
 
 ```elixir
 {:ok, gated_pid} =
@@ -345,7 +335,7 @@ IO.inspect(state.counter, label: "Counter")
 IO.inspect(state.message, label: "Message")
 ```
 
-The counter increments because `ProcessAction` handled the Signal. Now switch to maintenance mode and send the same Signal.
+The counter increments because `ProcessAction` handled the Signal while the Agent was in normal mode. Now switch to maintenance mode and send the same Signal.
 
 ```elixir
 mode_signal =
@@ -367,11 +357,11 @@ IO.inspect(state.counter, label: "Counter after maintenance")
 IO.inspect(state.message, label: "Message after maintenance")
 ```
 
-The counter stays at the previous value. `MaintenanceAction` ran instead of `ProcessAction`, returning a maintenance message without incrementing the counter.
+The counter stays at the previous value. The Signal still routed to `ProcessAction`, but the Action saw `mode: :maintenance` in Agent state and returned a maintenance message without incrementing the counter.
 
 ## Next steps
 
-You now know how to bridge external data into Agents with Sensors and how to build context-aware routing that changes Agent behavior at runtime. Explore these topics next:
+You now know how to bridge external data into Agents with Sensors, route Signals to Actions, and keep route tables stable while Actions branch on Agent state. Explore these topics next:
 
 - [Signals](/docs/concepts/signals) for the full Signal specification and routing patterns
 - [Directives](/docs/concepts/directives) to learn how Actions can emit side effects alongside state updates
