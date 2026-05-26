@@ -99,7 +99,7 @@ defmodule AgentJido.MixProject do
       {:nostrum, "~> 0.10", runtime: false},
       {:req_llm, "~> 1.7", override: true},
       {:timex, "~> 3.7", override: true},
-      {:gettext, "~> 0.26", override: true},
+      {:gettext, "~> 1.0", override: true},
 
       # Image generation (OG images)
       {:image, "~> 0.54"},
