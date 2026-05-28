@@ -5,7 +5,7 @@
 app = 'agentjido-stage'
 primary_region = 'ord'
 kill_signal = 'SIGTERM'
-kill_timeout = 300
+kill_timeout = 60
 swap_size_mb = 256
 
 [vm]
@@ -40,6 +40,9 @@ min_machines_running = 0
 type = 'connections'
 hard_limit = 1000
 soft_limit = 1000
+
+[http_service.http_options]
+idle_timeout = 600
 
 [[http_service.checks]]
 grace_period = "180s"
